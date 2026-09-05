@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Alicorn — review</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #060606; color: #fafafa;
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; letter-spacing: .01em; }
+  body { display: flex; flex-direction: column; }
+  header { flex: 0 0 auto; border-bottom: 1px solid rgb(255 255 255 / .08);
+    display: flex; align-items: center; gap: 14px; padding: 12px 18px; }
+  .mark { width: 26px; height: 26px; border-radius: 8px;
+    background: #fafafa; display: grid; place-items: center; }
+  h1 { font-size: 14px; margin: 0; font-weight: 600; }
+  .meta { font-size: 11px; color: #a1a1a1; text-transform: uppercase;
+    letter-spacing: .05em; font-weight: 600; }
+  nav { display: flex; gap: 4px; margin-left: auto; }
+  .tab { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px;
+    background: none; border: 1px solid transparent; color: #a1a1a1; cursor: pointer; }
+  .tab:hover { background: #262626; color: #fafafa; }
+  .tab[aria-selected='true'] { background: rgb(255 255 255 / .10);
+    border-color: rgb(255 255 255 / .20); color: #fafafa; }
+  .pane { flex: 1 1 auto; display: none; }
+  .pane[data-active='true'] { display: block; }
+  iframe { width: 100%; height: 100%; border: 0; display: block; }
+</style>
+</head>
+<body>
+<header>
+  <div class="mark">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.13 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/></svg>
+  </div>
+  <h1>Alicorn</h1>
+  <span class="meta">wp1 app · wp2 auth · wp3 landing · desktop 1440</span>
+  <nav>
+    <!-- The interactive flow leads the tab bar and is the default. Tab order reads
+         as priority order whatever you intend it to mean. -->
+    <button class="tab" aria-selected="true" data-pane="flow">App</button>
+    <button class="tab" data-pane="launcher">Sign in</button>
+    <button class="tab" data-pane="landing">Landing</button>
+    <button class="tab" data-pane="kit">Design system</button>
+  </nav>
+</header>
+
+<div class="pane" data-pane="flow" data-active="true"><iframe src="app-alicorn.html" title="Alicorn interactive flow"></iframe></div>
+<div class="pane" data-pane="launcher"><iframe data-src="app-launcher.html" title="Alicorn sign-in flow"></iframe></div>
+<div class="pane" data-pane="landing"><iframe data-src="landing.html" title="Alicorn landing draft"></iframe></div>
+<div class="pane" data-pane="kit"><iframe data-src="design-system.html" title="Alicorn design system"></iframe></div>
+
+<script>
+document.addEventListener('click', function (e) {
+  var t = e.target.closest('.tab'); if (!t) return;
+  var id = t.getAttribute('data-pane');
+  document.querySelectorAll('.tab').forEach(function (b) {
+    b.setAttribute('aria-selected', String(b === t));
+  });
+  document.querySelectorAll('.pane').forEach(function (p) {
+    var on = p.getAttribute('data-pane') === id;
+    p.setAttribute('data-active', String(on));
+    var f = p.querySelector('iframe');           // lazy: only load a pane once opened
+    if (on && f && !f.src && f.dataset.src) f.src = f.dataset.src;
+  });
+});
+</script>
+</body>
+</html>

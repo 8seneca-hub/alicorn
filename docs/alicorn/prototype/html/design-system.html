@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Alicorn — design system</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .kit { padding: 32px 40px 64px; max-width: 1180px; }
+  .kit h2 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted-foreground); margin: 34px 0 12px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border); }
+  .kit h2:first-of-type { margin-top: 0; }
+  .kit p.note { font-size: 12px; color: var(--muted-foreground); margin: -4px 0 14px; max-width: 70ch; line-height: 1.6; }
+  .swatches { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+  .sw { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+  .sw__chip { height: 46px; }
+  .sw__meta { padding: 7px 9px; }
+  .sw__name { font-size: 11px; font-weight: 600; }
+  .sw__val { font-family: var(--font-mono); font-size: 10px; color: var(--muted-foreground); }
+  .strip { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .tbl { width: 100%; border-collapse: collapse; }
+  .tbl td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+  .tbl td:first-child { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); width: 190px; }
+  .tbl td:last-child { font-size: 12px; color: var(--muted-foreground); }
+  .elev { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  .elev__box { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl);
+    padding: 16px; font-size: 12px; }
+  .provenance { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-xl);
+    padding: 14px 16px; font-size: 12px; color: var(--muted-foreground); line-height: 1.7; max-width: 80ch; }
+  .provenance code { font-family: var(--font-mono); font-size: 11px; color: var(--brand); }
+</style>
+</head>
+<body>
+<div class="kit">
+
+  <h2>Provenance</h2>
+  <div class="provenance">
+    Every token below is lifted verbatim from <code>src/renderer/src/assets/main.css</code> or derived
+    from it by a stated rule. Nothing is invented. Type, radius and elevation follow
+    <code>docs/STYLEGUIDE.md</code>. Dark is promoted to <code>:root</code> because the product is
+    dark-first; the light set is carried as <code>[data-theme="light"]</code>.
+    <br><br>
+    The <strong>brand has no hue at all</strong>. On a surface whose entire job is surfacing what needs
+    a human, an accent colour competes with the signal — so the accent is <em>white</em>, and the
+    primary action is a white button on near-black.
+    <br><br>
+    Colour discipline, stated as a rule the whole system obeys: <strong>the product is black and white,
+    and exactly one hue exists in it.</strong> Amber means "a human is required" and nothing else ever
+    uses it. Red survives only for destructive and failed states, where convention is load-bearing.
+    Everything else — live, idle, success, identity, navigation — is monochrome and carries its meaning
+    by <strong>shape and text</strong>, which the accessibility pass already required.
+  </div>
+
+  <h2>Core surface</h2>
+  <div class="swatches">
+    <div class="sw"><div class="sw__chip" style="background:var(--background)"></div><div class="sw__meta"><div class="sw__name">background</div><div class="sw__val">#0a0a0a</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--card)"></div><div class="sw__meta"><div class="sw__name">card</div><div class="sw__val">#171717</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--panel)"></div><div class="sw__meta"><div class="sw__name">panel</div><div class="sw__val">#2a2a2a</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--secondary)"></div><div class="sw__meta"><div class="sw__name">secondary</div><div class="sw__val">#262626</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--editor-surface)"></div><div class="sw__meta"><div class="sw__name">editor-surface</div><div class="sw__val">#1e1e1e</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--muted-foreground)"></div><div class="sw__meta"><div class="sw__name">muted-fg</div><div class="sw__val">#a1a1a1</div></div></div>
+  </div>
+
+  <h2>Brand — monochrome, plus one signal</h2>
+  <div class="swatches">
+    <div class="sw"><div class="sw__chip" style="background:var(--brand)"></div><div class="sw__meta"><div class="sw__name">brand</div><div class="sw__val">#fafafa · 18.9:1</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--status-attention)"></div><div class="sw__meta"><div class="sw__name">attention</div><div class="sw__val">#f5a524 · the one hue</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--status-critical)"></div><div class="sw__meta"><div class="sw__name">critical</div><div class="sw__val">#ff6568 · destructive only</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--avatar)"></div><div class="sw__meta"><div class="sw__name">avatar</div><div class="sw__val">#242424</div></div></div>
+  </div>
+
+  <h2>Agent &amp; workspace semantics — reused, not redefined</h2>
+  <p class="note">These already exist in main.css and already mean this. Reusing them is the point: a
+  status keeps its identity across the rebrand, and the agent map stays readable.</p>
+  <div class="swatches">
+    <div class="sw"><div class="sw__chip" style="background:var(--agent-question)"></div><div class="sw__meta"><div class="sw__name">agent-question</div><div class="sw__val">orange-500</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--status-success)"></div><div class="sw__meta"><div class="sw__name">status-success</div><div class="sw__val">#86efac</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--workspace-status-progress)"></div><div class="sw__meta"><div class="sw__name">ws-progress</div><div class="sw__val">#d4a300</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--workspace-status-review)"></div><div class="sw__meta"><div class="sw__name">ws-review</div><div class="sw__val">#16a34a</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--workspace-status-done)"></div><div class="sw__meta"><div class="sw__name">ws-done</div><div class="sw__val">#c7a594</div></div></div>
+    <div class="sw"><div class="sw__chip" style="background:var(--terminal-pane-locate)"></div><div class="sw__meta"><div class="sw__name">pane-locate</div><div class="sw__val">blue-400</div></div></div>
+  </div>
+
+  <h2>Member identity — monochrome, deliberately</h2>
+  <p class="note">v1 gave every role its own hue, which put six decorative colours in front of the three
+  that actually signal something. Initials identify the member; colour is spent only on status.</p>
+  <table class="tbl">
+    <tr><td>--avatar</td><td><span class="avatar">DV</span> <span class="avatar">CR</span> <span class="avatar">BA</span> <span class="avatar">DS</span> <span class="avatar">PM</span> <span class="avatar">QA</span></td><td>one neutral for every member</td></tr>
+    <tr><td>--status-live</td><td><span class="status status--run"><span class="dot dot--run"></span>Live</span></td><td>filled + pulsing · working now</td></tr>
+    <tr><td>--status-attention</td><td><span class="status status--ask"><span class="dot dot--ask"></span>Needs you</span></td><td>ring · blocked on a person</td></tr>
+    <tr><td>--status-idle</td><td><span class="status status--idle"><span class="dot dot--idle"></span>Idle</span></td><td>hollow · nothing to do</td></tr>
+  </table>
+
+  <h2>Type — Tailwind default scale, four sizes in practice</h2>
+  <table class="tbl">
+    <tr><td>--text-meta · 11px</td><td><span style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Uppercase meta</span></td><td>rail headers, captions, category labels</td></tr>
+    <tr><td>--text-sub · 12px</td><td><span style="font-size:12px">Secondary content and paths</span></td><td>sub-text, transcript body</td></tr>
+    <tr><td>--text-row · 13px</td><td><span style="font-size:13px">Dense list rows</span></td><td>sidebar items, member names</td></tr>
+    <tr><td>--text-body · 14px</td><td><span style="font-size:14px">Default body text</span></td><td>body, default button text</td></tr>
+    <tr><td>--font-mono</td><td><span style="font-family:var(--font-mono);font-size:12px">orca orchestration task-create</span></td><td>paths, terminal-adjacent, literal</td></tr>
+  </table>
+
+  <h2>Radius — 0.625rem base, rest computed</h2>
+  <div class="strip">
+    <div style="width:88px;height:52px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);display:grid;place-items:center;font-size:11px">sm · 6</div>
+    <div style="width:88px;height:52px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-md);display:grid;place-items:center;font-size:11px">md · 8</div>
+    <div style="width:88px;height:52px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);display:grid;place-items:center;font-size:11px">lg · 10</div>
+    <div style="width:88px;height:52px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);display:grid;place-items:center;font-size:11px">xl · 14</div>
+    <div style="height:52px;padding:0 20px;background:var(--card);border:1px solid var(--border);border-radius:999px;display:grid;place-items:center;font-size:11px">full · badge</div>
+  </div>
+
+  <h2>Elevation — exactly three levels. Do not add a fourth.</h2>
+  <div class="elev">
+    <div class="elev__box"><strong>1 · Inset hairline</strong><br><span style="color:var(--muted-foreground)">border only. The default; almost everything sits here.</span></div>
+    <div class="elev__box" style="box-shadow:var(--shadow-xs)"><strong>2 · Subtle lift</strong><br><span style="color:var(--muted-foreground)">shadow-xs + one border. Outline buttons, embedded cards.</span></div>
+    <div class="elev__box" style="box-shadow:var(--shadow-floating)"><strong>3 · Floating</strong><br><span style="color:var(--muted-foreground)">Popovers, the command bar. Reserved.</span></div>
+  </div>
+
+  <h2>Buttons</h2>
+  <div class="strip">
+    <button class="btn btn--primary">Create member</button>
+    <button class="btn btn--outline">Edit columns</button>
+    <button class="btn btn--ghost">Cancel</button>
+    <button class="btn btn--primary btn--sm">Add stage</button>
+    <button class="btn btn--outline btn--sm">Add member</button>
+  </div>
+
+  <h2>Badges &amp; status</h2>
+  <div class="strip">
+    <span class="badge">Claude Code</span>
+    <span class="badge">Codex</span>
+    <span class="badge badge--brand">Feature delivery</span>
+    <span class="badge badge--ok">Synced 12s ago</span>
+    <span class="badge badge--ask">asking</span>
+    <span class="strip" style="gap:6px;font-size:12px;color:var(--muted-foreground)"><span class="dot dot--run"></span> running</span>
+    <span class="strip" style="gap:6px;font-size:12px;color:var(--muted-foreground)"><span class="dot dot--ask"></span> needs you</span>
+    <span class="strip" style="gap:6px;font-size:12px;color:var(--muted-foreground)"><span class="dot dot--idle"></span> idle</span>
+  </div>
+
+  <h2>Form controls</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:640px">
+    <div class="field"><label class="field__label">Name</label><div class="input">Code Review</div></div>
+    <div class="field"><label class="field__label">Role</label><div class="input">Reviewer</div>
+      <p class="field__hint">Single-line: the value truncates, it never wraps.</p></div>
+  </div>
+  <div style="margin-top:14px" class="strip">
+    <div class="seg">
+      <button class="seg__opt">Claude Code</button>
+      <button class="seg__opt" aria-pressed="true">Codex</button>
+      <button class="seg__opt">Grok</button>
+    </div>
+    <div class="chips">
+      <span class="chip" aria-pressed="true">code-review</span>
+      <span class="chip" aria-pressed="true">security-review</span>
+      <span class="chip">orchestration</span>
+    </div>
+  </div>
+
+  <h2>Composed — the four objects this product adds</h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start">
+
+    <div class="card" style="padding:14px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
+        <span class="avatar avatar--lg">CR</span>
+        <div style="min-width:0"><p style="margin:0;font-size:14px;font-weight:600">Code Review</p>
+        <p style="margin:2px 0 0;font-size:12px;color:var(--muted-foreground)">Codex · worktree</p></div>
+      </div>
+      <div class="chips"><span class="chip">code-review</span><span class="chip">+1</span></div>
+      <p style="margin:10px 0 0;font-size:11px;color:var(--muted-foreground)">Member</p>
+    </div>
+
+    <div class="tcard">
+      <p class="tcard__key">PAY-3021</p>
+      <p class="tcard__title">Partial refunds on the payments API</p>
+      <div class="tcard__foot"><span class="avatar">DV</span><span class="badge">worktree</span></div>
+      <p style="margin:10px 0 0;font-size:11px;color:var(--muted-foreground)">Task card</p>
+    </div>
+
+    <div class="node" style="position:static;width:auto">
+      <div class="node__head"><span class="avatar">DV</span><span class="node__stage">Build</span><span class="dot dot--run" style="margin-left:auto"></span></div>
+      <div class="node__body"><p class="node__owner">Developer · Claude Code</p>
+        <div class="trig"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/></svg><span>creates git worktree</span></div></div>
+    </div>
+
+    <div>
+      <div class="lane" style="background:var(--panel);padding-bottom:8px">
+        <div class="lane__head"><span class="lane__name">In Review</span><span class="lane__n">2</span></div>
+        <div class="lane__rule"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg><span>on enter → Code Review</span></div>
+      </div>
+      <p style="margin:10px 0 0;font-size:11px;color:var(--muted-foreground)">Lane + bound action</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

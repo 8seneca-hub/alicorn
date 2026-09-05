@@ -1,0 +1,165 @@
+/* Alicorn tokens.
+ *
+ * PROVENANCE — every value below is either lifted verbatim from Orca's canonical
+ * source or derived from it by a rule stated inline. Nothing here is invented.
+ *   source: src/renderer/src/assets/main.css  (:root and .dark blocks)
+ *   rules:  docs/STYLEGUIDE.md
+ *
+ * Dark is the primary theme (the existing product is dark-first), so .dark values
+ * are promoted to :root here and the light set is carried as [data-theme="light"].
+ */
+
+:root {
+  /* --- Type. STYLEGUIDE.md "Typography": Geist only, never Inter. ---------- */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', SFMono-Regular, ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace;
+  --body-tracking: 0.01em;          /* set globally on body; never overridden per component */
+
+  /* Sizes: Tailwind default scale, restricted to the four this repo actually uses. */
+  --text-meta: 11px;                /* uppercase meta / rail headers / captions */
+  --text-sub: 12px;                 /* sub-text, paths, secondary */
+  --text-row: 13px;                 /* sidebar items, dense list rows */
+  --text-body: 14px;                /* default body, default button text */
+  --meta-weight: 600;
+  --meta-tracking: 0.05em;
+
+  /* --- Radius. STYLEGUIDE.md "Radius": 0.625rem base, rest computed. ------- */
+  --radius: 0.625rem;               /* 10px */
+  --radius-sm: calc(var(--radius) * 0.6);   /* 6px  */
+  --radius-md: calc(var(--radius) * 0.8);   /* 8px  — buttons, inputs */
+  --radius-lg: var(--radius);               /* 10px */
+  --radius-xl: calc(var(--radius) * 1.4);   /* 14px — Card primitive */
+
+  /* --- Elevation. STYLEGUIDE.md: exactly three levels. Do not add a fourth. */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.28);
+  --shadow-floating: 0 10px 24px rgb(0 0 0 / 0.18);
+
+  /* --- Core surface + text. Verbatim from main.css .dark ------------------- */
+  --background: #0a0a0a;
+  --editor-surface: #1e1e1e;
+  --foreground: #fafafa;
+  --card: #141414;
+  --card-foreground: #fafafa;
+  --popover: #1a1a1a;
+  --popover-foreground: #fafafa;
+  --primary: #e5e5e5;
+  --primary-foreground: #171717;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #fafafa;
+  --muted: #1f1f1f;
+  --muted-foreground: #9b9b9b;
+  --accent: #2e2e2e;
+  --accent-foreground: #fafafa;
+  --destructive: #ff6568;
+  --border: rgb(255 255 255 / 0.09);
+  --input: rgb(255 255 255 / 0.15);
+  --ring: #737373;
+
+  /* Rail / sidebar. Verbatim from main.css .dark --sidebar-* ---------------- */
+  --sidebar: #0f0f0f;
+  --sidebar-foreground: #fafafa;
+  --sidebar-accent: #1f1f1f;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: rgb(255 255 255 / 0.07);
+  --panel: #171717;                 /* = --worktree-sidebar (.dark), the lifted panel tone */
+
+  /* --- Agent + workspace semantics. Verbatim; these already exist. ---------
+   * Reusing them is the point: a status keeps its identity across the rebrand. */
+  --agent-question: #f97316;        /* --color-orange-500 — "an agent is asking you something" */
+  --agent-question-text: #fdba74;   /* --color-orange-300 */
+  --status-success: #86efac;
+  --status-success-bg: color-mix(in srgb, var(--status-success) 10%, transparent);
+  --status-success-border: color-mix(in srgb, var(--status-success) 25%, transparent);
+  --workspace-status-done: #c7a594;
+  --workspace-status-review: #16a34a;
+  --workspace-status-progress: #d4a300;
+  --terminal-pane-locate: #60a5fa;  /* --color-blue-400 */
+
+  /* --- BRAND: monochrome. ---------------------------------------------------
+   * No hue at all. On a surface whose whole job is surfacing what needs you, an
+   * accent colour competes with the signal — so the accent IS white, and the one
+   * remaining hue in the product means "a human is required".
+   *
+   * Contrast against --background #0a0a0a:
+   *   --brand #fafafa on ground   -> 18.9:1  (WCAG AAA)
+   *   #0a0a0a on --brand-strong   -> 18.9:1  (WCAG AAA) */
+  --brand: #fafafa;                 /* text, icons, active state */
+  --brand-strong: #ffffff;          /* solid fills — white button, black label */
+  --brand-foreground: #0a0a0a;
+  --brand-bg: rgb(255 255 255 / 0.07);
+  --brand-border: rgb(255 255 255 / 0.16);
+  --ai-action-accent: var(--brand);
+  --brand-wordmark: 'Alicorn';
+
+  /* --- STATUS: exactly one hue in the entire product. -----------------------
+   * "needs you" is the only thing that gets colour, because it is the only thing
+   * that costs a human their attention. Amber is Orca's existing --agent-question
+   * (#f97316), warmed slightly for a monochrome ground.
+   *
+   * Everything else is monochrome and carries meaning by SHAPE and TEXT — which
+   * the a11y pass already required, so nothing is lost by dropping the hue:
+   *   live  = filled + pulsing        idle = hollow ring
+   * Red survives only for destructive/failed, where convention is load-bearing. */
+  --status-attention: #f5a524;      /* THE accent. Needs a human. */
+  --status-attention-text: #ffc866;
+  --status-live: #fafafa;           /* working now — white, pulsing */
+  --status-idle: #6f6f6f;
+  --status-critical: #ff6568;       /* failed / destructive only */
+  --status-success-bg: rgb(255 255 255 / 0.06);
+  --status-success-border: rgb(255 255 255 / 0.16);
+  --attention-bg: color-mix(in srgb, var(--status-attention) 11%, transparent);
+  --attention-border: color-mix(in srgb, var(--status-attention) 30%, transparent);
+
+  /* Accessibility priority 1 + 7. */
+  --focus-ring: 2px;
+  --motion-fast: 150ms;
+
+  /* --- Member identity: MONOCHROME, deliberately. ---------------------------
+   * v1 gave each role its own hue, which meant six decorative colours competing
+   * with the three that actually signal something. On a monitoring surface the
+   * rule that earns its keep is: if a pixel is coloured, it needs attention.
+   * Initials identify the member; colour is spent only on status. */
+  --avatar: #242424;
+  --avatar-foreground: #e8e8e8;
+  --avatar-ring: rgb(255 255 255 / 0.10);
+}
+
+[data-theme='light'] {
+  --background: #fff;
+  --editor-surface: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #fff;
+  --card-foreground: #0a0a0a;
+  --popover: #fff;
+  --popover-foreground: #0a0a0a;
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #e40014;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #a1a1a1;
+  --sidebar: #fafafa;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-accent: #f5f5f5;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #e5e5e5;
+  --panel: #f5f5f5;
+  --agent-question: #ea580c;        /* --color-orange-600 */
+  --agent-question-text: #c2410c;   /* --color-orange-700 */
+  --status-success: #15803d;
+  --terminal-pane-locate: #2563eb;  /* --color-blue-600 */
+  --brand: #0a0a0a;
+  --brand-strong: #0a0a0a;
+  --brand-foreground: #ffffff;
+  --brand-bg: rgb(0 0 0 / 0.05);
+  --brand-border: rgb(0 0 0 / 0.14);
+  --avatar: #e7e7e7;
+  --avatar-foreground: #262626;
+  --avatar-ring: rgb(0 0 0 / 0.10);
+}

@@ -1,0 +1,209 @@
+# Alicorn — Architecture
+
+## 1. What Alicorn is
+
+Alicorn is a desktop application and control plane for running software work through teams of AI
+agents. A team is configured once: named **Members** (a role bound to an agent backend, a skill set,
+a permission mode and a workspace kind), arranged into a **Workflow** of stages with triggers between
+them. Agents execute the stages and hand work to each other. A human is interrupted only at
+**gates** — steps that are irreversible, carry an inherited decision, or lack the evidence to run
+unattended.
+
+Every step is recorded. The record is what makes reducing human involvement defensible, and it is the
+product's durable asset.
+
+## 2. Principles
+
+1. **Execution is on the client.** Agents run on the employee's machine under the employee's own
+   subscription. Alicorn never hosts inference, never holds a model key, never resells capacity.
+2. **The control plane is small.** Identity, policy, a ledger, a relay, object storage. Ordinary
+   stateless web services over one Postgres.
+3. **Multi-tenant in shape, single-tenant in deployment.** `tenant_id` on every row from day one,
+   enforced by row-level security, even where it is a constant.
+4. **Additive wire changes only.** Desktop clients and servers update independently. New RPC methods
+   and optional parameters are safe; new stream opcodes must be capability-negotiated.
+5. **The ledger is append-only and exactly-once.** A ledger that double-counts is worse than no
+   ledger, because the autonomy policy reads from it.
+6. **Buy identity, build policy.** Identity is a solved problem. What a role may approve is product
+   logic and changes weekly.
+
+## 3. Components
+
+| Component | Responsibility | Runtime | State |
+|---|---|---|---|
+| **Alicorn Desktop** | Worktrees, terminals, agent processes, member sessions, UI | Electron | Local SQLite + files |
+| **Alicorn CLI** (`alicorn`) | Same runtime headless; used by agents and CI | Node | — |
+| **Keycloak** | OIDC provider, organisations, SSO/SAML, LDAP/AD, SCIM | JVM (Quarkus) | Postgres |
+| **Control API** | Members, workflows, autonomy policy, org→policy mapping, relay tokens | Node | Postgres |
+| **Ledger API** | Step outcomes, verifications, gate decisions, track record | Node | Postgres |
+| **Relay** | Device pairing, stream fan-out to mobile and remote clients | Node | Redis |
+| **Object store** | Reports, artifacts, exported trails | S3-compatible | — |
+
+Control API and Ledger API are separate services because they have different write profiles,
+different retention rules and different blast radius. They share a Postgres instance until measurement
+says otherwise.
+
+## 4. Topology
+
+```
+EMPLOYEE MACHINE                          CONTROL PLANE
+┌───────────────────────────┐            ┌────────────────────────────────┐
+│ Alicorn Desktop           │            │  Keycloak      (stateless)     │
+│  ├ git worktrees          │  HTTPS     │  Control API   (stateless)     │
+│  ├ folder workspaces      │◄──────────►│  Ledger API    (stateless)     │
+│  ├ Claude Code / Codex /  │   WSS      │  Relay         (sticky)        │
+│  │  Grok / OpenClaude     │            ├────────────────────────────────┤
+│  ├ terminals (PTY)        │            │  Postgres  ·  Redis  ·  S3     │
+│  └ local ledger queue     │            └────────────────────────────────┘
+└───────────────────────────┘
+        │                                 MOBILE / REMOTE
+        └── SSH / WSL hosts ──────────────► via Relay
+```
+
+All execution — agents, git, tests, builds — happens in the left box. The right box stores decisions
+and brokers connections.
+
+## 5. Identity
+
+**Keycloak 26+.** Apache 2.0, OIDC provider, and Organizations (GA in 26) gives thousands of
+organisations inside one realm — the SaaS-shaped tenancy model, rather than realm-per-tenant which
+does not scale past a few hundred.
+
+- Desktop authenticates directly against Keycloak by OIDC + PKCE.
+- On first login the Control API maps the Keycloak subject to an internal `user_id` and stores the
+  mapping. **Everything internal keys off `user_id`, never off the IdP subject**, so the IdP stays
+  swappable.
+- Keycloak owns: who a person is, which organisation, SSO, group membership.
+- Control API owns: which members and stages a role may configure or loosen. This is product policy,
+  not identity.
+
+## 6. Data model
+
+Core tables. All carry `tenant_id`; row-level security is enabled on every one.
+
+```sql
+-- Identity mapping ------------------------------------------------------
+users            (id, tenant_id, idp_subject UNIQUE, email, created_at)
+org_roles        (tenant_id, user_id, role)          -- owner|admin|member
+seats            (tenant_id, user_id, kind)          -- builder|collaborator
+
+-- Product configuration -------------------------------------------------
+members          (id, tenant_id, name, role, backend, workspace_kind,
+                  permission_mode, system_rules, created_at)
+member_skills    (member_id, skill_id)
+workflows        (id, tenant_id, project_id, name, version)
+stages           (id, workflow_id, key, ordinal, member_id,
+                  reversibility,        -- free|contained|irreversible
+                  inherited_cost,       -- low|high
+                  required_checks jsonb)
+transitions      (id, workflow_id, from_stage, to_stage, trigger jsonb)
+
+-- Autonomy --------------------------------------------------------------
+autonomy_policies(id, tenant_id, project_id, stage_key, member_id, mode,
+                  min_runs, min_accept_rate, max_files, max_spend_cents,
+                  created_by, expires_at, created_at)
+
+-- Ledger (append-only) ---------------------------------------------------
+step_outcomes    (id, tenant_id, run_id, task_id, project_id, member_id,
+                  stage_key, outcome, files_modified, spend_cents,
+                  gate_decision, gate_reason, gate_id,
+                  human_verdict, amended_after_ms,
+                  client_ts, created_at,
+                  UNIQUE (tenant_id, run_id, task_id, stage_key))
+step_verifications(id, tenant_id, task_id, kind, name, required, status,
+                  detail, created_at)
+decision_gates   (id, tenant_id, run_id, task_id, question, options,
+                  status, resolution, resolved_by, resolved_at, created_at)
+
+-- Derived (rebuildable from step_outcomes) -------------------------------
+member_stage_stats(tenant_id, member_id, stage_key, project_id,
+                  runs, accepted, accept_rate, last_amended_at, level,
+                  updated_at)
+```
+
+### Rules that keep the ledger honest
+
+- **Exactly-once.** The unique constraint on `(tenant_id, run_id, task_id, stage_key)` absorbs
+  duplicate `worker_done` deliveries from retries, reconnects and federation replay.
+- **Server time orders everything.** `created_at` is assigned server-side. `client_ts` is kept for
+  forensics only — outcomes originate on laptops and SSH hosts with unreliable clocks.
+- **Offline writes reconcile.** The desktop queues outcomes locally with a monotonic per-device
+  sequence and replays on reconnect. Windows are computed by server time, so a late batch cannot
+  retroactively promote a member.
+- **`member_stage_stats` is a cache.** Updated on write, rebuildable from the ledger. Gate evaluation
+  reads it; nothing else may write it.
+
+## 7. Autonomy policy
+
+Evaluated when a step completes and the workflow is about to hand off. Hard stops are checked first,
+so accumulated evidence can never retire a gate protecting something irreversible.
+
+```
+evaluateGate(step, policy, evidence):
+  policy.mode == 'always_gate'          -> gate('policy')
+  step.reversibility == 'irreversible'  -> gate('irreversible')
+  step.inherited_cost == 'high'         -> gate('inherited')
+  !evidence.all_required_checks_passed  -> gate('unverified')
+  evidence.files  > policy.max_files    -> gate('blast:files')
+  evidence.spend  > policy.max_spend    -> gate('blast:spend')
+  evidence.touched_protected_path       -> gate('blast:reach')
+  stats.runs        < policy.min_runs   -> gate('history')
+  stats.accept_rate < policy.min_accept -> gate('accept-rate')
+  stats.recent_regression               -> gate('regression')
+  -> auto
+```
+
+`reversibility` and `inherited_cost` are **authored on the stage**, never inferred. A system that
+guesses which step is irreversible guesses wrong once, and that once is a production deploy.
+
+### Levels
+
+| Level | Entry | Behaviour |
+|---|---|---|
+| 0 Observed | default | Always gates. Records the decision it *would* have made. |
+| 1 Advisory | runs ≥ 10 | Gates, pre-fills a recommendation, measures agreement. |
+| 2 Conditional | runs ≥ 20, accept ≥ 0.90 | Auto when verified and inside budget. |
+| 3 Autonomous | runs ≥ 50, accept ≥ 0.95, no amendment in 20 | Notifies instead of blocking. |
+
+**Demotion:** one `rejected`, or two `amended` within the last ten runs, drops the stage one level
+immediately and requires the full entry condition again. Windows are the last 50 runs, not lifetime —
+a member with 400 good runs must not average its way out of 12 recent bad ones.
+
+**The corrections watcher is load-bearing.** `human_verdict` must also be written from post-hoc
+corrections — a follow-up commit touching the same files inside a window, a revert, a reopened task.
+Without it, accept rate drifts up while quality drifts down. Until it ships, run advisory-only.
+
+## 8. API surface
+
+Additive over Orca's existing orchestration RPC. No protocol version bump.
+
+| Method | Purpose |
+|---|---|
+| `orchestration.gateCreate` | Existing. Gains optional `evaluate: boolean`. When set, the server runs the policy and may return an already-resolved gate with `resolution: 'auto:<reason>'`. |
+| `orchestration.gateResolve` | Existing. |
+| `orchestration.verifyRecord` | Record named check results for a task. |
+| `orchestration.policySet` / `policyGet` | Read and write autonomy policy; `policySet` records `created_by` and a mandatory expiry for `never_gate`. |
+| `orchestration.evidence` | Track record for `(project, stage, member)` plus what the policy would decide now. |
+
+Evaluation lives inside `gateCreate` rather than a separate "should I gate?" call, so a caller cannot
+ask the policy and then ignore the answer. The ledger stays authoritative.
+
+## 9. Security
+
+- **No model keys.** Agents authenticate with the user's own subscription on the user's own machine.
+- **Least privilege at the tenant boundary.** Row-level security in Postgres; the application role
+  cannot read across tenants even with a bad query.
+- **Standing exceptions expire.** `never_gate` requires an author and an expiry, and surfaces in the
+  audit view until it lapses.
+- **A member cannot loosen its own criteria.** Required checks are authored on the stage, not by the
+  member being judged.
+- **Blast-radius budgets are per run**, not per task, so splitting a large change into small tasks
+  does not launder past the limit.
+- **Export is a first-class feature.** Auditors ask for the trail; make it a signed, dated export
+  rather than a screenshot.
+
+## 10. Non-goals
+
+- Hosting agent execution or inference.
+- Replacing the repository, the tracker or CI. Alicorn sits between them.
+- A queue, an event bus or a column store, until a measurement demands one.
