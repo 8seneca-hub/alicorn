@@ -1,0 +1,104 @@
+<!--
+title: Product — Alicorn
+desc: Members, workflows, board automation and the decision trail. How Alicorn runs software work through teams of AI agents.
+-->
+<section class="section" style="padding-top:var(--space-16)">
+  <div class="wrap stack-6">
+    <span class="label reveal">Product</span>
+    <h1 class="reveal" style="font-size:var(--text-title);letter-spacing:var(--tracking-title)">Four objects. That's the whole product.</h1>
+    <p class="lede reveal">Alicorn sits between your repository and your tracker. It doesn't replace
+      either — it records and governs what happens in between.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack"><span class="label reveal">01 · Members</span>
+      <h2 class="reveal">A role you configure once and reuse everywhere</h2></div>
+    <div class="grid-2">
+      <div class="stack reveal">
+        <p>A Member binds four things into a named, reusable entity: the <strong>agent backend</strong>
+          it runs on, the <strong>skills</strong> it may use, its <strong>permission mode</strong>, and
+          whether it works in a <strong>git worktree or a plain folder</strong>.</p>
+        <p>That last one is what lets non-engineers in. A business analyst or designer works in a
+          folder workspace with Drive or SharePoint attached, and never needs a repository checkout.</p>
+      </div>
+      <div class="card reveal" data-d="1">
+        <div class="stack">
+          <div class="row"><span class="who">CR</span>
+            <div><div style="color:var(--color-text-primary);font-weight:600">Code Review</div>
+            <div style="font-size:var(--text-caption);color:var(--color-text-tertiary)">Codex · git worktree</div></div></div>
+          <div class="agents"><span>code-review</span><span>security-review</span></div>
+          <p style="font-size:var(--text-caption);color:var(--color-text-tertiary);margin-top:4px">
+            Never push. Report security findings first. Hand findings back to the member that produced
+            the diff.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack"><span class="label reveal">02 · Workflows</span>
+      <h2 class="reveal">Stages, owners and the trigger between them</h2>
+      <p class="reveal">A workflow is stages in order, the member that owns each one, and what starts
+        the next. Finishing a stage hands work to the next member with no human relay.</p></div>
+    <pre class="term reveal"><code><span class="c">Feature delivery · 5 stages</span>
+
+  Spec          <span class="k">Business Analyst</span>   on column → Spec
+  Architecture  <span class="k">Business Analyst</span>   <span class="a">gate: inherited decision</span>
+  Build         <span class="k">Developer</span>          creates git worktree
+  Review        <span class="k">Code Review</span>        quality + security skills
+       └─ findings ──────────────────────────► back to Developer
+  Verify        <span class="k">QA</span>                 on review clean
+  Merge                                <span class="a">gate: irreversible</span></code></pre>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack"><span class="label reveal">03 · The board</span>
+      <h2 class="reveal">Column transitions dispatch members</h2>
+      <p class="reveal">Your board stays in your tracker. Alicorn binds an action to each transition,
+        and the sync runs both ways — move a card here and it moves there.</p></div>
+    <div class="pipe">
+      <div class="pipe__r reveal"><span class="pipe__s">Spec</span><span class="pipe__w">on enter → Business Analyst</span><span class="pill">dispatch</span></div>
+      <div class="pipe__r reveal"><span class="pipe__s">In Progress</span><span class="pipe__w">on enter → worktree + Developer</span><span class="pill">dispatch</span></div>
+      <div class="pipe__r reveal"><span class="pipe__s">In Review</span><span class="pipe__w">on enter → Code Review</span><span class="pill">dispatch</span></div>
+      <div class="pipe__r reveal"><span class="pipe__s">Done</span><span class="pipe__w">on enter → close in tracker</span><span class="pill">sync</span></div>
+    </div>
+    <div class="stack reveal"><span class="label">Works with</span>
+      <div class="agents"><span>plane</span><span>linear</span><span>jira</span><span>github</span><span>gitlab</span></div></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack"><span class="label reveal">04 · The decision trail</span>
+      <h2 class="reveal">The record is the product</h2>
+      <p class="reveal">Every step writes what ran, what verified it, how much it touched and whether a
+        human was asked. It is what makes removing a checkpoint defensible, and what an auditor reads.</p></div>
+    <div class="tablewrap reveal">
+      <table>
+        <thead><tr><th>Recorded</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Outcome</strong> — succeeded or failed</td><td>Track record for the member on that stage</td></tr>
+          <tr><td><strong>Verifications</strong> — each named check and its result</td><td>Whether the step qualifies to run unattended</td></tr>
+          <tr><td><strong>Blast radius</strong> — files touched, spend, systems reached</td><td>The brake. Exceed it and a human is asked.</td></tr>
+          <tr><td><strong>Gate decision</strong> — gated or auto, and the reason</td><td>The audit answer to "why wasn't I asked?"</td></tr>
+          <tr><td><strong>Human verdict</strong> — accepted, amended or rejected</td><td>Promotion and demotion of autonomy levels</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap stack-6">
+    <h2 class="reveal">See it on your own repository</h2>
+    <p class="lede reveal">Connect a project, add three members, and watch the interruption count.</p>
+    <div class="row reveal"><a class="btn btn--primary" href="/start">Start free</a>
+      <a class="btn btn--outline" href="/autonomy">The autonomy rule</a></div>
+  </div>
+</section>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="Alicorn">
+  <title>Alicorn</title>
+  <!-- The spire: a horn, and a decision node. The gap is the gate. -->
+  <path d="M16 1.5 L25 13.2 L16 10.6 L7 13.2 Z" fill="currentColor"/>
+  <path d="M16 15.4 L25 17.9 L16 30.5 L7 17.9 Z" fill="currentColor" opacity=".55"/>
+</svg>

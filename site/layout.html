@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<meta name="description" content="{{DESC}}">
+<meta property="og:title" content="{{TITLE}}">
+<meta property="og:description" content="{{DESC}}">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#090a0c">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="/assets/system.css">
+<link rel="stylesheet" href="/assets/site.css">
+{{HEAD}}
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6.5 13.5 L16 4 L25.5 13.5"/><path d="M6.5 27 L16 17.5 L25.5 27" opacity=".45"/>
+      </svg>
+      Alicorn
+    </a>
+    <nav class="nav__links" aria-label="Main">
+      <a href="/product">Product</a>
+      <a href="/autonomy">Autonomy</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/security">Security</a>
+      <a href="/docs">Docs</a>
+    </nav>
+    <div class="nav__end">
+      <a class="btn btn--ghost btn--sm" href="/start">Sign in</a>
+      <a class="btn btn--primary btn--sm" href="/start">Start free</a>
+    </div>
+  </div>
+</header>
+
+<main>
+{{BODY}}
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__grid">
+      <div>
+        <a class="brand" href="/" style="margin-bottom:12px">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6.5 13.5 L16 4 L25.5 13.5"/><path d="M6.5 27 L16 17.5 L25.5 27" opacity=".45"/>
+          </svg>
+          Alicorn
+        </a>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary);max-width:34ch">
+          Set the team and the process once. Agents run it and come back only for decisions that carry consequence.
+        </p>
+      </div>
+      <div><h4>Product</h4><ul>
+        <li><a href="/product">How it works</a></li>
+        <li><a href="/autonomy">The autonomy rule</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+      </ul></div>
+      <div><h4>Resources</h4><ul>
+        <li><a href="/docs">Documentation</a></li>
+        <li><a href="/docs#cli">CLI reference</a></li>
+        <li><a href="/security">Security</a></li>
+      </ul></div>
+      <div><h4>Get started</h4><ul>
+        <li><a href="/start">Create an account</a></li>
+        <li><a href="/start#self-host">Self-host</a></li>
+        <li><a href="/start#contact">Talk to us</a></li>
+      </ul></div>
+    </div>
+    <div class="foot__base">
+      <span>© 2026 Alicorn</span>
+      <span>·</span><span>Self-hosted by default</span>
+      <span>·</span><span>Your agents, your subscription, your infrastructure</span>
+    </div>
+  </div>
+</footer>
+
+<script src="/assets/motion.js" defer></script>
+</body>
+</html>

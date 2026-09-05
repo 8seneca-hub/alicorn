@@ -1,0 +1,13 @@
+{
+  "name": "alicorn-site",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Alicorn marketing site — static, no dependencies",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs && node linkcheck.mjs",
+    "colors": "node gen.mjs",
+    "dev": "node build.mjs && python3 -m http.server 8899 --directory dist"
+  }
+}

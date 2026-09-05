@@ -1,0 +1,64 @@
+<!--
+title: Get started — Alicorn
+desc: Create an account, self-host Alicorn on your own infrastructure, or talk to us about an enterprise deployment.
+-->
+<section class="section" style="padding-top:var(--space-16)">
+  <div class="wrap stack-6">
+    <span class="label reveal">Get started</span>
+    <h1 class="reveal" style="font-size:var(--text-title);letter-spacing:var(--tracking-title)">Three ways in</h1>
+    <p class="lede reveal">Every stage starts gated. Nothing runs unattended on day one — autonomy is
+      earned per member, per stage, from evidence you can read.</p>
+  </div>
+</section>
+
+<section class="section" style="border-top:0;padding-top:0">
+  <div class="wrap stack-8">
+    <div class="grid-3">
+      <div class="price reveal">
+        <span class="label">Free</span>
+        <h3 style="margin:10px 0 4px">Try it on one project</h3>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">Three builder seats,
+          one project, the full decision trail. No card.</p>
+        <ul><li>Members and workflows</li><li>Board automation</li><li>Decision trail</li></ul>
+        <a class="btn btn--primary" href="#signup">Create an account</a>
+      </div>
+      <div class="price reveal" data-d="1" id="self-host">
+        <span class="label">Self-host</span>
+        <h3 style="margin:10px 0 4px">Run it yourself</h3>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">One Helm chart, or
+          Docker Compose for small teams. Your infrastructure, your identity provider.</p>
+        <ul><li>Kubernetes or a single VM</li><li>Your own Keycloak</li><li>Nothing leaves your network</li></ul>
+        <a class="btn btn--outline" href="/docs">Read the guide</a>
+      </div>
+      <div class="price reveal" data-d="2" id="contact">
+        <span class="label">Enterprise</span>
+        <h3 style="margin:10px 0 4px">Talk to us</h3>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">Compliance evidence,
+          custom retention, SSO rollout and a support SLA.</p>
+        <ul><li>Security review support</li><li>Deployment assistance</li><li>Named contact</li></ul>
+        <a class="btn btn--outline" href="mailto:hello@alicorn.dev">hello@alicorn.dev</a>
+      </div>
+    </div>
+
+    <div class="card reveal" id="signup" style="max-width:520px;margin-inline:auto;width:100%">
+      <div class="stack">
+        <h3>Create your account</h3>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">
+          We will email you a download link and a setup guide.</p>
+        <form class="stack" method="post" action="#" onsubmit="event.preventDefault();this.querySelector('[data-msg]').hidden=false;">
+          <label class="stack" style="gap:6px">
+            <span style="font-size:var(--text-body-sm);color:var(--color-text-primary)">Work email</span>
+            <input type="email" required placeholder="you@company.com"
+              style="height:38px;padding-inline:12px;border-radius:var(--radius);border:1px solid var(--color-border);background:var(--color-bg-page);color:var(--color-text-primary);font:inherit;font-size:var(--text-body-sm)">
+          </label>
+          <button class="btn btn--primary" type="submit" style="width:100%">Create account</button>
+          <p data-msg hidden style="font-size:var(--text-caption);color:var(--color-attention-text);margin:0">
+            Thanks — this is a preview site, so nothing was submitted. Email
+            <strong>hello@alicorn.dev</strong> and we will get you set up.</p>
+        </form>
+        <p style="font-size:var(--text-caption);color:var(--color-text-tertiary);margin:0">
+          Agents run on your machine with your own subscription. We never ask for a model key.</p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -22,8 +22,8 @@ across 15 screens and 20 links.
 
 ## Marketing site
 
-Separate repository — it has its own build and its own hosting, and does not belong in this
-monorepo.
+Lives in [`site/`](../../site/) at the repository root, alongside the docs app in `docs/site/`.
+Static HTML with no dependencies — see its README for the build and the design-system tooling.
 
 ## Why these are tracked
 

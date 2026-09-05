@@ -1,0 +1,70 @@
+<!--
+title: Security — Alicorn
+desc: Self-hosted by default. Alicorn never holds a model key, never hosts agent execution, and enforces the tenant boundary in the database.
+-->
+<section class="section" style="padding-top:var(--space-16)">
+  <div class="wrap stack-6">
+    <span class="label reveal">Security</span>
+    <h1 class="reveal" style="font-size:var(--text-title);letter-spacing:var(--tracking-title)">The parts that usually worry a security review</h1>
+    <p class="lede reveal">Alicorn's architecture removes most of them by construction: the expensive,
+      sensitive work happens on your own machines, and the control plane stores decisions rather than
+      code.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack"><h2 class="reveal">What we never have</h2></div>
+    <div class="grid-3">
+      <div class="card reveal"><h3 style="margin-bottom:8px">Your model keys</h3>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">Agents authenticate
+          with each employee's own subscription, on their own machine. Alicorn holds no provider
+          credentials.</p></div>
+      <div class="card reveal" data-d="1"><h3 style="margin-bottom:8px">Your source code</h3>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">Execution, worktrees
+          and builds stay on the client. The control plane stores decisions and metadata, not
+          repositories.</p></div>
+      <div class="card reveal" data-d="2"><h3 style="margin-bottom:8px">A hosted execution fleet</h3>
+        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">There is no shared
+          runner your code passes through, because there is no runner at all.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack"><h2 class="reveal">Controls</h2></div>
+    <div class="tablewrap reveal">
+      <table>
+        <thead><tr><th>Control</th><th>How</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Tenant isolation</strong></td><td>Enforced by row-level security in the database, not by application query filters. A bad query cannot cross the boundary.</td></tr>
+          <tr><td><strong>Identity</strong></td><td>OIDC with PKCE against Keycloak, self-hosted alongside the rest. SSO, SAML, LDAP/AD federation and SCIM provisioning.</td></tr>
+          <tr><td><strong>Blast-radius budgets</strong></td><td>Files, spend and protected paths capped per run — not per task, so splitting work cannot launder past the limit.</td></tr>
+          <tr><td><strong>No self-judging</strong></td><td>The required checks a stage verifies against are authored on the stage. A member cannot loosen the criteria it is judged by.</td></tr>
+          <tr><td><strong>Standing exceptions expire</strong></td><td>Disabling a gate requires a named author and a mandatory expiry, and stays visible in the audit view until it lapses.</td></tr>
+          <tr><td><strong>Immutable trail</strong></td><td>The ledger is append-only and exactly-once. Duplicate deliveries are absorbed; timestamps are server-assigned.</td></tr>
+          <tr><td><strong>Supply chain</strong></td><td>Signed container images, published SBOM per release, distroless non-root runtime, dependency and image scanning in CI.</td></tr>
+          <tr><td><strong>Data residency</strong></td><td>Self-hosted by default. Nothing leaves the infrastructure you run it on.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap stack-6">
+    <h2 class="reveal">Reporting a vulnerability</h2>
+    <p class="reveal">If you believe you have found a security issue, email
+      <strong>security@alicorn.dev</strong> with steps to reproduce. We acknowledge within one business
+      day and will keep you updated until it is resolved. Please do not open a public issue.</p>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap stack-6">
+    <h2 class="reveal">Run it on your own infrastructure</h2>
+    <div class="row reveal"><a class="btn btn--primary" href="/start#self-host">Self-host guide</a>
+      <a class="btn btn--outline" href="/start#contact">Talk to us</a></div>
+  </div>
+</section>
