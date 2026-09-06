@@ -17,6 +17,7 @@ import type { RuntimeRepositoryCommandSurface } from './runtime-repository-comma
 import type { RuntimeReviewCommandSurface } from './runtime-review-command-surface'
 import type { RuntimeServiceCommandSurface } from './runtime-service-command-surface'
 import type { RuntimeSkillCommandSurface } from './runtime-skill-command-surface'
+import type { RuntimeAlicornServiceSurface } from './orca-runtime-alicorn-services'
 
 export type PtyIncarnationHandleRecord = {
   handle: string
@@ -338,7 +339,8 @@ export type LayoutQueueEntry = {
   }[]
 }
 
-export type RuntimeInstalledCommandSurfaces = RuntimeEdgeCommandSurface &
+export type RuntimeInstalledCommandSurfaces = RuntimeAlicornServiceSurface &
+  RuntimeEdgeCommandSurface &
   RuntimeLinearCommandSurface &
   RuntimeFileCommandSurface &
   RuntimeGitCommandSurface &

@@ -26,7 +26,9 @@ export const WorkerStartParams = z.object({
   effort: OptionalWorkerLaunchPreference,
   retryOf: OptionalString,
   timeoutMs: OptionalFiniteNumber,
-  devMode: z.boolean().optional()
+  devMode: z.boolean().optional(),
+  member: OptionalString,
+  allowSameBackendReview: z.boolean().optional()
 })
 
 export type WorkerStartInput = z.infer<typeof WorkerStartParams>
