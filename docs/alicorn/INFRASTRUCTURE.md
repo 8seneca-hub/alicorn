@@ -89,6 +89,8 @@ the whole product is self-hostable.
 Status (2026-09-06): both services emit one JSON log line per request with `tenant_id` and
 `request_id`, and expose Prometheus text at `GET /metrics` (loopback in compose; network-policy in
 k8s). OpenTelemetry export is adopted when a customer needs Tempo/Grafana federation.
+`amended_within_window` is scoped to the configured tenant in local auth mode; a cross-tenant
+operator aggregate arrives with the identity plan (BYPASSRLS operator role).
 
 | Signal | Tool | What matters |
 |---|---|---|

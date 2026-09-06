@@ -94,6 +94,11 @@ disposable database — CI sets it to the same `postgres:16-alpine` service the 
 use, because those tests create their own schemas and non-superuser roles per run and need
 `CREATE ROLE`.
 
+Observability: each service logs one JSON line per request (`tenant_id`, `request_id`) and serves
+Prometheus text at `GET /metrics` on its normal port (loopback-bound by the compose file). Metrics:
+`ledger_write_duplicates_total`, `gate_decisions_total{decision,reason}`, `amended_within_window`
+(ledger-api), `http_requests_total{method,status}` (control-api).
+
 See [docs/alicorn/LOCAL-DEV.md](../docs/alicorn/LOCAL-DEV.md) for the full local-dev walkthrough.
 
 The init SQL runs only on a fresh volume; after changing it,

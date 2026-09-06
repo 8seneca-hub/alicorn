@@ -12,7 +12,7 @@ from.
 | [tier-1-desktop](2026-09-06-tier-1-desktop.md) | Members · Ledger (desktop) · Execution strategy · Provenance & PR body · Cost & telemetry | Huy: C1–C3, C5, D5, D7, E1 · Nghia: B1–B4, C4, D1–D4, D6 | v0.1 / v1.0 | B, C, D, E | Huy's share **done** (final review + fix wave on `main`, `8775c2676`); Nghia's B1–B4, C4, D1, D2, D4, D6 merged via PRs #3–#8; manual smoke run (LOCAL-DEV.md) pending |
 | [identity-keycloak](2026-09-06-identity-keycloak.md) | Identity | Huy | v0.1 | F1, I1–I5 | Planned |
 | [rebrand-cutover-distribution](2026-09-06-rebrand-cutover-distribution.md) | Rebrand, cutover & distribution | Huy | v0.1 | R1–R5, L1, BC1–BC2, DS1–DS3 | Planned |
-| [ledger-completion-measurement](2026-09-06-ledger-completion-measurement.md) | Corrections watcher · Ledger · Cost & telemetry | Huy | v0.1 | CW1, CW2, M1, M2 | Planned |
+| [ledger-completion-measurement](2026-09-06-ledger-completion-measurement.md) | Corrections watcher · Ledger · Cost & telemetry | Huy | v0.1 | CW1, CW2, M1, M2 | **Done** (final review pending) — on `main`, `a9f49fec9..3ced386d6` |
 | [board-automation-plane-provider](2026-09-06-board-automation-plane-provider.md) | Board automation & Plane provider | Nghia | v1.0 | BA1–BA3, PP1–PP3 | Planned |
 | [quality-gates-provenance](2026-09-06-quality-gates-provenance.md) | Quality gates & autonomy · Provenance & PR body | Huy (GP, BR, QA) · Nghia (PV) | v1.0 (+QA1 v2.0) | GP1–GP3, BR1, PV1, PV2, QA1 | Planned |
 | [workflows-stages](2026-09-06-workflows-stages.md) | Workflows & stages | Nghia | v1.5 | WF1, WF2, WF4, WF5, SK1 | Planned |

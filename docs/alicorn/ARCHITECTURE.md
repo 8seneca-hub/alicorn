@@ -132,13 +132,18 @@ step_outcomes    (id, tenant_id, run_id, task_id, dispatch_id, project_id,
                   stage_key, execution_strategy, outcome, files_modified,
                   report_summary, spend_cents, usage,
                   gate_decision, gate_reason, gate_id,
-                  human_verdict, amended_after_ms,
+                  human_verdict, amended_after_ms, -- written once by the corrections watcher (follow_up_commit | revert | reopened_task) or by hand
                   review_backend_bypass, escalation_offered, escalation_accepted,
                   client_ts, created_at,
                   UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id))
 step_verifications(id, tenant_id, run_id, task_id, dispatch_id, kind, name,
                   required, status, detail, created_at,
                   UNIQUE (tenant_id, dispatch_id, kind, name))
+step_interruptions(id, tenant_id, run_id, task_id, dispatch_id,
+                  kind,                 -- gate|ask|escalation
+                  source_id, resolved_by, occurred_at, created_at,
+                  UNIQUE (tenant_id, kind, source_id))
+                  -- exactly-once on (tenant_id, kind, source_id); the north-star metric counts these
 decision_gates   (id, tenant_id, run_id, task_id, question, options,
                   status, resolution, resolved_by, resolved_at, created_at)
                   -- v1.0 (gate policy); tier 1 keeps Orca's client-side decision_gates
@@ -186,6 +191,9 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
   still orders.
 - **`member_stage_stats` is a cache.** Updated on write, rebuildable from the ledger. Gate evaluation
   reads it; nothing else may write it.
+- **A verdict is written once.** `human_verdict` is set by the first signal (a follow-up commit, a
+  revert, a reopened task, or a person); a later, different signal is a new event to log, never an
+  overwrite.
 
 ## 7. Autonomy policy
 
@@ -226,6 +234,8 @@ a member with 400 good runs must not average its way out of 12 recent bad ones.
 **The corrections watcher is load-bearing.** `human_verdict` must also be written from post-hoc
 corrections — a follow-up commit touching the same files inside a window, a revert, a reopened task.
 Without it, accept rate drifts up while quality drifts down. Until it ships, run advisory-only.
+Shipped 2026-09-07: the watcher runs every ten minutes per worktree and classifies without
+commit-author identity — see `src/main/alicorn/corrections/`.
 
 ## 8. API surface
 
