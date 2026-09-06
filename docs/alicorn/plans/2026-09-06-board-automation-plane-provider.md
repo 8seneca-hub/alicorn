@@ -29,6 +29,15 @@
 4. **Plane linking fields are dedicated**: `linkedPlaneIssue: string | null` (issue UUID), `linkedPlaneIssueSequence: number | null`, `linkedPlaneWorkspaceSlug`, `linkedPlaneProjectId` — plus `linkedWorkItem` set for the generic consumers.
 5. **Status write-back for Plane is a parallel file** (`sync-plane-worktree-status.ts`) matching Plane state `group` first, name second; the Linear file stays untouched.
 6. **Plane credential model**: one API key per workspace slug (like Linear's per-workspace token), projects selected per Orca project.
+9. **The Plane issue list is its own ticket, ALC-98 (PP4)** (decided 2026-09-07). Task 4 is labelled
+   PP1 but its list/detail surface was deferred — `TaskPagePlaneContent` says so in a comment. It
+   belongs to neither of the obvious homes: PP1 is Done, and PP3 is the settings card and CLI verbs,
+   which is a different surface. Reopening a closed ticket to carry deferred work hides it; folding
+   task-page UI into a settings ticket mislabels it. Until PP4 lands there is no way to create a
+   worktree ↔ Plane issue link, so **PP2 (ALC-53) cannot close** — its write-back and link fields are
+   built and tested, but nothing can author the link — and BA1 has nothing to dispatch from on a
+   Plane-tracked board.
+
 8. **Loop tolerance is one revisit per column, not zero** (decided 2026-09-07, amending Task 11's
    literal wording). The rule is `BOARD_LOOP_MAX_REVISITS = 1`: a second entry into the same column
    inside the loop window is allowed, a third is refused. Task 11 as written ("any prior dispatched
