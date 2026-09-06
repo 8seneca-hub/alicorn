@@ -37,7 +37,7 @@
 ## Amendments applied during execution (R1–R10)
 
 Rulings recorded during execution and review, in the ledger at
-`.superpowers/sdd/2026-09-06-tier-1-control-plane/progress.md`. Settled — do not relitigate.
+the SDD ledger for this plan (local scratch, not tracked). Settled — do not relitigate.
 
 - **R1** — `withoutTenant` is not implemented in `control-plane-postgres`: tier 1 has no consumer
   (identity tables, its only use, arrive with the Keycloak plan). YAGNI; a reviewer would flag a

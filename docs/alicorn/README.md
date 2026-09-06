@@ -9,6 +9,7 @@ Planning documents for the Alicorn product built on this codebase.
 | [plans/](plans/) | Implementation plans — one per subsystem, executed task by task |
 | [OWNERSHIP.md](OWNERSHIP.md) | Who owns which Plane module and which files, the shared-file rule, and the seams both owners rely on |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Components, identity, data model, the autonomy policy and the API surface |
+| [GRAPH-ENGINEERING.md](GRAPH-ENGINEERING.md) | The graph-engineering framing (nodes, correction and learning edges, gates by blast radius) mapped onto Alicorn; what it adds (WF5, FM5, FM6, RB2) and what we leave out |
 | [INFRASTRUCTURE.md](INFRASTRUCTURE.md) | Deployment models, runtime, CI/CD, observability, capacity, backup and security |
 | [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) | Colour, type and motion decisions, with the reasoning behind each |
 | [prototype/](prototype/) | Interactive HTML prototype — 15 screens across the app, sign-in and landing flows |

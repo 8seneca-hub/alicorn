@@ -96,6 +96,17 @@ subsystem, and they have opposite retention, write profile and blast radius.
 `permission_mode` on a member and `mode` on an autonomy policy. The single-vs-orchestrated choice is
 `execution_strategy`, and nothing else.
 
+## Graph vocabulary
+
+The industry's *graph engineering* framing — splitter, worker, code node, gate; a short **correction
+edge** and a long **learning edge**; gate by blast radius, not confidence — maps onto Alicorn one to
+one. [GRAPH-ENGINEERING.md](docs/alicorn/GRAPH-ENGINEERING.md) has the mapping and the sources. Use
+its names where they apply: a **code stage** runs with no model and no member; the return transition
+is a **correction edge**; the Rulebook is the **learning edge**. Two deliberate differences: the gate
+is a property of every hand-off, not a node (that is what makes *hard stops never retire*
+enforceable), and the splitter is `execution_strategy: orchestrated`, not a stage kind. Graphs are
+still not the default path — `single` is.
+
 ## Invariants that are expensive to violate
 
 From [ARCHITECTURE.md](docs/alicorn/ARCHITECTURE.md) — worth repeating because each has already been

@@ -102,10 +102,14 @@ members          (id, tenant_id, name, role, backend, workspace_kind,
 member_skills    (member_id, skill_id)
 workflows        (id, tenant_id, project_id, name, version)
 stages           (id, workflow_id, key, ordinal, member_id,
+                  kind,                 -- worker|code  (code: no member, no model; runs code_command)
+                  code_command,
                   reversibility,        -- free|contained|irreversible
                   inherited_cost,       -- low|high
                   required_checks jsonb)
-transitions      (id, workflow_id, from_stage, to_stage, trigger jsonb)
+transitions      (id, workflow_id, from_stage, to_stage, trigger jsonb,
+                  kind)                 -- forward|correction  (the learning edge is the Rulebook, not a row here)
+                  -- vocabulary: docs/alicorn/GRAPH-ENGINEERING.md
 org_policies     (tenant_id, enforce_distinct_reviewer_backend,
                   updated_by, updated_at)
 project_required_checks(tenant_id, project_id, checks jsonb,

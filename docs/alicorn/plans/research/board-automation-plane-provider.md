@@ -1,0 +1,173 @@
+# Research: Board Automation & Plane Provider (Plane PP1–PP3, BA1–BA3, WF3-prep)
+
+CodeGraph was not initialized in this worktree (`codegraph init` not run) — all research below used Bash/Grep/Read directly. Consider asking the user to `codegraph init -i` before implementation begins.
+
+## 1. Existing code map
+
+### TaskProvider is a closed string union, not a plugin registry
+`src/shared/task-providers.ts:1-3`:
+```ts
+export type TaskProvider = 'github' | 'gitlab' | 'linear' | 'jira'
+export const TASK_PROVIDERS: readonly TaskProvider[] = ['github', 'gitlab', 'linear', 'jira']
+```
+There is **no registry object, no `TaskProviderPlugin` interface, no factory**. Every consumer (main IPC, preload, renderer hooks, settings, worktree persistence) hand-writes a `switch`/`if` over the 4 literals. Adding Plane means touching every one of those call sites, not implementing one interface. Key shared files that encode the union directly:
+- `src/shared/task-providers.ts` — `TASK_PROVIDERS` array, `isTaskProvider`, `filterAvailableTaskProviders` (has a hardcoded `if (provider === 'gitlab') … if (provider === 'jira') …` chain, `:93-108`), `resolveVisibleTaskProvider`.
+- `src/shared/task-provider-identity.ts` — `TaskProviderIdentity` discriminated union (`GitHubTaskProviderIdentity | GitLabTaskProviderIdentity | LinearTaskProviderIdentity | JiraTaskProviderIdentity`), `normalizeTaskProviderIdentity` switch (`:49-83`), `TASK_PROVIDER_IDENTITY_FIELDS` map (`:118-123`), `taskProviderIdentityCachePart` switch (`:151-161`).
+- `src/shared/task-source-context.ts` — `normalizeTaskProvider` (`:205-215`) is a literal `switch` on the 4 strings; `TaskSourceContext.provider: TaskProvider`.
+- `src/renderer/src/lib/launch-work-item-direct-types.ts` — `LaunchableWorkItem.provider?: TaskProvider` plus per-provider optional fields (`linearIdentifier`, `linearWorkspaceId`, …) bolted on rather than a discriminated union.
+
+`WORKSPACE_SOURCE_VALUES` (`src/shared/workspace-source.ts:1-9`) is **unrelated** to task providers — it enumerates *how a workspace was created* (`command_palette`, `sidebar`, `drag_drop`, …) for telemetry. The plan brief's grouping of it with `TaskProvider`/`launch-work-item-direct-types.ts` conflates two different concepts; flag this for the controller.
+
+### Provider size reference (Jira = the sizing baseline)
+| Area | Jira (reference) | GitLab | Linear | GitHub |
+|---|---|---|---|---|
+| `src/main/<provider>/**` (non-test) | **3,087** (`5,597` incl. tests) | 9,705 (incl. tests) | 11,139 (incl. tests) | 39,861 (incl. tests, includes generic git+PR machinery) |
+| `src/main/ipc/<provider>*.ts` (non-test) | 401 | — (see `gitlab-*-handlers.ts` set) | — (`linear-*-handlers.ts` set) | huge (`github-*-handlers.ts` set, 10+ files) |
+| `src/preload/api/<provider>-*.ts` | 175 | `gl-bridge.ts` | `linear-api.ts`+`linear-bridge.ts` | `gh-bridge*.ts` (3 files) |
+| Renderer `use-task-page-jira-*` hooks (non-test) | ~3,763 across ~18 hook files | `use-task-page-gitlab-loading.ts` (state folded into `use-task-page-provider-state.ts`) | ~15 `use-task-page-linear-*` files | ~10 `use-task-page-github-*` files |
+| `src/renderer/src/components/task-page/jira/**` | 731 | `task-page/gitlab/**` | `task-page/linear/**` (has `IssueBoard.tsx`) | `task-page/github/**` |
+
+**The "~3.1k lines" the plan brief cites for Jira is `src/main/jira/**` only (confirmed exact match).** The true footprint of a 5th tracker touches ~7,000+ lines across main+ipc+preload+renderer once you count the renderer hook layer, which the brief's number doesn't include — size PP1 accordingly (bigger than the brief implies, though still much smaller than GitHub, whose size also includes generic source-control/PR machinery Plane won't need).
+
+### Fifth-provider checklist (every touch point, Jira file as reference)
+
+| # | Touch point | Jira reference file(s) | Notes for Plane |
+|---|---|---|---|
+| 1 | Provider union type | `src/shared/task-providers.ts` | Add `'plane'` to `TaskProvider`/`TASK_PROVIDERS`; extend `isTaskProviderAvailable` (`:93-108`) with a `plane` branch (connected-workspace check, mirror `linear`'s `availability.linearConnected`). |
+| 2 | Provider identity union | `src/shared/task-provider-identity.ts` | Add `PlaneTaskProviderIdentity` (workspace slug + project id, mirrors `JiraTaskProviderIdentity`'s `{siteId, siteUrl, projectKey}`); extend the 3 switches + `TASK_PROVIDER_IDENTITY_FIELDS`. |
+| 3 | Task-source-context normalizer | `src/shared/task-source-context.ts:205-215` | Add `'plane'` case. |
+| 4 | Global settings defaults | `src/shared/default-global-settings.ts`, `src/shared/global-settings-types.ts` | Jira/Linear/GitLab each have visibility + default-source + credential-shape entries here. |
+| 5 | Main provider module | `src/main/jira/**` (client.ts, authenticated-request.ts, issues.ts, jira-issue-mutations.ts, jira-transition-queries.ts, site-credential-store.ts, site-identity.ts, request-queue.ts) | Plane's `X-API-Key` auth is a **simpler analog of Jira's `apiToken`-only branch** in `authenticated-request.ts:34-42` (skip the Basic/email path) — but Linear's single-encrypted-key-per-workspace store (`src/main/linear/linear-token-store.ts`) is the closer *storage* pattern (no email pairing). Plane's per-workspace+per-project selection most resembles Jira's per-site model (`site-identity.ts`, `site-credential-store.ts`). |
+| 6 | Main IPC handlers | `src/main/ipc/jira.ts` (325 lines), `jira-cancellable-requests.ts` | Register `plane.ts` + cancellable-request wiring the same way. |
+| 7 | Preload bridge | `src/preload/api/jira-bridge.ts`, `jira-api.ts` | New `plane-bridge.ts`/`plane-api.ts`; exposed as `window.api.plane`. |
+| 8 | Renderer task-page provider state | `src/renderer/src/components/use-task-page-provider-state.ts` (the shared "model" object every provider mutates — see gitlab slice at `:59-101`) | Add a `planeX` slice the same shape as the `gitlabX` one; this file has **no abstraction boundary**, it's one big function with per-provider `useState` blocks bolted on. |
+| 9 | Renderer task-page hooks | `use-task-page-jira-list-state.ts`, `-list-effects.ts`, `-list-projection.ts`, `-creation-state.ts`, `-creation-metadata.ts`, `-issue-creation.ts`, `-creation-projects.ts` (7 files, Jira's fullest set) | Plane likely needs a similarly-sized hook set (list/detail/creation). |
+| 10 | Task-page provider availability | `src/renderer/src/components/task-source-provider-availability.ts`, `use-task-page-source-availability.ts` | Gates which provider tabs render. |
+| 11 | Item detail dialog / board sub-view | `src/renderer/src/components/task-page/jira/**` (731 lines), cf. `gitlab-item-dialog/**` (a full multi-tab dialog: conversation/description/files/pipeline), `JiraIssueWorkspace.tsx` | Plane issue detail (comments, description, sub-issues) needs an equivalent. |
+| 12 | Settings integration card | `src/renderer/src/components/settings/jira-integration-card.tsx`, registered via `task-tracker-integration-cards.tsx` → `IntegrationsPane.tsx:8,53` and `task-provider-integration-section-ids.ts` (`JIRA_INTEGRATION_SECTION_ID`) | New `PlaneIntegrationCard` + section id + `TasksPane.tsx` label switch (`:83-95`, string `'Jira'`/`'auto.components.settings.TasksPane...'`). |
+| 13 | Worktree linked-issue fields | `src/shared/worktree/types.ts:83-104` | `linkedIssue`/`linkedPR` (GitHub-only, historical), then explicit **parallel per-provider fields**: `linkedLinearIssue(+WorkspaceId/OrganizationUrlKey)`, `linkedGitLabMR`/`linkedGitLabIssue`, `linkedBitbucketPR`, `linkedAzureDevOpsPR`, `linkedGiteaPR`. Comment at `:90-97` explains why: parallel fields, not a discriminant, to avoid touching GitHub's existing renderer code. **Plane needs `linkedPlaneIssue: string | null` (+ workspace/project ids)** following this exact pattern — do not try to generalize `linkedIssue` into a discriminated union, that would fight the documented design. There is also a generic `linkedWorkItem?: WorkspaceLinkedItem | null` and `linkedTaskSourceContext?: TaskSourceContext | null` (`:103-104`) — check whether new providers are expected to use *only* these newer generic fields now (worth confirming with whoever owns `WorkspaceLinkedItem`; Bitbucket/Azure/Gitea still got dedicated fields as of this codebase, so the generic field is not yet the sole path). |
+| 14 | CLI skill guide verbs | `src/cli/specs/linear.ts` (`LINEAR_COMMAND_SPECS`, `CommandSpec` shape: `path/summary/usage/allowedFlags/positionalArgs/examples`), `src/cli/specs/linear-mcp.ts` | **No `jira.ts` CLI spec exists** — Jira has zero `orca jira ...` CLI verbs and no bundled skill guide (`skill-guides/` only has `orca-linear.md`/`linear-tickets.md`, nothing Jira). Linear is the *only* usable reference for PP3; there is no "Jira did this too" precedent to fall back on. |
+| 15 | Bundled skill guide generation | `src/cli/bundled-skill-guides.ts` (generated, "Do not edit") from `config/scripts/generate-bundled-skill-guides.mjs` reading `skill-guides/*.md` | A Plane skill guide markdown file feeds this generator; run `pnpm run verify:bundled-skill-guides` after editing source markdown. |
+| 16 | i18n | `translate('auto.components.<path>.<hash-or-name>', 'English text')` from `@/i18n/i18n` (see `jira-integration-card.tsx:42-132`, `TasksPane.tsx:47-95`) | Write plain English, then run `node config/scripts/localize-renderer-strings.mjs && pnpm run sync:localization-catalog`; `pnpm run verify:localization-coverage` fails the build on a bare string (per AGENTS.md/CLAUDE.md). |
+
+## 2. Board & write-back mechanics
+
+**Two different "boards" exist — do not conflate them:**
+1. **Sidebar Workspace Kanban board** (`src/renderer/src/components/sidebar/WorkspaceKanban*.tsx`, `use-workspace-kanban-*.ts`) — columns are **`WorkspaceStatus`** (a per-project, user-customizable status: id/label/color/icon, e.g. `todo`/`in-progress`/`in-review`/`completed`, see `src/shared/workspace-status-defaults.ts:11-19` and `src/shared/workspace-statuses.ts`). This is the **local worktree lifecycle status**, stored on `Worktree`, and it is what WF3 ("stages bind to board columns") and BA1 ("column transition dispatches a Member") mean by "board column."
+2. **Dashboard Kanban** (`AgentKanbanCard.tsx`/`AgentKanbanBoard.tsx` under `dashboard-popout/`) — this is a **live agent-status** view (running/waiting/idle), not user-draggable columns tied to a tracker; not the write-back surface.
+
+**Drag-to-status write-back exists today for Linear only:**
+- `src/renderer/src/components/sidebar/workspace-board-task-status-sync.ts` — `syncWorkspaceBoardTaskStatuses` / `syncLinearWorktreeStatus` (`:164-243`). Flow: drag moves the worktree's local `WorkspaceStatus` → for worktrees with `linkedLinearIssue` set, look up the Linear team's workflow states (`linearTeamStates`), **name-match** (case-insensitive, `normalizeStateName`) the local status label against a Linear state name, and if exactly one match and not already in that state, call `linearUpdateIssue(settings, issue.id, { stateId }, workspaceId)` (`:221-226`). Ambiguous (0 or 2+ matches) → skipped with a message, never guesses.
+- Race guard: re-checks `getLatestWorkspaceStatus(worktreeId) !== targetStatus.id` (`:217`) right before the write so a slow provider read can't clobber a newer local move ("board moves are local-first").
+- Per-worktree serial queue (`enqueueWorktreeSync`, `:149-162`) so concurrent drags on the same worktree don't race.
+- **GitHub, GitLab, Jira have no equivalent sync file today.** `grep` for `syncGitHubWorktreeStatus`/`syncGitLabWorktreeStatus`/`syncJiraWorktreeStatus` returns nothing. PP2's "reuse the existing mechanism" for Plane means either (a) generalizing `workspace-board-task-status-sync.ts` beyond Linear (bigger lift, touches a working feature), or (b) writing a parallel `sync-plane-worktree-status.ts` following the same name-match/race-guard/serial-queue shape. (b) matches the "parallel per-provider file" convention already used for `linkedGitLabIssue` etc.
+- Status write-back maps **local WorkspaceStatus label → tracker workflow-state name**, not "agent status" — an important distinction from BA1's board (BA1 cares about the same `WorkspaceStatus` transition as a *dispatch trigger*, a related but separate concern from *write-back*).
+
+## 3. Automation machinery gap analysis
+
+**Two separate dispatch subsystems exist; neither is a rule engine.** This is the single biggest architectural fact for BA1.
+
+### (A) `AutomationService` (`src/main/automations/service.ts`) — the *existing* automation
+- Purely **time-triggered**: `AutomationRunTrigger = 'scheduled' | 'manual'` (`src/shared/automations-types.ts:19`), driven by `rrule`/`dtstart`/`nextRunAt` fields on `Automation` (`:91-133`) and a 60s poll tick (`DEFAULT_TICK_MS`, `service.ts:34`).
+- Dispatch path: `runHeadlessAutomationDispatch` (`headless-dispatch-runner.ts`) creates/reuses a **workspace + terminal**, launches a TUI agent with a prompt directly — **it never touches `src/main/runtime/orchestration/db` (no `tasks` row, no `dispatch_contexts` row, no Member).** Runs are written via `createAutomationRunWriter` into Orca's regular `Store` (`src/main/persistence`), a completely different table set from the orchestration SQLite.
+- Guard rails that exist: per-automation `enabled: boolean` toggle only (`AutomationsSettingsPane.tsx`); a precheck (`precheck-runner.ts`) that can skip a run; `dispatch-tokens.ts`/`dispatch-refusal.ts` for idempotent claim/refusal of a single scheduled occurrence; **no cross-automation ceiling, no global or per-board kill switch, no loop detection of any kind.** `grep` for `stopAll`/`killSwitch`/`disableAll` across `src/main/automations` and the settings pane returns nothing — BA3 has zero prior art to extend.
+
+### (B) Orchestration RPC (`orchestration.taskCreate` → `workerStart`) — where D2/D3 land Member+provenance
+- `orchestration.taskCreate` (`src/main/runtime/rpc/methods/orchestration-message-methods.ts:119-153`) creates a row in the **orchestration DB's `tasks` table** (`db.createTask`), and requires a bound **Run** via `resolveRunScope` (`src/main/runtime/rpc/methods/orchestration-run-scope.ts:83-132`).
+- **`resolveRunScope` hard-requires either an explicit `runId` bound to the caller's terminal pane, or a `callerTerminalHandle` that already has a current Run bound to its pane** (`getCurrentRunForPane`, `:104-124`) — it throws `run_required`/`stable_pane_required` otherwise. This RPC is designed for **a live CLI/terminal session** (a coordinator or Foreman-style caller) to bind itself to a Run first (`orchestration run-create`/`run-use`), then create tasks. **There is no "system"/headless caller path** — a main-process rule engine reacting to a Kanban drag has no terminal handle and no pane, so it cannot call `orchestration.taskCreate` as-is.
+- This is exactly the RPC path the tier-1-desktop plan's Task 11 (D2) is wiring `--member`/`allowSameBackendReview` onto (`docs/alicorn/plans/2026-09-06-tier-1-desktop.md:339-360`), and Task 8 (C4) wires context-capture onto (`:297-309`). Task D2's new tables (`alicorn_dispatch_members`, schema v31, `docs/alicorn/plans/2026-09-06-tier-1-desktop.md:191-241`) attach to `dispatch_contexts.id`, so provenance (member/backend/stage) is a property of a **`dispatch_contexts` row**, which only exists inside this RPC's world, never inside the automation/headless-dispatch world.
+
+### The gap BA1 must close
+Neither existing mechanism is a fit as-is:
+- Automations' headless-dispatch is main-process-triggerable (no terminal needed) but writes nothing to `dispatch_contexts`/`alicorn_dispatch_members`, so it can't carry D2's Member/backend provenance or D1's `execution_strategy`, and the Ledger writer (C3, keyed off `dispatch_contexts.id`) can't see these runs at all.
+- Orchestration taskCreate/workerStart carries exactly the provenance BA1 wants, but is fenced behind a live terminal/Run binding that a column-drag rule engine does not have.
+
+**Open question for the plan (flag prominently):** BA1 needs one of:
+1. A new **system-authored Run** concept (e.g., a synthetic Run/pane identity minted by the rule engine itself, satisfying `resolveRunScope`'s checks without a real terminal) — biggest architectural change, but keeps all provenance/ledger machinery working unmodified.
+2. Extend the **automation headless-dispatch path** to also open a `dispatch_contexts` row (and `alicorn_dispatch_members` row) alongside its workspace/terminal launch, so it gets Ledger provenance without being routed through `resolveRunScope`. Smaller diff, but duplicates dispatch bookkeeping in two places.
+3. Have the rule engine call `db.createTask`/`db.createDispatchContext` (the orchestration DB methods) **directly**, bypassing the RPC's run-scope check entirely (it's just a same-process function call, not cross-process), and separately trigger `workerStart`'s worker-launch effects. Cleanest carrier of provenance, but means main-process code calls internal orchestration-db methods that were designed to only be reached through the RPC's authorization checks — needs careful review of what those checks were protecting against.
+
+No amount of further reading resolves this — it is a genuine design decision the plan must make explicit and get sign-off on before task breakdown.
+
+### Loop detection inputs — what exists vs. what BA2 needs
+- **Existing "circuit breaker" (prior art, reusable shape):** `dispatch_contexts.failure_count` (`src/main/runtime/orchestration/db/schema/create-graph-tables-sql.ts:133`) accumulates across retries of the *same task* (carried forward via `prior.max_failures` in `createDispatchContext`, `dispatch-context-store.ts:44-48`), and `dispatch-completion.ts:87-88` flips status to `circuit_broken` when `failure_count + 1 >= <threshold>` (caller-supplied threshold, not a fixed constant — grep for the call site to find today's number). This is a **per-task, failure-triggered** counter — it does not count successful re-dispatches, and has no notion of "task", "column", or "rule" identity beyond the single task row.
+- **Also existing:** dispatch **nesting depth** (`depth` column, `resolveChildDispatchDepth`, capped by `maxDepth` passed by the caller) — this bounds coordinator→subworker fan-out depth, unrelated to column loops but the closest existing "runaway dispatch" guard in spirit.
+- **Does not exist:** any per-column or per-rule transition history. `WorkspaceStatus` is stored as the *current* value only on `Worktree`; there is no `status_history`/audit table anywhere in `src/shared` or `src/main` (`grep` for `statusChangeHistory`/`status_history`/`StatusChangeEvent` returns nothing). So **the classic loop signature the plan describes — "rule A → column X → rule B → column Y → rule A" — cannot be detected from any existing data.** BA1 must introduce new state to detect it: minimally, a small ring-buffer or timestamped log of `(taskId/worktreeId, columnId, dispatchedAt)` triples, either in the orchestration DB (new table, schema-versioned like D2's v31 tables) or in Orca's regular `Store`. Two candidate signals to combine (both need new storage):
+  1. **Same-task dispatch count within a sliding window** (e.g., N dispatches in T minutes) — cheapest to build, catches most runaway loops without needing per-rule identity.
+  2. **Column-revisit detection** (task returns to a column it was already dispatched from, within some window) — closer to the plan's literal description, needs the column id stamped on each dispatch (which BA1 already needs for provenance/`stage_key`), so this is "free" once BA1's provenance write lands — just needs a query, not new capture.
+
+## 4. Dispatch path internals (function names, not just CLI)
+
+- `orchestration.taskCreate` handler: `orchestration-message-methods.ts:119-153`, calls `db.createTask(...)` (`src/main/runtime/orchestration/db/tasks/task-store.ts`).
+- `orchestration.taskUpdate` handler: `orchestration-message-methods.ts:193-218`, calls `db.updateTaskStatus(...)`.
+- Real worker dispatch/start: `src/main/runtime/rpc/methods/orchestration-workers.ts` (`ORCHESTRATION_WORKER_START_METHODS`, `:30`) and `orchestration-dispatch-methods.ts` (`ORCHESTRATION_DISPATCH_METHODS`, `:9`) — both are where D2's plan wires `--member` resolution "before any worktree/terminal effect" and where D2/C4 call `db.setDispatchMember(...)`/`enqueueContextCapture(...)` respectively (per `docs/alicorn/plans/2026-09-06-tier-1-desktop.md:300,343`).
+- Dispatch context creation: `createDispatchContext` (`db/dispatch-context/dispatch-context-store.ts:11-91`) — the function that actually inserts the `dispatch_contexts` row, requires `task.status === 'ready'`, throws if the assignee terminal already has an active dispatch, carries forward `failure_count`.
+- Run scoping gate: `resolveRunScope` (`orchestration-run-scope.ts:83-132`) — see §3 above; this is the wall BA1 hits.
+
+## 5. Plane REST specifics (from general knowledge — not verified against a live instance; flag uncertainty)
+
+- **Auth:** `X-API-Key: <token>` header (workspace-scoped API key, generated per-workspace in Plane's settings). No OAuth flow for the self-hosted API-key path — matches Linear's single-key-per-workspace storage pattern more than Jira's email+token Basic auth.
+- **Base path:** `/api/v1/workspaces/{workspace-slug}/projects/{project-id}/issues/...` — confirms the plan brief's URL shape. Workspace is identified by **slug** (string), project by **UUID**.
+- **Pagination:** cursor-based, response envelope with `results`, `next_cursor`, `next_page_results` (boolean), `total_count`, `count`; request via `cursor` + `per_page` query params. *(Uncertain: exact field names for older self-hosted versions may differ from plane.so cloud — verify against the target instance's actual OpenAPI/response before implementing.)*
+- **Issue fields:** `id`, `sequence_id` (project-scoped issue number, shown as `PROJ-123` in UI), `name` (title), `description_html`/`description_stripped`, `state` (UUID, join needed against the states endpoint for the human label/group), `assignees` (array of member UUIDs), `labels` (array of label UUIDs), `priority`, `project`, `created_at`/`updated_at`.
+- **States endpoint:** `GET /workspaces/{slug}/projects/{id}/states/` returns each state's `id`, `name`, `color`, and **`group`** — one of `backlog` | `unstarted` | `started` | `completed` | `cancelled`. This `group` enum is the natural mapping target for `WorkspaceStatus` write-back (§2) — map local status → Plane state by matching `group` first, name second, mirroring Linear's `type`+name check in `isAlreadyInState` (`workspace-board-task-status-sync.ts:130-135`).
+- **Comments endpoint:** `GET/POST /workspaces/{slug}/projects/{id}/issues/{issue-id}/comments/` — body is HTML (`comment_html`), similar in spirit to Jira's ADF (`adf-markdown.ts`) but simpler (plain HTML, no rich node schema) — no dedicated ADF-style converter needed, but still needs an HTML↔Markdown bridge like Jira's `adf-markdown.ts` provides.
+- **Flag as uncertain / verify before implementing:** exact rate-limit headers, whether `per_page` has a hard cap, and whether self-hosted 8seneca instance pins an older API version with field differences from current plane.so docs (self-hosted at `projects.8seneca.com` per the plan brief — version drift is plausible and should be checked against that instance directly, not assumed from public docs).
+
+## 6. CLI skill guide idiom
+
+- `CommandSpec` (`src/cli/specs/args.ts` — not read in full, but shape confirmed via usage): `{ path: string[], summary, usage, allowedFlags, positionalArgs?, examples }`.
+- Reference: `src/cli/specs/linear.ts` (`LINEAR_COMMAND_SPECS`) — `orca linear issue`, `orca linear search`, `orca linear team list`, etc.
+- **No Jira CLI spec exists** (`src/cli/specs/jira.ts` absent) and **no Jira skill guide markdown exists** (`skill-guides/` has only `orca-linear.md`/`linear-tickets.md`). PP3's CLI verbs for Plane have exactly one precedent to copy (Linear), not two.
+- Skill guide markdown → `src/cli/bundled-skill-guides.ts` via `config/scripts/generate-bundled-skill-guides.mjs` (generated file, "Do not edit" banner at top) — write the markdown source, regenerate, then `pnpm run verify:bundled-skill-guides`.
+
+## 7. i18n + settings conventions
+
+- `translate('auto.components.<file-path-ish>.<key>', 'Plain English default')` imported from `@/i18n/i18n` — never hand-write a translation key; write plain English text, then run `node config/scripts/localize-renderer-strings.mjs && pnpm run sync:localization-catalog`, verify with `pnpm run verify:localization-extraction && pnpm run verify:localization-coverage` (per CLAUDE.md/AGENTS.md — confirmed the same convention appears literally in `jira-integration-card.tsx` and `TasksPane.tsx`).
+- Settings registration: new integration card component (`PlaneIntegrationCard`) → export alongside `JiraIntegrationCard`/`LinearIntegrationCard` in `task-tracker-integration-cards.tsx` → mount in `IntegrationsPane.tsx` → add `PLANE_INTEGRATION_SECTION_ID` in `task-provider-integration-section-ids.ts` → add a label branch in `TasksPane.tsx`'s provider-name switch (`:47-95`).
+
+## 8. Test idioms to copy
+
+- Orchestration DB unit tests: `new OrchestrationDb(':memory:')`, create run/task/dispatch inline (pattern named explicitly in the tier-1-desktop plan, `orchestration-tasks-dispatch.test.ts` as the template, `docs/alicorn/plans/2026-09-06-tier-1-desktop.md:252`).
+- RPC method tests: `orchestration-rpc-test-harness.ts` (`src/main/runtime/rpc/methods/`).
+- Provider IPC test harness pattern: `github-ipc-test-harness.ts` / `github-ipc-module-mocks.ts` (mirror for a `plane-ipc-test-harness.ts` if IPC surface grows beyond a couple handlers) — Jira/GitLab/Linear don't have their own separate harness files, suggesting the GitHub one is the "if you need this much scaffolding" reference, not a mandatory pattern.
+- Board write-back test: `workspace-board-task-status-sync.test.ts` + `WorkspaceKanbanDrawer.task-status-sync.test.ts` — the two-level (pure-function unit test + component/drawer integration test) split to copy for a Plane status-sync equivalent.
+- Settings card test: `jira-integration-card.test.tsx`, `task-tracker-integration-cards.test.tsx`.
+
+## 9. Constraints (from AGENTS.md/CLAUDE.md, applied to this plan)
+
+- `tenant_id`/RLS is a control-plane (Postgres/Ledger) concern, not something Plane's provider code touches — Plane is desktop-local like Jira/Linear/GitLab, no tenant scoping needed in `src/main/plane/**`.
+- Renderer strings localized by tooling only (§7).
+- No `helpers`/`utils` file names — name new files after the domain concept (e.g. `plane-issue-transition.ts`, not `plane-utils.ts`).
+- Windows/SSH/GitLab-provider-neutrality rules from AGENTS.md apply to any new git-adjacent code, but Plane itself is a pure REST tracker with no git/SSH/child-process surface, so most of those hazard docs are inapplicable — only the folder-workspace/SSH-execution-boundary rule matters if Plane-linked worktree operations run on a remote host.
+- BA2's guard rails "ship with BA1" per CLAUDE.md's invariant ("Guard rails ship with the feature that needs them") — the plan cannot sequence BA1 before BA2 as a follow-up; they're one unit of work.
+- `execution_strategy` must never silently default to `orchestrated` for board-dispatched tasks — BA1-dispatched tasks are exactly the kind of "column change dispatches a member" case CLAUDE.md's table calls out as *workflow-attached, single by default* (`| execution_strategy: single | ... Workflow feature: a column change dispatches a member ... |`) — confirms BA1 dispatches should default to `single`, with `orchestrated` only via the same offer/opt-in D4 escalation path, never automatic.
+- Required checks for BA1-dispatched runs are still "authored per project by an org admin, never by the member being judged" (CLAUDE.md, *Honest scoping inside tier 1*) — no new exception for rule-engine-dispatched work.
+
+## 10. Risks & open questions
+
+1. **(Critical, blocks BA1 task breakdown)** Which dispatch path does the rule engine call — see §3's three options. Needs a decision before any BA1 subtask can be written concretely.
+2. **Loop detection needs new storage** (§3) — not a small addition on top of existing data; scope BA2 as its own schema-touching task, not a policy-only task.
+3. **Plane REST field/pagination details are unverified against the actual self-hosted instance** (§5) — PP1's first task should include a read-only probe against `projects.8seneca.com` (issues list, states list, single issue) to confirm field names before writing the client, the same way Jira's client evolved against a real site.
+4. **No Jira CLI/skill-guide precedent** (§6) — PP3 is inventing the second-ever tracker CLI surface, not copying an established pattern that both existing trackers use; expect more back-and-forth on shape than "just copy Jira."
+5. **Write-back is Linear-only today** (§2) — PP2's "reuse the existing mechanism" undersells the lift; there is one file to generalize or duplicate, not a shared abstraction to plug into.
+6. **`linkedWorkItem`/`WorkspaceLinkedItem` generic field vs. dedicated `linkedPlaneIssue*` fields** — worktree/types.ts already has both a generic slot and per-provider dedicated fields for the 4 newest providers (GitLab MR, Bitbucket, Azure DevOps, Gitea); confirm with whoever added the generic field whether Plane is expected to be the first provider to use *only* it, or whether dedicated fields are still the house style (the comment at `:90-97` and the fact that 3 providers *after* the generic field's likely introduction still got dedicated fields suggests dedicated fields remain the norm — worth a direct check of `WorkspaceLinkedItem`'s type and one usage site before deciding).
+7. **BA3 kill switch has zero prior art** (§3) — no per-board or global automation-disable concept exists anywhere in the codebase today; this is greenfield UI + a new enforcement point in whichever dispatch path §3 resolves to.
+
+## 11. Suggested task decomposition (≤2 ew each)
+
+| Task | Maps to | Files (create/modify) | Proving test |
+|---|---|---|---|
+| T1: Plane REST client + auth storage | PP1 | `src/main/plane/client.ts`, `plane-token-store.ts` (mirror `linear-token-store.ts`), `authenticated-request.ts` (mirror Jira's, minus Basic-auth branch) | Unit test against a fake fetch: header is `X-API-Key: <token>`, token round-trips through `getSecretStore().encryptString` |
+| T2: Plane workspace/project selection + issue list/detail | PP1 | `src/main/plane/issues.ts`, `project-queries.ts`, `site-identity.ts`-equivalent | Fixture-based fetch test mirroring `jira/issues.test.ts` |
+| T3: TaskProvider union + identity + settings plumbing | PP1 | `task-providers.ts`, `task-provider-identity.ts`, `task-source-context.ts`, `default-global-settings.ts`, `global-settings-types.ts` | `task-providers.test.ts` extended with `'plane'` cases |
+| T4: Main IPC + preload bridge | PP1 | `src/main/ipc/plane.ts`, `src/preload/api/plane-bridge.ts`/`plane-api.ts` | IPC channel-parity test mirroring `github-ipc-channel-parity.test.ts` |
+| T5: Renderer task-page provider state + list/detail hooks | PP1 | `use-task-page-provider-state.ts` (add `planeX` slice), new `use-task-page-plane-*.ts` hooks, `task-page/plane/**` | Component test mirroring `task-page-gitlab-task-filters.test.ts` |
+| T6: Settings integration card | PP3 | `plane-integration-card.tsx`, `task-tracker-integration-cards.tsx`, `IntegrationsPane.tsx`, `task-provider-integration-section-ids.ts`, `TasksPane.tsx` | `plane-integration-card.test.tsx` |
+| T7: Worktree linked-issue fields | PP2 | `src/shared/worktree/types.ts` (+persistence normalizer) | Persistence round-trip test for `linkedPlaneIssue*` |
+| T8: Status write-back for Plane (+ decide on Linear generalization) | PP2 | new `sync-plane-worktree-status.ts` or generalized `workspace-board-task-status-sync.ts` | New test mirroring `workspace-board-task-status-sync.test.ts`, matching on state `group` |
+| T9: CLI skill guide verbs | PP3 | `src/cli/specs/plane.ts`, `skill-guides/orca-plane.md` | `bundled-guide-flags.test.ts`-style coverage + `verify:bundled-skill-guides` |
+| T10: **Decision spike** — dispatch path for rule-engine-triggered runs | BA1 (blocking) | design doc / ADR, no code | N/A — output is a decision, feeds T11 |
+| T11: Column-transition trigger + dispatch (provenance: stage_key, member) | BA1 | depends on T10's chosen path; likely new `src/main/board-automation/rule-engine.ts` + schema addition | Integration test: drag → dispatch_contexts row (or automation-run) carries `stage_key`/member |
+| T12: Per-task dispatch ceiling + column-revisit loop detection | BA2 (ships with BA1) | new table/columns for transition history; extend/reuse `failure_count`-style counter | Test: N dispatches in T window → refused; A→X→B→Y→A sequence → refused |
+| T13: Kill switch (global + per-board) + CLI `alicorn automation stop` | BA3 (ships with BA1/BA2) | new enable/disable flag at whatever granularity T10 lands on, `src/cli/specs/automations.ts` addition | Test: kill switch set → rule engine refuses all dispatch, existing runs unaffected |
