@@ -58,6 +58,8 @@ import { registerTerminalRenderDesyncEvidenceHandler } from '../terminal-render-
 import { registerOrcaProfileHandlers } from '../orca-profiles'
 import { registerAlicornHandlers } from '../alicorn-handlers'
 import { registerBoardAutomationHandlers } from '../board-automation-handlers'
+import { createBoardRuleEngine } from '../../board-automation/board-rule-engine'
+import { createBoardRuleStore } from '../../board-automation/board-rule-store'
 import { getControlPlaneClient } from '../../alicorn/control-plane-client-instance'
 import { registerCodexAccountHandlers } from '../codex-accounts'
 import { registerAgentHookHandlers } from '../agent-hooks'
@@ -209,7 +211,12 @@ export function registerCoreHandlers(
     getSettings: () => store.getSettings(),
     updateSettings: (updates) => {
       void store.updateSettings(updates)
-    }
+    },
+    engine: createBoardRuleEngine({
+      runtime,
+      getDb: () => runtime.getOrchestrationDb(),
+      rules: createBoardRuleStore(() => store.getSettings())
+    })
   })
   registerBrowserHandlers()
   registerShellHandlers(store)

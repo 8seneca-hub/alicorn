@@ -10,6 +10,7 @@ import { useWorkspaceKanbanSelection } from './use-workspace-kanban-selection'
 import { useWorkspaceKanbanShiftWheelScroll } from './use-workspace-kanban-shift-wheel-scroll'
 import { useWorkspaceKanbanOutsideDismiss } from './use-workspace-kanban-outside-dismiss'
 import { useWorkspaceBoardTaskStatusSync } from './use-workspace-board-task-status-sync'
+import { useBoardAutomationDispatch } from './use-board-automation-dispatch'
 import { useWorkspaceKanbanStatusActions } from './use-workspace-kanban-status-actions'
 import { useWorkspaceKanbanWorktreeActions } from './use-workspace-kanban-worktree-actions'
 import type { Worktree } from '../../../../shared/worktree/types'
@@ -129,6 +130,10 @@ function WorkspaceKanbanDrawerContent({
     worktreesById: worktreeById,
     workspaceStatuses
   })
+  const dispatchBoardAutomation = useBoardAutomationDispatch({
+    worktreeById,
+    workspaceStatuses
+  })
   const {
     dropPointerDraggedWorktreesInStatus,
     dropWorktreesAtEndOfStatus,
@@ -142,6 +147,7 @@ function WorkspaceKanbanDrawerContent({
     laneFullWorktreeIds,
     laneViews,
     maybeSyncTaskStatuses: maybeSyncWorkspaceBoardTaskStatuses,
+    dispatchBoardAutomation,
     setSortBy,
     sortBy,
     updateWorktreeMeta,

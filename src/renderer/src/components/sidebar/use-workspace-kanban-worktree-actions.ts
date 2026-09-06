@@ -19,6 +19,9 @@ export function useWorkspaceKanbanWorktreeActions(args: {
   laneFullWorktreeIds: ReadonlyMap<string, readonly string[]>
   laneViews: ReadonlyMap<string, LaneView>
   maybeSyncTaskStatuses: (worktreeIds: readonly string[], status: WorkspaceStatus) => void
+  /** Separate from the tracker write-back: dispatching an agent and updating an issue are
+   *  independent, and one failing must not stop the other. */
+  dispatchBoardAutomation: (worktreeIds: readonly string[], status: WorkspaceStatus) => void
   setSortBy: ReturnType<typeof useAppStore.getState>['setSortBy']
   sortBy: ReturnType<typeof useAppStore.getState>['sortBy']
   updateWorktreeMeta: ReturnType<typeof useAppStore.getState>['updateWorktreeMeta']
@@ -61,6 +64,7 @@ export function useWorkspaceKanbanWorktreeActions(args: {
         { executionHostId: current.hostId ?? 'local' }
       )
       args.maybeSyncTaskStatuses([worktreeId], status)
+      args.dispatchBoardAutomation([worktreeId], status)
     },
     [args]
   )
@@ -86,6 +90,7 @@ export function useWorkspaceKanbanWorktreeActions(args: {
       recordInteraction()
       void args.updateWorktreesMeta(updates)
       args.maybeSyncTaskStatuses(changedIds, status)
+      args.dispatchBoardAutomation(changedIds, status)
     },
     [args]
   )
@@ -150,6 +155,7 @@ export function useWorkspaceKanbanWorktreeActions(args: {
       recordInteraction()
       void args.updateWorktreesMeta(changed)
       args.maybeSyncTaskStatuses(drop.worktreeIds, drop.status)
+      args.dispatchBoardAutomation(drop.worktreeIds, drop.status)
     },
     [args, shouldWriteDropManualOrder]
   )

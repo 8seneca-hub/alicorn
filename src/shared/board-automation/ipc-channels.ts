@@ -4,5 +4,6 @@ export const BOARD_AUTOMATION_IPC = {
   status: 'boardAutomation:status',
   setKilled: 'boardAutomation:setKilled',
   listRules: 'boardAutomation:listRules',
-  saveRules: 'boardAutomation:saveRules'
+  saveRules: 'boardAutomation:saveRules',
+  statusChanged: 'boardAutomation:statusChanged'
 } as const
