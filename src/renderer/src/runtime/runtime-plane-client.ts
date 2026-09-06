@@ -41,6 +41,18 @@ export async function planeConnect(
     : window.api.plane.connect(args)
 }
 
+export async function planeSetDefaultProject(
+  settings: RuntimePlaneSettings,
+  args: { connectionId: string; projectId: string | null }
+): Promise<PlaneConnectionStatus> {
+  const target = getProviderRuntimeTarget(settings)
+  return target.kind === 'environment'
+    ? callRuntimeRpc<PlaneConnectionStatus>(target, 'plane.setDefaultProject', args, {
+        timeoutMs: STATUS_TIMEOUT_MS
+      })
+    : window.api.plane.setDefaultProject(args)
+}
+
 export async function planeDisconnect(
   settings: RuntimePlaneSettings,
   args?: { connectionId?: string }

@@ -8,6 +8,12 @@ export type PlaneConnection = {
   baseUrl: string
   workspaceSlug: string
   displayName: string
+  /**
+   * Which project the Tasks surface opens on. Plane's v1 API has no
+   * cross-project issue list, so a project is required before anything can be
+   * read — this is where that choice lives.
+   */
+  defaultProjectId?: string | null
 }
 
 export type PlaneViewer = {

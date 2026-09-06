@@ -6,7 +6,12 @@ import type {
   PlaneResult,
   PlaneState
 } from '../../shared/plane-types'
-import { connectPlane, disconnectPlane, getPlaneStatus } from '../plane/plane-connection'
+import {
+  connectPlane,
+  disconnectPlane,
+  getPlaneStatus,
+  setDefaultPlaneProject
+} from '../plane/plane-connection'
 import { attempt, withClient } from '../plane/plane-read-envelope'
 import { getProjectIssue, listProjectIssues } from '../plane/plane-issue-queries'
 import { updateIssueState } from '../plane/plane-issue-mutations'
@@ -35,6 +40,10 @@ export class RuntimePlaneCommands {
 
   planeStatus(): PlaneConnectionStatus {
     return getPlaneStatus()
+  }
+
+  planeSetDefaultProject(connectionId: string, projectId: string | null): PlaneConnectionStatus {
+    return setDefaultPlaneProject(connectionId, projectId)
   }
 
   planeListProjects(connectionId?: string): Promise<PlaneResult<PlaneProject[]>> {

@@ -1,4 +1,4 @@
-import type { PlaneConnectionStatus } from '../../../../shared/plane-types'
+import type { PlaneConnectionStatus, PlaneProject } from '../../../../shared/plane-types'
 
 export type PlaneSlice = {
   planeStatus: PlaneConnectionStatus
@@ -13,6 +13,11 @@ export type PlaneSlice = {
     apiKey: string
   }) => Promise<{ ok: true } | { ok: false; error: string }>
   disconnectPlane: (args?: { connectionId?: string }) => Promise<void>
+  setPlaneDefaultProject: (args: {
+    connectionId: string
+    projectId: string | null
+  }) => Promise<void>
+  listPlaneProjects: () => Promise<PlaneProject[]>
 }
 
 export const DISCONNECTED_PLANE_STATUS: PlaneConnectionStatus = {

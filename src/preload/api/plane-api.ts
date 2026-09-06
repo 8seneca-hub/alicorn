@@ -17,6 +17,10 @@ export type PlaneApi = {
   }) => Promise<PlaneResult<PlaneConnectionStatus>>
   disconnect: (args?: { connectionId?: string }) => Promise<PlaneConnectionStatus>
   status: () => Promise<PlaneConnectionStatus>
+  setDefaultProject: (args: {
+    connectionId: string
+    projectId: string | null
+  }) => Promise<PlaneConnectionStatus>
   listProjects: (args?: { connectionId?: string }) => Promise<PlaneResult<PlaneProject[]>>
   listStates: (args: {
     projectId: string

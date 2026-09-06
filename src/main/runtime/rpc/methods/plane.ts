@@ -66,6 +66,15 @@ export const PLANE_METHODS: RpcAnyMethod[] = [
     handler: async (_params, { runtime }) => runtime.planeStatus()
   }),
   defineMethod({
+    name: 'plane.setDefaultProject',
+    params: z.object({
+      connectionId: requiredString('Connection id is required'),
+      projectId: OptionalString
+    }),
+    handler: async (params, { runtime }) =>
+      runtime.planeSetDefaultProject(params.connectionId.trim(), params.projectId ?? null)
+  }),
+  defineMethod({
     name: 'plane.listProjects',
     params: ConnectionSelection,
     handler: async (params, { runtime }) => runtime.planeListProjects(params?.connectionId)

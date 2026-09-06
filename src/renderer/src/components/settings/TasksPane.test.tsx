@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
     checking: boolean
     onOpenIntegrations: () => void
   }[],
+  planeSetupProps: [] as { onOpenIntegrations: () => void }[],
   jiraSetupProps: [] as { onOpenIntegrations: () => void }[]
 }))
 
@@ -65,6 +66,10 @@ vi.mock('./TaskSourceSimpleSetup', () => ({
   JiraSetupSteps: (props: { onOpenIntegrations: () => void }) => {
     mocks.jiraSetupProps.push(props)
     return <div data-testid="jira-setup">Jira setup</div>
+  },
+  PlaneSetupSteps: (props: { onOpenIntegrations: () => void }) => {
+    mocks.planeSetupProps.push(props)
+    return <div data-testid="plane-setup">Plane setup</div>
   }
 }))
 
