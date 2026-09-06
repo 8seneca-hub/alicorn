@@ -1,6 +1,7 @@
 import type { ActiveOrRecentDispatchMethods } from './alicorn/active-or-recent-dispatch-methods'
 import type { CorrectionScanMethods } from './alicorn/correction-scan-methods'
 import type { DispatchLedgerMethods } from './alicorn/dispatch-ledger-methods'
+import type { BoardTransitionMethods } from './alicorn/board-transition-methods'
 import type { DispatchMemberMethods } from './alicorn/dispatch-member-methods'
 import type { LedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
 import type { TaskStrategyMethods } from './alicorn/task-strategy-methods'
@@ -132,4 +133,5 @@ export type OrchestrationDbMethods = CreateTablesMethods &
   DispatchMemberMethods &
   ActiveOrRecentDispatchMethods &
   CorrectionScanMethods &
-  DispatchLedgerMethods
+  DispatchLedgerMethods &
+  BoardTransitionMethods

@@ -44,7 +44,9 @@ describe('v33 migration: outbox kinds for human verdicts and interruptions', () 
 
     db = new OrchestrationDb(dbPath)
     const sqlite = (db as unknown as { db: Database.Database }).db
-    expect(SCHEMA_VERSION).toBe(33)
+    // Why >= rather than === 33: this asserts the database migrated up past v33, not that v33 is
+    // the newest migration. Pinning the global constant here fails for whoever adds the next one.
+    expect(SCHEMA_VERSION).toBeGreaterThanOrEqual(33)
     expect(sqlite.pragma('user_version', { simple: true })).toBe(SCHEMA_VERSION)
 
     const preserved = db.listDueLedgerOutbox()
