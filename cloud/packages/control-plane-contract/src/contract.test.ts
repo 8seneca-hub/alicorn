@@ -3,6 +3,7 @@ import {
   FEATURE_DELIVERY_STAGE_KEYS,
   FEATURE_DELIVERY_TEMPLATE,
   findWorkflowTemplate,
+  HumanVerdictPatchSchema,
   MemberInputSchema,
   SpendPatchSchema,
   StepOutcomeInputSchema,
@@ -50,6 +51,12 @@ describe('control-plane contract', () => {
   it('defaults usage to null for a spend patch with only spendCents', () => {
     const parsed = SpendPatchSchema.parse({ spendCents: 82 })
     expect(parsed.usage).toBeNull()
+  })
+
+  it('defaults amendedAfterMs to null and source to manual for a human-verdict patch', () => {
+    const parsed = HumanVerdictPatchSchema.parse({ humanVerdict: 'accepted' })
+    expect(parsed.amendedAfterMs).toBeNull()
+    expect(parsed.source).toBe('manual')
   })
 
 })

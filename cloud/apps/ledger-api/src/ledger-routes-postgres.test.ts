@@ -164,6 +164,57 @@ describePostgres('ledger routes (postgres)', () => {
     expect(await missingBranch.json()).toEqual({ error: 'invalid_query' })
   })
 
+  it('patches a human verdict once, updates member stats, and reports it on provenance', async () => {
+    const created = await post('/v1/ledger/step-outcomes', {
+      runId: 'run_3', taskId: 'task_3', dispatchId: 'ctx_9', outcome: 'succeeded',
+      memberId: 'm2', projectId: 'p2', repoId: 'r3', branch: 'feat/verdict'
+    })
+    const { id } = (await created.json()) as { id: string }
+
+    const patch = await app.request(`/v1/ledger/step-outcomes/${id}/human-verdict`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({ humanVerdict: 'amended', amendedAfterMs: 1500 })
+    })
+    expect(patch.status).toBe(200)
+    expect(await patch.json()).toEqual({ id })
+
+    const { rows: outcomeRows } = await withTenant(pool, 'local', (c) =>
+      c.query(`SELECT human_verdict, amended_after_ms FROM step_outcomes WHERE id = $1`, [id])
+    )
+    expect(outcomeRows[0]).toEqual({ human_verdict: 'amended', amended_after_ms: 1500 })
+
+    const { rows: statsRows } = await withTenant(pool, 'local', (c) =>
+      c.query(`SELECT last_amended_at FROM member_stage_stats WHERE member_id = 'm2' AND stage_key = 'build' AND project_id = 'p2'`)
+    )
+    expect(statsRows[0].last_amended_at).not.toBeNull()
+
+    const again = await app.request(`/v1/ledger/step-outcomes/${id}/human-verdict`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({ humanVerdict: 'rejected' })
+    })
+    expect(again.status).toBe(409)
+    expect(await again.json()).toEqual({ error: 'verdict_already_set' })
+
+    const notFound = await app.request(`/v1/ledger/step-outcomes/does-not-exist/human-verdict`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({ humanVerdict: 'accepted' })
+    })
+    expect(notFound.status).toBe(404)
+    expect(await notFound.json()).toEqual({ error: 'not_found' })
+
+    const provenance = await app.request('/v1/ledger/provenance?repoId=r3&branch=feat/verdict', { headers: authHeaders })
+    const provenanceBody = (await provenance.json()) as ProvenanceReport
+    expect(ProvenanceReportSchema.parse(provenanceBody)).toEqual(provenanceBody)
+    expect(provenanceBody.outcomes[0]?.humanVerdict).toBe('amended')
+    expect(provenanceBody.outcomes[0]?.amendedAfterMs).toBe(1500)
+
+    const forbidden = await app.request(`/v1/ledger/step-outcomes/${id}/human-verdict`, {
+      method: 'PATCH', headers: { ...authHeaders, 'x-alicorn-org': 'acme' },
+      body: JSON.stringify({ humanVerdict: 'accepted' })
+    })
+    expect(forbidden.status).toBe(403)
+  })
+
   it('rejects malformed JSON with 400 invalid_body', async () => {
     const res = await app.request('/v1/ledger/step-outcomes', {
       method: 'POST',

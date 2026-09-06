@@ -2,12 +2,13 @@ import type { Hono } from 'hono'
 import {
   CONTEXT_CAPTURE_MAX_PROMPT_BYTES,
   ContextCaptureInputSchema,
+  HumanVerdictPatchSchema,
   SpendPatchSchema,
   StepOutcomeInputSchema,
   StepVerificationInputSchema
 } from '@alicorn-cloud/control-plane-contract'
 import type { LedgerApiDeps, LedgerApiEnv } from './app-env.js'
-import { insertStepOutcome, patchStepOutcomeSpend } from './step-outcomes-repository.js'
+import { insertStepOutcome, patchStepOutcomeHumanVerdict, patchStepOutcomeSpend } from './step-outcomes-repository.js'
 import { insertStepVerification } from './step-verifications-repository.js'
 import { insertContextCapture } from './context-captures-repository.js'
 import { getProvenance, getRunCost } from './provenance-repository.js'
@@ -33,6 +34,23 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
     const updated = await patchStepOutcomeSpend(deps.pool, auth.tenantId, c.req.param('id'), result.data)
     if (!updated) return c.json({ error: 'not_found' }, 404)
     return c.json({ id: c.req.param('id') })
+  })
+
+  app.patch('/v1/ledger/step-outcomes/:id/human-verdict', async (c) => {
+    const auth = c.get('auth')
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = HumanVerdictPatchSchema.safeParse(body.value)
+    if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
+    const id = c.req.param('id')
+    const outcome = await patchStepOutcomeHumanVerdict(deps.pool, auth.tenantId, id, result.data)
+    if (outcome === 'not_found') return c.json({ error: 'not_found' }, 404)
+    if (outcome === 'already_set') {
+      // Why: append-only — a second signal is a new event, not an overwrite; keep it visible.
+      console.warn('[alicorn-ledger-api] human_verdict already set', { id, source: result.data.source })
+      return c.json({ error: 'verdict_already_set' }, 409)
+    }
+    return c.json({ id })
   })
 
   app.post('/v1/ledger/step-verifications', async (c) => {

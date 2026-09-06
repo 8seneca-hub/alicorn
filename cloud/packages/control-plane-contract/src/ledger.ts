@@ -31,6 +31,13 @@ export const SpendPatchSchema = z.object({
   usage: z.record(z.unknown()).nullable().default(null)
 })
 
+export const HumanVerdictPatchSchema = z.object({
+  humanVerdict: z.enum(['accepted', 'rejected', 'amended']),
+  amendedAfterMs: z.number().int().nonnegative().nullable().default(null),
+  // Why: what the corrections watcher saw — a follow-up commit, a revert, a reopened task, or a manual call.
+  source: z.enum(['follow_up_commit', 'revert', 'reopened_task', 'manual']).default('manual')
+})
+
 export const StepVerificationInputSchema = z.object({
   runId: z.string().min(1),
   taskId: z.string().min(1),
@@ -60,6 +67,8 @@ export const StepOutcomeRecordSchema = StepOutcomeInputSchema.extend({
   usage: z.record(z.unknown()).nullable(),
   gateDecision: z.string(),
   gateReason: z.string(),
+  humanVerdict: z.enum(['accepted', 'rejected', 'amended']).nullable(),
+  amendedAfterMs: z.number().int().nullable(),
   createdAt: z.string().datetime()
 })
 export const StepVerificationRecordSchema = StepVerificationInputSchema.extend({ id: z.string(), createdAt: z.string().datetime() })
@@ -84,6 +93,7 @@ export type ExecutionStrategy = z.infer<typeof ExecutionStrategySchema>
 export type StepOutcomeInput = z.infer<typeof StepOutcomeInputSchema>
 export type StepOutcomeRecord = z.infer<typeof StepOutcomeRecordSchema>
 export type SpendPatch = z.infer<typeof SpendPatchSchema>
+export type HumanVerdictPatch = z.infer<typeof HumanVerdictPatchSchema>
 export type StepVerificationInput = z.infer<typeof StepVerificationInputSchema>
 export type ContextCaptureInput = z.infer<typeof ContextCaptureInputSchema>
 export type ProvenanceReport = z.infer<typeof ProvenanceReportSchema>

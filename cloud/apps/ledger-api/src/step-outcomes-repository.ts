@@ -1,6 +1,6 @@
 import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
-import type { SpendPatch, StepOutcomeInput, StepOutcomeRecord } from '@alicorn-cloud/control-plane-contract'
+import type { HumanVerdictPatch, SpendPatch, StepOutcomeInput, StepOutcomeRecord } from '@alicorn-cloud/control-plane-contract'
 import { upsertMemberStageStats } from './member-stage-stats.js'
 
 export type StepOutcomeRow = {
@@ -24,6 +24,8 @@ export type StepOutcomeRow = {
   usage: Record<string, unknown> | null
   gate_decision: string
   gate_reason: string
+  human_verdict: string | null
+  amended_after_ms: number | null
   review_backend_bypass: boolean
   escalation_offered: boolean
   escalation_accepted: boolean | null
@@ -58,6 +60,8 @@ export function toStepOutcomeRecord(row: StepOutcomeRow): StepOutcomeRecord {
     usage: row.usage,
     gateDecision: row.gate_decision,
     gateReason: row.gate_reason,
+    humanVerdict: row.human_verdict as StepOutcomeRecord['humanVerdict'],
+    amendedAfterMs: row.amended_after_ms,
     createdAt: row.created_at.toISOString()
   }
 }
@@ -114,5 +118,36 @@ export function patchStepOutcomeSpend(pool: pg.Pool, tenantId: string, id: strin
       [patch.spendCents, patch.usage === null ? null : JSON.stringify(patch.usage), id]
     )
     return (result.rowCount ?? 0) > 0
+  })
+}
+
+// Why: append-only (R3) — a verdict is written once (WHERE human_verdict IS NULL); a second,
+// different signal is a new event for the caller to log, never an overwrite.
+export function patchStepOutcomeHumanVerdict(
+  pool: pg.Pool,
+  tenantId: string,
+  id: string,
+  patch: HumanVerdictPatch
+): Promise<'patched' | 'not_found' | 'already_set'> {
+  return withTenant(pool, tenantId, async (client) => {
+    const { rows } = await client.query<{ member_id: string | null; stage_key: string; project_id: string | null }>(
+      `UPDATE step_outcomes SET human_verdict = $1, amended_after_ms = $2
+       WHERE id = $3 AND human_verdict IS NULL
+       RETURNING member_id, stage_key, project_id`,
+      [patch.humanVerdict, patch.amendedAfterMs, id]
+    )
+    const row = rows[0]
+    if (!row) {
+      const existing = await client.query(`SELECT id FROM step_outcomes WHERE id = $1`, [id])
+      return existing.rows[0] ? 'already_set' : 'not_found'
+    }
+    if (row.member_id) {
+      await client.query(
+        `UPDATE member_stage_stats SET last_amended_at = now(), updated_at = now()
+         WHERE tenant_id = $1 AND member_id = $2 AND stage_key = $3 AND project_id = $4`,
+        [tenantId, row.member_id, row.stage_key, row.project_id ?? '']
+      )
+    }
+    return 'patched'
   })
 }
