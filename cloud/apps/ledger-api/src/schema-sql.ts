@@ -43,6 +43,14 @@ export const LEDGER_SCHEMA_STATEMENTS: readonly string[] = [
      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      UNIQUE (tenant_id, dispatch_id))`,
   tenantRlsPolicySql('context_captures'),
+  `CREATE TABLE IF NOT EXISTS step_interruptions (
+     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+     tenant_id TEXT NOT NULL, run_id TEXT NOT NULL, task_id TEXT NOT NULL, dispatch_id TEXT NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('gate','ask','escalation')),
+     source_id TEXT NOT NULL,             -- gate id / question id / dispatch id (escalation)
+     resolved_by TEXT, occurred_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     UNIQUE (tenant_id, kind, source_id))`,  // exactly-once
+  tenantRlsPolicySql('step_interruptions'),
   `CREATE TABLE IF NOT EXISTS member_stage_stats (   -- derived; rebuildable from step_outcomes
      tenant_id TEXT NOT NULL, member_id TEXT NOT NULL, stage_key TEXT NOT NULL, project_id TEXT NOT NULL DEFAULT '',
      runs INTEGER NOT NULL DEFAULT 0, accepted INTEGER NOT NULL DEFAULT 0,

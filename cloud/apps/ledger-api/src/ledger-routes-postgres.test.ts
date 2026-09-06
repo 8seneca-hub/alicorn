@@ -8,12 +8,13 @@ import {
   withTenant
 } from '@alicorn-cloud/control-plane-postgres'
 import type { Hono } from 'hono'
-import { ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
-import type { ProvenanceReport, RunCost } from '@alicorn-cloud/control-plane-contract'
+import { InterruptionsReportSchema, ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
+import type { InterruptionsReport, ProvenanceReport, RunCost } from '@alicorn-cloud/control-plane-contract'
 import { createLedgerApiApp } from './app.js'
 import { loadLedgerApiConfig } from './config.js'
 import type { LedgerApiEnv } from './app-env.js'
 import { LEDGER_SCHEMA_STATEMENTS } from './schema-sql.js'
+import { patchStepOutcomeHumanVerdict } from './step-outcomes-repository.js'
 
 const databaseUrl = process.env.ALICORN_TEST_POSTGRES_URL
 const describePostgres = databaseUrl ? describe : describe.skip
@@ -249,6 +250,117 @@ describePostgres('ledger routes (postgres)', () => {
       c.query(`SELECT last_amended_at FROM member_stage_stats WHERE member_id = 'm3' AND stage_key = 'build' AND project_id = 'p3'`)
     )
     expect(afterRejected[0].last_amended_at).not.toBeNull()
+  })
+
+  it('scopes a human-verdict patch to its own tenant — another tenant gets not_found, never a conflict', async () => {
+    const created = await post('/v1/ledger/step-outcomes', {
+      runId: 'run_6', taskId: 'task_6', dispatchId: 'ctx_12', outcome: 'succeeded'
+    })
+    const { id } = (await created.json()) as { id: string }
+
+    // Why: local auth mode only ever authenticates as tenant 'local' — calling the repository
+    // directly is the only way to exercise RLS from a second tenant's point of view.
+    const outcome = await patchStepOutcomeHumanVerdict(pool, 'other-tenant', id, {
+      humanVerdict: 'accepted', amendedAfterMs: null, source: 'manual'
+    })
+    expect(outcome).toBe('not_found')
+  })
+
+  it('inserts all three interruption kinds and is exactly-once on (kind, sourceId)', async () => {
+    const gate = await post('/v1/ledger/interruptions', {
+      runId: 'run_7', taskId: 'task_7', dispatchId: 'ctx_13',
+      kind: 'gate', sourceId: 'gate_1', occurredAt: '2026-09-06T00:00:00.000Z'
+    })
+    expect(gate.status).toBe(201)
+    const gateBody = (await gate.json()) as { id: string; duplicate: boolean }
+    expect(gateBody.duplicate).toBe(false)
+
+    const ask = await post('/v1/ledger/interruptions', {
+      runId: 'run_7', taskId: 'task_7', dispatchId: 'ctx_13',
+      kind: 'ask', sourceId: 'ask_1', occurredAt: '2026-09-06T00:01:00.000Z'
+    })
+    expect(ask.status).toBe(201)
+
+    const escalation = await post('/v1/ledger/interruptions', {
+      runId: 'run_7', taskId: 'task_7', dispatchId: 'ctx_13',
+      kind: 'escalation', sourceId: 'ctx_13', occurredAt: '2026-09-06T00:02:00.000Z'
+    })
+    expect(escalation.status).toBe(201)
+
+    const duplicate = await post('/v1/ledger/interruptions', {
+      runId: 'run_7', taskId: 'task_7', dispatchId: 'ctx_13',
+      kind: 'gate', sourceId: 'gate_1', occurredAt: '2026-09-06T00:03:00.000Z'
+    })
+    expect(duplicate.status).toBe(200)
+    expect(await duplicate.json()).toEqual({ id: gateBody.id, duplicate: true })
+  })
+
+  it('reports interruptions per completed task, grouped by kind and stage, and narrows with filters', async () => {
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_8', taskId: 'task_8a', dispatchId: 'ctx_14', outcome: 'succeeded',
+      projectId: 'p10', memberId: 'mA', stageKey: 'build'
+    })
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_8', taskId: 'task_8b', dispatchId: 'ctx_15', outcome: 'succeeded',
+      projectId: 'p10', memberId: 'mB', stageKey: 'review'
+    })
+
+    await post('/v1/ledger/interruptions', {
+      runId: 'run_8', taskId: 'task_8a', dispatchId: 'ctx_14',
+      kind: 'gate', sourceId: 'gate_8a', occurredAt: '2026-09-06T01:00:00.000Z'
+    })
+    await post('/v1/ledger/interruptions', {
+      runId: 'run_8', taskId: 'task_8a', dispatchId: 'ctx_14',
+      kind: 'ask', sourceId: 'ask_8a', occurredAt: '2026-09-06T01:01:00.000Z'
+    })
+    await post('/v1/ledger/interruptions', {
+      runId: 'run_8', taskId: 'task_8b', dispatchId: 'ctx_15',
+      kind: 'escalation', sourceId: 'esc_8b', occurredAt: '2026-09-06T01:02:00.000Z'
+    })
+
+    const res = await app.request('/v1/ledger/reports/interruptions?projectId=p10', { headers: authHeaders })
+    expect(res.status).toBe(200)
+    const report = (await res.json()) as InterruptionsReport
+    expect(InterruptionsReportSchema.parse(report)).toEqual(report)
+    expect(report.completedTasks).toBe(2)
+    expect(report.interruptions).toBe(3)
+    expect(report.perCompletedTask).toBe(1.5)
+    expect(report.byKind).toEqual({ gate: 1, ask: 1, escalation: 1 })
+    expect(report.byStage).toEqual([
+      { stageKey: 'build', completedTasks: 1, interruptions: 2, perCompletedTask: 2 },
+      { stageKey: 'review', completedTasks: 1, interruptions: 1, perCompletedTask: 1 }
+    ])
+    expect(report.excluded).toEqual(['permission_prompt'])
+
+    const narrowed = await app.request('/v1/ledger/reports/interruptions?projectId=p10&stageKey=build', { headers: authHeaders })
+    const narrowedReport = (await narrowed.json()) as InterruptionsReport
+    expect(narrowedReport.completedTasks).toBe(1)
+    expect(narrowedReport.interruptions).toBe(2)
+    expect(narrowedReport.perCompletedTask).toBe(2)
+    expect(narrowedReport.byKind).toEqual({ gate: 1, ask: 1 })
+
+    // Why: `since` in the future excludes every row — the zero-denominator rule reports 0, not NaN.
+    const future = await app.request(
+      `/v1/ledger/reports/interruptions?projectId=p10&since=${encodeURIComponent('2099-01-01T00:00:00.000Z')}`,
+      { headers: authHeaders }
+    )
+    const futureReport = (await future.json()) as InterruptionsReport
+    expect(futureReport).toEqual({
+      filters: { projectId: 'p10', since: '2099-01-01T00:00:00.000Z' },
+      completedTasks: 0, interruptions: 0, perCompletedTask: 0,
+      byKind: {}, byStage: [], excluded: ['permission_prompt']
+    })
+
+    const malformed = await app.request('/v1/ledger/reports/interruptions?since=not-a-date', { headers: authHeaders })
+    expect(malformed.status).toBe(400)
+    expect(await malformed.json()).toEqual({ error: 'invalid_query' })
+  })
+
+  it('keeps step_interruptions invisible outside the tenant transaction', async () => {
+    const bare = await pool.query('SELECT count(*)::int AS n FROM step_interruptions')
+    expect(bare.rows[0].n).toBe(0)
+    const other = await withTenant(pool, 'other', (c) => c.query('SELECT count(*)::int AS n FROM step_interruptions'))
+    expect(other.rows[0].n).toBe(0)
   })
 
   it('rejects malformed JSON with 400 invalid_body', async () => {

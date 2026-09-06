@@ -89,6 +89,39 @@ export const RunCostSchema = z.object({
   byDispatch: z.array(z.object({ dispatchId: z.string(), taskId: z.string(), backend: z.string(), spendCents: z.number().int().nullable() }))
 })
 
+export const InterruptionInputSchema = z.object({
+  runId: z.string().min(1),
+  taskId: z.string().min(1),
+  dispatchId: z.string().min(1),
+  kind: z.enum(['gate', 'ask', 'escalation']),
+  sourceId: z.string().min(1),
+  resolvedBy: z.string().nullable().default(null),
+  occurredAt: z.string().datetime()
+})
+
+export const InterruptionsReportFiltersSchema = z.object({
+  stageKey: z.string().optional(),
+  projectId: z.string().optional(),
+  memberId: z.string().optional(),
+  since: z.string().datetime().optional(),
+  until: z.string().datetime().optional()
+})
+
+export const InterruptionsReportSchema = z.object({
+  filters: InterruptionsReportFiltersSchema,
+  completedTasks: z.number().int(),
+  interruptions: z.number().int(),
+  perCompletedTask: z.number(),
+  byKind: z.record(z.number().int()),
+  byStage: z.array(z.object({
+    stageKey: z.string(),
+    completedTasks: z.number().int(),
+    interruptions: z.number().int(),
+    perCompletedTask: z.number()
+  })),
+  excluded: z.array(z.literal('permission_prompt'))
+})
+
 export type ExecutionStrategy = z.infer<typeof ExecutionStrategySchema>
 export type StepOutcomeInput = z.infer<typeof StepOutcomeInputSchema>
 export type StepOutcomeRecord = z.infer<typeof StepOutcomeRecordSchema>
@@ -98,3 +131,6 @@ export type StepVerificationInput = z.infer<typeof StepVerificationInputSchema>
 export type ContextCaptureInput = z.infer<typeof ContextCaptureInputSchema>
 export type ProvenanceReport = z.infer<typeof ProvenanceReportSchema>
 export type RunCost = z.infer<typeof RunCostSchema>
+export type InterruptionInput = z.infer<typeof InterruptionInputSchema>
+export type InterruptionsReportFilters = z.infer<typeof InterruptionsReportFiltersSchema>
+export type InterruptionsReport = z.infer<typeof InterruptionsReportSchema>

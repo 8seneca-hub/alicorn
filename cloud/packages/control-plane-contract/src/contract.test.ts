@@ -4,6 +4,8 @@ import {
   FEATURE_DELIVERY_TEMPLATE,
   findWorkflowTemplate,
   HumanVerdictPatchSchema,
+  InterruptionInputSchema,
+  InterruptionsReportSchema,
   MemberInputSchema,
   SpendPatchSchema,
   StepOutcomeInputSchema,
@@ -57,6 +59,32 @@ describe('control-plane contract', () => {
     const parsed = HumanVerdictPatchSchema.parse({ humanVerdict: 'accepted' })
     expect(parsed.amendedAfterMs).toBeNull()
     expect(parsed.source).toBe('manual')
+  })
+
+  it('defaults resolvedBy to null and accepts the three interruption kinds', () => {
+    const parsed = InterruptionInputSchema.parse({
+      runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1',
+      kind: 'gate', sourceId: 'gate_1', occurredAt: '2026-09-06T00:00:00.000Z'
+    })
+    expect(parsed.resolvedBy).toBeNull()
+  })
+
+  it('rejects an interruption kind outside gate/ask/escalation', () => {
+    expect(() => InterruptionInputSchema.parse({
+      runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1',
+      kind: 'permission_prompt', sourceId: 'gate_1', occurredAt: '2026-09-06T00:00:00.000Z'
+    })).toThrow()
+  })
+
+  it('parses an interruptions report with permission_prompt always excluded', () => {
+    const parsed = InterruptionsReportSchema.parse({
+      filters: { stageKey: 'build' },
+      completedTasks: 2, interruptions: 3, perCompletedTask: 1.5,
+      byKind: { gate: 1, ask: 1, escalation: 1 },
+      byStage: [{ stageKey: 'build', completedTasks: 2, interruptions: 3, perCompletedTask: 1.5 }],
+      excluded: ['permission_prompt']
+    })
+    expect(parsed.excluded).toEqual(['permission_prompt'])
   })
 
 })

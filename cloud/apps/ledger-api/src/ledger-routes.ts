@@ -3,6 +3,8 @@ import {
   CONTEXT_CAPTURE_MAX_PROMPT_BYTES,
   ContextCaptureInputSchema,
   HumanVerdictPatchSchema,
+  InterruptionInputSchema,
+  InterruptionsReportFiltersSchema,
   SpendPatchSchema,
   StepOutcomeInputSchema,
   StepVerificationInputSchema
@@ -12,6 +14,7 @@ import { insertStepOutcome, patchStepOutcomeHumanVerdict, patchStepOutcomeSpend 
 import { insertStepVerification } from './step-verifications-repository.js'
 import { insertContextCapture } from './context-captures-repository.js'
 import { getProvenance, getRunCost } from './provenance-repository.js'
+import { getInterruptionsReport, insertInterruption } from './interruptions-repository.js'
 import { readJsonBody } from './read-json-body.js'
 
 export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDeps): void {
@@ -92,5 +95,29 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
     const auth = c.get('auth')
     const cost = await getRunCost(deps.pool, auth.tenantId, c.req.param('runId'))
     return c.json(cost)
+  })
+
+  app.post('/v1/ledger/interruptions', async (c) => {
+    const auth = c.get('auth')
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = InterruptionInputSchema.safeParse(body.value)
+    if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
+    const { id, duplicate } = await insertInterruption(deps.pool, auth.tenantId, result.data)
+    return c.json({ id, duplicate }, duplicate ? 200 : 201)
+  })
+
+  app.get('/v1/ledger/reports/interruptions', async (c) => {
+    const auth = c.get('auth')
+    const result = InterruptionsReportFiltersSchema.safeParse({
+      stageKey: c.req.query('stageKey'),
+      projectId: c.req.query('projectId'),
+      memberId: c.req.query('memberId'),
+      since: c.req.query('since'),
+      until: c.req.query('until')
+    })
+    if (!result.success) return c.json({ error: 'invalid_query' }, 400)
+    const report = await getInterruptionsReport(deps.pool, auth.tenantId, result.data)
+    return c.json(report)
   })
 }
