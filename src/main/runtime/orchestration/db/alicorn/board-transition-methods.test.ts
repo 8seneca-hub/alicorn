@@ -26,7 +26,7 @@ describe('board transition methods', () => {
       transition({ fromStatusId: 'in-progress', taskId: 'task-1', dispatchId: 'ctx-1' })
     )
 
-    const rows = db.listBoardTransitions('wt-1', '1970-01-01T00:00:00.000Z')
+    const rows = db.listBoardTransitions('wt-1', 0)
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({
       id,
@@ -47,7 +47,7 @@ describe('board transition methods', () => {
     for (const outcome of ['refused_ceiling', 'refused_loop', 'refused_killed'] as const) {
       db.recordBoardTransition(transition({ outcome }))
     }
-    const rows = db.listBoardTransitions('wt-1', '1970-01-01T00:00:00.000Z')
+    const rows = db.listBoardTransitions('wt-1', 0)
     expect(rows.map((row) => row.outcome).sort()).toEqual([
       'refused_ceiling',
       'refused_killed',
@@ -66,15 +66,15 @@ describe('board transition methods', () => {
         `INSERT INTO alicorn_board_transitions (id, repo_id, worktree_id, to_status_id, rule_id, outcome, created_at)
          VALUES (?, 'repo-1', 'wt-1', 'in-review', 'rule-1', 'dispatched', ?)`
       )
-      .run('old', '2026-09-01T00:00:00.000Z')
+      .run('old', '2026-09-01 00:00:00')
     db.db
       .prepare(
         `INSERT INTO alicorn_board_transitions (id, repo_id, worktree_id, to_status_id, rule_id, outcome, created_at)
          VALUES (?, 'repo-1', 'wt-1', 'in-review', 'rule-1', 'dispatched', ?)`
       )
-      .run('recent', '2026-09-06T12:00:00.000Z')
+      .run('recent', '2026-09-06 12:00:00')
 
-    const rows = db.listBoardTransitions('wt-1', '2026-09-06T00:00:00.000Z')
+    const rows = db.listBoardTransitions('wt-1', Date.parse('2026-09-06T00:00:00.000Z'))
     expect(rows.map((row) => row.id)).toEqual(['recent'])
   })
 
@@ -82,13 +82,13 @@ describe('board transition methods', () => {
     db.recordBoardTransition(transition())
     db.recordBoardTransition(transition({ worktreeId: 'wt-2' }))
 
-    expect(db.listBoardTransitions('wt-1', '1970-01-01T00:00:00.000Z')).toHaveLength(1)
+    expect(db.listBoardTransitions('wt-1', 0)).toHaveLength(1)
   })
 
   it('orders newest last so a loop walk reads forwards in time', () => {
     for (const [id, at] of [
-      ['b', '2026-09-06T02:00:00.000Z'],
-      ['a', '2026-09-06T01:00:00.000Z']
+      ['b', '2026-09-06 02:00:00'],
+      ['a', '2026-09-06 01:00:00']
     ]) {
       db.db
         .prepare(
@@ -97,10 +97,7 @@ describe('board transition methods', () => {
         )
         .run(id, at)
     }
-    expect(db.listBoardTransitions('wt-1', '1970-01-01T00:00:00.000Z').map((r) => r.id)).toEqual([
-      'a',
-      'b'
-    ])
+    expect(db.listBoardTransitions('wt-1', 0).map((r) => r.id)).toEqual(['a', 'b'])
   })
 
   describe('automation state', () => {
@@ -148,5 +145,20 @@ describe('board transition methods', () => {
       expect(db.getBoardAutomationState('global').disabledBy).toBe('huy')
       expect(db.getBoardAutomationState('global').disabledAt).toBe(first)
     })
+  })
+
+  // Regression: created_at is stored as 'YYYY-MM-DD HH:MM:SS'. Comparing it in SQL against an ISO
+  // bound puts 'T' (0x54) against the stored space (0x20), so every row from the same day sorted
+  // below the bound and was silently excluded.
+  it('includes rows written by the default timestamp within the window', () => {
+    db.recordBoardTransition({
+      repoId: 'repo-1',
+      worktreeId: 'wt-1',
+      toStatusId: 'in-review',
+      ruleId: 'rule-1',
+      outcome: 'dispatched'
+    })
+
+    expect(db.listBoardTransitions('wt-1', Date.now() - 3_600_000)).toHaveLength(1)
   })
 })

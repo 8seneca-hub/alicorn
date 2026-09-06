@@ -51,6 +51,21 @@ export type WorktreeVisibilityDefaults = {
   sourcePreferences?: WorktreeVisibilitySourcePreferences
 }
 
+/**
+ * One board-automation rule: entering `toStatusId` on a board in `repoId` dispatches `memberId`.
+ *
+ * The prompt template is stored rather than a rendered prompt, so a rule keeps working as the
+ * workspace or its linked issue changes.
+ */
+export type BoardAutomationRule = {
+  id: string
+  repoId: string
+  toStatusId: string
+  memberId: string
+  promptTemplate: string
+  enabled: boolean
+}
+
 export type GlobalSettings = {
   workspaceDir: string
   /** Host-owned defaults used when a repository has no explicit visibility override. */
@@ -382,6 +397,8 @@ export type GlobalSettings = {
   agentStatusHooksEnabled: boolean
   /** Dismissed freshness tuples: no write authority, just suppress re-nudging the same official placement/revision. */
   dismissedSkillFreshnessNudges?: string[]
+  /** Board automation rules, keyed per repo. Absent means no repo has automation configured. */
+  boardAutomation?: { rules: BoardAutomationRule[] }
   /** Why: generated tab titles are subjective, so they stay opt-in and manual renames win. */
   tabAutoGenerateTitle: boolean
   /** Why: pinned tabs can still be closed via keyboard/native-menu; this gates that behind a confirmation. Defaults on. */

@@ -68,12 +68,22 @@ export function recordBoardTransition(
   return id
 }
 
-// Why: ascending, so the loop detector reads a worktree's moves forwards in time and the ceiling
-// counts a window without re-sorting.
+/**
+ * SQLite writes `datetime('now')` as `YYYY-MM-DD HH:MM:SS` in UTC. The bound has to be in the same
+ * text shape, because the comparison below is a string comparison: an ISO bound would put `T`
+ * (0x54) against the stored space (0x20) and silently exclude every row from the same day.
+ */
+function toSqliteUtcText(ms: number): string {
+  return new Date(ms).toISOString().replace('T', ' ').slice(0, 19)
+}
+
+// Why ms rather than a formatted string: the caller cannot then pass a shape that compares wrong.
+// Ascending, so the loop detector reads a worktree's moves forwards in time and the ceiling counts
+// a window without re-sorting.
 export function listBoardTransitions(
   this: OrchestrationDb,
   worktreeId: string,
-  sinceIso: string
+  sinceMs: number
 ): BoardTransitionRow[] {
   const rows = this.db
     .prepare(
@@ -81,7 +91,7 @@ export function listBoardTransitions(
        WHERE worktree_id = ? AND created_at >= ?
        ORDER BY created_at, id`
     )
-    .all(worktreeId, sinceIso) as AlicornBoardTransitionRow[]
+    .all(worktreeId, toSqliteUtcText(sinceMs)) as AlicornBoardTransitionRow[]
   return rows.map(toBoardTransition)
 }
 

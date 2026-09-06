@@ -40,6 +40,12 @@ export type StartWorkerForTaskArgs = {
     method: string
     payloadHash: string
   }
+  /**
+   * `absent` for an in-process caller whose Run has no live coordinator pane (board automation).
+   * It must then name an explicit worktree; `current` and the worktree-creating modes need a
+   * coordinator terminal and are refused.
+   */
+  coordinatorTerminal?: 'resolve' | 'absent'
 }
 
 /**
@@ -58,7 +64,8 @@ export async function startWorkerForTask({
   task,
   params,
   readinessTimeoutMs,
-  orchestrationMutation
+  orchestrationMutation,
+  coordinatorTerminal = 'resolve'
 }: StartWorkerForTaskArgs) {
   const requestedWorktree = params.worktree ?? 'current'
   const createsWorktree = requestedWorktree === 'new-child' || requestedWorktree === 'new-top-level'
@@ -69,13 +76,27 @@ export async function startWorkerForTask({
     db,
     taskId: task.id
   })
-  // SEAM (BA1, Task 12): this is unconditional today, and `showTerminal` throws for a handle with
-  // no live terminal — so a system Run whose coordinator handle is `board:<repoId>` cannot get here.
-  // Only the `new-*` and `current` paths below read it; resolving it lazily is what the board caller
-  // needs. Left as-is here because this extraction is behaviour-preserving by contract.
-  const coordinatorTerminal = await runtime.showTerminal(params.from)
+  // Why eager by default: resolving the coordinator's terminal is load-bearing for a floating
+  // coordinator, and a test pins the call. Only a caller that declares it has no coordinator
+  // terminal skips it — board automation's system Run (`board:<repoId>`), which always names an
+  // explicit worktree. Its authority comes from the Run it owns, not from a live pane.
+  const hasCoordinatorTerminal = coordinatorTerminal !== 'absent'
+  let coordinatorWorktreeId: string | null = null
+  const resolveCoordinatorWorktreeId = async (): Promise<string> => {
+    if (!hasCoordinatorTerminal) {
+      throw new OrchestrationError(
+        'invalid_argument',
+        'A worker start without a coordinator terminal must name an explicit worktree.'
+      )
+    }
+    coordinatorWorktreeId ??= (await runtime.showTerminal(params.from)).worktreeId
+    return coordinatorWorktreeId
+  }
+  if (hasCoordinatorTerminal) {
+    await resolveCoordinatorWorktreeId()
+  }
   const creationWorktree = createsWorktree
-    ? await runtime.showManagedWorktree(`id:${coordinatorTerminal.worktreeId}`)
+    ? await runtime.showManagedWorktree(`id:${await resolveCoordinatorWorktreeId()}`)
     : undefined
   if (creationWorktree) {
     await assertOrchestrationWorktreeCreationSupported({
@@ -87,7 +108,7 @@ export async function startWorkerForTask({
   let resolvedWorktree = creationWorktree
     ? undefined
     : requestedWorktree === 'current'
-      ? await runtime.showManagedTerminalWorkspace(`id:${coordinatorTerminal.worktreeId}`)
+      ? await runtime.showManagedTerminalWorkspace(`id:${await resolveCoordinatorWorktreeId()}`)
       : await runtime.showManagedTerminalWorkspace(requestedWorktree)
   let explicitTerminal
   if (params.terminal) {

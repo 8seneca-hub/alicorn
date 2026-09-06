@@ -29,6 +29,17 @@
 4. **Plane linking fields are dedicated**: `linkedPlaneIssue: string | null` (issue UUID), `linkedPlaneIssueSequence: number | null`, `linkedPlaneWorkspaceSlug`, `linkedPlaneProjectId` — plus `linkedWorkItem` set for the generic consumers.
 5. **Status write-back for Plane is a parallel file** (`sync-plane-worktree-status.ts`) matching Plane state `group` first, name second; the Linear file stays untouched.
 6. **Plane credential model**: one API key per workspace slug (like Linear's per-workspace token), projects selected per Orca project.
+8. **Loop tolerance is one revisit per column, not zero** (decided 2026-09-07, amending Task 11's
+   literal wording). The rule is `BOARD_LOOP_MAX_REVISITS = 1`: a second entry into the same column
+   inside the loop window is allowed, a third is refused. Task 11 as written ("any prior dispatched
+   transition with the same `to_status_id`") refuses the *second* entry, which is the mainline
+   correction flow — review returns findings to build, build hands back to review — so it would
+   refuse every ticket at its first iteration. The asymmetry decides it: a too-strict rule costs a
+   guaranteed interruption on the flow board automation exists to remove, and interruptions are the
+   north-star metric; a too-loose one costs tokens, and that cost is already bounded by the
+   dispatch ceiling of three per hour. The loop rule guards the *shape*, the ceiling guards the
+   *budget*, and the ceiling is the real backstop. Revisit from the ledger if refusals cluster.
+
 7. **Kill switch scopes**: `global` and `board:<repoId>`; state in SQLite (`alicorn_board_automation_state`), surfaced in the sidebar board header and `alicorn automation stop|resume [--board <repoId>]`.
 
 ## File structure
