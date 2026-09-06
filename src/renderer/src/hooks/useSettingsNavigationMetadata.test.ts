@@ -95,7 +95,7 @@ describe('settings navigation metadata', () => {
     expect(sections.find((section) => section.id === 'mobile')?.group).toBe('setup')
   })
 
-  it('places Automations, Artifacts, and Share Skills first under Workflows', () => {
+  it('leads Workflows with Automations, Members, Artifacts, and Share Skills', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -118,7 +118,14 @@ describe('settings navigation metadata', () => {
     )
     expect(shareSkills).toMatchObject({ group: 'workflows', badge: 'Beta' })
     expect(shareSkills?.searchEntries[0]?.title).toBe('Unlisted skill links')
-    expect(workflowIds.slice(0, 3)).toEqual(['automations', 'artifacts', 'share-skills'])
+    // Members sits directly under Automations: both are about who does the
+    // work, and the tier-1 desktop plan places it there deliberately.
+    expect(workflowIds.slice(0, 4)).toEqual([
+      'automations',
+      'alicorn-members',
+      'artifacts',
+      'share-skills'
+    ])
   })
 
   it('places the Orca account in Set Up on desktop only', () => {
