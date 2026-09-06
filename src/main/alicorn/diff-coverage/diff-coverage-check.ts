@@ -18,6 +18,7 @@ export type RunDiffCoverageCheckInput = {
   worktreePath: string
   baseRef: string
   check: DiffCoverageCheck
+  gitOptions?: { wslDistro?: string }
   runProcess?: typeof defaultRunProcess
   gitExec?: (argv: string[]) => Promise<{ stdout: string }>
   readFile?: typeof fsReadFile
@@ -37,7 +38,11 @@ export async function runDiffCoverageCheck(
   const gitExec =
     input.gitExec ??
     ((argv: string[]) =>
-      gitExecFileAsync(argv, { cwd: worktreePath, admissionTier: 'interactive' }))
+      gitExecFileAsync(argv, {
+        cwd: worktreePath,
+        ...(input.gitOptions?.wslDistro ? { wslDistro: input.gitOptions.wslDistro } : {}),
+        admissionTier: 'interactive'
+      }))
   const readFile = input.readFile ?? fsReadFile
 
   if (check.command) {
@@ -64,7 +69,19 @@ export async function runDiffCoverageCheck(
 
   let diffText: string
   try {
-    const diff = await gitExec(['diff', '-U0', '--no-color', `${baseRef}...HEAD`])
+    // Why these flags: quotePath=false keeps non-ASCII paths unquoted, and the diff must
+    // match unified-diff-added-lines' own assumptions (no external diff driver, a/ b/ prefixes).
+    const diff = await gitExec([
+      '-c',
+      'core.quotePath=false',
+      'diff',
+      '-U0',
+      '--no-color',
+      '--no-ext-diff',
+      '--src-prefix=a/',
+      '--dst-prefix=b/',
+      `${baseRef}...HEAD`
+    ])
     diffText = diff.stdout
   } catch (error) {
     return {

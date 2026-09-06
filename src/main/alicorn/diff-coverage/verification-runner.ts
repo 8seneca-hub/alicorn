@@ -13,7 +13,12 @@ export type WorktreeHost = 'local' | 'remote' | 'unknown'
 export type VerificationRunnerDeps = {
   fetchRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
   runDiffCoverageCheck: typeof runDiffCoverageCheck
-  getBaseRefDefault: (worktreePath: string) => Promise<string | null>
+  // Resolves the worktree's real configured base (and its git routing, e.g. WSL) the
+  // same way the runtime drift probe does — see base-ref-resolver.ts.
+  resolveBaseRef: (
+    worktreeId: string,
+    worktreePath: string
+  ) => Promise<{ baseRef: string; gitOptions: { wslDistro?: string } }>
   // SSH-hosted worktrees are skipped (no local diff to run against); 'unknown' is treated as local.
   resolveWorktreeHost: (worktreeId: string) => Promise<WorktreeHost>
   pathExists?: (path: string) => Promise<boolean>
@@ -59,10 +64,14 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
       return post('skipped', { reason: 'not_a_git_worktree' })
     }
 
-    const baseRef = (await deps.getBaseRefDefault(payload.worktreePath)) ?? 'origin/main'
+    const { baseRef, gitOptions } = await deps.resolveBaseRef(
+      payload.worktreeId,
+      payload.worktreePath
+    )
     const { status, detail } = await deps.runDiffCoverageCheck({
       worktreePath: payload.worktreePath,
       baseRef,
+      gitOptions,
       check
     })
     return post(status, detail)

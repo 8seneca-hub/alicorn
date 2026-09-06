@@ -10,6 +10,7 @@ const REPORT_SUMMARY_MAX_CHARS = 4000
 // start_options) reports as 'other'.
 const BACKEND_BY_AGENT_KIND: Partial<Record<string, StepOutcomeBackend>> = {
   'claude-code': 'claude',
+  'claude-agent-teams': 'claude',
   codex: 'codex',
   grok: 'grok',
   openclaude: 'openclaude'
@@ -68,6 +69,9 @@ export function buildStepOutcomeInput(input: {
   const worker = db.getWorkerDispatch(payload.dispatchId)
   const strategy = db.getTaskExecutionStrategy(payload.taskId)
   const dispatchContext = db.getDispatchContextById(payload.dispatchId)
+  // Why sanitize: --phase is worker free text; empty or oversized values would
+  // otherwise reach the ledger as a stageKey that fails its 1-64 char validation.
+  const phase = parsedResult.phase?.trim()
 
   return {
     runId: task.run_id,
@@ -81,7 +85,7 @@ export function buildStepOutcomeInput(input: {
     backend:
       (member?.backend as StepOutcomeBackend | undefined) ??
       backendFromWorkerStartOptions(worker?.start_options),
-    stageKey: parsedResult.phase ?? 'build',
+    stageKey: phase ? phase.slice(0, 64) : 'build',
     executionStrategy: strategy.strategy,
     outcome: payload.outcome,
     filesModified: parsedResult.filesModified ?? [],

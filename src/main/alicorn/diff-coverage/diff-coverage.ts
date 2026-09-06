@@ -1,4 +1,7 @@
-import { isAbsolute, relative } from 'node:path'
+import { isAbsolute, relative, sep } from 'node:path'
+import type { win32 } from 'node:path'
+
+type PathModule = Pick<typeof win32, 'isAbsolute' | 'relative' | 'sep'>
 
 export type DiffCoveragePerFile = { path: string; total: number; covered: number }
 
@@ -14,9 +17,18 @@ function stripLeadingDotSlash(path: string): string {
 }
 
 /** Default normalize passed by callers that know the worktree: strips './' and resolves an absolute lcov path against it. */
-export function normalizeLcovPath(path: string, worktreePath: string): string {
+export function normalizeLcovPath(
+  path: string,
+  worktreePath: string,
+  pathModule: PathModule = { isAbsolute, relative, sep }
+): string {
   const stripped = stripLeadingDotSlash(path)
-  return isAbsolute(stripped) ? relative(worktreePath, stripped) : stripped
+  if (!pathModule.isAbsolute(stripped)) {
+    return stripped
+  }
+  // Why split/join: relative() yields 'src\\a.ts' on Windows while the diff (git,
+  // always POSIX-style) yields 'src/a.ts' — left alone these never match.
+  return pathModule.relative(worktreePath, stripped).split(pathModule.sep).join('/')
 }
 
 /** Ratio of added lines (from the diff) covered by the lcov trace, plus a per-file breakdown. */

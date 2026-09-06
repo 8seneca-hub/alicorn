@@ -29,13 +29,15 @@ function makeWriter(): LedgerWriter {
   } as unknown as LedgerWriter
 }
 
+const RESOLVE_ORIGIN_MAIN = async () => ({ baseRef: 'origin/main', gitOptions: {} })
+
 describe('createVerificationRunner', () => {
   it('resolves without posting when no diff_coverage check is configured', async () => {
     const writer = makeWriter()
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [],
       runDiffCoverageCheck: vi.fn(),
-      getBaseRefDefault: async () => 'origin/main',
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local'
     })
 
@@ -49,7 +51,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: vi.fn(),
-      getBaseRefDefault: async () => 'origin/main',
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => false
     })
@@ -76,7 +78,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
-      getBaseRefDefault: async () => 'origin/main',
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'remote',
       pathExists
     })
@@ -96,7 +98,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
-      getBaseRefDefault: async () => 'origin/main',
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'unknown',
       pathExists: async () => true
     })
@@ -106,7 +108,7 @@ describe('createVerificationRunner', () => {
     expect(runCheck).toHaveBeenCalled()
   })
 
-  it('runs the check and posts the result on the happy path', async () => {
+  it('runs the check with the injected base ref and git options, and posts the result', async () => {
     const writer = makeWriter()
     const runCheck = vi.fn().mockResolvedValue({
       status: 'passed',
@@ -116,13 +118,13 @@ describe('createVerificationRunner', () => {
         total: 10,
         covered: 9,
         perFile: [],
-        baseRef: 'origin/main'
+        baseRef: 'develop'
       }
     })
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
-      getBaseRefDefault: async () => 'origin/main',
+      resolveBaseRef: async () => ({ baseRef: 'develop', gitOptions: { wslDistro: 'Ubuntu' } }),
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
     })
@@ -131,7 +133,8 @@ describe('createVerificationRunner', () => {
 
     expect(runCheck).toHaveBeenCalledWith({
       worktreePath: '/repo',
-      baseRef: 'origin/main',
+      baseRef: 'develop',
+      gitOptions: { wslDistro: 'Ubuntu' },
       check: CHECK
     })
     expect(writer.postStepVerification).toHaveBeenCalledWith({
@@ -148,24 +151,8 @@ describe('createVerificationRunner', () => {
         total: 10,
         covered: 9,
         perFile: [],
-        baseRef: 'origin/main'
+        baseRef: 'develop'
       }
     })
-  })
-
-  it('falls back to origin/main when getBaseRefDefault resolves null', async () => {
-    const writer = makeWriter()
-    const runCheck = vi.fn().mockResolvedValue({ status: 'failed', detail: {} })
-    const runner = createVerificationRunner({
-      fetchRequiredChecks: async () => [CHECK],
-      runDiffCoverageCheck: runCheck,
-      getBaseRefDefault: async () => null,
-      resolveWorktreeHost: async () => 'local',
-      pathExists: async () => true
-    })
-
-    await runner(PAYLOAD, writer)
-
-    expect(runCheck).toHaveBeenCalledWith(expect.objectContaining({ baseRef: 'origin/main' }))
   })
 })

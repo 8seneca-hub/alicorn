@@ -31,7 +31,7 @@ import { ALICORN_RUN_COST_EVENT } from '../../shared/alicorn/run-cost'
 import { createVerificationRunner } from '../alicorn/diff-coverage/verification-runner'
 import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fetch'
 import { runDiffCoverageCheck } from '../alicorn/diff-coverage/diff-coverage-check'
-import { getBaseRefDefault } from '../git/repo-default-base-ref'
+import { createBaseRefResolver } from '../alicorn/diff-coverage/base-ref-resolver'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 import { getAlicornControlPlaneUrls } from '../alicorn/control-plane-urls'
 import { readAlicornBearer } from '../alicorn/control-plane-session'
@@ -148,7 +148,10 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
     verificationRunner: createVerificationRunner({
       fetchRequiredChecks,
       runDiffCoverageCheck,
-      getBaseRefDefault,
+      resolveBaseRef: createBaseRefResolver({
+        store,
+        showManagedWorktree: (selector) => runtime.showManagedWorktree(selector)
+      }),
       resolveWorktreeHost: async (worktreeId) => {
         try {
           const worktree = await runtime.showManagedWorktree(`id:${worktreeId}`)

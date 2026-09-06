@@ -6,7 +6,7 @@ import type { AutomationRunUsage } from '../../shared/automations-types'
 const NOW_MS = Date.UTC(2026, 8, 6, 12, 0, 0)
 const LAST_SCAN_MS = Date.UTC(2026, 8, 6, 11, 55, 0)
 
-function knownUsage(estimatedCostUsd: number): AutomationRunUsage {
+function knownUsage(estimatedCostUsd: number | null): AutomationRunUsage {
   return {
     status: 'known',
     provider: 'claude',
@@ -148,6 +148,31 @@ describe('startRunCostPublisher', () => {
     expect(getAutomationRunUsage).not.toHaveBeenCalled()
   })
 
+  it('bounds completedAt to the dispatch’s own completion time, not to now, once the scan has caught up', async () => {
+    const dispatchId = startDispatchedWorker({ agent: 'claude' })
+    // 20h before NOW_MS, well inside the publisher's 24h recent window.
+    db.db
+      .prepare(`UPDATE dispatch_contexts SET status = 'completed', completed_at = ? WHERE id = ?`)
+      .run('2026-09-05 16:00:00', dispatchId)
+    const getAutomationRunUsage = vi.fn().mockResolvedValue(knownUsage(0.1))
+    publisher = startRunCostPublisher({
+      getDb: () => db,
+      // lastScanCompletedAt is now — well past the dispatch's own completion —
+      // so the bound must be the dispatch's completedAt, not the scan's.
+      claudeUsage: { getAutomationRunUsage, getLastScanCompletedAt: () => NOW_MS },
+      codexUsage: null,
+      publish: vi.fn(),
+      intervalMs: 0,
+      now: () => NOW_MS
+    })
+
+    await publisher.tickOnce()
+
+    expect(getAutomationRunUsage).toHaveBeenCalledWith(
+      expect.objectContaining({ completedAt: Date.UTC(2026, 8, 5, 16, 0, 0) })
+    )
+  })
+
   it('uses now() as completedAt when the store has never completed a scan', async () => {
     const dispatchId = startDispatchedWorker({ agent: 'claude' })
     const getAutomationRunUsage = vi.fn().mockResolvedValue(knownUsage(0.5))
@@ -166,6 +191,23 @@ describe('startRunCostPublisher', () => {
       expect.objectContaining({ completedAt: NOW_MS })
     )
     void dispatchId
+  })
+
+  it('passes through a known usage with no cost figure as known + null, not unavailable', async () => {
+    const dispatchId = startDispatchedWorker({ agent: 'claude' })
+    const getAutomationRunUsage = vi.fn().mockResolvedValue(knownUsage(null))
+    publisher = startRunCostPublisher({
+      getDb: () => db,
+      claudeUsage: { getAutomationRunUsage, getLastScanCompletedAt: () => LAST_SCAN_MS },
+      codexUsage: null,
+      publish: vi.fn(),
+      intervalMs: 0,
+      now: () => NOW_MS
+    })
+
+    const payload = await publisher.tickOnce()
+
+    expect(payload).toEqual({ [dispatchId]: { costUsd: null, status: 'known' } })
   })
 
   it('isolates a throwing dispatch: the good one stays known, the bad one becomes unavailable, and the tick still resolves', async () => {

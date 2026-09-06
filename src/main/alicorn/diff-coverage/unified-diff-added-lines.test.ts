@@ -51,4 +51,18 @@ describe('addedLinesFromUnifiedDiff', () => {
 
     expect(added.get('src/d.ts')).toEqual(new Set([7]))
   })
+
+  it('does not mistake an added line starting with "++ " for the next file "+++ " header', () => {
+    const diff = [
+      '--- a/src/e.ts',
+      '+++ b/src/e.ts',
+      '@@ -1,0 +2,2 @@',
+      '+++ escalate()',
+      '+after'
+    ].join('\n')
+
+    const added = addedLinesFromUnifiedDiff(diff)
+
+    expect(added.get('src/e.ts')).toEqual(new Set([2, 3]))
+  })
 })

@@ -63,9 +63,12 @@ export function startRunCostPublisher(deps: RunCostPublisherDeps): RunCostPublis
       return { costUsd: null, status: 'unavailable' }
     }
     const nowMs = now()
-    // Why min(now, lastScanCompletedAt): asking for usage past the store's own scan
+    // Why bound to the row's own completedAt (not now): a dispatch settled long ago
+    // must not have its window extended to now, which would sweep in later sessions.
+    // Why min with lastScanCompletedAt: asking for usage past the store's own scan
     // freshness would force a rescan on our cadence instead of the scanner's own.
-    const completedAt = Math.min(nowMs, store.getLastScanCompletedAt() ?? nowMs)
+    const bound = parseSqliteUtc(row.completedAt) ?? nowMs
+    const completedAt = Math.min(bound, store.getLastScanCompletedAt() ?? bound)
     const usage = await store.getAutomationRunUsage({
       worktreeId: row.worktreeId,
       terminalSessionId: null,

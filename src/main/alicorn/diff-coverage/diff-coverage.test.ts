@@ -1,3 +1,4 @@
+import { win32 } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { computeDiffCoverage, normalizeLcovPath } from './diff-coverage'
 
@@ -45,5 +46,13 @@ describe('computeDiffCoverage', () => {
       ratio: 0.5,
       perFile: [{ path: 'src/a.ts', total: 2, covered: 1 }]
     })
+  })
+})
+
+describe('normalizeLcovPath', () => {
+  it('normalises a Windows-style relative() result to forward slashes', () => {
+    const result = normalizeLcovPath('C:\\repo\\src\\a.ts', 'C:\\repo', win32)
+
+    expect(result).toBe('src/a.ts')
   })
 })

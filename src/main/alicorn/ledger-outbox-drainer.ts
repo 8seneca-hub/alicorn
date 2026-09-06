@@ -82,14 +82,31 @@ class RowUntouched extends Error {}
 
 export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerOutboxDrainer {
   let lastUnavailableLogAt = 0
+  let lastRowFailureLogAt = 0
   let running = false
 
   function logUnavailableOnce(): void {
     const now = Date.now()
     if (now - lastUnavailableLogAt >= UNAVAILABLE_LOG_INTERVAL_MS) {
       lastUnavailableLogAt = now
-      console.warn('[ledger-outbox] control plane unavailable; rows left untouched')
+      console.warn('[ledger-outbox] control plane unconfigured; rows left untouched')
     }
+  }
+
+  // Why a row's first failure always logs: attempts === 0 means nothing has
+  // warned about it yet, so the shared 5-minute throttle must not hide it.
+  function logRowFailure(row: LedgerOutboxRow, message: string): void {
+    const now = Date.now()
+    if (row.attempts > 0 && now - lastRowFailureLogAt < UNAVAILABLE_LOG_INTERVAL_MS) {
+      return
+    }
+    lastRowFailureLogAt = now
+    console.warn('[ledger-outbox] row failed', {
+      id: row.id,
+      kind: row.kind,
+      attempts: row.attempts,
+      message
+    })
   }
 
   async function resolveWorktree(
@@ -116,7 +133,6 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     const worktree = await resolveWorktree(db, payload.dispatchId)
     const stepOutcomeInput = buildStepOutcomeInput({ db, payload, worktree })
     const posted = await writer.postStepOutcome(stepOutcomeInput)
-    db.markLedgerOutboxSent(row.id)
 
     const dispatchContext = db.getDispatchContextById(payload.dispatchId)
     const spendPayload: SpendAttributionPayload = {
@@ -128,28 +144,38 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
       startedAt: dispatchContext?.dispatched_at ?? null,
       completedAt: dispatchContext?.completed_at ?? null
     }
-    db.enqueueLedgerOutbox({
-      kind: 'spend_attribution',
-      dedupeKey: `spend_attribution:${payload.dispatchId}`,
-      payload: spendPayload,
-      notBefore: new Date(Date.now() + SPEND_ATTRIBUTION_DELAY_MS).toISOString()
-    })
-
-    if (payload.outcome === 'succeeded' && worktree) {
-      const verificationPayload: StepVerificationPayload = {
-        dispatchId: payload.dispatchId,
-        taskId: payload.taskId,
-        runId: stepOutcomeInput.runId,
-        worktreeId: worktree.id,
-        worktreePath: worktree.path,
-        branch: worktree.branch,
-        projectId: worktree.projectId ?? worktree.repoId
-      }
+    // Why one transaction: a crash between marking this row sent and enqueueing
+    // its follow-ups must not resurrect it for a duplicate postStepOutcome.
+    db.db.exec('BEGIN IMMEDIATE')
+    try {
+      db.markLedgerOutboxSent(row.id)
       db.enqueueLedgerOutbox({
-        kind: 'step_verification',
-        dedupeKey: `step_verification:${payload.dispatchId}:diff_coverage`,
-        payload: verificationPayload
+        kind: 'spend_attribution',
+        dedupeKey: `spend_attribution:${payload.dispatchId}`,
+        payload: spendPayload,
+        notBefore: new Date(Date.now() + SPEND_ATTRIBUTION_DELAY_MS).toISOString()
       })
+
+      if (payload.outcome === 'succeeded' && worktree) {
+        const verificationPayload: StepVerificationPayload = {
+          dispatchId: payload.dispatchId,
+          taskId: payload.taskId,
+          runId: stepOutcomeInput.runId,
+          worktreeId: worktree.id,
+          worktreePath: worktree.path,
+          branch: worktree.branch,
+          projectId: worktree.projectId ?? worktree.repoId
+        }
+        db.enqueueLedgerOutbox({
+          kind: 'step_verification',
+          dedupeKey: `step_verification:${payload.dispatchId}:diff_coverage`,
+          payload: verificationPayload
+        })
+      }
+      db.db.exec('COMMIT')
+    } catch (error) {
+      db.db.exec('ROLLBACK')
+      throw error
     }
   }
 
@@ -238,6 +264,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
           break
         }
         const message = error instanceof Error ? error.message : String(error)
+        logRowFailure(row, message)
         db.markLedgerOutboxFailed(
           row.id,
           message,

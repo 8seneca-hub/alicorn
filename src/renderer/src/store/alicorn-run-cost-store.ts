@@ -19,15 +19,14 @@ export function subscribeAlicornRunCost(subscriber: () => void): () => void {
   // Why optional: a render surface under test may not install window.api at all
   // (unlike the packaged app and the web client's fallback proxy, both of which
   // always have it) — degrade to "no cost data" rather than throw.
-  if (subscribers.size === 1 && window.api?.alicornRunCost) {
+  if (!unsubscribeIpc && window.api?.alicornRunCost) {
     unsubscribeIpc = window.api.alicornRunCost.onChanged(handlePayload)
   }
+  // Why never torn down on the last unsubscribe: a payload published while no row
+  // is mounted (e.g. between agent rows re-rendering) must not be lost between
+  // the last unsubscribe and the next subscribe — kept for the app's lifetime.
   return () => {
     subscribers.delete(subscriber)
-    if (subscribers.size === 0) {
-      unsubscribeIpc?.()
-      unsubscribeIpc = null
-    }
   }
 }
 

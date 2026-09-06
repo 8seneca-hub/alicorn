@@ -90,6 +90,23 @@ describe('attributeDispatchUsage', () => {
     })
   })
 
+  it('returns null spendCents (not a guessed figure) for known usage with no cost estimate', async () => {
+    const getAutomationRunUsage = vi
+      .fn()
+      .mockResolvedValue(knownUsage({ estimatedCostUsd: null, estimatedCostSource: null }))
+    const patch = await attributeDispatchUsage({
+      backend: 'claude',
+      worktreeId: 'wt_1',
+      startedAt: '2026-09-06 01:00:00',
+      completedAt: '2026-09-06 01:05:00',
+      claudeUsage: { getAutomationRunUsage },
+      codexUsage: null
+    })
+
+    expect(patch.spendCents).toBeNull()
+    expect(patch.usage).toMatchObject({ status: 'known' })
+  })
+
   it('returns null spend with the reason when usage is ambiguous', async () => {
     const getAutomationRunUsage = vi
       .fn()

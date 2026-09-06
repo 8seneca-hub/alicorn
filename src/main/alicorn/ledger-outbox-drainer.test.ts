@@ -271,6 +271,40 @@ describe('startLedgerOutboxDrainer', () => {
     vi.useRealTimers()
   })
 
+  it('warns once on a row’s first failure, then throttles a second failure within 5 minutes', async () => {
+    settleSucceededWithWorktree()
+    const writer = fakeWriter({
+      postStepOutcome: vi.fn().mockRejectedValue(new ControlPlaneRequestError(500, 'boom-1'))
+    })
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'))
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    await drainer.drainOnce()
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[ledger-outbox] row failed',
+      expect.objectContaining({ kind: 'step_outcome', attempts: 0, message: '500 boom-1' })
+    )
+
+    // Still inside the 5-minute throttle window: a second failing row must not log again.
+    vi.setSystemTime(new Date('2026-01-01T00:01:00.000Z'))
+    writer.postStepOutcome = vi.fn().mockRejectedValue(new ControlPlaneRequestError(500, 'boom-2'))
+    await drainer.drainOnce()
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+
+    warnSpy.mockRestore()
+    vi.useRealTimers()
+  })
+
   it('leaves a spend_attribution row untouched and continues with other kinds when the handler is null', async () => {
     db = new OrchestrationDb(':memory:')
     const task = db.createTask({ spec: 'work' })

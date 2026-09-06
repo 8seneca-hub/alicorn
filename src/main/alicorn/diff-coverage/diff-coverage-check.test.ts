@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { runDiffCoverageCheck } from './diff-coverage-check'
+import { gitExecFileAsync } from '../../git/command-runner/git-exec-file'
 import type { DiffCoverageCheck } from '../../../shared/alicorn/members'
 import type { ProcessResult } from '../../../shared/child-process/process-spec'
 import type { runProcess as RunProcessFn } from '../../../shared/child-process/run-process'
 import type { readFile as ReadFileFn } from 'node:fs/promises'
+
+vi.mock('../../git/command-runner/git-exec-file', () => ({
+  gitExecFileAsync: vi.fn().mockResolvedValue({ stdout: '', stderr: '' })
+}))
 
 const CHECK: DiffCoverageCheck = {
   kind: 'diff_coverage',
@@ -127,7 +132,7 @@ describe('runDiffCoverageCheck', () => {
     }
   })
 
-  it('runs git diff -U0 --no-color <base>...HEAD', async () => {
+  it('runs git diff with quotePath/ext-diff/prefix flags ahead of the ref range', async () => {
     const gitExec = fakeGitExec()
 
     await runDiffCoverageCheck({
@@ -138,7 +143,32 @@ describe('runDiffCoverageCheck', () => {
       readFile: fakeReadFile()
     })
 
-    expect(gitExec).toHaveBeenCalledWith(['diff', '-U0', '--no-color', 'origin/main...HEAD'])
+    expect(gitExec).toHaveBeenCalledWith([
+      '-c',
+      'core.quotePath=false',
+      'diff',
+      '-U0',
+      '--no-color',
+      '--no-ext-diff',
+      '--src-prefix=a/',
+      '--dst-prefix=b/',
+      'origin/main...HEAD'
+    ])
+  })
+
+  it('threads the resolved wslDistro git option into the default gitExec', async () => {
+    await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: CHECK,
+      gitOptions: { wslDistro: 'Ubuntu' },
+      readFile: fakeReadFile()
+    })
+
+    expect(vi.mocked(gitExecFileAsync)).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining({ cwd: '/repo', wslDistro: 'Ubuntu' })
+    )
   })
 
   it('errors when the lcov file is missing', async () => {

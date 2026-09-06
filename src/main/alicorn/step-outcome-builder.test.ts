@@ -90,6 +90,69 @@ describe('buildStepOutcomeInput', () => {
     expect(input.reviewBackendBypass).toBe(false)
   })
 
+  it('maps claude-agent-teams start_options to the claude backend', () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const { dispatch } = db.createStartingWorkerDispatch({
+      taskId: task.id,
+      startOptions: { agent: 'claude-agent-teams' },
+      creator: { kind: 'system' },
+      maxDepth: Number.MAX_SAFE_INTEGER
+    })
+
+    const input = buildStepOutcomeInput({
+      db,
+      payload: {
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        outcome: 'succeeded',
+        result: JSON.stringify({})
+      },
+      worktree: null
+    })
+
+    expect(input.backend).toBe('claude')
+  })
+
+  it('trims an empty phase down to the build default stageKey', () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+
+    const input = buildStepOutcomeInput({
+      db,
+      payload: {
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        outcome: 'succeeded',
+        result: JSON.stringify({ phase: '' })
+      },
+      worktree: null
+    })
+
+    expect(input.stageKey).toBe('build')
+  })
+
+  it('caps an oversized phase at 64 characters', () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    const phase = 'x'.repeat(80)
+
+    const input = buildStepOutcomeInput({
+      db,
+      payload: {
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        outcome: 'succeeded',
+        result: JSON.stringify({ phase })
+      },
+      worktree: null
+    })
+
+    expect(input.stageKey).toBe('x'.repeat(64))
+  })
+
   it('defaults to other backend for an agent Alicorn does not price', () => {
     db = new OrchestrationDb(':memory:')
     const task = db.createTask({ spec: 'work' })
