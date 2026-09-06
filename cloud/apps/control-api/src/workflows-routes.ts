@@ -1,8 +1,15 @@
 import type { Hono } from 'hono'
-import { WorkflowInputSchema, WorkflowUpdateSchema } from '@alicorn-cloud/control-plane-contract'
+import {
+  findWorkflowTemplate,
+  WORKFLOW_TEMPLATES,
+  WorkflowFromTemplateSchema,
+  WorkflowInputSchema,
+  WorkflowUpdateSchema
+} from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import {
   createWorkflow,
+  createWorkflowFromTemplate,
   deleteWorkflow,
   getWorkflow,
   listWorkflows,
@@ -51,6 +58,33 @@ export function registerWorkflowsRoutes(app: Hono<ControlApiEnv>, deps: ControlA
     }
     try {
       return respond(c, await createWorkflow(deps.pool, auth.tenantId, auth.actor, result.data), 201)
+    } catch (error) {
+      if (isDuplicateNameViolation(error)) return c.json({ error: 'duplicate_name' }, 409)
+      throw error
+    }
+  })
+
+  app.get('/v1/workflow-templates', (c) => c.json({ templates: WORKFLOW_TEMPLATES }))
+
+  // Why: registered before '/v1/workflows/:id' so 'from-template' is never read as an id.
+  app.post('/v1/workflows/from-template', async (c) => {
+    const auth = c.get('auth')
+    const result = WorkflowFromTemplateSchema.safeParse(await c.req.json())
+    if (!result.success) {
+      return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
+    }
+    const template = findWorkflowTemplate(result.data.templateKey)
+    if (!template) return c.json({ error: 'unknown_template' }, 404)
+    try {
+      const written = await createWorkflowFromTemplate(
+        deps.pool,
+        auth.tenantId,
+        auth.actor,
+        template,
+        result.data.projectId,
+        result.data.name
+      )
+      return respond(c, written, 201)
     } catch (error) {
       if (isDuplicateNameViolation(error)) return c.json({ error: 'duplicate_name' }, 409)
       throw error

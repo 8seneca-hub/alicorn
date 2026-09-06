@@ -9,7 +9,7 @@
   },
   "scripts": {
     "alicorn:down": "docker compose -f dev/compose/alicorn-local.yml down",
-    "alicorn:seed": "node dev/scripts/seed-alicorn-local.mjs",
+    "alicorn:seed": "pnpm --filter @alicorn-cloud/control-plane-contract build && node dev/scripts/seed-alicorn-local.mjs",
     "alicorn:up": "docker compose -f dev/compose/alicorn-local.yml up -d --build",
     "build": "pnpm -r build",
     "dev": "pnpm --filter @orca-cloud/relay dev",

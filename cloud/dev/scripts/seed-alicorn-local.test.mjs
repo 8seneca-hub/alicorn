@@ -77,57 +77,73 @@ test('falls back to selecting the existing member id when the insert hits the un
   assert.deepEqual(skillInsert.params, ['local', 'existing-Reviewer', 'code-review'])
 })
 
-test('seedWorkflows upserts the Feature delivery graph, assigns members by name, and keeps the return edge', async () => {
-  const client = {
-    async query(sql, params) {
+const TEMPLATE = {
+  name: 'Feature delivery',
+  stages: [
+    { key: 'spec', name: 'Spec', ordinal: 0, memberRole: 'analyst', reversibility: 'free', inheritedCost: 'low' },
+    { key: 'build', name: 'Build', ordinal: 1, memberRole: 'developer', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'merge', name: 'Merge', ordinal: 2, memberRole: null, reversibility: 'irreversible', inheritedCost: 'low' }
+  ],
+  transitions: [
+    { from: 'spec', to: 'build', trigger: { kind: 'on_success' } },
+    { from: 'build', to: 'merge', trigger: { kind: 'on_success' } },
+    { from: 'build', to: 'spec', trigger: { kind: 'on_failure' } }
+  ]
+}
+
+const SEED_MEMBER_ROWS = [
+  { name: 'Developer', role: 'developer', id: 'member-1' },
+  { name: 'Reviewer', role: 'reviewer', id: 'member-2' },
+  { name: 'Analyst', role: 'analyst', id: 'member-3' }
+]
+
+function workflowClient() {
+  return {
+    async query(sql) {
       if (sql.startsWith('INSERT INTO workflows')) return { rows: [{ id: 'workflow-1' }] }
       return { rows: [] }
     }
   }
-  const members = [
-    { name: 'Developer', id: 'member-1' },
-    { name: 'Reviewer', id: 'member-2' },
-    { name: 'QA', id: 'member-3' }
-  ]
-  const { workflowId, statements } = await seedWorkflows(client, 'local', members)
+}
+
+test('seedWorkflows writes the template graph and binds stage roles to the seeded members', async () => {
+  const { workflowId, statements } = await seedWorkflows(workflowClient(), 'local', SEED_MEMBER_ROWS, TEMPLATE)
   assert.equal(workflowId, 'workflow-1')
   assert.match(statements[0].sql, /ON CONFLICT \(tenant_id, project_id, name\) DO NOTHING/)
+  assert.deepEqual(statements[0].params, ['local', 'local', 'Feature delivery'])
 
   const stageInserts = statements.filter((s) => s.sql.startsWith('INSERT INTO stages'))
-  assert.equal(stageInserts.length, 4)
-  assert.deepEqual(
-    stageInserts.map((s) => s.params[2]),
-    ['spec', 'build', 'review', 'qa']
-  )
-  // spec is unassigned; build/review/qa resolve to the seeded member ids by name.
-  assert.deepEqual(
-    stageInserts.map((s) => s.params[5]),
-    [null, 'member-1', 'member-2', 'member-3']
-  )
-  // The review stage authors a check, so stage-over-project resolution has something to resolve.
-  assert.match(stageInserts[2].params[8], /diff_coverage/)
+  assert.deepEqual(stageInserts.map((s) => s.params[2]), ['spec', 'build', 'merge'])
+  assert.deepEqual(stageInserts.map((s) => s.params[3]), ['Spec', 'Build', 'Merge'])
+  // Roles resolve to member ids; an unowned stage such as Merge stays null.
+  assert.deepEqual(stageInserts.map((s) => s.params[5]), ['member-3', 'member-1', null])
+  assert.deepEqual(stageInserts.map((s) => s.params[6]), ['free', 'contained', 'irreversible'])
+  // Checks are the operator's call — the template authors none.
+  assert.deepEqual(stageInserts.map((s) => s.params[8]), ['[]', '[]', '[]'])
 
   const edgeInserts = statements.filter((s) => s.sql.startsWith('INSERT INTO transitions'))
   assert.deepEqual(
     edgeInserts.map((s) => [s.params[2], s.params[3], JSON.parse(s.params[4]).kind]),
     [
       ['spec', 'build', 'on_success'],
-      ['build', 'review', 'on_success'],
-      ['review', 'qa', 'on_success'],
-      ['review', 'build', 'on_failure']
+      ['build', 'merge', 'on_success'],
+      ['build', 'spec', 'on_failure']
     ]
   )
 })
 
+test('seedWorkflows picks the same member per role every run', async () => {
+  const duplicated = [
+    { name: 'Zed', role: 'developer', id: 'member-z' },
+    { name: 'Ada', role: 'developer', id: 'member-a' }
+  ]
+  const { statements } = await seedWorkflows(workflowClient(), 'local', duplicated, TEMPLATE)
+  const build = statements.filter((s) => s.sql.startsWith('INSERT INTO stages'))[1]
+  assert.equal(build.params[5], 'member-a')
+})
+
 test('running seedWorkflows twice issues the identical statements', async () => {
-  const stub = () => ({
-    async query(sql) {
-      if (sql.startsWith('INSERT INTO workflows')) return { rows: [{ id: 'workflow-1' }] }
-      return { rows: [] }
-    }
-  })
-  const members = [{ name: 'Developer', id: 'member-1' }, { name: 'Reviewer', id: 'member-2' }, { name: 'QA', id: 'member-3' }]
-  const first = await seedWorkflows(stub(), 'local', members)
-  const second = await seedWorkflows(stub(), 'local', members)
+  const first = await seedWorkflows(workflowClient(), 'local', SEED_MEMBER_ROWS, TEMPLATE)
+  const second = await seedWorkflows(workflowClient(), 'local', SEED_MEMBER_ROWS, TEMPLATE)
   assert.deepEqual(first.statements, second.statements)
 })
