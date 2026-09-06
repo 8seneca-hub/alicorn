@@ -130,7 +130,7 @@ export const ORCHESTRATION_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'task-create'],
     summary: 'Create an orchestration task',
     usage:
-      'orca orchestration task-create --spec <text> [--task-title <text>] [--display-name <text>] [--deps <json_array>] [--parent <task_id>] [--run <run_id>] [--from <handle>] [--retry-request <id>] [--json]',
+      'orca orchestration task-create --spec <text> [--task-title <text>] [--display-name <text>] [--deps <json_array>] [--parent <task_id>] [--execution-strategy <single|orchestrated>] [--run <run_id>] [--from <handle>] [--retry-request <id>] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'spec',
@@ -138,9 +138,13 @@ export const ORCHESTRATION_COMMAND_SPECS: CommandSpec[] = [
       'display-name',
       'deps',
       'parent',
+      'execution-strategy',
       'run',
       'from',
       'retry-request'
+    ],
+    notes: [
+      '--execution-strategy defaults to single; orchestrated decomposes the task with a lead and costs roughly an order of magnitude more.'
     ]
   },
   {
@@ -155,9 +159,21 @@ export const ORCHESTRATION_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'task-update'],
     summary: 'Update a task status',
     usage:
-      'orca orchestration task-update --id <task_id> --status <status> [--result <json>] [--run <run_id>] [--from <handle>] [--retry-request <id>] [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'id', 'status', 'result', 'run', 'from', 'retry-request'],
-    notes: ['Valid --status values: pending, ready, dispatched, completed, failed, blocked.']
+      'orca orchestration task-update --id <task_id> --status <status> [--result <json>] [--execution-strategy <single|orchestrated>] [--run <run_id>] [--from <handle>] [--retry-request <id>] [--json]',
+    allowedFlags: [
+      ...GLOBAL_FLAGS,
+      'id',
+      'status',
+      'result',
+      'execution-strategy',
+      'run',
+      'from',
+      'retry-request'
+    ],
+    notes: [
+      'Valid --status values: pending, ready, dispatched, completed, failed, blocked.',
+      'Valid --execution-strategy values: single, orchestrated.'
+    ]
   },
   ...ORCHESTRATION_WORKER_COMMAND_SPECS,
   {

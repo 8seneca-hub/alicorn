@@ -6,6 +6,25 @@ import { abbreviateOrchestrationTasks } from '../../../shared/orchestration-task
 import { callOrchestrationMutation } from './mutation-request'
 import { resolveCoordinatorTerminalHandle } from './terminal-identity'
 
+const EXECUTION_STRATEGY_VALUES = ['single', 'orchestrated'] as const
+
+// Why: rejected client-side so a typo names the valid values instead of surfacing a zod path.
+function readExecutionStrategyFlag(
+  flags: Parameters<typeof getOptionalStringFlag>[0]
+): string | undefined {
+  const value = getOptionalStringFlag(flags, 'execution-strategy')
+  if (value === undefined) {
+    return undefined
+  }
+  if (!(EXECUTION_STRATEGY_VALUES as readonly string[]).includes(value)) {
+    throw new RuntimeClientError(
+      'invalid_argument',
+      `invalid execution strategy '${value}', expected one of: ${EXECUTION_STRATEGY_VALUES.join(', ')}`
+    )
+  }
+  return value
+}
+
 const TASK_STATUS_VALUES = [
   'pending',
   'ready',
@@ -28,6 +47,7 @@ export const ORCHESTRATION_TASK_HANDLERS: Record<string, CommandHandler> = {
         displayName: getOptionalStringFlag(flags, 'display-name'),
         deps: getOptionalStringFlag(flags, 'deps'),
         parent: getOptionalStringFlag(flags, 'parent'),
+        executionStrategy: readExecutionStrategyFlag(flags),
         run: getOptionalStringFlag(flags, 'run'),
         callerTerminalHandle
       }
@@ -105,6 +125,7 @@ export const ORCHESTRATION_TASK_HANDLERS: Record<string, CommandHandler> = {
         id: getRequiredStringFlag(flags, 'id'),
         status,
         result: getOptionalStringFlag(flags, 'result'),
+        executionStrategy: readExecutionStrategyFlag(flags),
         run: getOptionalStringFlag(flags, 'run'),
         callerTerminalHandle: await resolveCoordinatorTerminalHandle(flags, cwd, client)
       }

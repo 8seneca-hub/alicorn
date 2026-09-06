@@ -12,6 +12,7 @@ import {
   TaskListParams,
   TaskUpdateParams
 } from './orchestration-schemas'
+import { withExecutionStrategy } from './orchestration-task-execution-strategy'
 
 export const ORCHESTRATION_MESSAGE_METHODS: RpcMethod[] = [
   defineMethod({
@@ -148,7 +149,10 @@ export const ORCHESTRATION_MESSAGE_METHODS: RpcMethod[] = [
           : {}),
         runId: run.id
       })
-      return { task }
+      if (params.executionStrategy) {
+        db.setTaskExecutionStrategy(task.id, params.executionStrategy, 'user')
+      }
+      return { task: withExecutionStrategy(db, task) }
     }
   }),
 
@@ -176,10 +180,9 @@ export const ORCHESTRATION_MESSAGE_METHODS: RpcMethod[] = [
       })
       const tasks = joined.map((row) => {
         const { assignee_handle, dispatch_id, ...base } = row
-        if (base.status === 'dispatched') {
-          return { ...base, assignee_handle, dispatch_id }
-        }
-        return base
+        const scoped =
+          base.status === 'dispatched' ? { ...base, assignee_handle, dispatch_id } : base
+        return withExecutionStrategy(db, scoped)
       })
       return {
         runId: run.id,
@@ -213,7 +216,15 @@ export const ORCHESTRATION_MESSAGE_METHODS: RpcMethod[] = [
       if (!task) {
         throw new Error(`Task not found: ${params.id}`)
       }
-      return { task }
+      // Why: only on a real change — re-sending the current value must not relabel an accepted
+      // escalation as a user choice, which is what D4 measures.
+      if (
+        params.executionStrategy &&
+        params.executionStrategy !== db.getTaskExecutionStrategy(params.id).strategy
+      ) {
+        db.setTaskExecutionStrategy(params.id, params.executionStrategy, 'user')
+      }
+      return { task: withExecutionStrategy(db, task) }
     }
   })
 ]
