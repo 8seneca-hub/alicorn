@@ -394,7 +394,7 @@ describe('WorkspaceKanbanDrawer task status sync wiring', () => {
       updated: 0,
       skipped: 1,
       failed: 0,
-      messages: [{ kind: 'missing-workflow-state', statusLabel: 'In review' }]
+      messages: [{ kind: 'missing-workflow-state', provider: 'linear', statusLabel: 'In review' }]
     })
     const item = worktree()
     renderDrawer(item)
@@ -407,7 +407,7 @@ describe('WorkspaceKanbanDrawer task status sync wiring', () => {
     expect(toastWarningMock).toHaveBeenCalledWith(
       'Task status sync skipped',
       expect.objectContaining({
-        description: '1 skipped. No matching Linear workflow state for In review.'
+        description: '1 skipped. No Linear state matches In review.'
       })
     )
   })

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { PlaneState } from '../../../../shared/plane-types'
+import type { PlaneIssue, PlaneState } from '../../../../shared/plane-types'
 import type { WorkspaceStatusDefinition, Worktree } from '../../../../shared/worktree/types'
 import { runPlaneWorktreeStatusSync, syncPlaneWorktreeStatus } from './sync-plane-worktree-status'
 
@@ -15,6 +15,30 @@ const STATES: PlaneState[] = [
   state('s-done', 'Done', 'completed'),
   state('s-cancelled', 'Cancelled', 'cancelled')
 ]
+
+// The write path only reads `stateId`, but the dep is typed to the whole issue —
+// a partial stand-in makes the fixture's cast non-comparable and fails tc.
+function issue(stateId: string): PlaneIssue {
+  return {
+    id: 'issue-1',
+    sequenceId: 11,
+    readableId: 'ALC-11',
+    name: 'Sync the board',
+    descriptionHtml: '',
+    priority: 'none',
+    stateId,
+    projectId: 'project-1',
+    assigneeIds: [],
+    labelIds: [],
+    parentId: null,
+    startDate: null,
+    targetDate: null,
+    createdAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: '2026-09-01T00:00:00.000Z',
+    completedAt: null,
+    isDraft: false
+  }
+}
 
 const worktree = {
   id: 'wt1',
@@ -165,7 +189,7 @@ describe('runPlaneWorktreeStatusSync', () => {
       settings,
       getLatestWorkspaceStatus: () => 'in-review',
       deps: {
-        getIssue: async () => ({ ok: true as const, value: { stateId: 's-progress' } }),
+        getIssue: async () => ({ ok: true as const, value: issue('s-progress') }),
         listStates: async () => ({ ok: true as const, value: STATES }),
         updateIssueState: async () => ({ ok: true as const, value: null }),
         ...overrides

@@ -5758,11 +5758,6 @@
         "WorkspaceKanbanDrawer": {
           "1975a4e480": "Échec de la synchronisation du statut des tâches",
           "e02b0d92ff": "Synchronisation du statut des tâches ignorée",
-          "c1d2e3f4a5": "L'issue Linear {{value0}} n'a pas pu être lue.",
-          "d2e3f4a5b6": "Aucun état de workflow Linear ne correspond à {{value0}}.",
-          "e3f4a5b6c7": "Plusieurs états de workflow Linear correspondent à {{value0}}.",
-          "f4a5b6c7d8": "Impossible de mettre à jour l'issue Linear {{value0}}.",
-          "a5b6c7d8e9": "Impossible de synchroniser l'issue Linear {{value0}}.",
           "b6c7d8e9f0": "La synchronisation du statut des tâches n'a pas pu aboutir.",
           "c7d8e9f0a1": "{{value0}} mis à jour",
           "d8e9f0a1b2": "{{value0}} ignoré",

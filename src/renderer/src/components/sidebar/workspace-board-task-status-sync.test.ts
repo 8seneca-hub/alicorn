@@ -361,6 +361,7 @@ describe('syncWorkspaceBoardTaskStatuses', () => {
       messages: [
         {
           kind: 'update-failed',
+          provider: 'linear',
           issueIdentifier: 'ORC-1',
           detail: 'Linear is unavailable'
         }
