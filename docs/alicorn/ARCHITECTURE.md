@@ -100,21 +100,26 @@ members          (id, tenant_id, name, role, backend, workspace_kind,
                   permission_mode, system_rules, created_at,
                   UNIQUE (tenant_id, name))            -- members_tenant_name
 member_skills    (member_id, skill_id)
-workflows        (id, tenant_id, project_id, name, version)
-stages           (id, workflow_id, key, ordinal, member_id,
+workflows        (id, tenant_id, project_id, name, version,
+                  created_by, created_at, updated_at,
+                  UNIQUE (tenant_id, project_id, name))  -- workflows_tenant_project_name
+stages           (id, tenant_id, workflow_id, key, name, ordinal, member_id,
                   kind,                 -- worker|code  (code: no member, no model; runs code_command)
-                  code_command,
+                  code_command,         -- WF5; WF1 ships worker stages only
                   reversibility,        -- free|contained|irreversible
                   inherited_cost,       -- low|high
-                  required_checks jsonb)
-transitions      (id, workflow_id, from_stage, to_stage, trigger jsonb,
-                  kind)                 -- forward|correction  (the learning edge is the Rulebook, not a row here)
+                  required_checks jsonb,
+                  UNIQUE (workflow_id, key))             -- stages_workflow_key
+transitions      (id, tenant_id, workflow_id, from_stage, to_stage, trigger jsonb,
+                  kind,                 -- forward|correction  (WF2; the learning edge is the Rulebook, not a row here)
+                  UNIQUE (workflow_id, from_stage, to_stage))
                   -- vocabulary: docs/alicorn/GRAPH-ENGINEERING.md
 org_policies     (tenant_id, enforce_distinct_reviewer_backend,
                   updated_by, updated_at)
 project_required_checks(tenant_id, project_id, checks jsonb,
                   updated_by, updated_at)
                   -- project-scoped until stages exist (v1.5); authored by an org admin, never by the member being judged
+                  -- once a stage exists, stage.required_checks wins and this is the fallback (WF1)
 
 -- Autonomy --------------------------------------------------------------
 autonomy_policies(id, tenant_id, project_id, stage_key, member_id, mode,
@@ -145,6 +150,21 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
                   runs, accepted, accept_rate, last_amended_at, level,
                   updated_at)
 ```
+
+### Rules that keep a workflow honest
+
+- **The wire addresses a stage by `key`, not by id.** Ids stay internal, so a save is idempotent, a
+  reorder is one request, and WF3's board-column bindings point at something stable. `key` is already
+  the ledger's join column (`step_outcomes.stage_key`, `autonomy_policies.stage_key`).
+- **`version` is optimistic concurrency, not a published snapshot.** It is bumped on every successful
+  save; a client sends the version it read and a mismatch is rejected. Nothing pins a version to a run
+  until stages bind to dispatch (WF3).
+- **Ordinals are contiguous from zero, enforced on the wire.** There is deliberately no unique index on
+  `(workflow_id, ordinal)` — it would fail mid-statement on a reorder.
+- **Stage checks win over project checks; an empty stage list still wins.** Only a *missing* stage falls
+  back to `project_required_checks`, so a stage never silently inherits a rule it did not author.
+- **Deleting a member unassigns its stages** (`ON DELETE SET NULL`). An unassigned stage is a visible,
+  fixable state; a vanished workflow is not.
 
 ### Rules that keep the ledger honest
 
