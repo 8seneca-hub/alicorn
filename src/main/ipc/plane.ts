@@ -7,6 +7,7 @@ import {
   listWorkspaceMembers
 } from '../plane/plane-project-queries'
 import { getProjectIssue, listProjectIssues } from '../plane/plane-issue-queries'
+import { updateIssueState } from '../plane/plane-issue-mutations'
 import type {
   PlaneConnectionStatus,
   PlaneIssue,
@@ -90,6 +91,37 @@ export function registerPlaneHandlers(): void {
           ...(projectIdentifier ? { projectIdentifier } : {}),
           ...(orderBy ? { orderBy } : {})
         })
+      )
+    }
+  )
+
+  ipcMain.handle(
+    'plane:updateIssueState',
+    async (
+      _event,
+      args: {
+        projectId?: unknown
+        issueId?: unknown
+        stateId?: unknown
+        projectIdentifier?: unknown
+        connectionId?: unknown
+      }
+    ): Promise<PlaneResult<PlaneIssue | null>> => {
+      const projectId = optionalString(args?.projectId)
+      const issueId = optionalString(args?.issueId)
+      const stateId = optionalString(args?.stateId)
+      if (!projectId || !issueId || !stateId) {
+        return { ok: false, error: 'A Plane project id, issue id and state id are required.' }
+      }
+      const projectIdentifier = optionalString(args?.projectIdentifier)
+      return withClient(args?.connectionId, (client) =>
+        updateIssueState(
+          client,
+          projectId,
+          issueId,
+          stateId,
+          projectIdentifier ? { projectIdentifier } : {}
+        )
       )
     }
   )

@@ -9,6 +9,8 @@ import type {
   Worktree
 } from '../../../../shared/worktree/types'
 import { getWorkspaceStatus } from '../../../../shared/workspace-statuses'
+import type { RuntimePlaneSettings } from '@/runtime/runtime-plane-client'
+import { runPlaneWorktreeStatusSync } from './sync-plane-worktree-status'
 
 export type WorkspaceBoardTaskStatusSyncResult = {
   updated: number
@@ -36,7 +38,13 @@ export type SyncWorkspaceBoardTaskStatusesArgs = {
   targetStatus: WorkspaceStatusDefinition
   worktreesById: ReadonlyMap<
     string,
-    Pick<Worktree, 'linkedLinearIssue' | 'linkedLinearIssueWorkspaceId'>
+    Pick<
+      Worktree,
+      | 'linkedLinearIssue'
+      | 'linkedLinearIssueWorkspaceId'
+      | 'linkedPlaneIssue'
+      | 'linkedPlaneProjectId'
+    >
   >
   settings?: RuntimeLinearSettings
   getSettingsForWorktree?: (worktreeId: string) => RuntimeLinearSettings
@@ -242,6 +250,59 @@ async function syncLinearWorktreeStatus(
   }
 }
 
+// Why: Plane's own sync module owns the state mapping and the write; this only translates its
+// outcome into the aggregate the board toast already reads.
+async function syncPlaneLinkedWorktree(
+  args: SyncWorkspaceBoardTaskStatusesArgs,
+  worktreeId: string
+): Promise<WorkspaceBoardTaskStatusSyncResult> {
+  const result: WorkspaceBoardTaskStatusSyncResult = {
+    updated: 0,
+    skipped: 0,
+    failed: 0,
+    messages: []
+  }
+  const worktree = args.worktreesById.get(worktreeId)
+  if (!worktree?.linkedPlaneIssue) {
+    return skipped(result)
+  }
+  const settings = args.getSettingsForWorktree
+    ? args.getSettingsForWorktree(worktreeId)
+    : args.settings
+  try {
+    const written = await runPlaneWorktreeStatusSync({
+      worktree: { ...worktree, id: worktreeId },
+      targetStatus: args.targetStatus,
+      settings: settings as RuntimePlaneSettings,
+      getLatestWorkspaceStatus: (id) => args.getLatestWorkspaceStatus(id)
+    })
+    if (written.outcome === 'updated') {
+      result.updated += 1
+      return result
+    }
+    if (written.outcome === 'failed') {
+      return failed(result, {
+        kind: 'update-failed',
+        issueIdentifier: worktree.linkedPlaneIssue,
+        detail: written.detail
+      })
+    }
+    if (written.outcome === 'ambiguous') {
+      return skipped(result, {
+        kind: 'ambiguous-workflow-state',
+        statusLabel: args.targetStatus.label
+      })
+    }
+    return skipped(result)
+  } catch (error) {
+    return failed(result, {
+      kind: 'provider-error',
+      issueIdentifier: worktree.linkedPlaneIssue,
+      detail: error instanceof Error ? error.message : undefined
+    })
+  }
+}
+
 export async function syncWorkspaceBoardTaskStatuses(
   args: SyncWorkspaceBoardTaskStatusesArgs
 ): Promise<WorkspaceBoardTaskStatusSyncResult> {
@@ -257,7 +318,9 @@ export async function syncWorkspaceBoardTaskStatuses(
   await Promise.all(
     [...uniqueIds].map(async (worktreeId) => {
       const item = await enqueueWorktreeSync(worktreeId, () =>
-        syncLinearWorktreeStatus(args, worktreeId, deps)
+        args.worktreesById.get(worktreeId)?.linkedPlaneIssue
+          ? syncPlaneLinkedWorktree(args, worktreeId)
+          : syncLinearWorktreeStatus(args, worktreeId, deps)
       )
       mergeResult(aggregate, item)
     })

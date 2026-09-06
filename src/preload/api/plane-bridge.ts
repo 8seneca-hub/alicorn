@@ -9,5 +9,6 @@ export const planeApi: PlaneApi = {
   listStates: (args) => ipcRenderer.invoke('plane:listStates', args),
   listMembers: (args) => ipcRenderer.invoke('plane:listMembers', args),
   listIssues: (args) => ipcRenderer.invoke('plane:listIssues', args),
-  getIssue: (args) => ipcRenderer.invoke('plane:getIssue', args)
+  getIssue: (args) => ipcRenderer.invoke('plane:getIssue', args),
+  updateIssueState: (args) => ipcRenderer.invoke('plane:updateIssueState', args)
 }

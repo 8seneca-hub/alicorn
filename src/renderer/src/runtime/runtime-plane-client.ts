@@ -14,6 +14,9 @@ export type RuntimePlaneSettings = RuntimeProviderSettings
 // Status is cheap and blocks UI; data reads may page through a whole project.
 const STATUS_TIMEOUT_MS = 15_000
 const READ_TIMEOUT_MS = 30_000
+// Why: shorter than a read — a board drag waits on this write, so it must fail fast enough that the
+// column does not appear stuck rather than rejected.
+const WRITE_TIMEOUT_MS = 15_000
 
 // Every call routes to the host that owns the workspace. On a remote host the
 // API key never leaves that machine — only the connect payload crosses the wire.
@@ -118,4 +121,24 @@ export async function planeGetIssue(
         timeoutMs: READ_TIMEOUT_MS
       })
     : window.api.plane.getIssue(args)
+}
+
+// Why: the write uses its own timeout rather than READ_TIMEOUT_MS — a board drag waits on it, and a
+// slow write must fail fast enough that the board does not appear stuck.
+export async function planeUpdateIssueState(
+  settings: RuntimePlaneSettings,
+  args: {
+    projectId: string
+    issueId: string
+    stateId: string
+    projectIdentifier?: string
+    connectionId?: string
+  }
+): Promise<PlaneResult<PlaneIssue | null>> {
+  const target = getProviderRuntimeTarget(settings)
+  return target.kind === 'environment'
+    ? callRuntimeRpc<PlaneResult<PlaneIssue | null>>(target, 'plane.updateIssueState', args, {
+        timeoutMs: WRITE_TIMEOUT_MS
+      })
+    : window.api.plane.updateIssueState(args)
 }

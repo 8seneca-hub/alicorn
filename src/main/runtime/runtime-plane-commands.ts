@@ -9,6 +9,7 @@ import type {
 import { connectPlane, disconnectPlane, getPlaneStatus } from '../plane/plane-connection'
 import { attempt, withClient } from '../plane/plane-read-envelope'
 import { getProjectIssue, listProjectIssues } from '../plane/plane-issue-queries'
+import { updateIssueState } from '../plane/plane-issue-mutations'
 import {
   listProjectStates,
   listProjects,
@@ -57,6 +58,25 @@ export class RuntimePlaneCommands {
         ...(options?.projectIdentifier ? { projectIdentifier: options.projectIdentifier } : {}),
         ...(options?.orderBy ? { orderBy: options.orderBy } : {})
       })
+    )
+  }
+
+  // Why: the only write. It runs on the execution host like the reads, so a paired client moving a
+  // card never needs the API key.
+  planeUpdateIssueState(
+    projectId: string,
+    issueId: string,
+    stateId: string,
+    options?: { projectIdentifier?: string; connectionId?: string }
+  ): Promise<PlaneResult<PlaneIssue | null>> {
+    return withClient(options?.connectionId, (client) =>
+      updateIssueState(
+        client,
+        projectId,
+        issueId,
+        stateId,
+        options?.projectIdentifier ? { projectIdentifier: options.projectIdentifier } : {}
+      )
     )
   }
 
