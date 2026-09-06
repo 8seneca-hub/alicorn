@@ -41,14 +41,40 @@ function enqueueOne(
   return duplicate ? 0 : 1
 }
 
+// LC-R9: a gate ends the dispatch that raised it (createGate completes the active one), so a
+// gate/ask/escalation between two dispatches belongs to neither's own [dispatched_at, completed_at]
+// span. The metric is per completed task, not per dispatch — which dispatch carries the row only
+// decides the stage attribution — so everything since the task's last settled dispatch (or its
+// creation, if this is the first) up to this dispatch's completion is attributed here.
+function windowStart(db: OrchestrationDb, ids: DispatchInterruptionIds): string | null {
+  const prev = db.db
+    .prepare(
+      `SELECT completed_at FROM dispatch_contexts
+       WHERE task_id = ? AND id != ? AND completed_at IS NOT NULL
+       ORDER BY completed_at DESC LIMIT 1`
+    )
+    .get(ids.taskId, ids.dispatchId) as { completed_at: string } | undefined
+  return prev?.completed_at ?? db.getTask(ids.taskId)?.created_at ?? null
+}
+
 function enqueueInterruptions(db: OrchestrationDb, ids: DispatchInterruptionIds): number {
   const dispatch = db.getDispatchContextById(ids.dispatchId)
-  if (!dispatch?.dispatched_at || !dispatch.completed_at) {
+  if (!dispatch?.completed_at) {
     return 0
   }
-  const [start, end] = [dispatch.dispatched_at, dispatch.completed_at]
+  const start = windowStart(db, ids)
+  if (start === null) {
+    return 0
+  }
+  const end = dispatch.completed_at
   let enqueued = 0
 
+  // Why inclusive at both ends, not the open-below (prevCompletedAt, end] of the ruling: SQLite
+  // datetime('now') has 1-second resolution, so an event stamped in the same second as the
+  // previous dispatch's completed_at is indistinguishable from one that landed exactly on it —
+  // an open lower bound would silently drop it. Inclusive-both is safe because the outbox's
+  // dedupe key (by sourceId) already makes any boundary overlap between two dispatches' windows
+  // a no-op re-check, never a double count.
   const gates = db.db
     .prepare(
       `SELECT id, created_at FROM decision_gates WHERE task_id = ? AND created_at BETWEEN ? AND ?`
@@ -58,9 +84,16 @@ function enqueueInterruptions(db: OrchestrationDb, ids: DispatchInterruptionIds)
     enqueued += enqueueOne(db, ids, 'gate', gate.id, gate.created_at)
   }
 
+  // Why the OR: dispatch_id = this dispatch is the fast path for the common case; a question
+  // thread opened by an earlier, already-settled dispatch of the same task still counts once if
+  // its timestamp falls in the window (dedupe is by message_id via the outbox dedupe key).
   const asks = db.db
-    .prepare(`SELECT message_id, created_at FROM question_threads WHERE dispatch_id = ?`)
-    .all(ids.dispatchId) as AskRow[]
+    .prepare(
+      `SELECT qt.message_id, qt.created_at FROM question_threads qt
+       LEFT JOIN dispatch_contexts dc ON dc.id = qt.dispatch_id
+       WHERE qt.dispatch_id = ? OR (dc.task_id = ? AND qt.created_at BETWEEN ? AND ?)`
+    )
+    .all(ids.dispatchId, ids.taskId, start, end) as AskRow[]
   for (const ask of asks) {
     enqueued += enqueueOne(db, ids, 'ask', ask.message_id, ask.created_at)
   }
@@ -90,9 +123,9 @@ function logCaptureErrorThrottled(dispatchId: string, error: unknown): void {
 }
 
 /**
- * Records the gates, questions and escalation offer that fell inside a settled dispatch's
- * span as ledger interruptions, through the outbox (exactly-once via dedupe key). Returns the
- * number of newly enqueued rows; a re-run over the same dispatch enqueues none.
+ * Records the gates, questions and escalation offer since the task's last settled dispatch (see
+ * LC-R9 above) as ledger interruptions, through the outbox (exactly-once via dedupe key). Returns
+ * the number of newly enqueued rows; a re-run over the same dispatch enqueues none.
  *
  * Never throws: this runs on the settlement path and a capture failure must not fail the report.
  */

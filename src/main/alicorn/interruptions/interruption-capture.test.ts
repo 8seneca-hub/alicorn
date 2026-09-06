@@ -48,44 +48,62 @@ describe('enqueueInterruptionsForDispatch', () => {
       }))
   }
 
-  it('records 2 gates, 1 ask and 1 escalation offer as 4 interruption rows', () => {
+  it('attributes 2 gates raised between dispatches, 1 ask and 1 escalation offer to the next settling dispatch', () => {
+    // LC-R9: createGate ends the dispatch that raises it, so both gates below land between
+    // dispatch1's completion and dispatch2's — via the real write path (createGate/resolveGate),
+    // not a raw insert, per controller ruling.
     const task = db.createTask({ spec: 'work' })
-    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    const dispatch1 = createRootDispatch(db, task.id, 'term_worker_1')
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch1.id,
+      outcome: 'succeeded',
+      result: 'phase 1 done'
+    })
 
-    insertGate('gate_1', task.id, task.run_id)
-    insertGate('gate_2', task.id, task.run_id)
+    const gate1 = db.createGate({ taskId: task.id, question: 'approach A or B?' })
+    const gate2 = db.createGate({ taskId: task.id, question: 'ship now or wait?' })
+    db.resolveGate(gate1.id, 'A') // any gate's resolution returns the task to 'ready'
+
+    const dispatch2 = createRootDispatch(db, task.id, 'term_worker_2')
     const { question } = db.createQuestion({
       runId: task.run_id,
-      dispatchId: dispatch.id,
-      askerHandle: 'term_worker',
+      dispatchId: dispatch2.id,
+      askerHandle: 'term_worker_2',
       question: 'which approach?'
     })
     db.markEscalationOffered(task.id)
     db.settleWorkerReport({
       taskId: task.id,
-      dispatchId: dispatch.id,
+      dispatchId: dispatch2.id,
       outcome: 'succeeded',
       result: 'done'
     })
 
-    const ids = { runId: task.run_id, taskId: task.id, dispatchId: dispatch.id }
+    const ids = { runId: task.run_id, taskId: task.id, dispatchId: dispatch2.id }
     const count = enqueueInterruptionsForDispatch(db, ids)
 
     expect(count).toBe(4)
     const rows = interruptionRows()
     expect(rows).toHaveLength(4)
     expect(rows.map((r) => r.kind).sort()).toEqual(['ask', 'escalation', 'gate', 'gate'])
+    // Every row is attributed to dispatch2 — the dispatch that settled, not the one that raised it.
+    expect(
+      rows.every((r) => (r.payload as { dispatchId: string }).dispatchId === dispatch2.id)
+    ).toBe(true)
 
-    const gate1 = rows.find((r) => r.sourceId === 'gate_1')!
-    expect(gate1).toMatchObject({ kind: 'gate', dedupeKey: 'interruption:gate:gate_1' })
-    expect(gate1.payload).toMatchObject({
+    const gateSourceIds = rows.filter((r) => r.kind === 'gate').map((r) => r.sourceId)
+    expect(gateSourceIds.sort()).toEqual([gate1.id, gate2.id].sort())
+    const gateRow = rows.find((r) => r.sourceId === gate1.id)!
+    expect(gateRow.dedupeKey).toBe(`interruption:gate:${gate1.id}`)
+    expect(gateRow.payload).toMatchObject({
       runId: task.run_id,
       taskId: task.id,
-      dispatchId: dispatch.id,
+      dispatchId: dispatch2.id,
       resolvedBy: null
     })
     expect(() =>
-      new Date((gate1.payload as { occurredAt: string }).occurredAt).toISOString()
+      new Date((gateRow.payload as { occurredAt: string }).occurredAt).toISOString()
     ).not.toThrow()
 
     const ask = rows.find((r) => r.kind === 'ask')!
@@ -93,13 +111,55 @@ describe('enqueueInterruptionsForDispatch', () => {
     expect(ask.dedupeKey).toBe(`interruption:ask:${question.message_id}`)
 
     const escalation = rows.find((r) => r.kind === 'escalation')!
-    expect(escalation.sourceId).toBe(dispatch.id)
-    expect(escalation.dedupeKey).toBe(`interruption:escalation:${dispatch.id}`)
+    expect(escalation.sourceId).toBe(dispatch2.id)
+    expect(escalation.dedupeKey).toBe(`interruption:escalation:${dispatch2.id}`)
+  })
+
+  it('counts an ask raised under an earlier, already-settled dispatch of the same task', () => {
+    // Raw insert, justified: naturally, an ask is captured by its own dispatch's settlement
+    // (dispatch_id fast path), so reaching the join-based window match needs a question_threads
+    // row whose dispatch_id predates the settling dispatch but whose timestamp still lands in
+    // the window — not reproducible through createQuestion without manual clock control, since
+    // createQuestion always stamps "now" and requires the dispatch to still be active.
+    const task = db.createTask({ spec: 'work' })
+    const dispatch1 = createRootDispatch(db, task.id, 'term_worker_1')
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch1.id,
+      outcome: 'succeeded',
+      result: 'phase 1 done'
+    })
+    const gate = db.createGate({ taskId: task.id, question: 'continue?' })
+    db.resolveGate(gate.id, 'yes')
+    const dispatch2 = createRootDispatch(db, task.id, 'term_worker_2')
+    db.db
+      .prepare(
+        `INSERT INTO question_threads (message_id, run_id, dispatch_id, asker_handle, created_at)
+         VALUES (?, ?, ?, ?, ?)`
+      )
+      .run('msg_late_ask', task.run_id, dispatch1.id, 'term_worker_1', gate.created_at)
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch2.id,
+      outcome: 'succeeded',
+      result: 'done'
+    })
+
+    const count = enqueueInterruptionsForDispatch(db, {
+      runId: task.run_id,
+      taskId: task.id,
+      dispatchId: dispatch2.id
+    })
+
+    expect(count).toBe(2) // the gate plus the cross-dispatch ask
+    const ask = interruptionRows().find((r) => r.kind === 'ask')!
+    expect(ask.sourceId).toBe('msg_late_ask')
   })
 
   it('re-running over the same dispatch enqueues no new rows', () => {
     const task = db.createTask({ spec: 'work' })
     const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    // Raw insert: this test is about outbox dedupe, not gate provenance.
     insertGate('gate_1', task.id, task.run_id)
     db.settleWorkerReport({
       taskId: task.id,
@@ -114,10 +174,12 @@ describe('enqueueInterruptionsForDispatch', () => {
     expect(interruptionRows()).toHaveLength(1)
   })
 
-  it('does not count a gate created outside the dispatch span', () => {
+  it('does not count a gate created outside the window', () => {
     const task = db.createTask({ spec: 'work' })
     const dispatch = createRootDispatch(db, task.id, 'term_worker')
-    // Well before dispatched_at, which is stamped at dispatch creation just above.
+    // Well before the window start (this is the task's first dispatch, so the window opens at
+    // the task's created_at, which is "now"). Raw insert: needs a deterministic past timestamp,
+    // not reachable via createGate's datetime('now') stamping.
     insertGate('gate_old', task.id, task.run_id, '2000-01-01 00:00:00')
     db.settleWorkerReport({
       taskId: task.id,
