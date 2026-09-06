@@ -174,8 +174,13 @@ export const InboxParams = z.object({
   terminal: OptionalString
 })
 
+// Why: `single` is the default and stays the default — the field is optional and absent means single,
+// so a task nobody orchestrated leaves no row and the escalation offer can still tell it apart.
+export const ExecutionStrategyParam = z.enum(['single', 'orchestrated']).optional()
+
 export const TaskCreateParams = z.object({
   spec: requiredString('Missing --spec'),
+  executionStrategy: ExecutionStrategyParam,
   taskTitle: OptionalString,
   displayName: OptionalString,
   deps: OptionalString,
@@ -195,6 +200,7 @@ export const TaskListParams = z.object({
 
 export const TaskUpdateParams = z.object({
   id: requiredString('Missing --id'),
+  executionStrategy: ExecutionStrategyParam,
   status: z
     .unknown()
     .transform((v) => {
