@@ -1,7 +1,6 @@
 import type { Hono } from 'hono'
 import { MemberInputSchema } from '@alicorn-cloud/control-plane-contract'
-import type { ControlApiEnv } from './app-env.js'
-import type { ControlApiDeps } from './app.js'
+import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import { createMember, deleteMember, getMember, listMembers, updateMember } from './members-repository.js'
 
 // Why: 23505 also fires for a duplicate skill in the payload (member_skills PK) —
