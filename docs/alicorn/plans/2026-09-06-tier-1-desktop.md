@@ -33,6 +33,27 @@
 6. **PR provenance is appended main-side in the `hostedReview:create` IPC handler**, so every forge provider gets it and the template still applies (we read the template ourselves when the body is empty and `useTemplate` is set).
 7. **Auth is deferred (user decision 2026-09-06).** The bearer and tenant come from `ALICORN_LOCAL_API_TOKEN` / `ALICORN_TENANT_ID` in the main process environment. The worker terminals never receive the token — only main talks to the control plane.
 
+## Amendments applied during execution (Huy's tasks, 2026-09-06)
+
+Rulings made while running C1–E1 with subagent-driven development; the tasks below were built to these,
+not to the original text where they differ.
+
+- **D-R1/D-R3 (superseded).** C3 was to ship a local `fetchJson` if B1 had not landed; B1 landed first, so
+  C3 imports `alicornFetch` and the two error classes from `src/main/alicorn/control-plane-http.ts`.
+- **D-R2.** The drainer takes its two downstream steps as injectable deps — `spendAttributor` (C5) and
+  `verificationRunner` (D5) — both `null` until those tasks wired them; rows of a kind whose handler is null
+  stay untouched. The brief's `claudeUsage`/`codexUsage` drainer deps moved into C5's closure.
+- **D-R4.** The four wire input types (`StepOutcomeInput`, `SpendPatch`, `StepVerificationInput`,
+  `ContextCaptureInput`) live in `src/shared/alicorn/ledger-inputs.ts`, not in B2's `ledger.ts`.
+- **D-R5.** E1's 20-line docs diff was reviewed by the controller and by the final whole-branch review.
+- **D-R6 (final fix wave, `8775c2676`).** Project id is URL-encoded in the required-checks fetch; the
+  run-cost window is bounded by the dispatch's own `completed_at` (see Task 16); `stageKey` is trimmed,
+  capped at 64 and falls back to `build`; failing outbox rows log (throttled); lcov paths normalise to
+  forward slashes; the coverage diff uses the worktree's real base ref and WSL git options
+  (`diff-coverage/base-ref-resolver.ts`, same order as the drift probe) and hardened `git diff` flags.
+  Deferred to Plane: LG1 dead-letter state for rows that can never succeed; LG2 run required checks in
+  their own worker (and route project commands through WSL).
+
 ## File structure
 
 ```
@@ -471,7 +492,7 @@ Recorded by Alicorn from the run ledger. 2 steps · 2 dispatches · est. spend $
 
 **Interfaces:**
 - `src/preload/api/alicorn-run-cost-api.ts`: `export type AlicornRunCostApi = { onChanged: (cb: (payload: RunCostByDispatch) => void) => () => void }`; bridge (`alicorn-run-cost-bridge.ts`): `ipcRenderer.on(ALICORN_RUN_COST_EVENT, listener)` returning an unsubscribe, exactly like B3's `onEscalationOffer`. D7 owns this bridge end to end — B3's `window.api.alicorn` carries `onEscalationOffer` only.
-- `startRunCostPublisher(deps: { getDb; claudeUsage; codexUsage; publish: (payload: RunCostByDispatch) => void; intervalMs?: number; now?: () => number }): { stop(); tickOnce(): Promise<RunCostByDispatch> }` — each tick: dispatches `dispatched` or completed in the last 24 h joined with `worker_dispatches` (`worktree_id`, `start_options`) and `alicorn_dispatch_members` (backend); for each with a worktree and backend `claude`/`codex`: `completedAt = min(now, store.getLastScanCompletedAt() ?? now)` (so `getAutomationRunUsage` never forces a rescan on our cadence — the stores' own scanner sets freshness); `startedAt = dispatched_at`; `status 'known'` → `costUsd = estimatedCostUsd`; `unavailable` → `{ costUsd: null, status: 'unavailable' }`; other backends → `unavailable`. Publish only when the payload changed (JSON compare) via `mainProcessState.mainWindow?.webContents.send(ALICORN_RUN_COST_EVENT, payload)` (`run-cost.ts`'s own constant, not `ALICORN_EVENTS`).
+- `startRunCostPublisher(deps: { getDb; claudeUsage; codexUsage; publish: (payload: RunCostByDispatch) => void; intervalMs?: number; now?: () => number }): { stop(); tickOnce(): Promise<RunCostByDispatch> }` — each tick: dispatches `dispatched` or completed in the last 24 h joined with `worker_dispatches` (`worktree_id`, `start_options`) and `alicorn_dispatch_members` (backend); for each with a worktree and backend `claude`/`codex`: `bound = parseSqliteUtc(dispatch.completed_at) ?? now; completedAt = min(bound, store.getLastScanCompletedAt() ?? bound)` (amended by D-R6: a finished dispatch is priced over its own window so the chip agrees with C5's ledger spend; the clamp to the last scan means `getAutomationRunUsage` never forces a rescan on our cadence — the stores' own scanner sets freshness); `startedAt = dispatched_at`; `status 'known'` → `costUsd = estimatedCostUsd`; `unavailable` → `{ costUsd: null, status: 'unavailable' }`; other backends → `unavailable`. Publish only when the payload changed (JSON compare) via `mainProcessState.mainWindow?.webContents.send(ALICORN_RUN_COST_EVENT, payload)` (`run-cost.ts`'s own constant, not `ALICORN_EVENTS`).
 - Renderer chip: `<span className="… text-xs text-muted-foreground tabular-nums" title="Estimated spend for this dispatch (API-equivalent)">{formatRunCostUsd(cost.costUsd)}</span>` — same classes as the existing model chip at `worktree-card-compact-agent-row.tsx:246-255`; shown only when `cost?.status === 'known'`.
 - [ ] **Step 1: Failing tests** — `formatRunCostUsd(null) === '—'`, `(0.004) === '<$0.01'`, `(0.8234) === '$0.82'`; publisher: one claude dispatch → fake store called with `completedAt` = lastScanCompletedAt, payload `{ ctx_1: { costUsd: 0.82, status: 'known' } }`; unchanged second tick publishes nothing; grok dispatch → `unavailable`.
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement + wire + localize the tooltip.** **Step 4:** PASS; `pnpm tc:node && pnpm tc:web`; `pnpm run check:code-quality:changed`. **Step 5: Manual:** run a Claude worker; within a minute the agent row shows `$0.xx` and it grows while the worker works. **Step 6: Commit** `feat(alicorn): show estimated per-dispatch spend in the agent row`.

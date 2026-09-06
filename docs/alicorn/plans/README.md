@@ -9,7 +9,7 @@ from.
 | Plan | Plane module(s) | Owner | Release | Keys | Status (2026-09-06) |
 |---|---|---|---|---|---|
 | [tier-1-control-plane](2026-09-06-tier-1-control-plane.md) | Control plane platform · Members · Ledger (cloud) | Huy | v0.1 | A1–A10 | **Done** — on `main`, final review clean |
-| [tier-1-desktop](2026-09-06-tier-1-desktop.md) | Members · Ledger (desktop) · Execution strategy · Provenance & PR body · Cost & telemetry | Huy: C1–C3, C5, D5, D7, E1 · Nghia: B1–B4, C4, D1–D4, D6 | v0.1 / v1.0 | B, C, D, E | In progress (C1 done) |
+| [tier-1-desktop](2026-09-06-tier-1-desktop.md) | Members · Ledger (desktop) · Execution strategy · Provenance & PR body · Cost & telemetry | Huy: C1–C3, C5, D5, D7, E1 · Nghia: B1–B4, C4, D1–D4, D6 | v0.1 / v1.0 | B, C, D, E | Huy's share **done** (final review + fix wave on `main`, `8775c2676`); Nghia's B1–B4, C4, D1, D2, D4, D6 merged via PRs #3–#8; manual smoke run (LOCAL-DEV.md) pending |
 | [identity-keycloak](2026-09-06-identity-keycloak.md) | Identity | Huy | v0.1 | F1, I1–I5 | Planned |
 | [rebrand-cutover-distribution](2026-09-06-rebrand-cutover-distribution.md) | Rebrand, cutover & distribution | Huy | v0.1 | R1–R5, L1, BC1–BC2, DS1–DS3 | Planned |
 | [ledger-completion-measurement](2026-09-06-ledger-completion-measurement.md) | Corrections watcher · Ledger · Cost & telemetry | Huy | v0.1 | CW1, CW2, M1, M2 | Planned |
