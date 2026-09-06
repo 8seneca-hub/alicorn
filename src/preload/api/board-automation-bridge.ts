@@ -6,5 +6,6 @@ export const boardAutomationApi: BoardAutomationApi = {
   status: (args) => ipcRenderer.invoke(BOARD_AUTOMATION_IPC.status, args),
   setKilled: (args) => ipcRenderer.invoke(BOARD_AUTOMATION_IPC.setKilled, args),
   listRules: (args) => ipcRenderer.invoke(BOARD_AUTOMATION_IPC.listRules, args),
-  saveRules: (args) => ipcRenderer.invoke(BOARD_AUTOMATION_IPC.saveRules, args)
+  saveRules: (args) => ipcRenderer.invoke(BOARD_AUTOMATION_IPC.saveRules, args),
+  statusChanged: (args) => ipcRenderer.invoke(BOARD_AUTOMATION_IPC.statusChanged, args)
 }

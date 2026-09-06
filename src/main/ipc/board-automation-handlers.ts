@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import { BOARD_AUTOMATION_IPC } from '../../shared/board-automation/ipc-channels'
 import type { BoardAutomationRule, GlobalSettings } from '../../shared/global-settings-types'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
+import type { BoardRuleEngine, WorkspaceStatusChange } from '../board-automation/board-rule-engine'
 import {
   BOARD_KILL_SCOPE_GLOBAL,
   boardKillScope,
@@ -16,6 +17,8 @@ export type BoardAutomationHandlerDeps = {
   getOrchestrationDb: () => OrchestrationDb
   getSettings: () => GlobalSettings
   updateSettings: (updates: Partial<GlobalSettings>) => void
+  /** Absent in tests and headless modes; the status channel then does nothing. */
+  engine?: BoardRuleEngine | null
 }
 
 function asNonEmptyString(value: unknown): string | null {
@@ -77,6 +80,35 @@ export function registerBoardAutomationHandlers(deps: BoardAutomationHandlerDeps
         args.killed ? (asNonEmptyString(args?.by) ?? 'ui') : null
       )
       return { ok: true }
+    }
+  )
+
+  ipcMain.handle(
+    BOARD_AUTOMATION_IPC.statusChanged,
+    async (_event, args: Partial<WorkspaceStatusChange>): Promise<{ dispatched: boolean }> => {
+      const worktreeId = asNonEmptyString(args?.worktreeId)
+      const repoId = asNonEmptyString(args?.repoId)
+      const toStatusId = asNonEmptyString(args?.toStatusId)
+      if (!deps.engine || !worktreeId || !repoId || !toStatusId) {
+        return { dispatched: false }
+      }
+      // Why swallow: this rides a board move. A rule that cannot dispatch must never make the card
+      // fail to move, and the refusal is already recorded where the switch can show it.
+      try {
+        const result = await deps.engine.onWorkspaceStatusChanged({
+          worktreeId,
+          repoId,
+          toStatusId,
+          fromStatusId: asNonEmptyString(args?.fromStatusId),
+          worktreePath: asNonEmptyString(args?.worktreePath) ?? '',
+          issueRef: asNonEmptyString(args?.issueRef),
+          workspaceName: asNonEmptyString(args?.workspaceName)
+        })
+        return { dispatched: result.allow }
+      } catch (error) {
+        console.warn('[alicorn] board automation dispatch failed', error)
+        return { dispatched: false }
+      }
     }
   )
 

@@ -17,4 +17,13 @@ export type BoardAutomationApi = {
     repoId: string
     rules: BoardAutomationRule[]
   }) => Promise<{ ok: boolean; rules?: BoardAutomationRule[] }>
+  statusChanged: (args: {
+    worktreeId: string
+    repoId: string
+    fromStatusId: string | null
+    toStatusId: string
+    worktreePath: string
+    issueRef?: string | null
+    workspaceName?: string | null
+  }) => Promise<{ dispatched: boolean }>
 }
