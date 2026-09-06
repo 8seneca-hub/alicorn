@@ -78,3 +78,16 @@ Identity is deferred: when Keycloak lands (I4), only the body of `readAlicornBea
 pnpm test src/main/alicorn
 pnpm tc:node
 ```
+
+## Smoke checklist (tier 1)
+
+Results are recorded in the PR description or the Plane issue (E1 / ALC-27) when the run is performed manually.
+
+1. `cd cloud && pnpm alicorn:up && pnpm alicorn:seed` → both `/healthz` ok; seed prints org id.
+2. `source cloud/dev/compose/desktop.env.example && pnpm dev`.
+3. Settings → Workflows → Members → three seeded members; create *Reviewer B* (codex); quit and relaunch — it is still there (Postgres, not local).
+4. CLI: `task-create` → `worker-start --member <Developer>` → worker sends `worker_done --phase build` → provenance endpoint shows the outcome with `backend claude`, `execution_strategy single`, a context capture, and (after ~1 min) `spend_cents`.
+5. `worker-start --member <Reviewer on claude>` on a dependent task → rejected `reviewer_backend_conflict`; with `--allow-same-backend-review` → allowed; ledger row `review_backend_bypass true`.
+6. Push the branch, create a PR from the sidebar → PR body has the Provenance section with the bypass warning and the diff-coverage line (after configuring the project's required check).
+7. Sidebar agent row shows `$0.xx` while a Claude worker runs.
+8. Kill the desktop between `worker_done` and the drainer's next tick (stop the Ledger API first so the send fails, then quit the app, restart both) → the outcome is delivered once; `SELECT count(*) FROM step_outcomes WHERE dispatch_id = …` is 1.

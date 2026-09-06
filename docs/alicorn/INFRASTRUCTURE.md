@@ -48,9 +48,9 @@ Namespace: alicorn
 | `production` | Customer-operated, or Alicorn Cloud | Real |
 
 `local` must come up with `docker compose up` and a seed script. If a new engineer cannot reach a
-working inbox in fifteen minutes, that is a bug. Tier 1 ships this as
-`cloud/dev/compose/alicorn-local.yml`: `pnpm alicorn:up && pnpm alicorn:seed` (from `cloud/`) seeds
-three members (Developer, Reviewer, QA) in the `local` tenant — there is no org or workflow yet.
+working inbox in fifteen minutes, that is a bug. The compose file `cloud/dev/compose/alicorn-local.yml`
+provides the `local` environment: `pnpm alicorn:up && pnpm alicorn:seed` (from `cloud/`) seeds three
+members (Developer, Reviewer, QA) in the `local` tenant — there is no org or workflow yet.
 
 ## 4. Infrastructure as code
 
