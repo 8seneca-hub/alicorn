@@ -1,0 +1,126 @@
+import { z } from 'zod'
+import { RequiredChecksSchema } from './required-check.js'
+
+export const STAGE_REVERSIBILITY = ['free', 'contained', 'irreversible'] as const
+export const INHERITED_COSTS = ['low', 'high'] as const
+export const TRIGGER_KINDS = ['on_success', 'on_failure', 'manual'] as const
+
+export const StageReversibilitySchema = z.enum(STAGE_REVERSIBILITY)
+export const InheritedCostSchema = z.enum(INHERITED_COSTS)
+
+// Why: same shape as step_outcomes.stage_key (64 chars) so a stage joins the ledger without translation.
+export const StageKeySchema = z.string().regex(/^[a-z0-9][a-z0-9_-]{0,62}$/, 'invalid_stage_key')
+
+export const StageInputSchema = z.object({
+  key: StageKeySchema,
+  name: z.string().trim().max(120).default(''),
+  ordinal: z.number().int().nonnegative(),
+  memberId: z.string().min(1).nullable().default(null),
+  // Why: ARCHITECTURE §7 — authored, never inferred, and the default is the safe value.
+  reversibility: StageReversibilitySchema.default('contained'),
+  inheritedCost: InheritedCostSchema.default('low'),
+  requiredChecks: RequiredChecksSchema.default([])
+})
+
+// Why: objects rather than bare literals so WF3's board-column trigger adds fields additively.
+export const TriggerSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('on_success') }),
+  z.object({ kind: z.literal('on_failure') }),
+  z.object({ kind: z.literal('manual') })
+])
+
+export const TransitionInputSchema = z.object({
+  from: StageKeySchema,
+  to: StageKeySchema,
+  trigger: TriggerSchema
+})
+
+const WorkflowGraphShape = z.object({
+  projectId: z.string().trim().min(1).max(200),
+  name: z.string().trim().min(1).max(120),
+  stages: z.array(StageInputSchema).min(1).max(40),
+  transitions: z.array(TransitionInputSchema).max(200).default([])
+})
+
+type WorkflowGraph = z.infer<typeof WorkflowGraphShape>
+
+function checkGraph(graph: WorkflowGraph, ctx: z.RefinementCtx): void {
+  const keys = new Set<string>()
+  graph.stages.forEach((stage, i) => {
+    if (keys.has(stage.key)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['stages', i, 'key'], message: 'duplicate_stage_key' })
+    }
+    keys.add(stage.key)
+  })
+
+  // Why: ordinals must be exactly 0..n-1 — the schema is the only place contiguity is enforced,
+  // because a unique index on (workflow_id, ordinal) would break a reorder mid-statement.
+  const ordinals = [...graph.stages].map((s) => s.ordinal).sort((a, b) => a - b)
+  ordinals.forEach((ordinal, i) => {
+    if (ordinal !== i) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['stages'], message: 'ordinals_must_be_contiguous_from_zero' })
+    }
+  })
+
+  const edges = new Set<string>()
+  const triggered = new Set<string>()
+  graph.transitions.forEach((transition, i) => {
+    if (!keys.has(transition.from)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i, 'from'], message: 'unknown_stage_key' })
+    }
+    if (!keys.has(transition.to)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i, 'to'], message: 'unknown_stage_key' })
+    }
+    if (transition.from === transition.to) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i], message: 'self_transition' })
+    }
+    const edge = `${transition.from}->${transition.to}`
+    if (edges.has(edge)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i], message: 'duplicate_transition' })
+    }
+    edges.add(edge)
+    // Why: one edge per (from, trigger) keeps dispatch deterministic. Cycles stay legal — WF2 makes
+    // the return edge first-class.
+    const fired = `${transition.from}:${transition.trigger.kind}`
+    if (triggered.has(fired)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i, 'trigger'], message: 'ambiguous_trigger' })
+    }
+    triggered.add(fired)
+  })
+}
+
+export const WorkflowInputSchema = WorkflowGraphShape.superRefine(checkGraph)
+
+export const WorkflowUpdateSchema = WorkflowGraphShape.extend({
+  version: z.number().int().positive()
+}).superRefine(checkGraph)
+
+export const WorkflowSchema = WorkflowGraphShape.extend({
+  id: z.string().min(1),
+  tenantId: z.string().min(1),
+  version: z.number().int().positive(),
+  createdBy: z.string().min(1),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime()
+})
+
+export const WorkflowSummarySchema = z.object({
+  id: z.string().min(1),
+  projectId: z.string().min(1),
+  name: z.string().min(1),
+  version: z.number().int().positive(),
+  stageCount: z.number().int().nonnegative(),
+  updatedAt: z.string().datetime()
+})
+
+export type StageReversibility = z.infer<typeof StageReversibilitySchema>
+export type InheritedCost = z.infer<typeof InheritedCostSchema>
+export type Trigger = z.infer<typeof TriggerSchema>
+// Why: a stored stage and an authored one have the same shape — the defaults are already applied.
+export type Stage = z.infer<typeof StageInputSchema>
+export type StageInput = z.input<typeof StageInputSchema>
+export type TransitionInput = z.infer<typeof TransitionInputSchema>
+export type WorkflowInput = z.infer<typeof WorkflowInputSchema>
+export type WorkflowUpdate = z.infer<typeof WorkflowUpdateSchema>
+export type Workflow = z.infer<typeof WorkflowSchema>
+export type WorkflowSummary = z.infer<typeof WorkflowSummarySchema>

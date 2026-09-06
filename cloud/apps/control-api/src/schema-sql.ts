@@ -36,5 +36,46 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      updated_by TEXT,
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      PRIMARY KEY (tenant_id, project_id))`,
-  tenantRlsPolicySql('project_required_checks')
+  tenantRlsPolicySql('project_required_checks'),
+  // Workflows — authored stage graphs (WF1). Stages are addressed on the wire by `key`;
+  // ids stay internal so a save is idempotent and a reorder is one request.
+  `CREATE TABLE IF NOT EXISTS workflows (
+     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+     tenant_id TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     name TEXT NOT NULL,
+     version INTEGER NOT NULL DEFAULT 1,
+     created_by TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS workflows_tenant_project_name ON workflows(tenant_id, project_id, name)`,
+  `CREATE INDEX IF NOT EXISTS workflows_tenant_project ON workflows(tenant_id, project_id)`,
+  tenantRlsPolicySql('workflows'),
+  // Why: reversibility and inherited_cost are authored here and never inferred (ARCHITECTURE §7);
+  // required_checks is authored on the stage, never by the member being judged (§9).
+  `CREATE TABLE IF NOT EXISTS stages (
+     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+     tenant_id TEXT NOT NULL,
+     workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+     key TEXT NOT NULL,
+     name TEXT NOT NULL DEFAULT '',
+     ordinal INTEGER NOT NULL,
+     member_id TEXT REFERENCES members(id) ON DELETE SET NULL,
+     reversibility TEXT NOT NULL DEFAULT 'contained' CHECK (reversibility IN ('free', 'contained', 'irreversible')),
+     inherited_cost TEXT NOT NULL DEFAULT 'low' CHECK (inherited_cost IN ('low', 'high')),
+     required_checks JSONB NOT NULL DEFAULT '[]'::jsonb)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS stages_workflow_key ON stages(workflow_id, key)`,
+  // Why: no unique index on (workflow_id, ordinal) — a reorder would violate it mid-statement,
+  // and contiguity is already enforced by the wire schema before any SQL runs.
+  `CREATE INDEX IF NOT EXISTS stages_workflow_ordinal ON stages(workflow_id, ordinal)`,
+  tenantRlsPolicySql('stages'),
+  `CREATE TABLE IF NOT EXISTS transitions (
+     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+     tenant_id TEXT NOT NULL,
+     workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
+     from_stage TEXT NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
+     to_stage TEXT NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
+     trigger JSONB NOT NULL)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS transitions_workflow_edge ON transitions(workflow_id, from_stage, to_stage)`,
+  tenantRlsPolicySql('transitions')
 ]

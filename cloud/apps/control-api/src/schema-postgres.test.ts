@@ -21,7 +21,9 @@ describePostgres('control schema', () => {
       const { rows } = await pool.query(
         `SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
          WHERE n.nspname = $1 AND c.relforcerowsecurity ORDER BY relname`, [schema])
-      expect(rows.map((r) => r.relname)).toEqual(['member_skills', 'members', 'org_policies', 'project_required_checks'])
+      expect(rows.map((r) => r.relname)).toEqual([
+        'member_skills', 'members', 'org_policies', 'project_required_checks', 'stages', 'transitions', 'workflows'
+      ])
     } finally {
       await pool.end()
     }
