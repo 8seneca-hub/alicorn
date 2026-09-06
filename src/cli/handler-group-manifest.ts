@@ -52,6 +52,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('./handlers/automations.js')).AUTOMATION_HANDLERS
   },
   {
+    name: 'board-automation',
+    keys: ['board-automation status', 'board-automation stop', 'board-automation resume'],
+    load: async () => (await import('./handlers/board-automation.js')).BOARD_AUTOMATION_HANDLERS
+  },
+  {
     name: 'project',
     keys: [
       'project list',
