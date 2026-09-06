@@ -21,10 +21,12 @@ from.
 | [rulebook](2026-09-06-rulebook.md) | Corrections watcher & Rulebook | Huy | v1.5 | RB1, RB2 | Planned |
 | [interface](2026-09-06-interface.md) | Interface | Nghia | after v1.0 | UI1–UI4, VI1 | Planned — starts after the rebrand gate is green |
 | [multirepo-contracts-mailbox](2026-09-06-multirepo-contracts-mailbox.md) | Multi-repo, contracts & mailbox | Nghia | v2.0 | MR1, CR1, CR2, IV1, MB1, MB2 | Planned |
+| [ledger-outbox-hardening](2026-09-06-ledger-outbox-hardening.md) | Ledger | Huy | v1.0 | LG1, LG2 | Planned — from the desktop tier-1 final review |
 
 WF3 (stages bind to board columns) is covered by workflows-stages Task 6 together with the
 board-automation plan; MR2 lives in foreman-core Task 9. The four keys WF5, FM5, FM6 and RB2 come
-from [GRAPH-ENGINEERING.md](../GRAPH-ENGINEERING.md).
+from [GRAPH-ENGINEERING.md](../GRAPH-ENGINEERING.md); LG1 and LG2 from the desktop tier-1 final
+review. Every open Plane issue (ALC-1…97) is covered by exactly one plan.
 
 ## Conventions every plan shares
 
