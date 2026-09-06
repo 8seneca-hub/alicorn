@@ -12,10 +12,10 @@ describe('listSettledDispatchesForCorrections', () => {
     db.close()
   })
 
-  function settleWithWorktree(
-    outcome: 'succeeded' | 'failed',
-    filesModified: string[]
-  ): { taskId: string; dispatchId: string } {
+  function settleWithWorktree(outcome: 'succeeded' | 'failed'): {
+    taskId: string
+    dispatchId: string
+  } {
     const task = db.createTask({ spec: 'work' })
     const { dispatch } = db.createStartingWorkerDispatch({
       taskId: task.id,
@@ -33,48 +33,35 @@ describe('listSettledDispatchesForCorrections', () => {
       taskId: task.id,
       dispatchId: dispatch.id,
       outcome,
-      result: JSON.stringify({ phase: 'build', body: 'done', filesModified })
+      result: JSON.stringify({ phase: 'build', body: 'done', filesModified: [] })
     })
     return { taskId: task.id, dispatchId: dispatch.id }
   }
 
-  it('returns a settled dispatch with its worktree and filesModified from the step_outcome row', () => {
-    const { taskId, dispatchId } = settleWithWorktree('succeeded', ['a.ts', 'b.ts'])
+  it('returns a settled dispatch with its worktree', () => {
+    const { taskId, dispatchId } = settleWithWorktree('succeeded')
 
     const rows = db.listSettledDispatchesForCorrections('2000-01-01 00:00:00')
 
     expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({
-      dispatchId,
-      taskId,
-      worktreeId: 'wt_1',
-      filesModified: ['a.ts', 'b.ts']
-    })
+    expect(rows[0]).toMatchObject({ dispatchId, taskId, worktreeId: 'wt_1' })
     expect(rows[0].completedAt).toEqual(expect.any(String))
   })
 
   it('includes a failed dispatch too', () => {
-    const { dispatchId } = settleWithWorktree('failed', ['c.ts'])
+    const { dispatchId } = settleWithWorktree('failed')
 
     const rows = db.listSettledDispatchesForCorrections('2000-01-01 00:00:00')
 
     expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({ dispatchId, filesModified: ['c.ts'] })
+    expect(rows[0]).toMatchObject({ dispatchId })
   })
 
   it('excludes a dispatch that completed before the cutoff', () => {
-    settleWithWorktree('succeeded', ['a.ts'])
+    settleWithWorktree('succeeded')
 
     const rows = db.listSettledDispatchesForCorrections('2999-01-01 00:00:00')
 
     expect(rows).toHaveLength(0)
-  })
-
-  it('returns an empty filesModified when the settled result carries none', () => {
-    const { dispatchId } = settleWithWorktree('succeeded', [])
-
-    const rows = db.listSettledDispatchesForCorrections('2000-01-01 00:00:00')
-
-    expect(rows[0]).toMatchObject({ dispatchId, filesModified: [] })
   })
 })

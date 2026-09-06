@@ -154,7 +154,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     db.db.exec('BEGIN IMMEDIATE')
     try {
       db.markLedgerOutboxSent(row.id)
-      db.setDispatchLedgerOutcome(payload.dispatchId, posted.id)
+      db.setDispatchLedgerOutcome(payload.dispatchId, posted.id, stepOutcomeInput.filesModified)
       db.enqueueLedgerOutbox({
         kind: 'spend_attribution',
         dedupeKey: `spend_attribution:${payload.dispatchId}`,

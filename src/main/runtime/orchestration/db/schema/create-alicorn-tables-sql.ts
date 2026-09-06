@@ -42,9 +42,10 @@ CREATE TABLE IF NOT EXISTS alicorn_correction_scans (
 );
 
 CREATE TABLE IF NOT EXISTS alicorn_dispatch_ledger (
-  dispatch_id TEXT PRIMARY KEY,
-  outcome_id  TEXT NOT NULL,
-  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  dispatch_id    TEXT PRIMARY KEY,
+  outcome_id     TEXT NOT NULL,
+  files_modified TEXT,
+  created_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
   `
 }

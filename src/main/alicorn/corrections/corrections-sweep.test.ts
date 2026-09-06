@@ -87,7 +87,7 @@ describe('startCorrectionsSweep', () => {
   it('local worktree with a qualifying commit: one outbox row, scan stamped', async () => {
     const repoPath = initGitRepo()
     const { dispatchId } = settleSucceeded('wt_1', ['a.txt'])
-    db.setDispatchLedgerOutcome(dispatchId, 'so_1')
+    db.setDispatchLedgerOutcome(dispatchId, 'so_1', ['a.txt'])
     const now = Date.now()
     commitFileAt(repoPath, 'a.txt', new Date(now + 5_000).toISOString(), 'fix it')
 
@@ -119,7 +119,7 @@ describe('startCorrectionsSweep', () => {
 
   it('ssh route with an unreachable provider: skipped unverifiable, no row, no scan stamp', async () => {
     const { dispatchId } = settleSucceeded('wt_2', ['a.txt'])
-    db.setDispatchLedgerOutcome(dispatchId, 'so_2')
+    db.setDispatchLedgerOutcome(dispatchId, 'so_2', ['a.txt'])
 
     sweep = startCorrectionsSweep({
       getDb: () => db,
@@ -149,7 +149,7 @@ describe('startCorrectionsSweep', () => {
     const plainDir = mkdtempSync(join(tmpdir(), 'alicorn-corrections-sweep-nogit-'))
     tempPaths.push(plainDir)
     const { dispatchId } = settleSucceeded('wt_3', ['a.txt'])
-    db.setDispatchLedgerOutcome(dispatchId, 'so_3')
+    db.setDispatchLedgerOutcome(dispatchId, 'so_3', ['a.txt'])
 
     sweep = startCorrectionsSweep({
       getDb: () => db,
@@ -197,9 +197,9 @@ describe('startCorrectionsSweep', () => {
     mkdirSync(join(brokenDir, '.git'))
 
     const good = settleSucceeded('wt_good', ['a.txt'])
-    db.setDispatchLedgerOutcome(good.dispatchId, 'so_good')
+    db.setDispatchLedgerOutcome(good.dispatchId, 'so_good', ['a.txt'])
     const bad = settleSucceeded('wt_bad', ['b.txt'])
-    db.setDispatchLedgerOutcome(bad.dispatchId, 'so_bad')
+    db.setDispatchLedgerOutcome(bad.dispatchId, 'so_bad', ['b.txt'])
 
     const now = Date.now()
     commitFileAt(goodRepo, 'a.txt', new Date(now + 5_000).toISOString(), 'fix it')
@@ -223,6 +223,9 @@ describe('startCorrectionsSweep', () => {
 
     expect(result.scanned).toBe(1)
     expect(result.corrections).toBe(1)
+    expect(result.skipped).toEqual([
+      { worktreeId: 'wt_bad', reason: 'scan_failed', message: expect.any(String) }
+    ])
     expect(warnSpy).toHaveBeenCalled()
     const rows = humanVerdictPatchRows()
     expect(rows).toHaveLength(1)
@@ -234,7 +237,7 @@ describe('startCorrectionsSweep', () => {
   it('does not run a second tick via the timer while the previous tick has not finished', async () => {
     vi.useFakeTimers()
     const { dispatchId } = settleSucceeded('wt_guard', ['a.txt'])
-    db.setDispatchLedgerOutcome(dispatchId, 'so_guard')
+    db.setDispatchLedgerOutcome(dispatchId, 'so_guard', ['a.txt'])
 
     // Never resolves within the test: proves the guard, not a real completion.
     const showManagedWorktree = vi.fn(() => new Promise<CorrectionsSweepWorktree>(() => {}))
@@ -267,7 +270,7 @@ describe('startCorrectionsSweep', () => {
       outcome: 'succeeded',
       result: JSON.stringify({ filesModified: [] })
     })
-    db.setDispatchLedgerOutcome(dispatch1.id, 'so_reopen')
+    db.setDispatchLedgerOutcome(dispatch1.id, 'so_reopen', [])
 
     db.updateTaskStatus(task.id, 'ready')
     db.createStartingWorkerDispatch({

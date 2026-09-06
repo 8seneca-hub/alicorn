@@ -46,7 +46,8 @@ export type CorrectionsSweepDeps = {
 
 export type CorrectionsSweepSkip = {
   worktreeId: string
-  reason: 'not_a_git_worktree' | 'unverifiable'
+  reason: 'not_a_git_worktree' | 'unverifiable' | 'scan_failed'
+  message?: string
 }
 
 export type CorrectionsSweepTickResult = {
@@ -141,20 +142,22 @@ export function startCorrectionsSweep(deps: CorrectionsSweepDeps): CorrectionsSw
     }
 
     for (const [worktreeId, worktreeSteps] of byWorktree) {
-      // LC-R2: an outcome id not yet posted by the drainer is retried next tick, not skipped.
+      // LC-R2/LC-R7: an outcome id not yet posted by the drainer is retried next tick, not
+      // skipped. filesModified comes from alicorn_dispatch_ledger (the drainer's own write),
+      // never from ledger_outbox -- that table is a transport queue, not a data store.
       const resolvedSteps: SettledStep[] = []
       for (const step of worktreeSteps) {
-        const outcomeId = db.getDispatchLedgerOutcome(step.dispatchId)
+        const entry = db.getDispatchLedgerEntry(step.dispatchId)
         const completedAtMs = parseSqliteUtc(step.completedAt)
-        if (!outcomeId || completedAtMs === null) {
+        if (!entry || completedAtMs === null) {
           continue
         }
         resolvedSteps.push({
-          outcomeId,
+          outcomeId: entry.outcomeId,
           taskId: step.taskId,
           dispatchId: step.dispatchId,
           completedAt: completedAtMs,
-          filesModified: step.filesModified
+          filesModified: entry.filesModified
         })
       }
       if (resolvedSteps.length === 0) {
@@ -214,6 +217,8 @@ export function startCorrectionsSweep(deps: CorrectionsSweepDeps): CorrectionsSw
         commits = await createGitHistoryReader(exec).commitsSince(sinceForWorktree)
       } catch (error) {
         logWorktreeErrorThrottled(worktreeId, error)
+        const message = error instanceof Error ? error.message : String(error)
+        result.skipped.push({ worktreeId, reason: 'scan_failed', message })
         continue
       }
 
