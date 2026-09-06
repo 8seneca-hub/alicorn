@@ -13,6 +13,7 @@ import {
   TaskUpdateParams
 } from './orchestration-schemas'
 import { withExecutionStrategy } from './orchestration-task-execution-strategy'
+import { createTaskInRun } from './orchestration-task-internal'
 
 export const ORCHESTRATION_MESSAGE_METHODS: RpcMethod[] = [
   defineMethod({
@@ -121,7 +122,6 @@ export const ORCHESTRATION_MESSAGE_METHODS: RpcMethod[] = [
     name: 'orchestration.taskCreate',
     params: TaskCreateParams,
     handler: (params, { orchestrationCompatibilityEvidence, runtime, legacyCoordinatorRunId }) => {
-      const db = runtime.getOrchestrationDb()
       const deps = params.deps ? parseOrchestrationTaskDepsFlag(params.deps) : undefined
       const run = resolveRunScope(runtime, {
         runId: params.run,
@@ -130,29 +130,16 @@ export const ORCHESTRATION_MESSAGE_METHODS: RpcMethod[] = [
         legacyCoordinatorRunId,
         callerEvidence: orchestrationCompatibilityEvidence
       })
-      const creatorAuthority = params.callerTerminalHandle
-        ? runtime.getOrchestrationDispatchAuthority(params.callerTerminalHandle)
-        : null
-      const task = db.createTask({
+      const task = createTaskInRun(runtime, run, {
         spec: params.spec,
         taskTitle: params.taskTitle,
         displayName: params.displayName,
         deps,
-        parentId: params.parent,
-        createdByTerminalHandle: params.callerTerminalHandle,
-        ...(creatorAuthority?.paneKey && creatorAuthority.processIncarnation
-          ? {
-              createdByPaneKey: creatorAuthority.paneKey,
-              createdByProcessIncarnation: creatorAuthority.processIncarnation,
-              createdByRunGeneration: run.consumer_generation
-            }
-          : {}),
-        runId: run.id
+        parent: params.parent,
+        executionStrategy: params.executionStrategy,
+        callerTerminalHandle: params.callerTerminalHandle
       })
-      if (params.executionStrategy) {
-        db.setTaskExecutionStrategy(task.id, params.executionStrategy, 'user')
-      }
-      return { task: withExecutionStrategy(db, task) }
+      return { task }
     }
   }),
 
