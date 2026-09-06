@@ -10,6 +10,39 @@ import ts from 'typescript-api'
 import { collectLocalizationCandidates } from './audit-localization-coverage.mjs'
 
 const TRANSLATE_IMPORT = "import { translate } from '@/i18n/i18n'\n"
+const ALLOWLIST_PATH = path.join('config', 'localization-coverage-allowlist.json')
+
+/**
+ * Reviewed exclusions, shared with the coverage audit.
+ *
+ * The audit already skips these; without reading the same file the writer wraps exactly the strings
+ * the audit was told to leave alone. That is how `label="sidebar"` — a variant discriminator typed
+ * `'sidebar' | 'source-control'`, not copy — got wrapped in `translate()`, which fails typecheck and
+ * would have selected the wrong variant in every non-English locale.
+ */
+async function readLocalizationAllowlist(root) {
+  try {
+    const raw = await fs.readFile(path.resolve(root, ALLOWLIST_PATH), 'utf8')
+    return new Set(
+      JSON.parse(raw).map((entry) =>
+        JSON.stringify({ filePath: entry.filePath, kind: entry.kind, text: entry.text })
+      )
+    )
+  } catch {
+    // A missing allowlist means nothing is excluded, not that localization should stop.
+    return new Set()
+  }
+}
+
+function isAllowlisted(allowlist, candidate) {
+  return allowlist.has(
+    JSON.stringify({
+      filePath: candidate.filePath,
+      kind: candidate.kind,
+      text: candidate.text
+    })
+  )
+}
 
 function keySegment(value) {
   return value
@@ -181,9 +214,11 @@ function applyReplacements(filePath, sourceText, candidates, catalog) {
   return replacements.length > 0 ? addTranslateImport(nextSource) : nextSource
 }
 
-async function localizeFile(root, filePath, catalog) {
+async function localizeFile(root, filePath, catalog, allowlist) {
   const sourceText = await fs.readFile(filePath, 'utf8')
-  const candidates = collectLocalizationCandidates(filePath, sourceText, root)
+  const candidates = collectLocalizationCandidates(filePath, sourceText, root).filter(
+    (candidate) => !isAllowlisted(allowlist, candidate)
+  )
   if (candidates.length === 0) {
     return 0
   }
@@ -229,10 +264,11 @@ export async function main(root = process.cwd()) {
   const catalogPath = path.join(root, 'src', 'renderer', 'src', 'i18n', 'locales', 'en.json')
   const catalog = JSON.parse(await fs.readFile(catalogPath, 'utf8'))
   const files = await collectCandidateFiles(root)
+  const allowlist = await readLocalizationAllowlist(root)
   let count = 0
 
   for (const filePath of files) {
-    count += await localizeFile(root, filePath, catalog)
+    count += await localizeFile(root, filePath, catalog, allowlist)
   }
 
   await fs.writeFile(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`)
