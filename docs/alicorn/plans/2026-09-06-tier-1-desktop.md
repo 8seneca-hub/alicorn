@@ -44,11 +44,13 @@ src/shared/alicorn/
 src/main/alicorn/
   control-plane-urls.ts              getAlicornControlPlaneUrls(env)
   control-plane-session.ts           readAlicornBearer(env): { accessToken, orgId } | null   (local mode; Keycloak later)
-  control-plane-client.ts            createControlPlaneClient({ fetch, urls, getBearer })
+  control-plane-http.ts              alicornFetch(service, path, init), ControlPlaneRequestError, ControlPlaneUnavailableError
+  control-plane-client.ts            createControlPlaneClient(): members/org policy/required checks + getProvenance/getRunCost, over alicornFetch
   member-directory.ts                cached member list / org policy / required checks (60 s TTL)
   review-backend-policy.ts           evaluateReviewBackend(...) pure
   author-backends.ts                 getAuthorBackendsForTask(db, taskId)
   worker-member-launch.ts            resolveWorkerMemberLaunch(...) — glue for workerStart/dispatch
+  ledger/ledger-writer.ts            createLedgerWriter(): LedgerWriter — ledger writes, over alicornFetch only
   ledger-outbox-drainer.ts           drains ledger_outbox → Ledger API
   step-outcome-builder.ts            buildStepOutcomeInput(db, runtime, row) pure-ish
   run-usage-attribution.ts           attributeDispatchUsage({ claudeUsage, codexUsage, backend, ... })
@@ -58,6 +60,7 @@ src/main/alicorn/
   diff-coverage/unified-diff-added-lines.ts
   diff-coverage/diff-coverage.ts     computeDiffCoverage(added, covered)
   diff-coverage/diff-coverage-check.ts   runDiffCoverageCheck({ worktreePath, baseRef, check })
+  diff-coverage/required-checks-fetch.ts   fetchRequiredChecks(projectId), over alicornFetch only
   provenance-markdown.ts             renderProvenanceMarkdown(report), composeReviewBody(...)
   run-cost-publisher.ts              periodic; publishes alicorn:runCost
 src/main/runtime/orchestration/db/schema/
@@ -68,7 +71,8 @@ src/main/runtime/orchestration/db/alicorn/
   task-strategy-methods.ts           getTaskExecutionStrategy, setTaskExecutionStrategy, markEscalation*
   dispatch-member-methods.ts         setDispatchMember, getDispatchMember
 src/main/ipc/alicorn-handlers.ts     registerAlicornHandlers(...)
-src/preload/api/alicorn-bridge.ts, alicorn-api.ts
+src/preload/api/alicorn-bridge.ts, alicorn-api.ts                    (Members + escalation offer only)
+src/preload/api/alicorn-run-cost-bridge.ts, alicorn-run-cost-api.ts  (D7's own bridge: window.api.alicornRunCost.onChanged)
 src/renderer/src/components/settings/AlicornMembersPane.tsx, alicorn-members-search.ts, settings-alicorn-section-renderers.tsx
 src/renderer/src/store/slices/alicorn-run-cost.ts (or a hook) + chip in worktree-card-compact-agent-row.tsx
 src/renderer/src/components/alicorn/EscalationOfferToaster.tsx
@@ -79,15 +83,16 @@ src/renderer/src/components/alicorn/EscalationOfferToaster.tsx
 ### Task 1 (B1): Local control-plane configuration (env) and LOCAL-DEV.md
 
 **Files:**
-- Create: `src/main/alicorn/control-plane-urls.ts`, `src/main/alicorn/control-plane-session.ts`
+- Create: `src/main/alicorn/control-plane-urls.ts`, `src/main/alicorn/control-plane-session.ts`, `src/main/alicorn/control-plane-http.ts`
 - Create: `docs/alicorn/LOCAL-DEV.md` (how to run desktop + local stack)
-- Test: `src/main/alicorn/control-plane-urls.test.ts`, `src/main/alicorn/control-plane-session.test.ts`
+- Test: `src/main/alicorn/control-plane-urls.test.ts`, `src/main/alicorn/control-plane-session.test.ts`, `src/main/alicorn/control-plane-http.test.ts`
 
 **Interfaces:**
 - `getAlicornControlPlaneUrls(env: NodeJS.ProcessEnv): { controlApiUrl: string; ledgerApiUrl: string } | null` — `controlApiUrl = ALICORN_CONTROL_API_URL`; `ledgerApiUrl = ALICORN_LEDGER_API_URL ?? controlApiUrl`; both trimmed of trailing slashes and must parse as `http(s)` URLs; `null` when `ALICORN_CONTROL_API_URL` is unset or invalid.
 - `readAlicornBearer(env: NodeJS.ProcessEnv): { accessToken: string; orgId: string } | null` — `accessToken = ALICORN_LOCAL_API_TOKEN` (≥ 16 chars, else `null`), `orgId = ALICORN_TENANT_ID ?? 'local'`. Why a function and not two constants: the Keycloak plan replaces its body with the Orca Cloud session lookup and nothing else in the desktop changes.
+- `alicornFetch(service: 'control' | 'ledger', path: string, init?: RequestInit): Promise<Response>` (`control-plane-http.ts`, reads `process.env` through the two functions above) — resolves the base URL from `getAlicornControlPlaneUrls` (`'control'` → `controlApiUrl`, `'ledger'` → `ledgerApiUrl`) and the bearer from `readAlicornBearer`; adds `authorization: Bearer <accessToken>`, `x-alicorn-org: <orgId>`, `content-type: application/json`, `AbortSignal.timeout(15_000)`, `redirect: 'error'`. Throws `ControlPlaneUnavailableError('control_plane_unconfigured')` when urls or bearer are missing; throws `ControlPlaneRequestError(status, code)` on a non-2xx response (`code` from the JSON body's `error` field when present, else the status text). Both error classes are defined in this file. It is the only thing any other desktop module imports to reach the control plane — B2 and C3 both build on it and neither imports the other.
 
-- [ ] **Step 1: Failing tests** — urls: env precedence, ledger defaulting to control, `null` on missing/invalid (`'not a url'`); bearer: default tenant `local`, `null` on a 5-char token.
+- [ ] **Step 1: Failing tests** — urls: env precedence, ledger defaulting to control, `null` on missing/invalid (`'not a url'`); bearer: default tenant `local`, `null` on a 5-char token; http: fake `fetch` records `authorization` and `x-alicorn-org`; non-2xx → `ControlPlaneRequestError` with `code` from the body's `error`; missing env → `ControlPlaneUnavailableError`.
 - [ ] **Step 2: Run** `pnpm test src/main/alicorn` → FAIL (modules missing). **Step 3: Implement.** **Step 4:** PASS; `pnpm tc:node`.
 - [ ] **Step 5: Write `docs/alicorn/LOCAL-DEV.md`**: prerequisites (Node 24 via nvm, pnpm via corepack, Docker), `cd cloud && pnpm alicorn:up && pnpm alicorn:seed`, `source cloud/dev/compose/desktop.env.example`, `pnpm dev`, expected result (Settings → Workflows → Members lists three seeded members). Link it from `docs/alicorn/README.md`.
 - [ ] **Step 6: Commit** `feat(alicorn): local control-plane configuration and dev guide`.
@@ -115,13 +120,13 @@ export type OrgPolicy = { enforceDistinctReviewerBackend: boolean }
 export type DiffCoverageCheck = { kind: 'diff_coverage'; threshold: number; lcovPath: string; command?: string; timeoutMs: number }
 export type RequiredCheck = DiffCoverageCheck
 ```
-- Consumes B1's `getAlicornControlPlaneUrls` / `readAlicornBearer`.
-- `createControlPlaneClient(deps: { fetch?: typeof fetch; urls: { controlApiUrl: string; ledgerApiUrl: string }; getBearer: () => Promise<{ accessToken: string; orgId: string } | null> }): ControlPlaneClient` with:
+- Built on B1's `alicornFetch` — no separate `fetch`/`urls`/`getBearer` plumbing here, and no error classes defined here (`ControlPlaneRequestError`/`ControlPlaneUnavailableError` live in B1; this file re-exports neither).
+- `createControlPlaneClient(deps?: { fetch?: typeof alicornFetch }): ControlPlaneClient` with:
   - `listMembers(): Promise<Member[]>`, `createMember(input): Promise<Member>`, `updateMember(id, input): Promise<Member>`, `deleteMember(id): Promise<void>`
   - `getOrgPolicy(): Promise<OrgPolicy>`, `getRequiredChecks(projectId): Promise<RequiredCheck[]>`
-  - `postStepOutcome(input: StepOutcomeInput): Promise<{ id: string; duplicate: boolean }>`, `patchStepOutcomeSpend(id, patch)`, `postStepVerification(input)`, `postContextCapture(input)`, `getProvenance(repoId, branch): Promise<ProvenanceReport>`
-  - Every call: headers `authorization: Bearer …`, `x-alicorn-org`, `content-type: application/json`, `AbortSignal.timeout(15_000)`, `redirect: 'error'`; throws `ControlPlaneRequestError(status, code)` on non-2xx (`code` from body `error` when present); throws `ControlPlaneUnavailableError('control_plane_unconfigured')` when `getBearer()` is null. Define the input/report types in `src/shared/alicorn/ledger.ts` (hand-mirrored from the contract package; keep field names identical).
-- [ ] **Step 1: Failing tests** — client: fake `fetch` records URL/method/headers (`authorization`, `x-alicorn-org`)/body for `createMember`, maps 201 body to `Member`; a 403 `{ error: 'not_a_member' }` throws `ControlPlaneRequestError` with `code 'not_a_member'`; `postStepOutcome` maps both 200 and 201 to `{ id, duplicate }`; no bearer → `ControlPlaneUnavailableError`.
+  - `getProvenance(repoId, branch): Promise<ProvenanceReport>`, `getRunCost(runId): Promise<RunCost>` — B2's two ledger *reads*; the ledger *writes* (`postStepOutcome` and friends) move to C3's own writer (Task 7), which this client no longer exposes.
+  - Every call goes through `alicornFetch('control', …)` (members/policy/checks) or `alicornFetch('ledger', …)` (`getProvenance`/`getRunCost`); errors surface exactly as `alicornFetch` throws them. Define the read-side types (`ProvenanceReport`, `RunCost`) in `src/shared/alicorn/ledger.ts` (hand-mirrored from the contract package; keep field names identical).
+- [ ] **Step 1: Failing tests** — client: fake `alicornFetch` records `service`/`path`/method/headers/body for `createMember`, maps 201 body to `Member`; a 403 `{ error: 'not_a_member' }` throws `ControlPlaneRequestError` with `code 'not_a_member'`; a fake `alicornFetch` that throws `ControlPlaneUnavailableError` propagates unchanged.
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS; `pnpm tc:node`. **Step 5: Commit** `feat(alicorn): typed control-plane client`.
 
 ---
@@ -144,7 +149,7 @@ export const ALICORN_IPC = {
   orgPolicyGet: 'alicorn:orgPolicy:get',
   tasksSetExecutionStrategy: 'alicorn:tasks:setExecutionStrategy'
 } as const
-export const ALICORN_EVENTS = { runCost: 'alicorn:runCost', escalationOffer: 'alicorn:escalationOffer' } as const
+export const ALICORN_EVENTS = { escalationOffer: 'alicorn:escalationOffer' } as const
 ```
 ```ts
 // src/preload/api/alicorn-api.ts
@@ -155,15 +160,14 @@ export type AlicornApi = {
   deleteMember: (id: string) => Promise<{ ok: true } | { ok: false; error: string }>
   getOrgPolicy: () => Promise<{ ok: true; policy: OrgPolicy } | { ok: false; error: string }>
   setTaskExecutionStrategy: (args: { taskId: string; strategy: 'single' | 'orchestrated'; source: 'user' | 'escalation' }) => Promise<{ ok: boolean }>
-  onRunCostChanged: (cb: (payload: RunCostByDispatch) => void) => () => void
   onEscalationOffer: (cb: (payload: EscalationOffer) => void) => () => void
 }
 ```
 - `registerAlicornHandlers(deps: { client: ControlPlaneClient | null; getOrchestrationDb: () => OrchestrationDb })` — each handler wraps the client call and maps `ControlPlaneUnavailableError` (or a null client) → `{ ok: false, error: 'control_plane_unconfigured' }`, `ControlPlaneRequestError` → `{ ok: false, error: code }`. `setTaskExecutionStrategy` writes `alicorn_task_strategy` (Task C1) and, for `source: 'escalation'`, `markEscalationAccepted(taskId)`.
-- Bridge: `ipcRenderer.invoke(ALICORN_IPC.membersList)` etc.; `onRunCostChanged` = `ipcRenderer.on(ALICORN_EVENTS.runCost, listener)` returning an unsubscribe, exactly like `orcaProfilesApi.onAuthStatusChanged`.
+- Bridge: `ipcRenderer.invoke(ALICORN_IPC.membersList)` etc.; `onEscalationOffer` = `ipcRenderer.on(ALICORN_EVENTS.escalationOffer, listener)` returning an unsubscribe, exactly like `orcaProfilesApi.onAuthStatusChanged`. Per-run cost has its own bridge now (Task 16/D7): `window.api.alicorn` carries `onEscalationOffer` only.
 
 - [ ] **Step 1: Failing test** — register handlers against a fake `ipcMain` (capture `handle(channel, fn)`), fake client; `membersList` → `{ ok: true, members }`; client throwing `ControlPlaneUnavailableError` → `{ ok: false, error: 'control_plane_unconfigured' }`.
-- [ ] **Step 2: Run** → FAIL. **Step 3: Implement + wire** (in `register-core-handlers.ts`, construct the client once: `const urls = getAlicornControlPlaneUrls(process.env); const client = urls ? createControlPlaneClient({ urls, getBearer: async () => readAlicornBearer(process.env) }) : null`; export the instance from a tiny `src/main/alicorn/control-plane-client-instance.ts` so the drainer and the hosted-review handler reuse it). **Step 4:** `pnpm test src/main/ipc/alicorn-handlers.test.ts && pnpm tc:node` → PASS. **Step 5: Commit** `feat(alicorn): Members IPC and preload bridge`.
+- [ ] **Step 2: Run** → FAIL. **Step 3: Implement + wire** (in `register-core-handlers.ts`, construct the client once: `const client = createControlPlaneClient()` — B1's `alicornFetch` already reads env on each call, so there is no `urls`/`getBearer` to plumb through here; export the instance from a tiny `src/main/alicorn/control-plane-client-instance.ts` so the hosted-review handler (Task 15/D6) reuses it). **Step 4:** `pnpm test src/main/ipc/alicorn-handlers.test.ts && pnpm tc:node` → PASS. **Step 5: Commit** `feat(alicorn): Members IPC and preload bridge`.
 
 ---
 
@@ -266,24 +270,26 @@ and in `lifecycle-reconciliation.ts` extend the `result` object with `phase: typ
 
 **Files:**
 - Create: `src/main/alicorn/step-outcome-builder.ts`, `src/main/alicorn/ledger-outbox-drainer.ts`
-- Create: `src/shared/alicorn/ledger.ts` (if not created in B2: `StepOutcomeInput`, `StepVerificationInput`, `ContextCaptureInput`, `SpendPatch`, `ProvenanceReport`, `RunCost` — field names identical to the contract package)
-- Modify: `src/main/startup/main-process-runtime-service.ts` — after `state.runtime = runtime`, start the drainer: `state.ledgerOutboxDrainer = startLedgerOutboxDrainer({ getDb: () => runtime.getOrchestrationDb(), runtime, client: controlPlaneClient /* B3 instance, may be null */, claudeUsage: state.claudeUsage, codexUsage: state.codexUsage, intervalMs: 5_000 })`; stop it in the quit path next to other timers (search `watcherShutdownPromise` usage in `src/main/startup/` for the shutdown phase and add `state.ledgerOutboxDrainer?.stop()`); add `ledgerOutboxDrainer: null as LedgerOutboxDrainer | null` to `main-process-state.ts`.
-- Test: `src/main/alicorn/step-outcome-builder.test.ts`, `src/main/alicorn/ledger-outbox-drainer.test.ts`
+- Create: `src/main/alicorn/ledger/ledger-writer.ts` — `createLedgerWriter(): LedgerWriter` over B1's `alicornFetch('ledger', …)`; no dependency on B2.
+- Create: `src/shared/alicorn/ledger.ts` (if not created in B2: `StepOutcomeInput`, `StepVerificationInput`, `ContextCaptureInput`, `SpendPatch` — field names identical to the contract package; `ProvenanceReport`/`RunCost` are B2's)
+- Modify: `src/main/startup/main-process-runtime-service.ts` — after `state.runtime = runtime`, start the drainer: `state.ledgerOutboxDrainer = startLedgerOutboxDrainer({ getDb: () => runtime.getOrchestrationDb(), runtime, writer: createLedgerWriter() /* C3's own instance, over B1's alicornFetch; never B2's client */, claudeUsage: state.claudeUsage, codexUsage: state.codexUsage, intervalMs: 5_000 })`; stop it in the quit path next to other timers (search `watcherShutdownPromise` usage in `src/main/startup/` for the shutdown phase and add `state.ledgerOutboxDrainer?.stop()`); add `ledgerOutboxDrainer: null as LedgerOutboxDrainer | null` to `main-process-state.ts`.
+- Test: `src/main/alicorn/step-outcome-builder.test.ts`, `src/main/alicorn/ledger-outbox-drainer.test.ts`, `src/main/alicorn/ledger/ledger-writer.test.ts`
 
 **Interfaces:**
+- `type LedgerWriter = { postStepOutcome(input: StepOutcomeInput): Promise<{ id: string; duplicate: boolean }>; patchStepOutcomeSpend(id: string, patch: SpendPatch): Promise<void>; postStepVerification(input: StepVerificationInput): Promise<{ id: string; duplicate: boolean }>; postContextCapture(input: ContextCaptureInput): Promise<{ id: string; duplicate: boolean }> }` (`ledger-writer.ts`). *Decision (R9):* C3 owns its writer; it depends on B1 only — not on B2's `ControlPlaneClient` or D2's `MemberDirectory`.
 - `buildStepOutcomeInput(input: { db: OrchestrationDb; payload: { taskId; dispatchId; outcome; result: string }; worktree: { id: string; path: string; branch: string; repoId: string; projectId?: string } | null }): StepOutcomeInput`:
   - `runId` = `db.getTask(taskId)?.run_id`; `stageKey` = `parsedResult.phase ?? 'build'`; `filesModified` = `parsedResult.filesModified ?? []`; `reportSummary` = first 4000 chars of `parsedResult.body`;
   - member = `db.getDispatchMember(dispatchId)`; `memberId`, `backend` = member?.backend ?? `backendFromWorkerStartOptions(db.getWorkerDispatch(dispatchId)?.start_options)` (parse JSON `{ agent?: TuiAgent }` → `tuiAgentToAgentKind(agent)` → map `claude-code→'claude'`, `codex→'codex'`, `grok→'grok'`, `openclaude→'openclaude'`, else `'other'`); `reviewBackendBypass` = member?.reviewBackendBypass ?? false;
   - `executionStrategy`/`escalationOffered`/`escalationAccepted` from `db.getTaskExecutionStrategy(taskId)`;
   - `worktreeId/branch/repoId/projectId` from `worktree` (projectId falls back to repoId); `clientTs` = ISO of `dispatch_contexts.completed_at` (SQLite `datetime('now')` is UTC without a zone: append `'Z'` after replacing the space with `'T'`).
-- `startLedgerOutboxDrainer(deps): LedgerOutboxDrainer` with `{ stop(): void; drainOnce(): Promise<{ sent: number; failed: number }> }`. `drainOnce`: for each `listDueLedgerOutbox(25)` row by `kind`:
-  - `step_outcome` → resolve worktree via `runtime.showManagedWorktree(\`id:${worker.worktree_id}\`)` when `db.getWorkerDispatch(dispatchId)?.worktree_id` exists (catch → `null`); `client.postStepOutcome(build(...))` → on success `markLedgerOutboxSent`, then **enqueue** `{ kind: 'spend_attribution', dedupeKey: 'spend_attribution:<dispatchId>', payload: { dispatchId, taskId, outcomeId: result.id, backend, worktreeId, startedAt: dispatched_at, completedAt: completed_at }, notBefore: now + 60s }` (transcripts flush late) and, if the outcome succeeded and a worktree exists, `{ kind: 'step_verification', dedupeKey: 'step_verification:<dispatchId>:diff_coverage', payload: { dispatchId, taskId, runId, worktreeId, worktreePath, branch, projectId } }` (Task D5 consumes it).
-  - `context_capture` → `client.postContextCapture(payload)`.
-  - `spend_attribution` → Task C5's `attributeDispatchUsage` → `client.patchStepOutcomeSpend(outcomeId, patch)`.
-  - `step_verification` → Task D5's `runDiffCoverageCheck` → `client.postStepVerification(...)` (skipped when no required check for the project).
-  - Failure: `markLedgerOutboxFailed(id, message, retryAt)` with backoff `min(5 min, 5s * 2^attempts)`; `ControlPlaneUnavailableError('control_plane_unconfigured')` (or a null client) is not an error — leave the rows untouched (no attempts bump) and stop this pass; log once per 5 minutes.
+- `startLedgerOutboxDrainer(deps): LedgerOutboxDrainer` with `{ stop(): void; drainOnce(): Promise<{ sent: number; failed: number }> }`; `deps.writer: LedgerWriter | null`. `drainOnce`: for each `listDueLedgerOutbox(25)` row by `kind`:
+  - `step_outcome` → resolve worktree via `runtime.showManagedWorktree(\`id:${worker.worktree_id}\`)` when `db.getWorkerDispatch(dispatchId)?.worktree_id` exists (catch → `null`); `writer.postStepOutcome(build(...))` → on success `markLedgerOutboxSent`, then **enqueue** `{ kind: 'spend_attribution', dedupeKey: 'spend_attribution:<dispatchId>', payload: { dispatchId, taskId, outcomeId: result.id, backend, worktreeId, startedAt: dispatched_at, completedAt: completed_at }, notBefore: now + 60s }` (transcripts flush late) and, if the outcome succeeded and a worktree exists, `{ kind: 'step_verification', dedupeKey: 'step_verification:<dispatchId>:diff_coverage', payload: { dispatchId, taskId, runId, worktreeId, worktreePath, branch, projectId } }` (Task D5 consumes it).
+  - `context_capture` → `writer.postContextCapture(payload)`.
+  - `spend_attribution` → Task C5's `attributeDispatchUsage` → `writer.patchStepOutcomeSpend(outcomeId, patch)`.
+  - `step_verification` → Task D5's `runDiffCoverageCheck` → `writer.postStepVerification(...)` (skipped when no required check for the project).
+  - Failure: `markLedgerOutboxFailed(id, message, retryAt)` with backoff `min(5 min, 5s * 2^attempts)`; `ControlPlaneUnavailableError('control_plane_unconfigured')` (or a null writer) is not an error — leave the rows untouched (no attempts bump) and stop this pass; log once per 5 minutes.
   - Never delete rows; never drop on error.
-- [ ] **Step 1: Failing tests** — builder: given an in-memory DB with a task (run `run_1`, phase in result `review`), a dispatch member `{ memberId 'm1', role 'reviewer', backend 'codex', reviewBackendBypass true }`, strategy `orchestrated` → `{ runId: 'run_1', stageKey: 'review', backend: 'codex', memberId: 'm1', reviewBackendBypass: true, executionStrategy: 'orchestrated', … }`; no member and `start_options {"agent":"claude"}` → backend `'claude'`; unknown → `'other'`. Drainer: fake client; one `step_outcome` row → `postStepOutcome` called once, row marked sent, a `spend_attribution` row with `not_before` ≈ +60 s and a `step_verification` row now exist; client throws `ControlPlaneRequestError(500)` → row `attempts 1`, `not_before` set, not sent; `ControlPlaneUnavailableError` → row untouched.
+- [ ] **Step 1: Failing tests** — builder: given an in-memory DB with a task (run `run_1`, phase in result `review`), a dispatch member `{ memberId 'm1', role 'reviewer', backend 'codex', reviewBackendBypass true }`, strategy `orchestrated` → `{ runId: 'run_1', stageKey: 'review', backend: 'codex', memberId: 'm1', reviewBackendBypass: true, executionStrategy: 'orchestrated', … }`; no member and `start_options {"agent":"claude"}` → backend `'claude'`; unknown → `'other'`. Writer: fake `alicornFetch` — each of the four methods posts to the right `ledger` path and maps the response. Drainer: fake writer; one `step_outcome` row → `postStepOutcome` called once, row marked sent, a `spend_attribution` row with `not_before` ≈ +60 s and a `step_verification` row now exist; writer throws `ControlPlaneRequestError(500)` → row `attempts 1`, `not_before` set, not sent; `ControlPlaneUnavailableError` → row untouched.
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4:** tests PASS; `pnpm tc:node`. **Step 5: Manual:** with the stack up and `cloud/dev/compose/desktop.env.example` sourced, `orca orchestration task-create --spec "hello"` → dispatch a worker (`orca orchestration worker-start --task <id> --agent claude`) → in the worker run `orca orchestration send --type worker_done --outcome succeeded --subject done` → within 10 s `curl -H "authorization: Bearer $ALICORN_LOCAL_API_TOKEN" -H "x-alicorn-org: local" 'http://127.0.0.1:8082/v1/ledger/provenance?repoId=<repo>&branch=<branch>'` shows one outcome. **Step 6: Commit** `feat(alicorn): drain the ledger outbox to the Ledger API with backoff`.
 
 ---
@@ -388,7 +394,7 @@ and in `lifecycle-reconciliation.ts` extend the `result` object with `phase: typ
 ### Task 14 (D5): Diff coverage as a required check
 
 **Files:**
-- Create: `src/main/alicorn/diff-coverage/lcov-parser.ts`, `unified-diff-added-lines.ts`, `diff-coverage.ts`, `diff-coverage-check.ts`
+- Create: `src/main/alicorn/diff-coverage/lcov-parser.ts`, `unified-diff-added-lines.ts`, `diff-coverage.ts`, `diff-coverage-check.ts`, `required-checks-fetch.ts`
 - Test: one `.test.ts` beside each (fixtures inline)
 
 **Interfaces (pure first):**
@@ -400,7 +406,8 @@ and in `lifecycle-reconciliation.ts` extend the `result` object with `phase: typ
   2. `git diff -U0 --no-color ${baseRef}...HEAD` via `gitExec` (default `gitExecFileAsync(argv, { cwd: worktreePath, admissionTier: 'interactive' })`); git failure → `error`.
   3. read `join(worktreePath, check.lcovPath)`; missing → `{ status: 'error', detail: { stage: 'lcov', message: 'lcov file not found' } }`.
   4. `ratio >= check.threshold` → `passed` else `failed`; `detail = { threshold, ratio, total, covered, perFile (top 20 worst), baseRef }`.
-- Drainer branch (`step_verification` rows from C3): `checks = await directory.getRequiredChecks(projectId)`; no `diff_coverage` → `markLedgerOutboxSent` (nothing to record); folder workspace / no `.git` → post `{ status: 'skipped', detail: { reason: 'not_a_git_worktree' } }`; SSH-hosted worktree (`worktree.hostId` not local) → `skipped` `{ reason: 'remote_worktree' }`; else `baseRef = (await getBaseRefDefault(worktreePath)) ?? 'origin/main'` (from `src/main/git/repo-default-base-ref.ts`) → run → `client.postStepVerification({ runId, taskId, dispatchId, kind: 'diff_coverage', name: \`Diff coverage ≥ ${Math.round(threshold * 100)}%\`, required: true, status, detail })`.
+- `fetchRequiredChecks(projectId: string): Promise<RequiredCheck[]>` (`required-checks-fetch.ts`) — `const res = await alicornFetch('control', \`/v1/projects/${projectId}/required-checks\`); return (await res.json()).checks`. *Decision (R9):* depends on B1's `alicornFetch` only, not on D2's `MemberDirectory` — the drainer (Huy's) never imports the members-directory code (Nghia's).
+- Drainer branch (`step_verification` rows from C3): `checks = await fetchRequiredChecks(projectId)`; no `diff_coverage` → `markLedgerOutboxSent` (nothing to record); folder workspace / no `.git` → post `{ status: 'skipped', detail: { reason: 'not_a_git_worktree' } }`; SSH-hosted worktree (`worktree.hostId` not local) → `skipped` `{ reason: 'remote_worktree' }`; else `baseRef = (await getBaseRefDefault(worktreePath)) ?? 'origin/main'` (from `src/main/git/repo-default-base-ref.ts`) → run → `writer.postStepVerification({ runId, taskId, dispatchId, kind: 'diff_coverage', name: \`Diff coverage ≥ ${Math.round(threshold * 100)}%\`, required: true, status, detail })` (Task C3's `LedgerWriter`).
 - [ ] **Step 1: Failing tests** — lcov fixture with two files, `DA` hits 0 and 3; diff fixture with two hunks and a deletion-only hunk; `computeDiffCoverage` → `{ total: 5, covered: 3, ratio: 0.6 }`; absolute lcov paths normalise against `worktreePath`; `runDiffCoverageCheck` with fakes: command fails → `error`; lcov missing → `error`; ratio 0.6 vs threshold 0.5 → `passed`, vs 0.8 → `failed`.
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4:** PASS; `pnpm tc:node`. **Step 5: Manual:** set `PUT /v1/projects/<repoId>/required-checks` to `[{ kind: 'diff_coverage', threshold: 0.8, command: 'pnpm test --coverage --coverage.reporter=lcov <path>' }]` for this repo via `curl` with the shared token; run a worker that changes a tested file; after `worker_done` the provenance endpoint shows a `diff_coverage` verification with a ratio. **Step 6: Commit** `feat(alicorn): diff coverage as a project required check`.
 
@@ -452,16 +459,19 @@ Recorded by Alicorn from the run ledger. 2 steps · 2 dispatches · est. spend $
 ### Task 16 (D7): Per-run cost surfaced in the sidebar
 
 **Files:**
-- Create: `src/shared/alicorn/run-cost.ts` (`export type RunCostByDispatch = Record<string, { costUsd: number | null; status: 'known' | 'unavailable' | 'pending' }>`; `export function formatRunCostUsd(costUsd: number | null): string` → `'—'` for null, `'<$0.01'` under a cent, else `'$0.82'`)
+- Create: `src/shared/alicorn/run-cost.ts` (`export type RunCostByDispatch = Record<string, { costUsd: number | null; status: 'known' | 'unavailable' | 'pending' }>`; `export function formatRunCostUsd(costUsd: number | null): string` → `'—'` for null, `'<$0.01'` under a cent, else `'$0.82'`; `export const ALICORN_RUN_COST_EVENT = 'alicorn:runCost'` — D7's own event constant, not `ALICORN_EVENTS`)
 - Create: `src/main/alicorn/run-cost-publisher.ts`
 - Modify: `src/main/claude-usage/store.ts` and `src/main/codex-usage/store.ts` — add `getLastScanCompletedAt(): number | null` (returns `this.state.scanState.lastScanCompletedAt`)
 - Modify: `src/renderer/src/components/sidebar/worktree-card-compact-agent-row.tsx` — render a cost chip after the model chip when `agent.entry.orchestration?.dispatchId` has a known cost
-- Create: `src/renderer/src/hooks/useAlicornRunCost.ts` — subscribes once (`window.api.alicorn.onRunCostChanged`) into a small zustand slice or `useSyncExternalStore` store `alicornRunCostStore` in `src/renderer/src/store/alicorn-run-cost-store.ts`; exposes `useDispatchCost(dispatchId | undefined)`
+- Create: `src/preload/api/alicorn-run-cost-bridge.ts`, `src/preload/api/alicorn-run-cost-api.ts` — D7's own preload bridge, separate from B3's `alicorn-bridge.ts`/`alicorn-api.ts`; exposes `window.api.alicornRunCost.onChanged`
+- Modify: `src/preload/index.ts` (add `alicornRunCost: alicornRunCostApi` to the `api` object, additive one-liner), `src/preload/api-types.ts` (`alicornRunCost: AlicornRunCostApi`, additive one-liner)
+- Create: `src/renderer/src/hooks/useAlicornRunCost.ts` — subscribes once (`window.api.alicornRunCost.onChanged`) into a small zustand slice or `useSyncExternalStore` store `alicornRunCostStore` in `src/renderer/src/store/alicorn-run-cost-store.ts`; exposes `useDispatchCost(dispatchId | undefined)`
 - Modify: `main-process-runtime-service.ts` / `main-process-state.ts` — start/stop like the drainer
 - Test: `src/shared/alicorn/run-cost.test.ts`, `src/main/alicorn/run-cost-publisher.test.ts`
 
 **Interfaces:**
-- `startRunCostPublisher(deps: { getDb; claudeUsage; codexUsage; publish: (payload: RunCostByDispatch) => void; intervalMs?: number; now?: () => number }): { stop(); tickOnce(): Promise<RunCostByDispatch> }` — each tick: dispatches `dispatched` or completed in the last 24 h joined with `worker_dispatches` (`worktree_id`, `start_options`) and `alicorn_dispatch_members` (backend); for each with a worktree and backend `claude`/`codex`: `completedAt = min(now, store.getLastScanCompletedAt() ?? now)` (so `getAutomationRunUsage` never forces a rescan on our cadence — the stores' own scanner sets freshness); `startedAt = dispatched_at`; `status 'known'` → `costUsd = estimatedCostUsd`; `unavailable` → `{ costUsd: null, status: 'unavailable' }`; other backends → `unavailable`. Publish only when the payload changed (JSON compare) via `mainProcessState.mainWindow?.webContents.send(ALICORN_EVENTS.runCost, payload)`.
+- `src/preload/api/alicorn-run-cost-api.ts`: `export type AlicornRunCostApi = { onChanged: (cb: (payload: RunCostByDispatch) => void) => () => void }`; bridge (`alicorn-run-cost-bridge.ts`): `ipcRenderer.on(ALICORN_RUN_COST_EVENT, listener)` returning an unsubscribe, exactly like B3's `onEscalationOffer`. D7 owns this bridge end to end — B3's `window.api.alicorn` carries `onEscalationOffer` only.
+- `startRunCostPublisher(deps: { getDb; claudeUsage; codexUsage; publish: (payload: RunCostByDispatch) => void; intervalMs?: number; now?: () => number }): { stop(); tickOnce(): Promise<RunCostByDispatch> }` — each tick: dispatches `dispatched` or completed in the last 24 h joined with `worker_dispatches` (`worktree_id`, `start_options`) and `alicorn_dispatch_members` (backend); for each with a worktree and backend `claude`/`codex`: `completedAt = min(now, store.getLastScanCompletedAt() ?? now)` (so `getAutomationRunUsage` never forces a rescan on our cadence — the stores' own scanner sets freshness); `startedAt = dispatched_at`; `status 'known'` → `costUsd = estimatedCostUsd`; `unavailable` → `{ costUsd: null, status: 'unavailable' }`; other backends → `unavailable`. Publish only when the payload changed (JSON compare) via `mainProcessState.mainWindow?.webContents.send(ALICORN_RUN_COST_EVENT, payload)` (`run-cost.ts`'s own constant, not `ALICORN_EVENTS`).
 - Renderer chip: `<span className="… text-xs text-muted-foreground tabular-nums" title="Estimated spend for this dispatch (API-equivalent)">{formatRunCostUsd(cost.costUsd)}</span>` — same classes as the existing model chip at `worktree-card-compact-agent-row.tsx:246-255`; shown only when `cost?.status === 'known'`.
 - [ ] **Step 1: Failing tests** — `formatRunCostUsd(null) === '—'`, `(0.004) === '<$0.01'`, `(0.8234) === '$0.82'`; publisher: one claude dispatch → fake store called with `completedAt` = lastScanCompletedAt, payload `{ ctx_1: { costUsd: 0.82, status: 'known' } }`; unchanged second tick publishes nothing; grok dispatch → `unavailable`.
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement + wire + localize the tooltip.** **Step 4:** PASS; `pnpm tc:node && pnpm tc:web`; `pnpm run check:code-quality:changed`. **Step 5: Manual:** run a Claude worker; within a minute the agent row shows `$0.xx` and it grows while the worker works. **Step 6: Commit** `feat(alicorn): show estimated per-dispatch spend in the agent row`.
@@ -490,5 +500,5 @@ Recorded by Alicorn from the run ledger. 2 steps · 2 dispatches · est. spend $
 
 - **Spec coverage against PROJECT-BRIEF §08.** (1) `execution_strategy` + escalation offer → D1 + D4 (context-ceiling signal; multi-repo signal explicitly deferred to v2.0). (2) PR body from provenance → D6 (all forge providers; template preserved). (3) Context capture → C4 (exact injected preamble + context slice; overflow to file + path). (4) Diff coverage required check → D5 (project-anchored, admin-authored, `skipped` for folder/remote workspaces). (5) Reviewer ≠ author backend → D2 + D3 (enforced by default, `--allow-same-backend-review`, bypass recorded in the ledger and rendered in the PR body — §11.4 verbatim). (6) Per-run cost → C5 (ledger spend) + D7 (live chip). Substrate: B1 (local control-plane env), B2–B4 (Members), C1–C3 (ledger writes, exactly-once). Identity (Keycloak) deferred by user decision; `readAlicornBearer` is the single swap point.
 - **Placeholder scan.** Every task names files, interfaces, test cases and commands. Two places lean on "find the call site with grep" (D1 handlers, D4 `<Toaster>` mount) because the exact line moves with upstream merges; the code to add is fully specified.
-- **Type consistency.** `StepOutcomeInput` field names are identical in `src/shared/alicorn/ledger.ts` and the cloud contract (`runId, taskId, dispatchId, projectId, repoId, worktreeId, branch, memberId, backend, stageKey, executionStrategy, outcome, filesModified, reportSummary, reviewBackendBypass, escalationOffered, escalationAccepted, clientTs`); the drainer posts exactly that. `getDispatchMember` returns `{ dispatchId, memberId, memberRole, backend, reviewBackendBypass: boolean }` and is read by C3, D3 and D7. `db.getTaskExecutionStrategy(taskId).strategy` is the only source of `executionStrategy` (C3, D1, D4). IPC channel names come from `ALICORN_IPC`/`ALICORN_EVENTS` only.
-- **Order of execution.** B1 → B2 → B3 → B4 → C1 → C2 → C3 → C4 → C5 → D1 → D2 → D3 → D4 → D5 → D6 → D7 → E1. C1–C3 can start as soon as the Ledger API (control-plane plan A7–A8) answers locally; B3–B4 need A5.
+- **Type consistency.** `StepOutcomeInput` field names are identical in `src/shared/alicorn/ledger.ts` and the cloud contract (`runId, taskId, dispatchId, projectId, repoId, worktreeId, branch, memberId, backend, stageKey, executionStrategy, outcome, filesModified, reportSummary, reviewBackendBypass, escalationOffered, escalationAccepted, clientTs`); the drainer posts exactly that, through C3's own `LedgerWriter` (`postStepOutcome`, `patchStepOutcomeSpend`, `postStepVerification`, `postContextCapture`) — B2's `ControlPlaneClient` no longer carries these. `getDispatchMember` returns `{ dispatchId, memberId, memberRole, backend, reviewBackendBypass: boolean }` and is read by C3, D3 and D7. `db.getTaskExecutionStrategy(taskId).strategy` is the only source of `executionStrategy` (C3, D1, D4). IPC channel names come from `ALICORN_IPC`/`ALICORN_EVENTS`, plus `ALICORN_RUN_COST_EVENT` (`run-cost.ts`) for the cost push.
+- **Order of execution (R9: the two chains are decoupled).** B1 first (both owners depend on it), C1 first on Huy's side; then each owner's chain independently — Nghia: B2 → B3 → B4 → D2 → D3, D1 → D4, C4 → D6; Huy: C2 → C3 → C5 → D5 → D7 → E1.

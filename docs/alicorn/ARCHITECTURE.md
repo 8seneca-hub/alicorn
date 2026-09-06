@@ -127,10 +127,12 @@ step_outcomes    (id, tenant_id, run_id, task_id, dispatch_id, project_id,
                   review_backend_bypass, escalation_offered, escalation_accepted,
                   client_ts, created_at,
                   UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id))
-step_verifications(id, tenant_id, task_id, kind, name, required, status,
-                  detail, created_at)
+step_verifications(id, tenant_id, run_id, task_id, dispatch_id, kind, name,
+                  required, status, detail, created_at,
+                  UNIQUE (tenant_id, dispatch_id, kind, name))
 decision_gates   (id, tenant_id, run_id, task_id, question, options,
                   status, resolution, resolved_by, resolved_at, created_at)
+                  -- v1.0 (gate policy); tier 1 keeps Orca's client-side decision_gates
 context_captures (id, tenant_id, run_id, task_id, dispatch_id,
                   prompt | prompt_path, prompt_bytes, context_slice, created_at)
 
