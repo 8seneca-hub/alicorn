@@ -7,6 +7,7 @@ Planning documents for the Alicorn product built on this codebase.
 | [PROJECT-BRIEF.md](PROJECT-BRIEF.md) | The review brief: goal, two execution axes, Foreman, feature list with origins, the committed first slice, decisions (accepted 2026-09-06) and risks |
 | [ROADMAP.md](ROADMAP.md) | Four releases with scope, exit criteria, critical path, team shape and risks |
 | [plans/](plans/) | Implementation plans — one per subsystem, executed task by task |
+| [OWNERSHIP.md](OWNERSHIP.md) | Who owns which Plane module and which files, the shared-file rule, and the seams both owners rely on |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Components, identity, data model, the autonomy policy and the API surface |
 | [INFRASTRUCTURE.md](INFRASTRUCTURE.md) | Deployment models, runtime, CI/CD, observability, capacity, backup and security |
 | [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) | Colour, type and motion decisions, with the reasoning behind each |
