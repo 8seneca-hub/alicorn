@@ -355,7 +355,12 @@
             "36761d9604": "Unknown keybinding action \"{{value0}}\" was ignored.",
             "d2e43e426a": "{{value0}} must be an object.",
             "fb290366b2": "Unavailable on web.",
-            "76122208ca": "Shortcut for \"{{value0}}\" was ignored: {{value1}}"
+            "76122208ca": "Shortcut for \"{{value0}}\" was ignored: {{value1}}",
+            "test": {
+              "harness": {
+                "225db77b97": "WebSocket"
+              }
+            }
           }
         },
         "runtime": {
@@ -6248,6 +6253,14 @@
           "title": "Worktree scan failed for {{value0}}",
           "retry": "Retry scan",
           "retained": "Existing worktrees are kept until a scan succeeds. Click to retry."
+        },
+        "BoardAutomationSwitch": {
+          "lastRefusal": "Last refused on {{column}}: {{reason}}",
+          "off": "Automation off",
+          "on": "Automation on",
+          "ariaLabel": "Board automation",
+          "globallyOff": "Automation is stopped for every board. Resume it with: orca board-automation resume",
+          "hint": "Moving a card to a column with a rule dispatches its member."
         }
       },
       "shared": {

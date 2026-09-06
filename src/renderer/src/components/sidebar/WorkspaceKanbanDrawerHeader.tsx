@@ -6,6 +6,7 @@ import type { WorkspaceStatusDefinition } from '../../../../shared/worktree/type
 import SidebarFilter from './SidebarFilter'
 import WorkspaceKanbanSearchField from './WorkspaceKanbanSearchField'
 import WorkspaceKanbanSettingsMenu from './WorkspaceKanbanSettingsMenu'
+import BoardAutomationSwitch from './BoardAutomationSwitch'
 import { translate } from '@/i18n/i18n'
 
 type WorkspaceKanbanDrawerHeaderProps = {
@@ -28,6 +29,8 @@ type WorkspaceKanbanDrawerHeaderProps = {
   onAddStatus: () => void
   onFilterMenuOpenChange: (open: boolean) => void
   onClose: () => void
+  /** Null when the board spans repos; the switch is per board. */
+  automationRepoId?: string | null
 }
 
 export default function WorkspaceKanbanDrawerHeader({
@@ -49,7 +52,8 @@ export default function WorkspaceKanbanDrawerHeader({
   onRemoveStatus,
   onAddStatus,
   onFilterMenuOpenChange,
-  onClose
+  onClose,
+  automationRepoId = null
 }: WorkspaceKanbanDrawerHeaderProps): React.JSX.Element {
   return (
     <>
@@ -84,6 +88,7 @@ export default function WorkspaceKanbanDrawerHeader({
             onClear={onClearQuery}
             onClose={onClose}
           />
+          <BoardAutomationSwitch repoId={automationRepoId} />
         </div>
         <SheetDescription className="sr-only">
           {translate(

@@ -98,6 +98,13 @@ function WorkspaceKanbanDrawerContent({
     sortBy,
     workspaceStatuses
   })
+  // Why null when the board spans repos: automation is configured per board, so one switch cannot
+  // speak for two. Showing nothing is honest; showing one repo's state would not be.
+  const automationRepoId = useMemo(() => {
+    const repoIds = new Set(boardWorktrees.map((worktree) => worktree.repoId))
+    return repoIds.size === 1 ? (boardWorktrees[0]?.repoId ?? null) : null
+  }, [boardWorktrees])
+
   const {
     selectedWorktreeIds,
     selectedWorktrees,
@@ -271,7 +278,8 @@ function WorkspaceKanbanDrawerContent({
         onRemoveStatus: handleRemoveStatus,
         onAddStatus: handleAddStatus,
         onFilterMenuOpenChange: onMenuOpenChange,
-        onClose: handleHeaderClose
+        onClose: handleHeaderClose,
+        automationRepoId
       }}
       laneGridProps={{
         laneScrollerRef,
