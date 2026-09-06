@@ -26,6 +26,14 @@ const ListIssues = z.object({
   connectionId: OptionalString
 })
 
+const UpdateIssueState = z.object({
+  projectId: requiredString('Project id is required'),
+  issueId: requiredString('Issue id is required'),
+  stateId: requiredString('State id is required'),
+  projectIdentifier: OptionalString,
+  connectionId: OptionalString
+})
+
 const GetIssue = z.object({
   projectId: requiredString('Project id is required'),
   issueId: requiredString('Issue id is required'),
@@ -82,6 +90,20 @@ export const PLANE_METHODS: RpcAnyMethod[] = [
         ...(params.orderBy ? { orderBy: params.orderBy } : {}),
         ...(params.connectionId ? { connectionId: params.connectionId } : {})
       })
+  }),
+  defineMethod({
+    name: 'plane.updateIssueState',
+    params: UpdateIssueState,
+    handler: async (params, { runtime }) =>
+      runtime.planeUpdateIssueState(
+        params.projectId.trim(),
+        params.issueId.trim(),
+        params.stateId.trim(),
+        {
+          ...(params.projectIdentifier ? { projectIdentifier: params.projectIdentifier } : {}),
+          ...(params.connectionId ? { connectionId: params.connectionId } : {})
+        }
+      )
   }),
   defineMethod({
     name: 'plane.getIssue',

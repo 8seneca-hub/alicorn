@@ -103,6 +103,13 @@ export type Worktree = {
   linkedBitbucketPR?: number | null
   linkedAzureDevOpsPR?: number | null
   linkedGiteaPR?: number | null
+  // Plane needs four slots, not one: the write-back PATCHes by workspace slug + project uuid +
+  // issue uuid, none of which are recoverable from the readable id that `linkedWorkItem`
+  // carries. The sequence is kept for display so the sidebar need not re-read the issue.
+  linkedPlaneIssue?: string | null
+  linkedPlaneIssueSequence?: number | null
+  linkedPlaneWorkspaceSlug?: string | null
+  linkedPlaneProjectId?: string | null
   linkedWorkItem?: WorkspaceLinkedItem | null
   linkedTaskSourceContext?: TaskSourceContext | null
   isArchived: boolean

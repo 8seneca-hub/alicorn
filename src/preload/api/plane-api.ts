@@ -35,4 +35,11 @@ export type PlaneApi = {
     projectIdentifier?: string
     connectionId?: string
   }) => Promise<PlaneResult<PlaneIssue | null>>
+  updateIssueState: (args: {
+    projectId: string
+    issueId: string
+    stateId: string
+    projectIdentifier?: string
+    connectionId?: string
+  }) => Promise<PlaneResult<PlaneIssue | null>>
 }
