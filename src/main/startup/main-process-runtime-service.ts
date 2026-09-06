@@ -24,6 +24,8 @@ import { isArtifactSharingEnabled } from '../../shared/artifact-sharing-gate'
 import { startLedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
 import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
 import { attributeDispatchUsage } from '../alicorn/run-usage-attribution'
+import { startContextCeilingWatcher } from '../alicorn/context-ceiling-watcher'
+import { ALICORN_EVENTS } from '../../shared/alicorn/ipc-channels'
 
 const LEDGER_OUTBOX_DRAIN_INTERVAL_MS = 5_000
 
@@ -162,6 +164,18 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
   )
   runtime.setSkillCloudService(new SkillCloudService(app.getPath('userData')))
   runtime.setAccountServices({ claudeAccounts, codexAccounts, rateLimits })
+  // Why: the ceiling watcher reads only settled state (dispatch rows plus already-scanned
+  // transcripts), so starting it here costs nothing until a claude worker is actually running.
+  state.contextCeilingWatcher?.stop()
+  state.contextCeilingWatcher = startContextCeilingWatcher({
+    getDb: () => (state.runtime ? state.runtime.getOrchestrationDb() : null),
+    claudeUsage: state.claudeUsage,
+    publish: (offer) => {
+      if (state.mainWindow && !state.mainWindow.isDestroyed()) {
+        state.mainWindow.webContents.send(ALICORN_EVENTS.escalationOffer, offer)
+      }
+    }
+  })
   runtime.setCommitMessageAgentEnvironmentResolvers({
     // Why: Codex hooks/auth live in Orca's managed runtime home even for the default path, so every launch must resolve CODEX_HOME via runtime-home.
     prepareForCodexLaunch: prepareCodexRuntimeHomeForLaunch,

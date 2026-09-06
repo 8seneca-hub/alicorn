@@ -136,6 +136,38 @@ export class ClaudeUsageStore extends UsageProviderStoreLifecycle<
     return buildRecentSessions(this.state, scope, range, limit)
   }
 
+  /**
+   * Transcripts for sessions that touched this worktree and were written since `sinceMs`. Reads the
+   * already-scanned state — no rescan, because the context-ceiling watcher runs on a timer and must
+   * not trigger disk work every tick.
+   */
+  getRecentSessionTranscriptsForWorktree(
+    worktreeId: string,
+    sinceMs: number
+  ): { sessionId: string; path: string; lastTimestamp: string }[] {
+    const transcripts: { sessionId: string; path: string; lastTimestamp: string }[] = []
+    for (const file of this.state.processedFiles) {
+      for (const session of file.sessions) {
+        const touchesWorktree = session.locationBreakdown.some(
+          (location) => location.worktreeId === worktreeId
+        )
+        if (!touchesWorktree) {
+          continue
+        }
+        const lastMs = Date.parse(session.lastTimestamp)
+        if (Number.isNaN(lastMs) || lastMs < sinceMs) {
+          continue
+        }
+        transcripts.push({
+          sessionId: session.sessionId,
+          path: file.path,
+          lastTimestamp: session.lastTimestamp
+        })
+      }
+    }
+    return transcripts
+  }
+
   async getAutomationRunUsage(input: AutomationUsageLookupInput): Promise<AutomationRunUsage> {
     return resolveAutomationRunUsage(input, {
       getState: () => this.state,

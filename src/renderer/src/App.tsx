@@ -31,6 +31,7 @@ import { useOnboardingAndFeatureTips } from './app-shell/use-onboarding-and-feat
 import { usePersistedUIWriter } from './app-shell/use-persisted-ui-writer'
 import { useRuntimeGraphSync } from './app-shell/use-runtime-graph-sync'
 import { useWindowVisibilityEffects } from './app-shell/use-window-visibility-effects'
+import { EscalationOfferToaster } from '@/components/alicorn/EscalationOfferToaster'
 
 function App(): React.JSX.Element {
   const layout = useAppChromeLayout()
@@ -105,6 +106,7 @@ function App(): React.JSX.Element {
       </TooltipProvider>
       <Toaster closeButton toastOptions={{ className: 'font-sans text-sm' }} />
       <SkillFreshnessNudge />
+      <EscalationOfferToaster />
       <WorktreeBaseFallbackDialog />
       <PinnedTabCloseDialog />
       <RunningTerminalCloseDialog />
