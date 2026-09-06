@@ -59,6 +59,43 @@ these workflows authenticate as, can turn them on.
 and validates the relay Terraform on every change under `cloud/`, and it runs
 on fork pull requests, so it configures no backend and holds no credential.
 
+## Alicorn control plane
+
+Two services back the Alicorn ADE, both Postgres-backed from the first commit (no local
+SQLite for this data — see `docs/alicorn/ROADMAP.md`):
+
+- `apps/control-api` (port 8081, schema `control`): Members, org review-backend policy,
+  and per-project required checks.
+- `apps/ledger-api` (port 8082, schema `ledger`): the append-only measurement ledger —
+  step outcomes, step verifications, context captures — plus provenance and cost reads.
+
+Both run in auth mode `local` for now (identity/Keycloak is deferred): one constant
+tenant and one shared bearer token, never a superuser connection — see
+`dev/compose/postgres-init/01-alicorn-app-role.sql`.
+
+Bring the local stack up with Docker:
+
+```sh
+cd cloud
+pnpm alicorn:up      # docker compose up -d --build: postgres, control-api, ledger-api
+pnpm alicorn:seed     # inserts Developer/Reviewer/QA members
+pnpm alicorn:down    # tear it down
+```
+
+If port 5432 is already taken on your machine, set `ALICORN_PG_PORT` (e.g. `5434`) before
+`alicorn:up` and again before `alicorn:seed`; the APIs stay on 8081/8082 regardless. Copy
+`dev/compose/desktop.env.example` into your shell to point a local desktop build at the
+stack — the default `ALICORN_LOCAL_API_TOKEN` (`local-dev-token-change-me-0001`) is for this
+local stack only; export a real token for anything that leaves the laptop.
+
+The Postgres suites in `apps/control-api` and `apps/ledger-api` (and
+`packages/control-plane-postgres`) run only when `ALICORN_TEST_POSTGRES_URL` points at a
+disposable database — CI sets it to the same `postgres:16-alpine` service the relay tests
+use, because those tests create their own schemas and non-superuser roles per run and need
+`CREATE ROLE`.
+
+See `docs/alicorn/LOCAL-DEV.md` for the full local-dev walkthrough.
+
 ## What is not here
 
 The `terraform-foundation` and `terraform-apps` roots and the API and auth

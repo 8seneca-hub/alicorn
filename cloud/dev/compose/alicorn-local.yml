@@ -1,0 +1,36 @@
+name: alicorn-local
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: alicorn
+      POSTGRES_PASSWORD: alicorn
+      POSTGRES_DB: alicorn
+    # Why: POSTGRES_USER is a superuser and owns the database only — control-api,
+    # ledger-api and the seed all connect as `alicorn_app` (see postgres-init/), so RLS applies.
+    ports: ["127.0.0.1:${ALICORN_PG_PORT:-5432}:5432"]
+    volumes:
+      - alicorn-pg:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U alicorn"], interval: 5s, timeout: 3s, retries: 20 }
+  control-api:
+    build: { context: ../.., dockerfile: apps/control-api/Dockerfile }
+    environment:
+      PORT: "8081"
+      ALICORN_DATABASE_URL: postgres://alicorn_app:alicorn_app@postgres:5432/alicorn
+      ALICORN_AUTH_MODE: local
+      ALICORN_TENANT_ID: local
+      ALICORN_LOCAL_API_TOKEN: ${ALICORN_LOCAL_API_TOKEN:-local-dev-token-change-me-0001}
+    ports: ["127.0.0.1:8081:8081"]
+    depends_on: { postgres: { condition: service_healthy } }
+  ledger-api:
+    build: { context: ../.., dockerfile: apps/ledger-api/Dockerfile }
+    environment:
+      PORT: "8082"
+      ALICORN_DATABASE_URL: postgres://alicorn_app:alicorn_app@postgres:5432/alicorn
+      ALICORN_AUTH_MODE: local
+      ALICORN_TENANT_ID: local
+      ALICORN_LOCAL_API_TOKEN: ${ALICORN_LOCAL_API_TOKEN:-local-dev-token-change-me-0001}
+    ports: ["127.0.0.1:8082:8082"]
+    depends_on: { postgres: { condition: service_healthy } }
+volumes: { alicorn-pg: {} }
