@@ -23,6 +23,7 @@ import { SkillCloudService } from '../skills/skill-cloud-service'
 import { isArtifactSharingEnabled } from '../../shared/artifact-sharing-gate'
 import { startLedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
 import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
+import { attributeDispatchUsage } from '../alicorn/run-usage-attribution'
 
 const LEDGER_OUTBOX_DRAIN_INTERVAL_MS = 5_000
 
@@ -124,8 +125,14 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
     getDb: () => runtime.getOrchestrationDb(),
     runtime,
     writer: createLedgerWriter(),
-    // Why null: C5 (attributeDispatchUsage) and D5 (runDiffCoverageCheck) aren't written yet.
-    spendAttributor: null,
+    // Why lazy: usage stores are created after the drainer starts, so read state.* at call time.
+    spendAttributor: (input) =>
+      attributeDispatchUsage({
+        ...input,
+        claudeUsage: state.claudeUsage,
+        codexUsage: state.codexUsage
+      }),
+    // Why null: D5 (runDiffCoverageCheck) isn't written yet.
     verificationRunner: null,
     intervalMs: LEDGER_OUTBOX_DRAIN_INTERVAL_MS
   })
