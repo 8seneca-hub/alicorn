@@ -27,6 +27,9 @@ export function useTaskSourceProviderReadiness(
   const jiraStatus = useAppStore((s) => s.jiraStatus)
   const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
   const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
+  const planeStatus = useAppStore((s) => s.planeStatus)
+  const planeStatusChecked = useAppStore((s) => s.planeStatusChecked)
+  const planeStatusContextKey = useAppStore((s) => s.planeStatusContextKey)
   const linearConnected = useLinearProviderConnected()
   const linearStatusChecked = useAppStore((s) => s.linearStatusChecked)
   const linearStatusContextKey = useAppStore((s) => s.linearStatusContextKey)
@@ -60,6 +63,8 @@ export function useTaskSourceProviderReadiness(
   const jiraConnected = !jiraChecking && jiraStatus.connected === true
   const linearChecking =
     linearStatusContextKey !== providerRuntimeContextKey || !linearStatusChecked
+  const planeChecking = planeStatusContextKey !== providerRuntimeContextKey || !planeStatusChecked
+  const planeConnected = !planeChecking && planeStatus.connected === true
   // Normalization returns a new array, so memoize by provider contents.
   const visibleProvidersKey = visibleProviders.join(',')
 
@@ -90,11 +95,9 @@ export function useTaskSourceProviderReadiness(
         checking: jiraChecking,
         visible: visible.has('jira')
       },
-      // Plane has no status channel yet (PP1 IPC), so it reports settled and
-      // disconnected rather than spinning forever on a check that never runs.
       plane: {
-        connected: false,
-        checking: false,
+        connected: planeConnected,
+        checking: planeChecking,
         visible: visible.has('plane')
       }
     }
@@ -108,6 +111,8 @@ export function useTaskSourceProviderReadiness(
     linearSkillInstalled,
     linearSkillLoading,
     linearSkillSettled,
+    planeChecking,
+    planeConnected,
     reviewChecking,
     reviewUnavailable,
     visibleProvidersKey
