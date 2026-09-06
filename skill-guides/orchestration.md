@@ -318,6 +318,10 @@ Use `ask` for worker-to-coordinator questions; it creates a `question` message t
 
 Recovery only: `orca orchestration reset --tasks|--messages|--all --json` clears the selected local orchestration database state. Do not run it during active coordination unless explicitly abandoning that state.
 
+## Ledger
+
+`orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--since <iso>] [--until <iso>] [--json]` prints `interruptions_per_completed_task` from the Alicorn ledger — how often a human had to intervene per finished task.
+
 ## Full Handoffs
 
 For full ownership transfer, use non-lifecycle terminal/worktree commands and then stop monitoring unless the user asks for supervision.

@@ -1,0 +1,105 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { RpcDispatcher } from '../dispatcher'
+import type { RpcRequest } from '../core'
+import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { InterruptionsReport } from '../../../../shared/alicorn/ledger-report'
+
+vi.mock('../../../alicorn/control-plane-http', async () => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- vi.importActual requires inline import()
+  const actual = await vi.importActual<typeof import('../../../alicorn/control-plane-http')>(
+    '../../../alicorn/control-plane-http'
+  )
+  return { ...actual, alicornFetch: vi.fn() }
+})
+
+import {
+  alicornFetch,
+  ControlPlaneRequestError,
+  ControlPlaneUnavailableError
+} from '../../../alicorn/control-plane-http'
+import { ALICORN_LEDGER_METHODS } from './alicorn-ledger'
+
+function makeRequest(params?: unknown): RpcRequest {
+  return { id: 'req-1', authToken: 'tok', method: 'ledger.report', params }
+}
+
+function makeDispatcher(): RpcDispatcher {
+  const runtime = { getRuntimeId: () => 'test-runtime' } as unknown as OrcaRuntimeService
+  return new RpcDispatcher({ runtime, methods: ALICORN_LEDGER_METHODS })
+}
+
+function jsonResponse(body: unknown): Response {
+  return { json: async () => body } as unknown as Response
+}
+
+const REPORT: InterruptionsReport = {
+  filters: {},
+  completedTasks: 2,
+  interruptions: 3,
+  perCompletedTask: 1.5,
+  byKind: { gate: 2, ask: 1 },
+  byStage: [
+    { stageKey: 'build', completedTasks: 1, interruptions: 2, perCompletedTask: 2 },
+    { stageKey: 'review', completedTasks: 1, interruptions: 1, perCompletedTask: 1 }
+  ],
+  excluded: ['permission_prompt']
+}
+
+beforeEach(() => {
+  vi.mocked(alicornFetch).mockReset()
+})
+
+describe('ledger.report', () => {
+  it('forwards the given filters as a query string and returns the report', async () => {
+    vi.mocked(alicornFetch).mockResolvedValue(jsonResponse(REPORT))
+
+    const response = await makeDispatcher().dispatch(
+      makeRequest({
+        stageKey: 'build',
+        projectId: 'proj_1',
+        memberId: 'mem_1',
+        since: '2026-01-01T00:00:00.000Z',
+        until: '2026-02-01T00:00:00.000Z'
+      })
+    )
+
+    expect(alicornFetch).toHaveBeenCalledWith(
+      'ledger',
+      '/v1/ledger/reports/interruptions?stageKey=build&projectId=proj_1&memberId=mem_1&since=2026-01-01T00%3A00%3A00.000Z&until=2026-02-01T00%3A00%3A00.000Z'
+    )
+    expect(response).toMatchObject({ ok: true, result: REPORT })
+  })
+
+  it('omits filters that were not given', async () => {
+    vi.mocked(alicornFetch).mockResolvedValue(jsonResponse(REPORT))
+
+    await makeDispatcher().dispatch(makeRequest())
+
+    expect(alicornFetch).toHaveBeenCalledWith('ledger', '/v1/ledger/reports/interruptions')
+  })
+
+  it('reports control_plane_unconfigured when the control plane is not configured', async () => {
+    vi.mocked(alicornFetch).mockRejectedValue(new ControlPlaneUnavailableError())
+
+    const response = await makeDispatcher().dispatch(makeRequest())
+
+    expect(response).toMatchObject({
+      ok: false,
+      error: { code: 'control_plane_unconfigured' }
+    })
+  })
+
+  it('reports a structured error carrying the status code on a request failure', async () => {
+    vi.mocked(alicornFetch).mockRejectedValue(new ControlPlaneRequestError(500, 'internal_error'))
+
+    const response = await makeDispatcher().dispatch(makeRequest())
+
+    expect(response).toMatchObject({
+      ok: false,
+      error: {
+        code: 'control_plane_request_failed',
+        data: { status: 500, code: 'internal_error' }
+      }
+    })
+  })
+})

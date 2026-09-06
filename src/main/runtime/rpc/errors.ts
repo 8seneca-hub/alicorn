@@ -118,6 +118,9 @@ const STRUCTURED_RUNTIME_PASSTHROUGH_CODES: ReadonlySet<string> = new Set([
   'stale_delivery',
   'waiter_exists',
   'invalid_argument',
+  // Why: ledger.report surfaces the control plane's own failure shape rather than a flattened runtime_error.
+  'control_plane_unconfigured',
+  'control_plane_request_failed',
   GIT_DIFF_TOO_LARGE_CODE,
   ARTIFACT_SHARING_DISABLED_CODE,
   AGENT_SKILL_SHARING_DISABLED_CODE,
