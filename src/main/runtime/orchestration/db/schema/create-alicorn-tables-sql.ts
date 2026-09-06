@@ -2,7 +2,10 @@ export function createAlicornTablesSql(): string {
   return `
 CREATE TABLE IF NOT EXISTS ledger_outbox (
   id           TEXT PRIMARY KEY,
-  kind         TEXT NOT NULL CHECK (kind IN ('step_outcome', 'context_capture', 'spend_attribution', 'step_verification')),
+  kind         TEXT NOT NULL CHECK (kind IN (
+    'step_outcome', 'context_capture', 'spend_attribution', 'step_verification',
+    'human_verdict_patch', 'interruption'
+  )),
   dedupe_key   TEXT NOT NULL UNIQUE,
   payload      TEXT NOT NULL,
   attempts     INTEGER NOT NULL DEFAULT 0,
@@ -30,6 +33,18 @@ CREATE TABLE IF NOT EXISTS alicorn_dispatch_members (
   backend                TEXT NOT NULL,
   review_backend_bypass  INTEGER NOT NULL DEFAULT 0,
   created_at             TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS alicorn_correction_scans (
+  worktree_id     TEXT PRIMARY KEY,
+  last_scanned_at TEXT NOT NULL,
+  last_commit     TEXT
+);
+
+CREATE TABLE IF NOT EXISTS alicorn_dispatch_ledger (
+  dispatch_id TEXT PRIMARY KEY,
+  outcome_id  TEXT NOT NULL,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
   `
 }

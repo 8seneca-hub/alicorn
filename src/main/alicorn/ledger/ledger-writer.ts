@@ -1,7 +1,9 @@
 import type { alicornFetch as AlicornFetch } from '../control-plane-http'
-import { alicornFetch } from '../control-plane-http'
+import { alicornFetch, ControlPlaneRequestError } from '../control-plane-http'
 import type {
   ContextCaptureInput,
+  HumanVerdictPatch,
+  InterruptionInput,
   SpendPatch,
   StepOutcomeInput,
   StepVerificationInput
@@ -10,8 +12,10 @@ import type {
 export type LedgerWriter = {
   postStepOutcome(input: StepOutcomeInput): Promise<{ id: string; duplicate: boolean }>
   patchStepOutcomeSpend(id: string, patch: SpendPatch): Promise<void>
+  patchHumanVerdict(outcomeId: string, patch: HumanVerdictPatch): Promise<'patched' | 'already_set'>
   postStepVerification(input: StepVerificationInput): Promise<{ id: string; duplicate: boolean }>
   postContextCapture(input: ContextCaptureInput): Promise<{ id: string; duplicate: boolean }>
+  postInterruption(input: InterruptionInput): Promise<{ id: string; duplicate: boolean }>
 }
 
 /**
@@ -36,8 +40,27 @@ export function createLedgerWriter(deps?: { fetch?: typeof AlicornFetch }): Ledg
       })
     },
 
+    patchHumanVerdict: async (outcomeId, patch) => {
+      try {
+        await request(
+          'ledger',
+          `/v1/ledger/step-outcomes/${encodeURIComponent(outcomeId)}/human-verdict`,
+          { method: 'PATCH', body: JSON.stringify(patch) }
+        )
+        return 'patched'
+      } catch (error) {
+        // Why: a second verdict on an already-settled outcome is append-only noise, not a failure.
+        if (error instanceof ControlPlaneRequestError && error.status === 409) {
+          return 'already_set'
+        }
+        throw error
+      }
+    },
+
     postStepVerification: (input) => postJson('/v1/ledger/step-verifications', input),
 
-    postContextCapture: (input) => postJson('/v1/ledger/context-captures', input)
+    postContextCapture: (input) => postJson('/v1/ledger/context-captures', input),
+
+    postInterruption: (input) => postJson('/v1/ledger/interruptions', input)
   }
 }

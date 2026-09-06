@@ -3,6 +3,8 @@ export type LedgerOutboxKind =
   | 'context_capture'
   | 'spend_attribution'
   | 'step_verification'
+  | 'human_verdict_patch'
+  | 'interruption'
 
 // Why: raw `ledger_outbox` row, mirrors the SQLite columns directly (no camelCase mapping).
 export type LedgerOutboxRow = {

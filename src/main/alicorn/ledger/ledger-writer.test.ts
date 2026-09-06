@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createLedgerWriter } from './ledger-writer'
+import { ControlPlaneRequestError } from '../control-plane-http'
 import type { alicornFetch as AlicornFetch } from '../control-plane-http'
 import type {
   ContextCaptureInput,
+  HumanVerdictPatch,
+  InterruptionInput,
   SpendPatch,
   StepOutcomeInput,
   StepVerificationInput
@@ -104,5 +107,73 @@ describe('createLedgerWriter', () => {
       expect.objectContaining({ method: 'POST', body: JSON.stringify(input) })
     )
     expect(result).toEqual({ id: 'cc_1', duplicate: true })
+  })
+
+  it('patches a human verdict at the right path and reports patched', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(200, { id: 'so_1' }))
+    const writer = createLedgerWriter({ fetch: fetchMock as unknown as typeof AlicornFetch })
+    const patch: HumanVerdictPatch = {
+      humanVerdict: 'accepted',
+      amendedAfterMs: null,
+      source: 'manual'
+    }
+
+    const result = await writer.patchHumanVerdict('so_1', patch)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'ledger',
+      '/v1/ledger/step-outcomes/so_1/human-verdict',
+      expect.objectContaining({ method: 'PATCH', body: JSON.stringify(patch) })
+    )
+    expect(result).toBe('patched')
+  })
+
+  it('treats a 409 verdict_already_set as success, not an error', async () => {
+    fetchMock.mockRejectedValue(new ControlPlaneRequestError(409, 'verdict_already_set'))
+    const writer = createLedgerWriter({ fetch: fetchMock as unknown as typeof AlicornFetch })
+
+    const result = await writer.patchHumanVerdict('so_1', {
+      humanVerdict: 'rejected',
+      amendedAfterMs: null,
+      source: 'revert'
+    })
+
+    expect(result).toBe('already_set')
+  })
+
+  it('rethrows a non-409 request error from patchHumanVerdict', async () => {
+    fetchMock.mockRejectedValue(new ControlPlaneRequestError(500, 'server_error'))
+    const writer = createLedgerWriter({ fetch: fetchMock as unknown as typeof AlicornFetch })
+
+    await expect(
+      writer.patchHumanVerdict('so_1', {
+        humanVerdict: 'accepted',
+        amendedAfterMs: null,
+        source: 'manual'
+      })
+    ).rejects.toThrow(ControlPlaneRequestError)
+  })
+
+  it('posts an interruption and maps the response', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(201, { id: 'int_1', duplicate: false }))
+    const writer = createLedgerWriter({ fetch: fetchMock as unknown as typeof AlicornFetch })
+    const input: InterruptionInput = {
+      runId: 'run_1',
+      taskId: 'task_1',
+      dispatchId: 'ctx_1',
+      kind: 'gate',
+      sourceId: 'gate_1',
+      resolvedBy: null,
+      occurredAt: '2026-09-06T00:00:00.000Z'
+    }
+
+    const result = await writer.postInterruption(input)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'ledger',
+      '/v1/ledger/interruptions',
+      expect.objectContaining({ method: 'POST', body: JSON.stringify(input) })
+    )
+    expect(result).toEqual({ id: 'int_1', duplicate: false })
   })
 })

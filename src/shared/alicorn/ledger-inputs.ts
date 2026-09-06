@@ -49,3 +49,20 @@ export type ContextCaptureInput = {
   promptPath?: string
   contextSlice: Record<string, unknown>
 }
+
+export type HumanVerdictPatch = {
+  humanVerdict: 'accepted' | 'rejected' | 'amended'
+  amendedAfterMs: number | null
+  // Why: what the corrections watcher saw — a follow-up commit, a revert, a reopened task, or a manual call.
+  source: 'follow_up_commit' | 'revert' | 'reopened_task' | 'manual'
+}
+
+export type InterruptionInput = {
+  runId: string
+  taskId: string
+  dispatchId: string
+  kind: 'gate' | 'ask' | 'escalation'
+  sourceId: string
+  resolvedBy: string | null
+  occurredAt: string
+}

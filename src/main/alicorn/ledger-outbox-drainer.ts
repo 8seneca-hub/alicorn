@@ -3,7 +3,12 @@ import type { LedgerOutboxRow } from '../runtime/orchestration/db/alicorn/alicor
 import { buildStepOutcomeInput } from './step-outcome-builder'
 import { ControlPlaneUnavailableError } from './control-plane-http'
 import type { LedgerWriter } from './ledger/ledger-writer'
-import type { ContextCaptureInput, SpendPatch } from '../../shared/alicorn/ledger-inputs'
+import type {
+  ContextCaptureInput,
+  HumanVerdictPatch,
+  InterruptionInput,
+  SpendPatch
+} from '../../shared/alicorn/ledger-inputs'
 
 const BASE_BACKOFF_MS = 5_000
 const MAX_BACKOFF_MS = 5 * 60_000
@@ -149,6 +154,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     db.db.exec('BEGIN IMMEDIATE')
     try {
       db.markLedgerOutboxSent(row.id)
+      db.setDispatchLedgerOutcome(payload.dispatchId, posted.id)
       db.enqueueLedgerOutbox({
         kind: 'spend_attribution',
         dedupeKey: `spend_attribution:${payload.dispatchId}`,
@@ -221,6 +227,28 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     db.markLedgerOutboxSent(row.id)
   }
 
+  async function handleHumanVerdictPatch(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
+    const { outcomeId, ...patch } = JSON.parse(row.payload) as {
+      outcomeId: string
+    } & HumanVerdictPatch
+    await writer.patchHumanVerdict(outcomeId, patch)
+    db.markLedgerOutboxSent(row.id)
+  }
+
+  async function handleInterruption(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
+    const payload = JSON.parse(row.payload) as InterruptionInput
+    await writer.postInterruption(payload)
+    db.markLedgerOutboxSent(row.id)
+  }
+
   async function processRow(
     db: OrchestrationDb,
     row: LedgerOutboxRow,
@@ -235,6 +263,10 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
         return handleSpendAttribution(db, row, writer)
       case 'step_verification':
         return handleStepVerification(db, row, writer)
+      case 'human_verdict_patch':
+        return handleHumanVerdictPatch(db, row, writer)
+      case 'interruption':
+        return handleInterruption(db, row, writer)
     }
   }
 

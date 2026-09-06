@@ -17,8 +17,10 @@ function fakeWriter(overrides?: Partial<LedgerWriter>): LedgerWriter {
   return {
     postStepOutcome: vi.fn().mockResolvedValue({ id: 'so_1', duplicate: false }),
     patchStepOutcomeSpend: vi.fn().mockResolvedValue(undefined),
+    patchHumanVerdict: vi.fn().mockResolvedValue('patched'),
     postStepVerification: vi.fn().mockResolvedValue({ id: 'sv_1', duplicate: false }),
     postContextCapture: vi.fn().mockResolvedValue({ id: 'cc_1', duplicate: false }),
+    postInterruption: vi.fn().mockResolvedValue({ id: 'int_1', duplicate: false }),
     ...overrides
   }
 }
@@ -96,6 +98,142 @@ describe('startLedgerOutboxDrainer', () => {
     const notBeforeMs = new Date(spendRow.not_before!).getTime()
     expect(notBeforeMs - Date.now()).toBeGreaterThan(55_000)
     expect(notBeforeMs - Date.now()).toBeLessThan(65_000)
+  })
+
+  it('stores the dispatch↔outcome id mapping after a step_outcome post', async () => {
+    const { dispatchId } = settleSucceededWithWorktree()
+    const writer = fakeWriter()
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    await drainer.drainOnce()
+
+    expect(db.getDispatchLedgerOutcome(dispatchId)).toBe('so_1')
+  })
+
+  it('stores the dispatch↔outcome id mapping on a duplicate-200 step_outcome post too', async () => {
+    const { dispatchId } = settleSucceededWithWorktree()
+    const writer = fakeWriter({
+      postStepOutcome: vi.fn().mockResolvedValue({ id: 'so_dup', duplicate: true })
+    })
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    await drainer.drainOnce()
+
+    expect(db.getDispatchLedgerOutcome(dispatchId)).toBe('so_dup')
+  })
+
+  it('routes a human_verdict_patch row to writer.patchHumanVerdict and marks it sent', async () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    db.enqueueLedgerOutbox({
+      kind: 'human_verdict_patch',
+      dedupeKey: `human_verdict_patch:${dispatch.id}`,
+      payload: {
+        outcomeId: 'so_1',
+        humanVerdict: 'accepted',
+        amendedAfterMs: null,
+        source: 'follow_up_commit'
+      }
+    })
+    const writer = fakeWriter()
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn() },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    const result = await drainer.drainOnce()
+
+    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(writer.patchHumanVerdict).toHaveBeenCalledWith('so_1', {
+      humanVerdict: 'accepted',
+      amendedAfterMs: null,
+      source: 'follow_up_commit'
+    })
+    expect(db.listDueLedgerOutbox()).toHaveLength(0)
+  })
+
+  it('marks a human_verdict_patch row sent even when the writer reports already_set', async () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    db.enqueueLedgerOutbox({
+      kind: 'human_verdict_patch',
+      dedupeKey: `human_verdict_patch:${dispatch.id}`,
+      payload: {
+        outcomeId: 'so_1',
+        humanVerdict: 'rejected',
+        amendedAfterMs: null,
+        source: 'revert'
+      }
+    })
+    const writer = fakeWriter({ patchHumanVerdict: vi.fn().mockResolvedValue('already_set') })
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn() },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    const result = await drainer.drainOnce()
+
+    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(db.listDueLedgerOutbox()).toHaveLength(0)
+  })
+
+  it('routes an interruption row to writer.postInterruption and marks it sent', async () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    const interruptionInput = {
+      runId: task.run_id,
+      taskId: task.id,
+      dispatchId: dispatch.id,
+      kind: 'gate' as const,
+      sourceId: 'gate_1',
+      resolvedBy: null,
+      occurredAt: '2026-09-06T00:00:00.000Z'
+    }
+    db.enqueueLedgerOutbox({
+      kind: 'interruption',
+      dedupeKey: `interruption:gate:gate_1`,
+      payload: interruptionInput
+    })
+    const writer = fakeWriter()
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn() },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    const result = await drainer.drainOnce()
+
+    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(writer.postInterruption).toHaveBeenCalledWith(interruptionInput)
+    expect(db.listDueLedgerOutbox()).toHaveLength(0)
   })
 
   it('backs off with attempts + 1 on a normal request failure, leaving the row unsent', async () => {
