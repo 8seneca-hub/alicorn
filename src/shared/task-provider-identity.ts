@@ -29,11 +29,23 @@ export type JiraTaskProviderIdentity = {
   projectKey?: string | null
 }
 
+// Plane addresses a project by uuid but shows it by identifier, and a key is
+// scoped to one workspace of one deployment, so all four are part of identity.
+export type PlaneTaskProviderIdentity = {
+  provider: 'plane'
+  connectionId?: string | null
+  baseUrl?: string | null
+  workspaceSlug?: string | null
+  projectId?: string | null
+  projectIdentifier?: string | null
+}
+
 export type TaskProviderIdentity =
   | GitHubTaskProviderIdentity
   | GitLabTaskProviderIdentity
   | LinearTaskProviderIdentity
   | JiraTaskProviderIdentity
+  | PlaneTaskProviderIdentity
 
 export function normalizeTaskProviderIdentity(
   provider: TaskProvider,
@@ -79,6 +91,15 @@ export function normalizeTaskProviderIdentity(
         siteUrl: normalizeNonEmptyString(raw.siteUrl),
         projectKey: normalizeNonEmptyString(raw.projectKey)
       }
+    case 'plane':
+      return {
+        provider,
+        connectionId: normalizeNonEmptyString(raw.connectionId),
+        baseUrl: normalizeNonEmptyString(raw.baseUrl),
+        workspaceSlug: normalizeNonEmptyString(raw.workspaceSlug),
+        projectId: normalizeNonEmptyString(raw.projectId),
+        projectIdentifier: normalizeNonEmptyString(raw.projectIdentifier)
+      }
   }
 }
 
@@ -112,14 +133,25 @@ export function isStoredTaskProviderIdentity(provider: TaskProvider, identity: u
       )
     case 'jira':
       return ['siteId', 'siteUrl', 'projectKey'].every((key) => isNullableOptionalString(raw[key]))
+    case 'plane':
+      return PLANE_IDENTITY_FIELDS.every((key) => isNullableOptionalString(raw[key]))
   }
 }
+
+const PLANE_IDENTITY_FIELDS = [
+  'connectionId',
+  'baseUrl',
+  'workspaceSlug',
+  'projectId',
+  'projectIdentifier'
+] as const
 
 const TASK_PROVIDER_IDENTITY_FIELDS: Record<TaskProvider, readonly string[]> = {
   github: ['owner', 'repo', 'host'],
   gitlab: ['projectId', 'namespace', 'project', 'webUrl'],
   linear: ['workspaceId', 'workspaceName', 'teamId', 'teamKey'],
-  jira: ['siteId', 'siteUrl', 'projectKey']
+  jira: ['siteId', 'siteUrl', 'projectKey'],
+  plane: PLANE_IDENTITY_FIELDS
 }
 
 export function areTaskProviderIdentitiesEqual(
@@ -157,6 +189,14 @@ export function taskProviderIdentityCachePart(
       return [identity.workspaceId, identity.teamId ?? identity.teamKey].filter(Boolean).join('/')
     case 'jira':
       return [identity.siteId ?? identity.siteUrl, identity.projectKey].filter(Boolean).join('/')
+    case 'plane':
+      return [
+        identity.connectionId ??
+          [identity.baseUrl, identity.workspaceSlug].filter(Boolean).join('@'),
+        identity.projectId ?? identity.projectIdentifier
+      ]
+        .filter(Boolean)
+        .join('/')
   }
 }
 

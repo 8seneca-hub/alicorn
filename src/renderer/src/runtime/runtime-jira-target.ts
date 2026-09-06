@@ -1,24 +1,5 @@
-import type { GlobalSettings } from '../../../shared/global-settings-types'
-import {
-  getTaskSourceRuntimeSettings,
-  type TaskSourceContext
-} from '../../../shared/task-source-context'
-import { getActiveRuntimeTarget } from './runtime-rpc-client'
+import { getProviderRuntimeTarget, type RuntimeProviderSettings } from './runtime-provider-target'
 
-export type RuntimeJiraSettings =
-  | Pick<GlobalSettings, 'activeRuntimeEnvironmentId'>
-  | TaskSourceContext
-  | null
-  | undefined
+export type RuntimeJiraSettings = RuntimeProviderSettings
 
-function isTaskSourceRuntimeSettings(settings: RuntimeJiraSettings): settings is TaskSourceContext {
-  return settings !== null && settings !== undefined && 'kind' in settings
-}
-
-export function getJiraRuntimeTarget(
-  settings: RuntimeJiraSettings
-): ReturnType<typeof getActiveRuntimeTarget> {
-  return getActiveRuntimeTarget(
-    isTaskSourceRuntimeSettings(settings) ? getTaskSourceRuntimeSettings(settings) : settings
-  )
-}
+export const getJiraRuntimeTarget = getProviderRuntimeTarget

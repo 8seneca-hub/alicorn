@@ -9,6 +9,7 @@ import {
 } from '../../../../shared/task-providers'
 import { JiraIcon } from '@/components/icons/JiraIcon'
 import { LinearIcon } from '@/components/icons/LinearIcon'
+import { PlaneIcon } from '@/components/icons/PlaneIcon'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
 import { SearchableSetting } from './SearchableSetting'
@@ -89,6 +90,18 @@ const PROVIDER_META: Record<
       )
     },
     Icon: ({ className }) => <JiraIcon className={className} />
+  },
+  plane: {
+    get label() {
+      return translate('auto.components.settings.TasksPane.planeLabel', 'Plane')
+    },
+    get description() {
+      return translate(
+        'auto.components.settings.TasksPane.planeDescription',
+        'Connect a Plane workspace and show its issues in Tasks.'
+      )
+    },
+    Icon: ({ className }) => <PlaneIcon className={className} />
   }
 }
 
