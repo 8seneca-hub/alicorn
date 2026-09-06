@@ -1,4 +1,5 @@
 import { getArtifactsSettingsSearchEntries } from '@/components/settings/artifacts-settings-search'
+import { getBoardAutomationSearchEntries } from '@/components/settings/board-automation-search'
 import { getAlicornMembersSearchEntries } from '@/components/settings/alicorn-members-search'
 import { getAutomationsSettingsSearchEntries } from '@/components/settings/automations-settings-search'
 import { getBrowserPaneCombinedSearchEntries } from '@/components/settings/browser-pane-search'
@@ -15,6 +16,7 @@ import type { SettingsNavSection } from '@/lib/settings-navigation-types'
 import {
   BookOpen,
   CalendarClock,
+  Workflow,
   Files,
   GitBranch,
   Globe,
@@ -80,6 +82,20 @@ export function buildWorkflowSettingsSections(
       searchEntries: getShareSkillsSettingsSearchEntries(),
       group: 'workflows',
       badge: translate('auto.hooks.useSettingsNavigationMetadata.40d80bad8a', 'Beta')
+    },
+    {
+      id: 'board-automation',
+      title: translate(
+        'auto.hooks.useSettingsNavigationMetadata.boardAutomationTitle',
+        'Board automation'
+      ),
+      description: translate(
+        'auto.hooks.useSettingsNavigationMetadata.boardAutomationDescription',
+        'Dispatch a member when a workspace moves into a board column.'
+      ),
+      icon: Workflow,
+      searchEntries: getBoardAutomationSearchEntries(),
+      group: 'workflows'
     },
     {
       id: 'git',

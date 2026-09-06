@@ -57,6 +57,7 @@ import { registerSpeechHandlers } from '../speech'
 import { registerTerminalRenderDesyncEvidenceHandler } from '../terminal-render-desync-evidence'
 import { registerOrcaProfileHandlers } from '../orca-profiles'
 import { registerAlicornHandlers } from '../alicorn-handlers'
+import { registerBoardAutomationHandlers } from '../board-automation-handlers'
 import { getControlPlaneClient } from '../../alicorn/control-plane-client-instance'
 import { registerCodexAccountHandlers } from '../codex-accounts'
 import { registerAgentHookHandlers } from '../agent-hooks'
@@ -202,6 +203,13 @@ export function registerCoreHandlers(
   registerAlicornHandlers({
     client: getControlPlaneClient(),
     getOrchestrationDb: () => runtime.getOrchestrationDb()
+  })
+  registerBoardAutomationHandlers({
+    getOrchestrationDb: () => runtime.getOrchestrationDb(),
+    getSettings: () => store.getSettings(),
+    updateSettings: (updates) => {
+      void store.updateSettings(updates)
+    }
   })
   registerBrowserHandlers()
   registerShellHandlers(store)
