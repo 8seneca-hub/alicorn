@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import pg from 'pg'
 import { pathToFileURL } from 'node:url'
+// Why: built output, not source — the seed is plain Node. `pnpm alicorn:seed` builds the contract first.
+import { FEATURE_DELIVERY_TEMPLATE } from '../../packages/control-plane-contract/dist/workflow-template.js'
 
 // Why: matches the members the Members UI expects for a first run — one of each
 // role tier1 needs (developer/reviewer/qa), with the Reviewer carrying the
@@ -48,60 +50,38 @@ export async function seedMembers(client, tenantId) {
   return { members, statements }
 }
 
-// Why: one workflow that exercises the case WF2 is built around — the return edge. Stages carry the
-// authored reversibility/inherited_cost; `review` also authors a required check, so the stage-over-project
-// resolution has something real to resolve on a first run.
-export const SEED_WORKFLOW = {
-  projectId: 'local',
-  name: 'Feature delivery',
-  stages: [
-    { key: 'spec', ordinal: 0, member: null, reversibility: 'free', inheritedCost: 'low', requiredChecks: [] },
-    { key: 'build', ordinal: 1, member: 'Developer', reversibility: 'contained', inheritedCost: 'low', requiredChecks: [] },
-    {
-      key: 'review',
-      ordinal: 2,
-      member: 'Reviewer',
-      reversibility: 'contained',
-      inheritedCost: 'low',
-      requiredChecks: [{ kind: 'diff_coverage', threshold: 0.8, lcovPath: 'coverage/lcov.info', timeoutMs: 600000 }]
-    },
-    { key: 'qa', ordinal: 3, member: 'QA', reversibility: 'contained', inheritedCost: 'low', requiredChecks: [] }
-  ],
-  transitions: [
-    { from: 'spec', to: 'build', trigger: { kind: 'on_success' } },
-    { from: 'build', to: 'review', trigger: { kind: 'on_success' } },
-    { from: 'review', to: 'qa', trigger: { kind: 'on_success' } },
-    { from: 'review', to: 'build', trigger: { kind: 'on_failure' } }
-  ]
-}
-
-// Why: idempotent on (tenant_id, project_id, name), the same shape seedMembers uses — a rerun
-// resolves the existing workflow id instead of inserting a second copy.
-export async function seedWorkflows(client, tenantId, members) {
+// Why: the template is the single definition of Feature delivery (WF4) — the seed binds its roles to
+// the seeded members rather than keeping a second copy of the graph that could drift from it.
+export async function seedWorkflows(client, tenantId, members, template) {
+  const projectId = 'local'
   const statements = []
   async function run(sql, params) {
     statements.push({ sql, params })
     return client.query(sql, params)
   }
 
-  const memberIdByName = new Map(members.map((m) => [m.name, m.id]))
+  // Why: same deterministic pick as the API's from-template route — first member of a role by name.
+  const memberIdByRole = new Map()
+  for (const member of [...members].sort((a, b) => a.name.localeCompare(b.name))) {
+    if (!memberIdByRole.has(member.role)) memberIdByRole.set(member.role, member.id)
+  }
   const inserted = await run(
     `INSERT INTO workflows (tenant_id, project_id, name, created_by)
      VALUES ($1, $2, $3, 'seed')
      ON CONFLICT (tenant_id, project_id, name) DO NOTHING
      RETURNING id`,
-    [tenantId, SEED_WORKFLOW.projectId, SEED_WORKFLOW.name]
+    [tenantId, projectId, template.name]
   )
   let workflowId = inserted.rows[0]?.id
   if (!workflowId) {
     const existing = await run(
       `SELECT id FROM workflows WHERE tenant_id = $1 AND project_id = $2 AND name = $3`,
-      [tenantId, SEED_WORKFLOW.projectId, SEED_WORKFLOW.name]
+      [tenantId, projectId, template.name]
     )
     workflowId = existing.rows[0]?.id
   }
 
-  for (const stage of SEED_WORKFLOW.stages) {
+  for (const stage of template.stages) {
     await run(
       `INSERT INTO stages (tenant_id, workflow_id, key, name, ordinal, member_id, reversibility, inherited_cost, required_checks)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
@@ -110,17 +90,17 @@ export async function seedWorkflows(client, tenantId, members) {
         tenantId,
         workflowId,
         stage.key,
-        stage.key,
+        stage.name,
         stage.ordinal,
-        stage.member ? (memberIdByName.get(stage.member) ?? null) : null,
+        stage.memberRole ? (memberIdByRole.get(stage.memberRole) ?? null) : null,
         stage.reversibility,
         stage.inheritedCost,
-        JSON.stringify(stage.requiredChecks)
+        '[]'
       ]
     )
   }
 
-  for (const transition of SEED_WORKFLOW.transitions) {
+  for (const transition of template.transitions) {
     await run(
       `INSERT INTO transitions (tenant_id, workflow_id, from_stage, to_stage, trigger)
        SELECT $1, $2, f.id, t.id, $5::jsonb
@@ -143,13 +123,13 @@ function resolveDatabaseUrl() {
   return url.toString()
 }
 
-function printResults(members, tenantId) {
+function printResults(members, tenantId, template) {
   console.log('Seeded members:')
   for (const m of members) {
     console.log(`  ${m.name} (${m.role}/${m.backend}/${m.workspaceKind}/${m.permissionMode}) id=${m.id}`)
   }
   console.log('')
-  console.log(`Seeded workflow: ${SEED_WORKFLOW.name} (${SEED_WORKFLOW.stages.map((s) => s.key).join(' -> ')})`)
+  console.log(`Seeded workflow: ${template.name} (${template.stages.map((s) => s.key).join(' -> ')})`)
   console.log('')
   console.log('Desktop env (see cloud/dev/compose/desktop.env.example):')
   console.log('  export ALICORN_CONTROL_API_URL=http://127.0.0.1:8081')
@@ -165,9 +145,9 @@ export async function main() {
   try {
     await client.query('BEGIN')
     const { members } = await seedMembers(client, tenantId)
-    await seedWorkflows(client, tenantId, members)
+    await seedWorkflows(client, tenantId, members, FEATURE_DELIVERY_TEMPLATE)
     await client.query('COMMIT')
-    printResults(members, tenantId)
+    printResults(members, tenantId, FEATURE_DELIVERY_TEMPLATE)
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {})
     throw error

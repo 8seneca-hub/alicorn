@@ -5,7 +5,8 @@ import {
   type Stage,
   type TransitionInput,
   type Workflow,
-  type WorkflowSummary
+  type WorkflowSummary,
+  type WorkflowTemplate
 } from '@alicorn-cloud/control-plane-contract'
 
 // Why: the authored graph, without the identity a stored workflow carries.
@@ -203,22 +204,66 @@ export function getWorkflow(pool: pg.Pool, tenantId: string, id: string): Promis
   })
 }
 
+async function insertWorkflow(
+  client: pg.PoolClient,
+  tenantId: string,
+  createdBy: string,
+  input: WorkflowGraphInput
+): Promise<WriteResult> {
+  const unknown = await unknownMemberIds(client, input.stages)
+  if (unknown.length > 0) return { kind: 'unknown_member', memberIds: unknown }
+  const { rows } = await client.query<WorkflowRow>(
+    `INSERT INTO workflows (tenant_id, project_id, name, created_by) VALUES ($1, $2, $3, $4) RETURNING *`,
+    [tenantId, input.projectId, input.name, createdBy]
+  )
+  const row = rows[0]!
+  await writeGraph(client, tenantId, row.id, input)
+  return { kind: 'ok', workflow: await readGraph(client, row) }
+}
+
 export function createWorkflow(
   pool: pg.Pool,
   tenantId: string,
   createdBy: string,
   input: WorkflowGraphInput
 ): Promise<WriteResult> {
+  return withTenant(pool, tenantId, (client) => insertWorkflow(client, tenantId, createdBy, input))
+}
+
+/**
+ * Binds a template's roles to this tenant's members and writes the result as an ordinary workflow.
+ * Resolution and insert share one transaction, so a member added or deleted mid-call cannot produce
+ * a graph that references someone who is not there. A role with no member leaves the stage
+ * unassigned rather than failing — an unassigned stage is visible and fixable.
+ */
+export function createWorkflowFromTemplate(
+  pool: pg.Pool,
+  tenantId: string,
+  createdBy: string,
+  template: WorkflowTemplate,
+  projectId: string,
+  name?: string
+): Promise<WriteResult> {
   return withTenant(pool, tenantId, async (client) => {
-    const unknown = await unknownMemberIds(client, input.stages)
-    if (unknown.length > 0) return { kind: 'unknown_member', memberIds: unknown }
-    const { rows } = await client.query<WorkflowRow>(
-      `INSERT INTO workflows (tenant_id, project_id, name, created_by) VALUES ($1, $2, $3, $4) RETURNING *`,
-      [tenantId, input.projectId, input.name, createdBy]
+    const { rows } = await client.query<{ id: string; role: string }>(
+      // Why: deterministic pick — the same template on the same tenant must always bind the same member.
+      `SELECT DISTINCT ON (role) id, role FROM members ORDER BY role, name`
     )
-    const row = rows[0]!
-    await writeGraph(client, tenantId, row.id, input)
-    return { kind: 'ok', workflow: await readGraph(client, row) }
+    const memberIdByRole = new Map(rows.map((r) => [r.role, r.id]))
+    return insertWorkflow(client, tenantId, createdBy, {
+      projectId,
+      name: name ?? template.name,
+      stages: template.stages.map((stage) => ({
+        key: stage.key,
+        name: stage.name,
+        ordinal: stage.ordinal,
+        memberId: stage.memberRole ? (memberIdByRole.get(stage.memberRole) ?? null) : null,
+        reversibility: stage.reversibility,
+        inheritedCost: stage.inheritedCost,
+        requiredChecks: []
+      })),
+      transitions: template.transitions.map((t) => ({ ...t }))
+    })
   })
 }
 

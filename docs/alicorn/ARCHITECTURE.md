@@ -163,6 +163,10 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
   `(workflow_id, ordinal)` — it would fail mid-statement on a reorder.
 - **Stage checks win over project checks; an empty stage list still wins.** Only a *missing* stage falls
   back to `project_required_checks`, so a stage never silently inherits a rule it did not author.
+- **Templates ship in code, not in a table.** A template names a *role*; instantiation binds the
+  tenant's member holding it, and a role with no member leaves the stage unassigned. Keys therefore
+  come from templates rather than free-text `phase` — the set SK1 consumes is
+  `FEATURE_DELIVERY_STAGE_KEYS`.
 - **Deleting a member unassigns its stages** (`ON DELETE SET NULL`). An unassigned stage is a visible,
   fixable state; a vanished workflow is not.
 
