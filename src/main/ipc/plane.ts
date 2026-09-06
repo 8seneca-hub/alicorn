@@ -1,5 +1,10 @@
 import { ipcMain } from 'electron'
-import { connectPlane, disconnectPlane, getPlaneStatus } from '../plane/plane-connection'
+import {
+  connectPlane,
+  disconnectPlane,
+  getPlaneStatus,
+  setDefaultPlaneProject
+} from '../plane/plane-connection'
 import { attempt, optionalString, withClient } from '../plane/plane-read-envelope'
 import {
   listProjectStates,
@@ -41,6 +46,18 @@ export function registerPlaneHandlers(): void {
   )
 
   ipcMain.handle('plane:status', async (): Promise<PlaneConnectionStatus> => getPlaneStatus())
+
+  ipcMain.handle(
+    'plane:setDefaultProject',
+    async (
+      _event,
+      args: { connectionId?: unknown; projectId?: unknown }
+    ): Promise<PlaneConnectionStatus> =>
+      setDefaultPlaneProject(
+        optionalString(args?.connectionId) ?? getPlaneStatus().activeConnectionId ?? '',
+        optionalString(args?.projectId) ?? null
+      )
+  )
 
   ipcMain.handle(
     'plane:listProjects',

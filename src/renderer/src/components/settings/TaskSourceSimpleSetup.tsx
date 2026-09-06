@@ -123,3 +123,42 @@ export function JiraSetupSteps(
     </>
   )
 }
+
+// Plane has no connect dialog of its own: the form lives in the Integrations
+// card, because connecting needs a URL, a workspace slug and a key together.
+export function PlaneSetupSteps(
+  props: ConnectStepProps & { onOpenIntegrations: () => void }
+): React.JSX.Element {
+  return (
+    <ol className="divide-y divide-border/50">
+      <TaskSourceStepRow
+        index={1}
+        state={getConnectStepState(props)}
+        title={translate('auto.components.settings.TasksPane.connectPlaneTitle', 'Connect Plane')}
+        description={translate(
+          'auto.components.settings.TasksPane.connectPlaneDescription',
+          'Add a Plane workspace with its URL, slug and API key, then pick a default project.'
+        )}
+        action={
+          <Button
+            type="button"
+            size="sm"
+            variant={props.connected ? 'outline' : 'default'}
+            onClick={props.onOpenIntegrations}
+          >
+            {props.connected
+              ? translate('auto.components.settings.TasksPane.managePlane', 'Manage workspace')
+              : translate('auto.components.settings.TasksPane.addPlane', 'Add Plane access')}
+          </Button>
+        }
+      />
+      <TaskSourceShowInTasksStep
+        index={2}
+        providerLabel={translate('auto.components.settings.TasksPane.planeLabel', 'Plane')}
+        visible={props.visible}
+        canHide={props.canHide}
+        onToggleVisible={props.onToggleVisible}
+      />
+    </ol>
+  )
+}

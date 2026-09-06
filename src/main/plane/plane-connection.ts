@@ -171,3 +171,20 @@ export async function listConnectedProjects(signal?: AbortSignal): Promise<Plane
 export function planeConnectionDisplayName(baseUrl: string, workspaceSlug: string): string {
   return `${workspaceSlug} (${new URL(normalizeBaseUrl(baseUrl)).host})`
 }
+
+// The Tasks surface needs a project before it can read anything, so the choice
+// is stored with the connection rather than held in renderer state that a
+// reload would lose.
+export function setDefaultPlaneProject(
+  connectionId: string,
+  projectId: string | null
+): PlaneConnectionStatus {
+  const file = getConnectionFile()
+  writeConnectionFile({
+    ...file,
+    connections: file.connections.map((connection) =>
+      connection.id === connectionId ? { ...connection, defaultProjectId: projectId } : connection
+    )
+  })
+  return getPlaneStatus()
+}

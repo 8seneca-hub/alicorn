@@ -86,7 +86,8 @@ function normalizeConnection(input: unknown): PlaneConnection | null {
     id: record.id,
     baseUrl: normalizeBaseUrl(record.baseUrl),
     workspaceSlug: record.workspaceSlug,
-    displayName: record.displayName
+    displayName: record.displayName,
+    defaultProjectId: typeof record.defaultProjectId === 'string' ? record.defaultProjectId : null
   }
 }
 

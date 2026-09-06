@@ -1,7 +1,13 @@
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../types'
 import { getProviderRuntimeContextKey } from '@/lib/provider-runtime-context'
-import { planeConnect, planeDisconnect, planeStatus } from '@/runtime/runtime-plane-client'
+import {
+  planeConnect,
+  planeDisconnect,
+  planeListProjects,
+  planeSetDefaultProject,
+  planeStatus
+} from '@/runtime/runtime-plane-client'
 import { DISCONNECTED_PLANE_STATUS, type PlaneSlice } from './plane-slice-contract'
 
 export type { PlaneSlice } from './plane-slice-contract'
@@ -53,6 +59,18 @@ export const createPlaneSlice: StateCreator<AppState, [], [], PlaneSlice> = (set
       planeStatusContextKey: getProviderRuntimeContextKey(get().settings)
     })
     return { ok: true }
+  },
+
+  setPlaneDefaultProject: async (args) => {
+    const status = await planeSetDefaultProject(get().settings, args)
+    set({ planeStatus: status, planeStatusChecked: true })
+  },
+
+  // Not cached here: the settings card reads projects once to populate a
+  // picker, and a stale list there would offer a project that no longer exists.
+  listPlaneProjects: async () => {
+    const result = await planeListProjects(get().settings)
+    return result.ok ? result.value : []
   },
 
   disconnectPlane: async (args) => {

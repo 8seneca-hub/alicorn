@@ -2248,7 +2248,12 @@
         "linearModeHasWorktreeTooltip": "Linear tickets linked to an Orca workspace",
         "linearEmptyHasWorktree": "No Linear tickets are linked to an Orca workspace yet. Start work from a Linear issue to see it here.",
         "linearOpenAttachedWorkspace": "Open workspace attached to {{value0}}",
-        "linearWorktreesColumn": "Workspaces"
+        "linearWorktreesColumn": "Workspaces",
+        "planeListPending": "Plane issues are not listed yet",
+        "planeConnect": "Connect a Plane workspace",
+        "planeListPendingHint": "The workspace is connected. Browsing issues from here is not available yet.",
+        "planeConnectHint": "Connect Plane in Settings to use it as a task source.",
+        "planeHide": "Hide Plane"
       },
       "Terminal": {
         "73768427cf": "Close",
@@ -8424,7 +8429,13 @@
           "integrationsHint": "Credentials for all providers also live under",
           "integrationsLink": "Integrations",
           "skillHint": ". After Linear is connected, usage examples stay under Settings → Linear.",
-          "incompleteBannerBodyWithLinear": "Hide providers you do not use, or expand a card and finish its steps. For Linear: API access, the agent skill, and Show in Tasks."
+          "incompleteBannerBodyWithLinear": "Hide providers you do not use, or expand a card and finish its steps. For Linear: API access, the agent skill, and Show in Tasks.",
+          "connectPlaneTitle": "Connect Plane",
+          "connectPlaneDescription": "Add a Plane workspace with its URL, slug and API key, then pick a default project.",
+          "managePlane": "Manage workspace",
+          "addPlane": "Add Plane access",
+          "planeLabel": "Plane",
+          "planeDescription": "Connect a Plane workspace and show its issues in Tasks."
         },
         "TerminalAppearanceSection": {
           "a14a427ae4": "Thickness of the pane divider line.",
@@ -11785,6 +11796,27 @@
           },
           "sectionTitle": "Members",
           "sectionDescription": "Reusable agent roles: backend, skills, permission mode and workspace kind."
+        },
+        "plane": {
+          "integration": {
+            "card": {
+              "urlPlaceholder": "https://plane.example.com",
+              "url": "Plane URL",
+              "slugPlaceholder": "workspace-slug",
+              "slug": "Workspace slug",
+              "keyPlaceholder": "plane_api_…",
+              "key": "API key",
+              "connect": "Connect Plane",
+              "name": "Plane",
+              "description": "Connect a Plane workspace to browse its issues and start work from them. The API key is stored on the host that runs the workspace.",
+              "connected": "Connected",
+              "notConnected": "Not connected",
+              "disconnect": "Disconnect",
+              "defaultProject": "Default project",
+              "selectProject": "Select a project",
+              "noProjects": "This workspace has no projects the API key can read."
+            }
+          }
         }
       },
       "right": {
