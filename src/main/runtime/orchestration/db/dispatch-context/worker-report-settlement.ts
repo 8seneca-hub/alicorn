@@ -171,6 +171,17 @@ export function settleWorkerReportInTransaction(
   if (params.outcome === 'succeeded') {
     this.promoteReadyTasks(params.taskId)
   }
+  // Why: the ledger's exactly-once guarantee starts here — the outbox row commits with the settlement or not at all.
+  this.enqueueLedgerOutbox({
+    kind: 'step_outcome',
+    dedupeKey: `step_outcome:${params.dispatchId}`,
+    payload: {
+      taskId: params.taskId,
+      dispatchId: params.dispatchId,
+      outcome: params.outcome,
+      result: params.result
+    }
+  })
   this.db.exec('RELEASE settle_worker_report')
   return { action: 'settled', outcome: params.outcome, duplicate: false }
 }

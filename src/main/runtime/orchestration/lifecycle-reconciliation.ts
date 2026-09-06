@@ -283,7 +283,8 @@ function reconcileWorkerDoneMessage(
     completedBy: msg.from_handle,
     filesModified,
     reportPath: typeof payload.reportPath === 'string' ? payload.reportPath : null,
-    completedAt: new Date().toISOString()
+    completedAt: new Date().toISOString(),
+    phase: typeof payload.phase === 'string' ? payload.phase : null
   })
   const settlement = db.settleWorkerReport({
     taskId,
