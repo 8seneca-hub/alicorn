@@ -5,7 +5,9 @@ import { PlaneIcon } from '@/components/icons/PlaneIcon'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
 import type { PlaneIssue } from '../../../../../shared/plane-types'
+import { PlaneIssueDetail } from './PlaneIssueDetail'
 import { PlaneIssueList } from './PlaneIssueList'
+import { usePlaneStartWork } from './use-plane-start-work'
 import { usePlaneProjectData } from './use-plane-project-data'
 import { translate } from '@/i18n/i18n'
 
@@ -21,6 +23,7 @@ export function TaskPagePlaneContent({
   const { issues, states, refresh } = usePlaneProjectData(planeConnected)
 
   const onSelect = useCallback((issue: PlaneIssue) => setSelectedIssue(issue), [])
+  const startWork = usePlaneStartWork()
 
   // A project switch must not leave the previous project's issue selected.
   const selectedProjectId = useAppStore((s) => s.selectedPlaneProjectId)
@@ -69,7 +72,14 @@ export function TaskPagePlaneContent({
         </Button>
       </div>
       {planeError ? <p className="px-3 py-2 text-xs text-destructive">{planeError}</p> : null}
-      {planeLoading && issues.length === 0 ? (
+      {selectedIssue ? (
+        <PlaneIssueDetail
+          issue={selectedIssue}
+          states={states}
+          onStartWork={startWork}
+          onClose={() => setSelectedIssue(null)}
+        />
+      ) : planeLoading && issues.length === 0 ? (
         <div className="flex items-center justify-center py-14">
           <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
         </div>
@@ -77,7 +87,7 @@ export function TaskPagePlaneContent({
         <PlaneIssueList
           issues={issues}
           states={states}
-          selectedIssueId={selectedIssue?.id ?? null}
+          selectedIssueId={null}
           onSelect={onSelect}
         />
       )}

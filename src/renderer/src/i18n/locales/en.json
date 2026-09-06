@@ -16533,7 +16533,10 @@
             "hide": "Hide Plane",
             "heading": "Plane issues",
             "refresh": "Refresh",
-            "empty": "No issues in this project."
+            "empty": "No issues in this project.",
+            "startWork": "Start work",
+            "close": "Close",
+            "noDescription": "No description."
           }
         }
       },
