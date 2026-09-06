@@ -1,8 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
-import { mapPlaneMember, mapPlaneProject, mapPlaneState } from './plane-project-queries'
+import {
+  listWorkspaceMembers,
+  mapPlaneMember,
+  mapPlaneProject,
+  mapPlaneState
+} from './plane-project-queries'
 import type { PlaneClient } from './plane-request'
 
-vi.mock('../network/http-client', () => ({ getMainHttpClient: () => ({}) }))
+const fetchMock = vi.fn()
+vi.mock('../network/http-client', () => ({
+  getMainHttpClient: () => ({ fetch: fetchMock, proxySession: () => null })
+}))
 vi.mock('../network/proxy-settings', () => ({ ensureElectronProxyFromEnvironment: async () => {} }))
 vi.mock('../observability/tracer', () => ({
   withSpan: async (_name: string, run: (span: unknown) => unknown) =>
@@ -73,5 +81,45 @@ describe('mapPlaneMember', () => {
 
   it('reports a missing email as null rather than an empty string', () => {
     expect(mapPlaneMember({ id: 'u1' })?.email).toBeNull()
+  })
+})
+
+describe('listWorkspaceMembers', () => {
+  function jsonResponse(body: unknown): Response {
+    return { ok: true, status: 200, json: async () => body } as unknown as Response
+  }
+
+  it('reads the bare array Plane returns for members', async () => {
+    fetchMock.mockReset()
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse([
+        { id: 'u1', first_name: 'Nghia', last_name: 'Dang', email: 'n@example.com' },
+        { id: 'u2', display_name: 'toan.duc' }
+      ])
+    )
+
+    await expect(listWorkspaceMembers(client)).resolves.toEqual([
+      { id: 'u1', displayName: 'Nghia Dang', email: 'n@example.com' },
+      { id: 'u2', displayName: 'toan.duc', email: null }
+    ])
+    // One request: members is not paginated, so it must not go through the
+    // cursor loop that every other list endpoint uses.
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('still reads an enveloped roster if a deployment returns one', async () => {
+    fetchMock.mockReset()
+    fetchMock.mockResolvedValueOnce(jsonResponse({ results: [{ id: 'u1', email: 'a@b.c' }] }))
+
+    await expect(listWorkspaceMembers(client)).resolves.toEqual([
+      { id: 'u1', displayName: 'a@b.c', email: 'a@b.c' }
+    ])
+  })
+
+  it('returns an empty roster rather than throwing on an unexpected shape', async () => {
+    fetchMock.mockReset()
+    fetchMock.mockResolvedValueOnce(jsonResponse({ detail: 'Not found.' }))
+
+    await expect(listWorkspaceMembers(client)).resolves.toEqual([])
   })
 })

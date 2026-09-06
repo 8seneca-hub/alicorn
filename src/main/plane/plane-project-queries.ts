@@ -6,7 +6,7 @@ import {
   type PlaneStateGroup
 } from '../../shared/plane-types'
 import { asRecord, asString, fetchAllPages, type PlaneRecord } from './plane-record-pages'
-import { projectPath, workspacePath, type PlaneClient } from './plane-request'
+import { planeRequest, projectPath, workspacePath, type PlaneClient } from './plane-request'
 
 const STATE_GROUP_SET = new Set<string>(PLANE_STATE_GROUPS)
 
@@ -98,16 +98,21 @@ export async function listProjectStates(
     )
 }
 
+// Unlike every other list endpoint, members returns a BARE ARRAY with no
+// pagination envelope, so it cannot go through fetchAllPages. It also requires
+// a workspace-admin key — a member-level key gets 403 here but reads projects,
+// states and issues fine, so callers must treat an empty roster as normal.
 export async function listWorkspaceMembers(
   client: PlaneClient,
   signal?: AbortSignal
 ): Promise<PlaneMember[]> {
-  const records = await fetchAllPages<unknown>(
+  const response = await planeRequest<unknown>(
     client,
     workspacePath(client.workspaceSlug, 'members/'),
     signal ? { signal } : undefined
   )
-  return records
+  const records = Array.isArray(response) ? response : (asRecord(response).results ?? [])
+  return (Array.isArray(records) ? records : [])
     .map((record) => mapPlaneMember(asRecord(record)))
     .filter((member): member is PlaneMember => member !== null)
 }

@@ -1,6 +1,7 @@
 import { getExecutionHostLabel } from '../../../../shared/execution-host'
 import type { TaskSourceContext } from '../../../../shared/task-source-context'
 import { getTaskSourceProviderLabel } from './task-source-provider-label'
+import { getTaskProviderIdentityLabel } from '../task-provider-identity-label'
 
 export type AutomationSourceDisplay = {
   label: string
@@ -35,18 +36,12 @@ export function getAutomationSourceDisplay(
 function getSourceIdentityLabel(sourceContext: TaskSourceContext): string | null {
   const identity = sourceContext.providerIdentity
   if (identity) {
-    switch (identity.provider) {
-      case 'github':
-        return `${identity.owner}/${identity.repo}`
-      case 'gitlab':
-        return identity.namespace && identity.project
-          ? `${identity.namespace}/${identity.project}`
-          : (identity.projectId ?? null)
-      case 'linear':
-        return identity.workspaceName ?? identity.workspaceId ?? null
-      case 'jira':
-        return identity.siteUrl ?? identity.siteId ?? null
-    }
+    return (
+      getTaskProviderIdentityLabel(identity) ??
+      sourceContext.accountLabel ??
+      sourceContext.repoId ??
+      null
+    )
   }
   return sourceContext.accountLabel ?? sourceContext.repoId ?? null
 }

@@ -13,7 +13,9 @@ export type PlanePagedResponse<T> = {
 
 export type PlaneRecord = Record<string, unknown>
 
-// Plane caps a page at 100; anything larger is silently clamped server-side.
+// Plane Cloud documents a 100 cap while self-hosted accepts up to 1000. 100 is
+// the portable request size; correctness comes from following next_cursor, not
+// from the page size.
 const MAX_PER_PAGE = 100
 // Bounds a paginated read so a misbehaving deployment cannot spin forever.
 const MAX_PAGES = 50

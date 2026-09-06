@@ -9,6 +9,7 @@ import {
   type PlaneRecord
 } from './plane-record-pages'
 import { planeRequest, projectPath, type PlaneClient } from './plane-request'
+import { withIssueSegment } from './plane-issue-endpoint'
 
 const PRIORITY_SET = new Set<string>(PLANE_PRIORITIES)
 
@@ -77,7 +78,11 @@ export function mapPlaneIssue(
 
 export type ListProjectIssuesOptions = {
   projectIdentifier?: string
-  /** Plane orders by `-created_at` by default; pass e.g. `-updated_at` to change it. */
+  /**
+   * Plane orders by `-created_at` by default. The server allowlists this value
+   * and silently falls back to the default for anything it does not recognise,
+   * so an unsupported ordering is not an error — it is just ignored.
+   */
   orderBy?: string
   signal?: AbortSignal
 }
@@ -87,13 +92,14 @@ export async function listProjectIssues(
   projectId: string,
   options?: ListProjectIssuesOptions
 ): Promise<PlaneIssue[]> {
-  const path = withQuery(projectPath(client.workspaceSlug, projectId, 'issues/'), {
-    order_by: options?.orderBy
-  })
-  const records = await fetchAllPages<unknown>(
-    client,
-    path,
-    options?.signal ? { signal: options.signal } : undefined
+  const records = await withIssueSegment(client, (segment) =>
+    fetchAllPages<unknown>(
+      client,
+      withQuery(projectPath(client.workspaceSlug, projectId, `${segment}/`), {
+        order_by: options?.orderBy
+      }),
+      options?.signal ? { signal: options.signal } : undefined
+    )
   )
   return records
     .map((record) => mapPlaneIssue(asRecord(record), client, options?.projectIdentifier))
@@ -106,10 +112,12 @@ export async function getProjectIssue(
   issueId: string,
   options?: { projectIdentifier?: string; signal?: AbortSignal }
 ): Promise<PlaneIssue | null> {
-  const record = await planeRequest<unknown>(
-    client,
-    projectPath(client.workspaceSlug, projectId, `issues/${encodeURIComponent(issueId)}/`),
-    options?.signal ? { signal: options.signal } : undefined
+  const record = await withIssueSegment(client, (segment) =>
+    planeRequest<unknown>(
+      client,
+      projectPath(client.workspaceSlug, projectId, `${segment}/${encodeURIComponent(issueId)}/`),
+      options?.signal ? { signal: options.signal } : undefined
+    )
   )
   return mapPlaneIssue(asRecord(record), client, options?.projectIdentifier)
 }

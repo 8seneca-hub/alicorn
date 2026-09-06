@@ -65,6 +65,9 @@ export function useTaskPageStoreBindings() {
   const jiraStatus = useAppStore((s) => s.jiraStatus)
   const jiraStatusChecked = useAppStore((s) => s.jiraStatusChecked)
   const jiraStatusContextKey = useAppStore((s) => s.jiraStatusContextKey)
+  const planeStatus = useAppStore((s) => s.planeStatus)
+  const planeStatusChecked = useAppStore((s) => s.planeStatusChecked)
+  const planeStatusContextKey = useAppStore((s) => s.planeStatusContextKey)
   const selectJiraSite = useAppStore((s) => s.selectJiraSite)
   const searchJiraIssues = useAppStore((s) => s.searchJiraIssues)
   const listJiraIssues = useAppStore((s) => s.listJiraIssues)
@@ -76,11 +79,14 @@ export function useTaskPageStoreBindings() {
   providerRuntimeContextKeyRef.current = providerRuntimeContextKey
   const linearStatusCurrent = linearStatusContextKey === providerRuntimeContextKey
   const jiraStatusCurrent = jiraStatusContextKey === providerRuntimeContextKey
+  const planeStatusCurrent = planeStatusContextKey === providerRuntimeContextKey
   const preflightStatusCurrent = preflightStatusContextKey === expectedPreflightContextKey
   const linearStatusReady = linearStatusCurrent && linearStatusChecked
   const jiraStatusReady = jiraStatusCurrent && jiraStatusChecked
   const linearConnected = linearStatusCurrent && linearStatus.connected
   const jiraConnected = jiraStatusCurrent && jiraStatus.connected
+  const planeStatusReady = planeStatusCurrent && planeStatusChecked
+  const planeConnected = planeStatusCurrent && planeStatus.connected
   const submitShortcutLabel = getScreenSubmitShortcutLabel()
   return {
     settings,
@@ -149,6 +155,9 @@ export function useTaskPageStoreBindings() {
     preflightStatusCurrent,
     linearStatusReady,
     jiraStatusReady,
+    planeStatus,
+    planeStatusReady,
+    planeConnected,
     linearConnected,
     jiraConnected,
     submitShortcutLabel

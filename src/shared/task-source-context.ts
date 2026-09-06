@@ -208,6 +208,7 @@ function normalizeTaskProvider(value: unknown): TaskProvider | null {
     case 'gitlab':
     case 'linear':
     case 'jira':
+    case 'plane':
       return value
     default:
       return null
