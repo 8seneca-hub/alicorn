@@ -1,63 +1,20 @@
 import { ipcMain } from 'electron'
-import {
-  connectPlane,
-  disconnectPlane,
-  getActiveClient,
-  getClientById,
-  getPlaneStatus
-} from '../plane/plane-connection'
+import { connectPlane, disconnectPlane, getPlaneStatus } from '../plane/plane-connection'
+import { attempt, optionalString, withClient } from '../plane/plane-read-envelope'
 import {
   listProjectStates,
   listProjects,
   listWorkspaceMembers
 } from '../plane/plane-project-queries'
 import { getProjectIssue, listProjectIssues } from '../plane/plane-issue-queries'
-import type { PlaneClient } from '../plane/plane-request'
 import type {
   PlaneConnectionStatus,
   PlaneIssue,
   PlaneMember,
   PlaneProject,
+  PlaneResult,
   PlaneState
 } from '../../shared/plane-types'
-
-export type PlaneResult<T> = { ok: true; value: T } | { ok: false; error: string }
-
-function describeError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
-
-// Every read is wrapped so a transport or credential failure reaches the
-// renderer as a message it can show, not an unhandled IPC rejection.
-async function attempt<T>(run: () => Promise<T> | T): Promise<PlaneResult<T>> {
-  try {
-    return { ok: true, value: await run() }
-  } catch (error) {
-    return { ok: false, error: describeError(error) }
-  }
-}
-
-function optionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined
-}
-
-// A read names its connection explicitly or falls back to the active one, so a
-// list started before a connection switch cannot resolve against the new key.
-function resolveClient(connectionId: unknown): PlaneClient | null {
-  const id = optionalString(connectionId)
-  return id ? getClientById(id) : getActiveClient()
-}
-
-async function withClient<T>(
-  connectionId: unknown,
-  run: (client: PlaneClient) => Promise<T>
-): Promise<PlaneResult<T>> {
-  const client = resolveClient(connectionId)
-  if (!client) {
-    return { ok: false, error: 'No Plane workspace is connected.' }
-  }
-  return attempt(() => run(client))
-}
 
 /** Registers every `plane:*` IPC handler on the main process. */
 export function registerPlaneHandlers(): void {

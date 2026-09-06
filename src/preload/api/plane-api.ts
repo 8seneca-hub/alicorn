@@ -3,10 +3,11 @@ import type {
   PlaneIssue,
   PlaneMember,
   PlaneProject,
+  PlaneResult,
   PlaneState
 } from '../../shared/plane-types'
 
-export type PlaneResult<T> = { ok: true; value: T } | { ok: false; error: string }
+export type { PlaneResult }
 
 export type PlaneApi = {
   connect: (args: {

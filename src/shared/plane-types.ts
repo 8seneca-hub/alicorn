@@ -99,3 +99,8 @@ export const PLANE_PRIORITIES: readonly PlanePriority[] = [
   'low',
   'none'
 ]
+
+// Reads answer with this envelope rather than rejecting: a bad key or a dropped
+// connection has to reach the caller as something it can show, across both the
+// IPC and the runtime-RPC boundary.
+export type PlaneResult<T> = { ok: true; value: T } | { ok: false; error: string }

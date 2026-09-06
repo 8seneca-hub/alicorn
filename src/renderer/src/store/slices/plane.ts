@@ -1,6 +1,7 @@
 import type { StateCreator } from 'zustand'
 import type { AppState } from '../types'
 import { getProviderRuntimeContextKey } from '@/lib/provider-runtime-context'
+import { planeConnect, planeDisconnect, planeStatus } from '@/runtime/runtime-plane-client'
 import { DISCONNECTED_PLANE_STATUS, type PlaneSlice } from './plane-slice-contract'
 
 export type { PlaneSlice } from './plane-slice-contract'
@@ -22,7 +23,7 @@ export const createPlaneSlice: StateCreator<AppState, [], [], PlaneSlice> = (set
       set({ planeStatusChecked: false })
     }
     try {
-      const status = await window.api.plane.status()
+      const status = await planeStatus(get().settings)
       if (generation !== statusReadGeneration) {
         return
       }
@@ -41,7 +42,7 @@ export const createPlaneSlice: StateCreator<AppState, [], [], PlaneSlice> = (set
   },
 
   connectPlane: async (args) => {
-    const result = await window.api.plane.connect(args)
+    const result = await planeConnect(get().settings, args)
     if (!result.ok) {
       return { ok: false, error: result.error }
     }
@@ -55,7 +56,7 @@ export const createPlaneSlice: StateCreator<AppState, [], [], PlaneSlice> = (set
   },
 
   disconnectPlane: async (args) => {
-    const status = await window.api.plane.disconnect(args)
+    const status = await planeDisconnect(get().settings, args)
     statusReadGeneration += 1
     set({
       planeStatus: status,
