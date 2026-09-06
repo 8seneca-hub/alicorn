@@ -34,6 +34,21 @@ const UpdateIssueState = z.object({
   connectionId: OptionalString
 })
 
+const IssueReference = z.object({
+  reference: requiredString('An issue id is required'),
+  projectId: OptionalString,
+  connectionId: OptionalString
+})
+
+const SearchIssues = z.object({
+  projectId: requiredString('Project id is required'),
+  stateGroup: z.enum(['backlog', 'unstarted', 'started', 'completed', 'cancelled']).optional(),
+  query: OptionalString,
+  limit: z.number().int().positive().max(500).optional(),
+  projectIdentifier: OptionalString,
+  connectionId: OptionalString
+})
+
 const GetIssue = z.object({
   projectId: requiredString('Project id is required'),
   issueId: requiredString('Issue id is required'),
@@ -120,6 +135,45 @@ export const PLANE_METHODS: RpcAnyMethod[] = [
     handler: async (params, { runtime }) =>
       runtime.planeGetIssue(params.projectId.trim(), params.issueId.trim(), {
         ...(params.projectIdentifier ? { projectIdentifier: params.projectIdentifier } : {}),
+        ...(params.connectionId ? { connectionId: params.connectionId } : {})
+      })
+  }),
+  defineMethod({
+    name: 'plane.issue',
+    params: IssueReference,
+    handler: async (params, { runtime }) =>
+      runtime.planeIssueDetail(params.reference.trim(), {
+        ...(params.projectId ? { projectId: params.projectId } : {}),
+        ...(params.connectionId ? { connectionId: params.connectionId } : {})
+      })
+  }),
+  defineMethod({
+    name: 'plane.search',
+    params: SearchIssues,
+    handler: async (params, { runtime }) =>
+      runtime.planeSearchIssues(params.projectId.trim(), {
+        ...(params.stateGroup ? { stateGroup: params.stateGroup } : {}),
+        ...(params.query ? { query: params.query } : {}),
+        ...(params.limit !== undefined ? { limit: params.limit } : {}),
+        ...(params.projectIdentifier ? { projectIdentifier: params.projectIdentifier } : {}),
+        ...(params.connectionId ? { connectionId: params.connectionId } : {})
+      })
+  }),
+  defineMethod({
+    name: 'plane.comment',
+    params: IssueReference.extend({ body: requiredString('A comment body is required') }),
+    handler: async (params, { runtime }) =>
+      runtime.planeAddComment(params.reference.trim(), params.body, {
+        ...(params.projectId ? { projectId: params.projectId } : {}),
+        ...(params.connectionId ? { connectionId: params.connectionId } : {})
+      })
+  }),
+  defineMethod({
+    name: 'plane.setState',
+    params: IssueReference.extend({ stateName: requiredString('A state name is required') }),
+    handler: async (params, { runtime }) =>
+      runtime.planeSetIssueStateByName(params.reference.trim(), params.stateName.trim(), {
+        ...(params.projectId ? { projectId: params.projectId } : {}),
         ...(params.connectionId ? { connectionId: params.connectionId } : {})
       })
   })
