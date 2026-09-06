@@ -107,14 +107,15 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     }
   }
 
-  async function handleStepOutcome(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
-    if (!deps.writer) {
-      throw new RowUntouched()
-    }
+  async function handleStepOutcome(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
     const payload = JSON.parse(row.payload) as StepOutcomePayload
     const worktree = await resolveWorktree(db, payload.dispatchId)
     const stepOutcomeInput = buildStepOutcomeInput({ db, payload, worktree })
-    const posted = await deps.writer.postStepOutcome(stepOutcomeInput)
+    const posted = await writer.postStepOutcome(stepOutcomeInput)
     db.markLedgerOutboxSent(row.id)
 
     const dispatchContext = db.getDispatchContextById(payload.dispatchId)
@@ -152,17 +153,22 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     }
   }
 
-  async function handleContextCapture(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
-    if (!deps.writer) {
-      throw new RowUntouched()
-    }
+  async function handleContextCapture(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
     const payload = JSON.parse(row.payload) as ContextCaptureInput
-    await deps.writer.postContextCapture(payload)
+    await writer.postContextCapture(payload)
     db.markLedgerOutboxSent(row.id)
   }
 
-  async function handleSpendAttribution(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
-    if (!deps.spendAttributor || !deps.writer) {
+  async function handleSpendAttribution(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
+    if (!deps.spendAttributor) {
       throw new RowUntouched()
     }
     const payload = JSON.parse(row.payload) as SpendAttributionPayload
@@ -172,40 +178,56 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
       startedAt: payload.startedAt,
       completedAt: payload.completedAt
     })
-    await deps.writer.patchStepOutcomeSpend(payload.outcomeId, patch)
+    await writer.patchStepOutcomeSpend(payload.outcomeId, patch)
     db.markLedgerOutboxSent(row.id)
   }
 
-  async function handleStepVerification(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
-    if (!deps.verificationRunner || !deps.writer) {
+  async function handleStepVerification(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
+    if (!deps.verificationRunner) {
       throw new RowUntouched()
     }
     const payload = JSON.parse(row.payload) as StepVerificationPayload
-    await deps.verificationRunner(payload, deps.writer)
+    await deps.verificationRunner(payload, writer)
     db.markLedgerOutboxSent(row.id)
   }
 
-  async function processRow(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
+  async function processRow(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
     switch (row.kind) {
       case 'step_outcome':
-        return handleStepOutcome(db, row)
+        return handleStepOutcome(db, row, writer)
       case 'context_capture':
-        return handleContextCapture(db, row)
+        return handleContextCapture(db, row, writer)
       case 'spend_attribution':
-        return handleSpendAttribution(db, row)
+        return handleSpendAttribution(db, row, writer)
       case 'step_verification':
-        return handleStepVerification(db, row)
+        return handleStepVerification(db, row, writer)
     }
   }
 
   async function drainOnce(): Promise<{ sent: number; failed: number }> {
+    // Why a top-level check (not a per-row RowUntouched): a null writer is a global
+    // condition like ControlPlaneUnavailableError, not a per-kind gap — it stops the
+    // whole pass and logs, rather than being skipped row by row.
+    if (!deps.writer) {
+      logUnavailableOnce()
+      return { sent: 0, failed: 0 }
+    }
+    const writer = deps.writer
     const db = deps.getDb()
     const rows = db.listDueLedgerOutbox(25)
     let sent = 0
     let failed = 0
     for (const row of rows) {
       try {
-        await processRow(db, row)
+        await processRow(db, row, writer)
         sent += 1
       } catch (error) {
         if (error instanceof RowUntouched) {

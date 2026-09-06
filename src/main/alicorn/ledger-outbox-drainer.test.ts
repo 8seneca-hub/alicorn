@@ -124,6 +124,59 @@ describe('startLedgerOutboxDrainer', () => {
     expect(new Date(row.not_before!).getTime()).toBeGreaterThan(Date.now())
   })
 
+  it('processes a mixed batch: a normal failure on one row does not block a later row from succeeding', async () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    db.enqueueLedgerOutbox({
+      kind: 'context_capture',
+      dedupeKey: 'context_capture:row-1',
+      payload: {
+        runId: task.run_id,
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        prompt: 'one',
+        contextSlice: {}
+      }
+    })
+    db.enqueueLedgerOutbox({
+      kind: 'context_capture',
+      dedupeKey: 'context_capture:row-2',
+      payload: {
+        runId: task.run_id,
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        prompt: 'two',
+        contextSlice: {}
+      }
+    })
+    const postContextCapture = vi
+      .fn()
+      .mockRejectedValueOnce(new ControlPlaneRequestError(500, 'boom'))
+      .mockResolvedValueOnce({ id: 'cc_2', duplicate: false })
+    const writer = fakeWriter({ postContextCapture })
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn() },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    const result = await drainer.drainOnce()
+
+    expect(result).toEqual({ sent: 1, failed: 1 })
+    expect(postContextCapture).toHaveBeenCalledTimes(2)
+    const farFuture = new Date(Date.now() + 120_000).toISOString()
+    const stillDue = db.listDueLedgerOutbox(25, farFuture)
+    expect(stillDue).toHaveLength(1) // only row 1; row 2 was sent
+    expect(stillDue[0].dedupe_key).toBe('context_capture:row-1')
+    expect(stillDue[0].attempts).toBe(1)
+    expect(stillDue[0].last_error).toContain('boom')
+    expect(new Date(stillDue[0].not_before!).getTime()).toBeGreaterThan(Date.now())
+  })
+
   it('backs off a step_outcome row whose task no longer exists, without ever deleting it', async () => {
     db = new OrchestrationDb(':memory:')
     db.enqueueLedgerOutbox({
@@ -176,6 +229,46 @@ describe('startLedgerOutboxDrainer', () => {
     expect(row.last_error).toBeNull()
     expect(row.not_before).toBeNull()
     expect(row.sent_at).toBeNull()
+  })
+
+  it('stops the pass and logs once per 5 minutes when the writer itself is null', async () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: `step_outcome:${dispatch.id}`,
+      payload: { taskId: task.id, dispatchId: dispatch.id, outcome: 'succeeded', result: '{}' }
+    })
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'))
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn() },
+      writer: null,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    const first = await drainer.drainOnce()
+    expect(first).toEqual({ sent: 0, failed: 0 })
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+
+    // Still inside the 5-minute window: the second call must not log again.
+    vi.setSystemTime(new Date('2026-01-01T00:01:00.000Z'))
+    const second = await drainer.drainOnce()
+    expect(second).toEqual({ sent: 0, failed: 0 })
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+
+    const row = db.listDueLedgerOutbox()[0]
+    expect(row.attempts).toBe(0)
+    expect(row.last_error).toBeNull()
+    expect(row.sent_at).toBeNull()
+
+    warnSpy.mockRestore()
+    vi.useRealTimers()
   })
 
   it('leaves a spend_attribution row untouched and continues with other kinds when the handler is null', async () => {
