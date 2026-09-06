@@ -34,3 +34,15 @@ export type DispatchMemberRow = {
   backend: string
   reviewBackendBypass: boolean
 }
+
+// Why: a dispatch's alicorn_dispatch_members row is only written once a Member is
+// assigned; an unassigned worker still needs cost attribution from its start_options.
+export type ActiveOrRecentDispatchRow = {
+  dispatchId: string
+  worktreeId: string | null
+  startOptions: string
+  /** Null when no alicorn_dispatch_members row exists — fall back to startOptions. */
+  memberBackend: string | null
+  dispatchedAt: string | null
+  completedAt: string | null
+}

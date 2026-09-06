@@ -25,7 +25,9 @@ import { startLedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
 import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
 import { attributeDispatchUsage } from '../alicorn/run-usage-attribution'
 import { startContextCeilingWatcher } from '../alicorn/context-ceiling-watcher'
+import { startRunCostPublisher } from '../alicorn/run-cost-publisher'
 import { ALICORN_EVENTS } from '../../shared/alicorn/ipc-channels'
+import { ALICORN_RUN_COST_EVENT } from '../../shared/alicorn/run-cost'
 import { createVerificationRunner } from '../alicorn/diff-coverage/verification-runner'
 import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fetch'
 import { runDiffCoverageCheck } from '../alicorn/diff-coverage/diff-coverage-check'
@@ -205,6 +207,18 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
       ? createMemberDirectory(getControlPlaneClient())
       : null
   )
+  // Why: same settled-state read as the ceiling watcher — no cost until a dispatch is running.
+  state.runCostPublisher?.stop()
+  state.runCostPublisher = startRunCostPublisher({
+    getDb: () => (state.runtime ? state.runtime.getOrchestrationDb() : null),
+    claudeUsage: state.claudeUsage,
+    codexUsage: state.codexUsage,
+    publish: (payload) => {
+      if (state.mainWindow && !state.mainWindow.isDestroyed()) {
+        state.mainWindow.webContents.send(ALICORN_RUN_COST_EVENT, payload)
+      }
+    }
+  })
   runtime.setCommitMessageAgentEnvironmentResolvers({
     // Why: Codex hooks/auth live in Orca's managed runtime home even for the default path, so every launch must resolve CODEX_HOME via runtime-home.
     prepareForCodexLaunch: prepareCodexRuntimeHomeForLaunch,

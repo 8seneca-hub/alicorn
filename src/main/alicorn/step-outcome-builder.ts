@@ -15,7 +15,11 @@ const BACKEND_BY_AGENT_KIND: Partial<Record<string, StepOutcomeBackend>> = {
   openclaude: 'openclaude'
 }
 
-function backendFromWorkerStartOptions(startOptions: string | undefined): StepOutcomeBackend {
+// Exported so other Alicorn features (e.g. run-cost-publisher) reuse this exact
+// start_options.agent resolution instead of duplicating BACKEND_BY_AGENT_KIND.
+export function backendFromWorkerStartOptions(
+  startOptions: string | undefined
+): StepOutcomeBackend {
   if (!startOptions) {
     return 'other'
   }

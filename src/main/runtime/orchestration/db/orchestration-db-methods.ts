@@ -1,3 +1,4 @@
+import type { ActiveOrRecentDispatchMethods } from './alicorn/active-or-recent-dispatch-methods'
 import type { DispatchMemberMethods } from './alicorn/dispatch-member-methods'
 import type { LedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
 import type { TaskStrategyMethods } from './alicorn/task-strategy-methods'
@@ -126,4 +127,5 @@ export type OrchestrationDbMethods = CreateTablesMethods &
   OrchestrationResetMethods &
   LedgerOutboxMethods &
   TaskStrategyMethods &
-  DispatchMemberMethods
+  DispatchMemberMethods &
+  ActiveOrRecentDispatchMethods

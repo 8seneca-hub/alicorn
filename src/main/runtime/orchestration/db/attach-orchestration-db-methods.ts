@@ -1,3 +1,4 @@
+import { attachActiveOrRecentDispatchMethods } from './alicorn/active-or-recent-dispatch-methods'
 import { attachDispatchMemberMethods } from './alicorn/dispatch-member-methods'
 import { attachLedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
 import { attachTaskStrategyMethods } from './alicorn/task-strategy-methods'
@@ -128,4 +129,5 @@ export function attachOrchestrationDbMethods(ctor: { prototype: object }): void 
   attachLedgerOutboxMethods(ctor)
   attachTaskStrategyMethods(ctor)
   attachDispatchMemberMethods(ctor)
+  attachActiveOrRecentDispatchMethods(ctor)
 }

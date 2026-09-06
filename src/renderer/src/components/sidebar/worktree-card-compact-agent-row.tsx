@@ -14,6 +14,8 @@ import { useAgentRowConversationName } from '@/components/dashboard/use-agent-ro
 import { lastEnteredDoneAt } from '@/components/dashboard/agent-finished-timestamp'
 import CacheTimer, { usePromptCacheCountdownForPane } from './CacheTimer'
 import { formatShortTimeAgo } from '@/lib/short-time-ago'
+import { useDispatchCost } from '@/hooks/useAlicornRunCost'
+import { formatRunCostUsd } from '../../../../shared/alicorn/run-cost'
 
 function getCompactAgentPrimary(
   agent: DashboardAgentRowData,
@@ -144,6 +146,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
     dotState === 'monitoring' ? (primary === secondary ? '' : primary) : secondary
   const rowTitle = `${leadingText}${trailingText ? ` - ${trailingText}` : ''}`
   const model = agent.entry.model?.trim() ?? ''
+  const runCost = useDispatchCost(agent.entry.orchestration?.dispatchId)
   const shortTime = getCompactAgentTime(agent, now)
   const cacheTimer = usePromptCacheCountdownForPane(agent.paneKey, cacheTimerActive)
 
@@ -252,6 +255,20 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
           title={model}
         >
           {model}
+        </span>
+      )}
+      {runCost?.status === 'known' && (
+        <span
+          className={cn(
+            'min-w-0 max-w-16 truncate font-mono text-[10px] tabular-nums',
+            isFocusedPane ? 'text-foreground/70' : 'text-muted-foreground/70'
+          )}
+          title={translate(
+            'auto.components.sidebar.worktree.card.compact.agent.row.1dc660987f',
+            'Estimated spend for this dispatch (API-equivalent)'
+          )}
+        >
+          {formatRunCostUsd(runCost.costUsd)}
         </span>
       )}
       {hasChildDisclosure && !childAgentsExpanded && (

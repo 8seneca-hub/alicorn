@@ -8,6 +8,7 @@ import {
 import { appApi } from './api/app-bridge'
 import { orcaProfilesApi } from './api/orca-profiles-bridge'
 import { alicornApi } from './api/alicorn-bridge'
+import { alicornRunCostApi } from './api/alicorn-run-cost-bridge'
 import { platformApi } from './api/platform-bridge'
 import { wslApi } from './api/wsl-bridge'
 import { pwshApi } from './api/pwsh-bridge'
@@ -103,6 +104,7 @@ const api = {
   app: appApi,
   orcaProfiles: orcaProfilesApi,
   alicorn: alicornApi,
+  alicornRunCost: alicornRunCostApi,
   platform: platformApi,
   wsl: wslApi,
   pwsh: pwshApi,

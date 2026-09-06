@@ -123,6 +123,7 @@ function installWillQuitHandler(): void {
     state.starNag?.stop()
     state.automations?.stop()
     state.ledgerOutboxDrainer?.stop()
+    state.runCostPublisher?.stop()
     // Why: plugin hosts are forked children; dispose sends shutdown and
     // escalates to SIGKILL so they cannot outlive the app. The promise joins
     // the teardown barrier below — quitting before it resolves would let

@@ -174,4 +174,9 @@ export class ClaudeUsageStore extends UsageProviderStoreLifecycle<
       refresh: (force) => this.refresh(force)
     })
   }
+
+  /** Freshness of the scanner's own state — callers on a timer read this instead of forcing a rescan. */
+  getLastScanCompletedAt(): number | null {
+    return this.state.scanState.lastScanCompletedAt
+  }
 }

@@ -5859,6 +5859,11 @@
                 "a128d7006b": "{{value0}} {{value1}} child {{value2}}",
                 "289a1d2ca7": "Expand {{value0}}. {{value1}}",
                 "0c1debfe84": "Collapse {{value0}}"
+              },
+              "agent": {
+                "row": {
+                  "1dc660987f": "Estimated spend for this dispatch (API-equivalent)"
+                }
               }
             }
           },

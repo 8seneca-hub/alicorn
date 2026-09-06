@@ -64,6 +64,7 @@ export const mainProcessState = {
   runtime: null as OrcaRuntimeService | null,
   ledgerOutboxDrainer: null as LedgerOutboxDrainer | null,
   contextCeilingWatcher: null as { stop: () => void } | null,
+  runCostPublisher: null as { stop: () => void } | null,
   rateLimits: null as RateLimitService | null,
   runtimeRpc: null as OrcaRuntimeRpcServer | null,
   serveReadinessPublisher: new ServeReadinessPublisher(),
