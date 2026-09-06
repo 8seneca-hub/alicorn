@@ -1,3 +1,6 @@
+import type { DispatchMemberMethods } from './alicorn/dispatch-member-methods'
+import type { LedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
+import type { TaskStrategyMethods } from './alicorn/task-strategy-methods'
 import type { CoordinatorRunStoreMethods } from './coordinator-runs/coordinator-run-store'
 import type { DecisionGateStoreMethods } from './decision-gates/decision-gate-store'
 import type { DispatchCapabilityMethods } from './dispatch-context/dispatch-capability'
@@ -120,4 +123,7 @@ export type OrchestrationDbMethods = CreateTablesMethods &
   WorkerReportSettlementMethods &
   DecisionGateStoreMethods &
   CoordinatorRunStoreMethods &
-  OrchestrationResetMethods
+  OrchestrationResetMethods &
+  LedgerOutboxMethods &
+  TaskStrategyMethods &
+  DispatchMemberMethods
