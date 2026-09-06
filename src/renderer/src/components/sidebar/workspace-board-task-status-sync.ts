@@ -1,14 +1,15 @@
-import { linearGetIssue, linearUpdateIssue } from '@/runtime/runtime-linear-issue-mutations'
-import { linearTeamStates } from '@/runtime/runtime-linear-project-client'
-import type { LinearMutationResult, RuntimeLinearSettings } from '@/runtime/runtime-linear-client'
-import type { LinearIssue } from '../../../../shared/linear/issue-types'
-import type { LinearWorkflowState } from '../../../../shared/linear/workspace-types'
+import type { RuntimeLinearSettings } from '@/runtime/runtime-linear-client'
 import type {
   WorkspaceStatus,
   WorkspaceStatusDefinition,
   Worktree
 } from '../../../../shared/worktree/types'
 import { getWorkspaceStatus } from '../../../../shared/workspace-statuses'
+import {
+  defaultLinearBoardStatusSyncDeps,
+  syncLinearWorktreeStatus
+} from './workspace-board-linear-status-sync'
+import type { LinearBoardStatusSyncDependencies } from './workspace-board-linear-status-sync'
 import type { RuntimePlaneSettings } from '@/runtime/runtime-plane-client'
 import { runPlaneWorktreeStatusSync } from './sync-plane-worktree-status'
 
@@ -19,19 +20,28 @@ export type WorkspaceBoardTaskStatusSyncResult = {
   messages: WorkspaceBoardTaskStatusSyncMessage[]
 }
 
-export type WorkspaceBoardTaskStatusSyncMessage =
-  | { kind: 'issue-read-failed'; issueIdentifier: string }
-  | { kind: 'missing-workflow-state'; statusLabel: string }
-  | { kind: 'ambiguous-workflow-state'; statusLabel: string }
-  | { kind: 'update-failed'; issueIdentifier: string; detail?: string }
-  | { kind: 'provider-error'; issueIdentifier: string; detail?: string }
-  | { kind: 'unexpected-error'; detail?: string }
+// Which tracker a message came from: one board syncs both Linear and Plane
+// worktrees, so naming the wrong one in a toast is worse than naming none.
+export type TaskStatusSyncProvider = 'linear' | 'plane'
 
-type WorkspaceBoardTaskStatusSyncDependencies = {
-  getIssue: typeof linearGetIssue
-  teamStates: typeof linearTeamStates
-  updateIssue: typeof linearUpdateIssue
-}
+export type WorkspaceBoardTaskStatusSyncMessage =
+  | { kind: 'issue-read-failed'; provider: TaskStatusSyncProvider; issueIdentifier: string }
+  | { kind: 'missing-workflow-state'; provider: TaskStatusSyncProvider; statusLabel: string }
+  | { kind: 'ambiguous-workflow-state'; provider: TaskStatusSyncProvider; statusLabel: string }
+  | {
+      kind: 'update-failed'
+      provider: TaskStatusSyncProvider
+      issueIdentifier: string
+      detail?: string
+    }
+  | {
+      kind: 'provider-error'
+      provider: TaskStatusSyncProvider
+      issueIdentifier: string
+      detail?: string
+    }
+  // Raised by the caller when the sync itself threw, so no tracker is implicated.
+  | { kind: 'unexpected-error'; detail?: string }
 
 export type SyncWorkspaceBoardTaskStatusesArgs = {
   worktreeIds: readonly string[]
@@ -49,7 +59,7 @@ export type SyncWorkspaceBoardTaskStatusesArgs = {
   settings?: RuntimeLinearSettings
   getSettingsForWorktree?: (worktreeId: string) => RuntimeLinearSettings
   getLatestWorkspaceStatus: (worktreeId: string) => WorkspaceStatus | null | undefined
-  deps?: Partial<WorkspaceBoardTaskStatusSyncDependencies>
+  deps?: Partial<LinearBoardStatusSyncDependencies>
 }
 
 export type WorkspaceBoardTaskStatusSyncRequest = {
@@ -81,25 +91,7 @@ export function getWorkspaceBoardTaskStatusSyncRequest(args: {
   return { worktreeIds: changedWorktreeIds, targetStatus }
 }
 
-const defaultDeps: WorkspaceBoardTaskStatusSyncDependencies = {
-  getIssue: linearGetIssue,
-  teamStates: linearTeamStates,
-  updateIssue: linearUpdateIssue
-}
-
 const worktreeSyncQueues = new Map<string, Promise<unknown>>()
-
-function normalizeStateName(name: string): string {
-  return name.trim().toLowerCase()
-}
-
-function matchingWorkflowStates(
-  states: readonly LinearWorkflowState[],
-  targetStatus: WorkspaceStatusDefinition
-): LinearWorkflowState[] {
-  const targetName = normalizeStateName(targetStatus.label)
-  return states.filter((state) => normalizeStateName(state.name) === targetName)
-}
 
 function getMessageKey(message: WorkspaceBoardTaskStatusSyncMessage): string {
   return JSON.stringify(message)
@@ -135,13 +127,6 @@ function failed(
   return result
 }
 
-function isAlreadyInState(issue: LinearIssue, workflowState: LinearWorkflowState): boolean {
-  return (
-    normalizeStateName(issue.state.name) === normalizeStateName(workflowState.name) &&
-    issue.state.type === workflowState.type
-  )
-}
-
 function mergeResult(
   aggregate: WorkspaceBoardTaskStatusSyncResult,
   item: WorkspaceBoardTaskStatusSyncResult
@@ -169,89 +154,6 @@ async function enqueueWorktreeSync(
   return next
 }
 
-async function syncLinearWorktreeStatus(
-  args: SyncWorkspaceBoardTaskStatusesArgs,
-  worktreeId: string,
-  deps: WorkspaceBoardTaskStatusSyncDependencies
-): Promise<WorkspaceBoardTaskStatusSyncResult> {
-  const result: WorkspaceBoardTaskStatusSyncResult = {
-    updated: 0,
-    skipped: 0,
-    failed: 0,
-    messages: []
-  }
-  const worktree = args.worktreesById.get(worktreeId)
-  if (!worktree?.linkedLinearIssue) {
-    return skipped(result)
-  }
-
-  const settings = args.getSettingsForWorktree
-    ? args.getSettingsForWorktree(worktreeId)
-    : args.settings
-  const linkedWorkspaceId = worktree.linkedLinearIssueWorkspaceId ?? undefined
-
-  try {
-    const issue = await deps.getIssue(settings, worktree.linkedLinearIssue, linkedWorkspaceId)
-    if (!issue?.team?.id) {
-      return skipped(result, {
-        kind: 'issue-read-failed',
-        issueIdentifier: worktree.linkedLinearIssue
-      })
-    }
-
-    const workspaceId = linkedWorkspaceId ?? issue.workspaceId
-    const states = await deps.teamStates(settings, issue.team.id, workspaceId)
-    const matches = matchingWorkflowStates(states, args.targetStatus)
-    if (matches.length === 0) {
-      return skipped(result, {
-        kind: 'missing-workflow-state',
-        statusLabel: args.targetStatus.label
-      })
-    }
-    if (matches.length > 1) {
-      return skipped(result, {
-        kind: 'ambiguous-workflow-state',
-        statusLabel: args.targetStatus.label
-      })
-    }
-
-    const [workflowState] = matches
-    if (isAlreadyInState(issue, workflowState)) {
-      return skipped(result)
-    }
-
-    // Why: board moves are local-first; slow provider reads must not let an
-    // older board move overwrite a newer local status in Linear.
-    if (args.getLatestWorkspaceStatus(worktreeId) !== args.targetStatus.id) {
-      return skipped(result)
-    }
-
-    const updateResult: LinearMutationResult = await deps.updateIssue(
-      settings,
-      issue.id,
-      { stateId: workflowState.id },
-      workspaceId
-    )
-    if (updateResult.ok === false) {
-      return failed(result, {
-        kind: 'update-failed',
-        issueIdentifier: issue.identifier,
-        detail: updateResult.error
-      })
-    }
-    result.updated += 1
-    return result
-  } catch (error) {
-    return failed(result, {
-      kind: 'provider-error',
-      issueIdentifier: worktree.linkedLinearIssue,
-      detail: error instanceof Error ? error.message : undefined
-    })
-  }
-}
-
-// Why: Plane's own sync module owns the state mapping and the write; this only translates its
-// outcome into the aggregate the board toast already reads.
 async function syncPlaneLinkedWorktree(
   args: SyncWorkspaceBoardTaskStatusesArgs,
   worktreeId: string
@@ -283,6 +185,7 @@ async function syncPlaneLinkedWorktree(
     if (written.outcome === 'failed') {
       return failed(result, {
         kind: 'update-failed',
+        provider: 'plane',
         issueIdentifier: worktree.linkedPlaneIssue,
         detail: written.detail
       })
@@ -290,6 +193,7 @@ async function syncPlaneLinkedWorktree(
     if (written.outcome === 'ambiguous') {
       return skipped(result, {
         kind: 'ambiguous-workflow-state',
+        provider: 'plane',
         statusLabel: args.targetStatus.label
       })
     }
@@ -297,6 +201,7 @@ async function syncPlaneLinkedWorktree(
   } catch (error) {
     return failed(result, {
       kind: 'provider-error',
+      provider: 'plane',
       issueIdentifier: worktree.linkedPlaneIssue,
       detail: error instanceof Error ? error.message : undefined
     })
@@ -306,7 +211,7 @@ async function syncPlaneLinkedWorktree(
 export async function syncWorkspaceBoardTaskStatuses(
   args: SyncWorkspaceBoardTaskStatusesArgs
 ): Promise<WorkspaceBoardTaskStatusSyncResult> {
-  const deps = { ...defaultDeps, ...args.deps }
+  const deps = { ...defaultLinearBoardStatusSyncDeps, ...args.deps }
   const aggregate: WorkspaceBoardTaskStatusSyncResult = {
     updated: 0,
     skipped: 0,

@@ -7,41 +7,46 @@ import type { WorkspaceStatus, Worktree } from '../../../../shared/worktree/type
 import {
   getWorkspaceBoardTaskStatusSyncRequest,
   syncWorkspaceBoardTaskStatuses,
+  type TaskStatusSyncProvider,
   type WorkspaceBoardTaskStatusSyncMessage,
   type WorkspaceBoardTaskStatusSyncResult
 } from './workspace-board-task-status-sync'
+
+function providerLabel(provider: TaskStatusSyncProvider): string {
+  return provider === 'plane' ? 'Plane' : 'Linear'
+}
 
 function formatTaskStatusSyncMessage(message: WorkspaceBoardTaskStatusSyncMessage): string {
   switch (message.kind) {
     case 'issue-read-failed':
       return translate(
-        'auto.components.sidebar.WorkspaceKanbanDrawer.c1d2e3f4a5',
-        'Linear issue {{value0}} could not be read.',
-        { value0: message.issueIdentifier }
+        'auto.components.sidebar.WorkspaceKanbanDrawer.a1c3e5079b',
+        'Could not read {{value0}} issue {{value1}}.',
+        { value0: providerLabel(message.provider), value1: message.issueIdentifier }
       )
     case 'missing-workflow-state':
       return translate(
-        'auto.components.sidebar.WorkspaceKanbanDrawer.d2e3f4a5b6',
-        'No matching Linear workflow state for {{value0}}.',
-        { value0: message.statusLabel }
+        'auto.components.sidebar.WorkspaceKanbanDrawer.b2d4f6180c',
+        'No {{value0}} state matches {{value1}}.',
+        { value0: providerLabel(message.provider), value1: message.statusLabel }
       )
     case 'ambiguous-workflow-state':
       return translate(
-        'auto.components.sidebar.WorkspaceKanbanDrawer.e3f4a5b6c7',
-        'Multiple Linear workflow states match {{value0}}.',
-        { value0: message.statusLabel }
+        'auto.components.sidebar.WorkspaceKanbanDrawer.c3e5071a2d',
+        'More than one {{value0}} state matches {{value1}}.',
+        { value0: providerLabel(message.provider), value1: message.statusLabel }
       )
     case 'update-failed':
       return translate(
-        'auto.components.sidebar.WorkspaceKanbanDrawer.f4a5b6c7d8',
-        'Could not update Linear issue {{value0}}.',
-        { value0: message.issueIdentifier }
+        'auto.components.sidebar.WorkspaceKanbanDrawer.d4f6182b3e',
+        'Could not update {{value0}} issue {{value1}}.',
+        { value0: providerLabel(message.provider), value1: message.issueIdentifier }
       )
     case 'provider-error':
       return translate(
-        'auto.components.sidebar.WorkspaceKanbanDrawer.a5b6c7d8e9',
-        'Could not sync Linear issue {{value0}}.',
-        { value0: message.issueIdentifier }
+        'auto.components.sidebar.WorkspaceKanbanDrawer.e5071a3c4f',
+        'Could not sync {{value0}} issue {{value1}}.',
+        { value0: providerLabel(message.provider), value1: message.issueIdentifier }
       )
     case 'unexpected-error':
       return translate(
