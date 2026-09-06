@@ -72,9 +72,11 @@ function enqueueInterruptions(db: OrchestrationDb, ids: DispatchInterruptionIds)
   // Why inclusive at both ends, not the open-below (prevCompletedAt, end] of the ruling: SQLite
   // datetime('now') has 1-second resolution, so an event stamped in the same second as the
   // previous dispatch's completed_at is indistinguishable from one that landed exactly on it —
-  // an open lower bound would silently drop it. Inclusive-both is safe because the outbox's
-  // dedupe key (by sourceId) already makes any boundary overlap between two dispatches' windows
-  // a no-op re-check, never a double count.
+  // an open lower bound would silently drop it. Inclusive-both is safe only when sourceId is
+  // entity-invariant (gate.id, message_id) — a boundary-second event then dedupes to one row
+  // regardless of which dispatch's capture finds it first. This is why escalation below keys on
+  // taskId rather than dispatchId: alicorn_task_strategy has one row per task, not per dispatch,
+  // so dispatchId as sourceId would let the same offer land twice under two different keys.
   const gates = db.db
     .prepare(
       `SELECT id, created_at FROM decision_gates WHERE task_id = ? AND created_at BETWEEN ? AND ?`
@@ -103,7 +105,7 @@ function enqueueInterruptions(db: OrchestrationDb, ids: DispatchInterruptionIds)
     .get(ids.taskId) as EscalationRow | undefined
   const offeredAt = strategy?.escalation_offered_at
   if (offeredAt && offeredAt >= start && offeredAt <= end) {
-    enqueued += enqueueOne(db, ids, 'escalation', ids.dispatchId, offeredAt)
+    enqueued += enqueueOne(db, ids, 'escalation', ids.taskId, offeredAt)
   }
 
   return enqueued

@@ -111,8 +111,8 @@ describe('enqueueInterruptionsForDispatch', () => {
     expect(ask.dedupeKey).toBe(`interruption:ask:${question.message_id}`)
 
     const escalation = rows.find((r) => r.kind === 'escalation')!
-    expect(escalation.sourceId).toBe(dispatch2.id)
-    expect(escalation.dedupeKey).toBe(`interruption:escalation:${dispatch2.id}`)
+    expect(escalation.sourceId).toBe(task.id)
+    expect(escalation.dedupeKey).toBe(`interruption:escalation:${task.id}`)
   })
 
   it('counts an ask raised under an earlier, already-settled dispatch of the same task', () => {
@@ -154,6 +154,53 @@ describe('enqueueInterruptionsForDispatch', () => {
     expect(count).toBe(2) // the gate plus the cross-dispatch ask
     const ask = interruptionRows().find((r) => r.kind === 'ask')!
     expect(ask.sourceId).toBe('msg_late_ask')
+  })
+
+  it('dedupes an escalation offer landing exactly on the boundary shared by two consecutive windows', () => {
+    // Both captures run in the same order the real hook would fire them (once per settlement,
+    // as it happens) — no retroactive/out-of-order calls. dispatch1's own capture sees the offer
+    // as its upper bound; dispatch2's capture, run later, sees the very same offer as its lower
+    // bound because it's pinned to exactly dispatch1's completed_at. sourceId must be the task,
+    // not either dispatch, so both attempts share one dedupe key.
+    const task = db.createTask({ spec: 'work' })
+    const dispatch1 = createRootDispatch(db, task.id, 'term_worker_1')
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch1.id,
+      outcome: 'succeeded',
+      result: 'phase 1 done'
+    })
+    db.markEscalationOffered(task.id)
+    // Pin the offer to exactly dispatch1's completed_at, the shared boundary second. Re-read
+    // the row: the local `dispatch1` binding is a stale pre-settlement snapshot with no completed_at.
+    const settledDispatch1 = db.getDispatchContextById(dispatch1.id)!
+    db.db
+      .prepare(`UPDATE alicorn_task_strategy SET escalation_offered_at = ? WHERE task_id = ?`)
+      .run(settledDispatch1.completed_at, task.id)
+    enqueueInterruptionsForDispatch(db, {
+      runId: task.run_id,
+      taskId: task.id,
+      dispatchId: dispatch1.id
+    })
+
+    const gate = db.createGate({ taskId: task.id, question: 'continue?' })
+    db.resolveGate(gate.id, 'yes')
+    const dispatch2 = createRootDispatch(db, task.id, 'term_worker_2')
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch2.id,
+      outcome: 'succeeded',
+      result: 'done'
+    })
+    enqueueInterruptionsForDispatch(db, {
+      runId: task.run_id,
+      taskId: task.id,
+      dispatchId: dispatch2.id
+    })
+
+    const escalationRows = interruptionRows().filter((r) => r.kind === 'escalation')
+    expect(escalationRows).toHaveLength(1)
+    expect(escalationRows[0].sourceId).toBe(task.id)
   })
 
   it('re-running over the same dispatch enqueues no new rows', () => {
