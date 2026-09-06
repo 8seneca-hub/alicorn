@@ -1103,7 +1103,9 @@
         "automationsDescription": "Schedule agent work and choose whether Automations appears in the sidebar.",
         "shareSkillsTitle": "Share Skills",
         "shareSkillsDescription": "Share your skills with an unlisted link. Anyone who has it can install them.",
-        "floatingWorkspaceWebDescription": "Global terminal and markdown tabs."
+        "floatingWorkspaceWebDescription": "Global terminal and markdown tabs.",
+        "alicornMembersTitle": "Members",
+        "alicornMembersDescription": "Reusable agent roles: backend, skills, permission mode and workspace kind."
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "Paste is too large."
@@ -11746,6 +11748,38 @@
         },
         "NativeChatSupportedAgents": {
           "label": "Supported agents:"
+        },
+        "alicornMembers": {
+          "unconfiguredTitle": "Control plane not configured",
+          "unconfiguredDescription": "Set ALICORN_CONTROL_API_URL and ALICORN_LOCAL_API_TOKEN, then reopen Settings. See docs/alicorn/LOCAL-DEV.md.",
+          "retry": "Retry",
+          "title": "Members",
+          "description": "Reusable agent roles: backend, skills, permission mode and workspace kind.",
+          "new": "New member",
+          "loading": "Loading members…",
+          "empty": "No members yet. Create one to dispatch work to a named role.",
+          "edit": "Edit",
+          "delete": "Delete",
+          "name": "Name",
+          "role": "Role",
+          "backend": "Backend",
+          "workspaceKind": "Workspace kind",
+          "permissionMode": "Permission mode",
+          "systemRules": "System rules",
+          "skills": "Skills",
+          "skillsHint": "Comma-separated.",
+          "cancel": "Cancel",
+          "save": "Save",
+          "search": {
+            "title": "Members",
+            "description": "Reusable agent roles: backend, skills, permission mode and workspace kind.",
+            "member": "member",
+            "role": "role",
+            "backend": "backend",
+            "reviewer": "reviewer"
+          },
+          "sectionTitle": "Members",
+          "sectionDescription": "Reusable agent roles: backend, skills, permission mode and workspace kind."
         }
       },
       "right": {

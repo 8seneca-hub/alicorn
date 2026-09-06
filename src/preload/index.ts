@@ -7,6 +7,7 @@ import {
 } from './preload-runtime-support'
 import { appApi } from './api/app-bridge'
 import { orcaProfilesApi } from './api/orca-profiles-bridge'
+import { alicornApi } from './api/alicorn-bridge'
 import { platformApi } from './api/platform-bridge'
 import { wslApi } from './api/wsl-bridge'
 import { pwshApi } from './api/pwsh-bridge'
@@ -101,6 +102,7 @@ const telemetryGetConsentStateApi: PreloadApi['telemetryGetConsentState'] = () =
 const api = {
   app: appApi,
   orcaProfiles: orcaProfilesApi,
+  alicorn: alicornApi,
   platform: platformApi,
   wsl: wslApi,
   pwsh: pwshApi,

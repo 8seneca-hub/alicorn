@@ -55,6 +55,8 @@ import { registerEmulatorVideoStreamHandlers } from '../emulator-video-stream'
 import { registerSpeechHandlers } from '../speech'
 import { registerTerminalRenderDesyncEvidenceHandler } from '../terminal-render-desync-evidence'
 import { registerOrcaProfileHandlers } from '../orca-profiles'
+import { registerAlicornHandlers } from '../alicorn-handlers'
+import { getControlPlaneClient } from '../../alicorn/control-plane-client-instance'
 import { registerCodexAccountHandlers } from '../codex-accounts'
 import { registerAgentHookHandlers } from '../agent-hooks'
 import { registerCodexConfigSyncHandlers } from '../codex-config-sync'
@@ -194,6 +196,10 @@ export function registerCoreHandlers(
     onBeforeRelaunch: lifecycleOptions.onBeforeRelaunch,
     onAuthMutation: lifecycleOptions.onOrcaProfileAuthMutation,
     onBeforeSignOut: lifecycleOptions.onBeforeOrcaProfileSignOut
+  })
+  registerAlicornHandlers({
+    client: getControlPlaneClient(),
+    getOrchestrationDb: () => runtime.getOrchestrationDb()
   })
   registerBrowserHandlers()
   registerShellHandlers(store)

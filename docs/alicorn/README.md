@@ -14,6 +14,11 @@ Planning documents for the Alicorn product built on this codebase.
 | [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) | Colour, type and motion decisions, with the reasoning behind each |
 | [prototype/](prototype/) | Interactive HTML prototype — 15 screens across the app, sign-in and landing flows |
 
+## Local development
+
+[LOCAL-DEV.md](LOCAL-DEV.md) — run the desktop against the local control plane (Postgres, Control
+API, Ledger API) and the environment it reads.
+
 ## Prototype
 
 Static HTML, no build step and no dependencies.

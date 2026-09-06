@@ -1,4 +1,5 @@
 import { getArtifactsSettingsSearchEntries } from '@/components/settings/artifacts-settings-search'
+import { getAlicornMembersSearchEntries } from '@/components/settings/alicorn-members-search'
 import { getAutomationsSettingsSearchEntries } from '@/components/settings/automations-settings-search'
 import { getBrowserPaneCombinedSearchEntries } from '@/components/settings/browser-pane-search'
 import { getCommitMessageAiPaneSearchEntries } from '@/components/settings/commit-message-ai-search'
@@ -21,7 +22,8 @@ import {
   PanelsTopLeft,
   Play,
   SquareTerminal,
-  TabletSmartphone
+  TabletSmartphone,
+  Users
 } from 'lucide-react'
 import type { SettingsNavigationBuildOptions } from './settings-navigation-build-options'
 
@@ -40,6 +42,17 @@ export function buildWorkflowSettingsSections(
       ),
       icon: CalendarClock,
       searchEntries: getAutomationsSettingsSearchEntries(),
+      group: 'workflows'
+    },
+    {
+      id: 'alicorn-members',
+      title: translate('auto.hooks.useSettingsNavigationMetadata.alicornMembersTitle', 'Members'),
+      description: translate(
+        'auto.hooks.useSettingsNavigationMetadata.alicornMembersDescription',
+        'Reusable agent roles: backend, skills, permission mode and workspace kind.'
+      ),
+      icon: Users,
+      searchEntries: getAlicornMembersSearchEntries(),
       group: 'workflows'
     },
     {
