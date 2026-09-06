@@ -26,6 +26,7 @@ import {
   isWorkerStartTimeoutWithinTimerLimit,
   resolveWorkerStartReadinessTimeoutMs
 } from '../../../../shared/orchestration-timing-budgets'
+import { captureWorkerStartContext } from '../../../alicorn/context-capture-enqueue'
 
 export const ORCHESTRATION_WORKER_START_METHODS: RpcMethod[] = [
   defineMethod({
@@ -254,6 +255,11 @@ export const ORCHESTRATION_WORKER_START_METHODS: RpcMethod[] = [
           dispatchCapability: capability,
           devMode: params.devMode,
           cliCommand: runtime.getTerminalOrchestrationCliCommand(terminalHandle)
+        })
+        captureWorkerStartContext(db, runtime, params, task, started.dispatch, {
+          runId: run.id,
+          terminalHandle,
+          preamble
         })
         await runtime.sendTerminalAgentPrompt(terminalHandle, preamble)
         effects.push({

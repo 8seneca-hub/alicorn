@@ -5,6 +5,7 @@ import { resolveDispatchCreator } from './orchestration-dispatch-creator'
 import { buildInjectRejectionMessage } from './orchestration-inject-rejection-message'
 import { resolveRunScope } from './orchestration-run-scope'
 import { DispatchParams, DispatchShowParams } from './orchestration-schemas'
+import { enqueueContextCapture, memberContextSlice } from '../../../alicorn/context-capture-enqueue'
 
 export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
   defineMethod({
@@ -120,6 +121,25 @@ export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
         dispatchCapability,
         devMode: params.devMode,
         cliCommand: runtime.getTerminalOrchestrationCliCommand(to)
+      })
+
+      // Why: captured at dispatch, before injection — the record is what the worker was *given*,
+      // never what it produced, and it must exist even if the injection then fails.
+      enqueueContextCapture(db, {
+        runId: run.id,
+        taskId: task.id,
+        dispatchId: ctx.id,
+        prompt: preamble,
+        contextSlice: {
+          taskSpec: task.spec,
+          coordinatorHandle: params.from ?? 'coordinator',
+          workerHandle: to,
+          depth: ctx.depth,
+          canDispatchSubWorkers: ctx.depth < runtime.getNestedWorkerMaxDepth(),
+          cliCommand: runtime.getTerminalOrchestrationCliCommand(to),
+          devMode: params.devMode ?? false,
+          ...memberContextSlice(db.getDispatchMember(ctx.id))
+        }
       })
 
       let injected = false
