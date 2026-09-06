@@ -8,7 +8,12 @@ import {
   planeSetDefaultProject,
   planeStatus
 } from '@/runtime/runtime-plane-client'
-import { DISCONNECTED_PLANE_STATUS, type PlaneSlice } from './plane-slice-contract'
+import {
+  DISCONNECTED_PLANE_STATUS,
+  EMPTY_PLANE_READ_CACHES,
+  type PlaneSlice
+} from './plane-slice-contract'
+import { bumpPlaneReadGeneration, createPlaneReadActions } from './plane-read-actions'
 
 export type { PlaneSlice } from './plane-slice-contract'
 
@@ -20,6 +25,8 @@ export const createPlaneSlice: StateCreator<AppState, [], [], PlaneSlice> = (set
   planeStatus: DISCONNECTED_PLANE_STATUS,
   planeStatusChecked: false,
   planeStatusContextKey: null,
+  ...EMPTY_PLANE_READ_CACHES,
+  ...createPlaneReadActions(set, get),
 
   checkPlaneConnection: async () => {
     const contextKey = getProviderRuntimeContextKey(get().settings)
@@ -53,7 +60,9 @@ export const createPlaneSlice: StateCreator<AppState, [], [], PlaneSlice> = (set
       return { ok: false, error: result.error }
     }
     statusReadGeneration += 1
+    bumpPlaneReadGeneration()
     set({
+      ...EMPTY_PLANE_READ_CACHES,
       planeStatus: result.value,
       planeStatusChecked: true,
       planeStatusContextKey: getProviderRuntimeContextKey(get().settings)
@@ -76,7 +85,9 @@ export const createPlaneSlice: StateCreator<AppState, [], [], PlaneSlice> = (set
   disconnectPlane: async (args) => {
     const status = await planeDisconnect(get().settings, args)
     statusReadGeneration += 1
+    bumpPlaneReadGeneration()
     set({
+      ...EMPTY_PLANE_READ_CACHES,
       planeStatus: status,
       planeStatusChecked: true,
       planeStatusContextKey: getProviderRuntimeContextKey(get().settings)

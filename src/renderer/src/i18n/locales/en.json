@@ -16526,6 +16526,14 @@
                 }
               }
             }
+          },
+          "plane": {
+            "connectTitle": "Connect a Plane workspace",
+            "connectBody": "Connect Plane in Settings → Integrations, then pick a default project.",
+            "hide": "Hide Plane",
+            "heading": "Plane issues",
+            "refresh": "Refresh",
+            "empty": "No issues in this project."
           }
         }
       },

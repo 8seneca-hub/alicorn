@@ -1,4 +1,22 @@
-import type { PlaneConnectionStatus, PlaneProject } from '../../../../shared/plane-types'
+import type { StoreApi } from 'zustand'
+import type { AppState } from '../types'
+import type { CacheEntry } from '../github/cache-model'
+import type {
+  PlaneConnectionStatus,
+  PlaneIssue,
+  PlaneProject,
+  PlaneState
+} from '../../../../shared/plane-types'
+
+// States and issues are cached as one unit: the list groups issues by state, so
+// a project is only readable when both have arrived.
+export type PlaneProjectData = {
+  issues: PlaneIssue[]
+  states: PlaneState[]
+}
+
+export type PlaneSliceSet = StoreApi<AppState>['setState']
+export type PlaneSliceGet = StoreApi<AppState>['getState']
 
 export type PlaneSlice = {
   planeStatus: PlaneConnectionStatus
@@ -18,6 +36,14 @@ export type PlaneSlice = {
     projectId: string | null
   }) => Promise<void>
   listPlaneProjects: () => Promise<PlaneProject[]>
+  planeProjectsCache: Record<string, CacheEntry<PlaneProject[]>>
+  planeProjectCache: Record<string, CacheEntry<PlaneProjectData>>
+  planeLoading: boolean
+  planeError: string | null
+  selectedPlaneProjectId: string | null
+  loadPlaneProjects: (options?: { force?: boolean }) => Promise<void>
+  loadPlaneProject: (projectId: string, options?: { force?: boolean }) => Promise<void>
+  selectPlaneProject: (projectId: string | null) => void
 }
 
 export const DISCONNECTED_PLANE_STATUS: PlaneConnectionStatus = {
@@ -26,3 +52,11 @@ export const DISCONNECTED_PLANE_STATUS: PlaneConnectionStatus = {
   connections: [],
   activeConnectionId: null
 }
+
+export const EMPTY_PLANE_READ_CACHES = {
+  planeProjectsCache: {},
+  planeProjectCache: {},
+  planeError: null,
+  planeLoading: false,
+  selectedPlaneProjectId: null
+} as const
