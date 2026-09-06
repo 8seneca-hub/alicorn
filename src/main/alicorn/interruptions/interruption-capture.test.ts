@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { OrchestrationDb } from '../../runtime/orchestration/db'
 import { createRootDispatch } from '../../runtime/orchestration/db/root-dispatch-test-fixture'
 import { reconcileLifecycleMessage } from '../../runtime/orchestration/lifecycle-reconciliation'
-import { enqueueInterruptionsForDispatch } from './interruption-capture'
+import {
+  enqueueInterruptionsForDispatch,
+  enqueueInterruptionsOnSettlement
+} from './interruption-capture'
 
 describe('enqueueInterruptionsForDispatch', () => {
   let db: OrchestrationDb
@@ -223,6 +226,48 @@ describe('enqueueInterruptionsForDispatch', () => {
       })
       expect(reconcileLifecycleMessage(db, replay).action).toBe('completed')
       expect(interruptionRows()).toHaveLength(1)
+    })
+  })
+
+  describe('enqueueInterruptionsOnSettlement', () => {
+    it('captures on a settled, non-duplicate settlement', () => {
+      const task = db.createTask({ spec: 'work' })
+      const dispatch = createRootDispatch(db, task.id, 'term_worker')
+      db.markEscalationOffered(task.id)
+      db.settleWorkerReport({
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        outcome: 'succeeded',
+        result: 'done'
+      })
+
+      const count = enqueueInterruptionsOnSettlement(
+        db,
+        { action: 'settled', outcome: 'succeeded', duplicate: false },
+        { runId: task.run_id, taskId: task.id, dispatchId: dispatch.id }
+      )
+
+      expect(count).toBe(1)
+    })
+
+    it('skips a duplicate settlement', () => {
+      expect(
+        enqueueInterruptionsOnSettlement(
+          db,
+          { action: 'settled', outcome: 'succeeded', duplicate: true },
+          { runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1' }
+        )
+      ).toBe(0)
+    })
+
+    it('skips a rejected settlement', () => {
+      expect(
+        enqueueInterruptionsOnSettlement(
+          db,
+          { action: 'rejected', code: 'unknown_task', reason: 'gone' },
+          { runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1' }
+        )
+      ).toBe(0)
     })
   })
 })

@@ -1,4 +1,5 @@
 import type { OrchestrationDb } from '../../runtime/orchestration/db'
+import type { WorkerReportSettlement } from '../../runtime/orchestration/types'
 import { parseSqliteUtc } from '../run-usage-attribution'
 
 const ERROR_LOG_THROTTLE_MS = 5 * 60_000
@@ -105,4 +106,16 @@ export function enqueueInterruptionsForDispatch(
     logCaptureErrorThrottled(ids.dispatchId, error)
     return 0
   }
+}
+
+// Why here, not at the call site: keeps the settlement hook in lifecycle-reconciliation.ts to
+// one line — a replayed or rejected report must not re-derive interruptions already enqueued.
+export function enqueueInterruptionsOnSettlement(
+  db: OrchestrationDb,
+  settlement: WorkerReportSettlement,
+  ids: DispatchInterruptionIds
+): number {
+  return settlement.action === 'settled' && !settlement.duplicate
+    ? enqueueInterruptionsForDispatch(db, ids)
+    : 0
 }
