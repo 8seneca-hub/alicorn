@@ -98,10 +98,11 @@ See `docs/alicorn/LOCAL-DEV.md` for the full local-dev walkthrough.
 
 ## What is not here
 
-The `terraform-foundation` and `terraform-apps` roots and the API and auth
-services live in the private `stablyai/orca-cloud` repository. Scripts and
-tests that spanned both trees were narrowed to the relay side rather than
-carrying a dangling reference.
+The `terraform-foundation` and `terraform-apps` roots live in the private `stablyai/orca-cloud`
+repository — the relay is the only Orca-inherited service in this tree. Alicorn's Control API and
+Ledger API are not there: they live here, in `apps/control-api` and `apps/ledger-api` (see *Alicorn
+control plane* above). Identity (Keycloak) is deferred. Scripts and tests that spanned both trees were
+narrowed to the relay side rather than carrying a dangling reference.
 
 ## Local development
 

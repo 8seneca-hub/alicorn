@@ -65,6 +65,11 @@ and brokers connections.
 
 ## 5. Identity
 
+**Status:** Deferred. Tier 1 authenticates with a shared bearer (`ALICORN_LOCAL_API_TOKEN`) and a
+constant tenant (`ALICORN_TENANT_ID`); the middleware seam (`requireTenant`) is where Keycloak plugs
+in as a second auth mode. When it does: tenant id = Keycloak organisation id, proven by the token's
+`organization` claim.
+
 **Keycloak 26+.** Apache 2.0, OIDC provider, and Organizations (GA in 26) gives thousands of
 organisations inside one realm — the SaaS-shaped tenancy model, rather than realm-per-tenant which
 does not scale past a few hundred.
@@ -81,6 +86,9 @@ does not scale past a few hundred.
 
 Core tables. All carry `tenant_id`; row-level security is enabled on every one.
 
+*Status:* identity tables land with the Keycloak plan; tier 1 runs auth mode `local` with a constant
+`tenant_id`.
+
 ```sql
 -- Identity mapping ------------------------------------------------------
 users            (id, tenant_id, idp_subject UNIQUE, email, created_at)
@@ -89,7 +97,8 @@ seats            (tenant_id, user_id, kind)          -- builder|collaborator
 
 -- Product configuration -------------------------------------------------
 members          (id, tenant_id, name, role, backend, workspace_kind,
-                  permission_mode, system_rules, created_at)
+                  permission_mode, system_rules, created_at,
+                  UNIQUE (tenant_id, name))            -- members_tenant_name
 member_skills    (member_id, skill_id)
 workflows        (id, tenant_id, project_id, name, version)
 stages           (id, workflow_id, key, ordinal, member_id,
@@ -97,6 +106,11 @@ stages           (id, workflow_id, key, ordinal, member_id,
                   inherited_cost,       -- low|high
                   required_checks jsonb)
 transitions      (id, workflow_id, from_stage, to_stage, trigger jsonb)
+org_policies     (tenant_id, enforce_distinct_reviewer_backend,
+                  updated_by, updated_at)
+project_required_checks(tenant_id, project_id, checks jsonb,
+                  updated_by, updated_at)
+                  -- project-scoped until stages exist (v1.5); authored by an org admin, never by the member being judged
 
 -- Autonomy --------------------------------------------------------------
 autonomy_policies(id, tenant_id, project_id, stage_key, member_id, mode,
@@ -104,16 +118,21 @@ autonomy_policies(id, tenant_id, project_id, stage_key, member_id, mode,
                   created_by, expires_at, created_at)
 
 -- Ledger (append-only) ---------------------------------------------------
-step_outcomes    (id, tenant_id, run_id, task_id, project_id, member_id,
-                  stage_key, outcome, files_modified, spend_cents,
+step_outcomes    (id, tenant_id, run_id, task_id, dispatch_id, project_id,
+                  repo_id, worktree_id, branch, member_id, backend,
+                  stage_key, execution_strategy, outcome, files_modified,
+                  report_summary, spend_cents, usage,
                   gate_decision, gate_reason, gate_id,
                   human_verdict, amended_after_ms,
+                  review_backend_bypass, escalation_offered, escalation_accepted,
                   client_ts, created_at,
-                  UNIQUE (tenant_id, run_id, task_id, stage_key))
+                  UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id))
 step_verifications(id, tenant_id, task_id, kind, name, required, status,
                   detail, created_at)
 decision_gates   (id, tenant_id, run_id, task_id, question, options,
                   status, resolution, resolved_by, resolved_at, created_at)
+context_captures (id, tenant_id, run_id, task_id, dispatch_id,
+                  prompt | prompt_path, prompt_bytes, context_slice, created_at)
 
 -- Derived (rebuildable from step_outcomes) -------------------------------
 member_stage_stats(tenant_id, member_id, stage_key, project_id,
@@ -123,13 +142,18 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
 
 ### Rules that keep the ledger honest
 
-- **Exactly-once.** The unique constraint on `(tenant_id, run_id, task_id, stage_key)` absorbs
-  duplicate `worker_done` deliveries from retries, reconnects and federation replay.
+- **Exactly-once.** The unique constraint on `(tenant_id, run_id, task_id, stage_key, dispatch_id)`
+  absorbs duplicate `worker_done` deliveries from retries, reconnects and federation replay — an Orca
+  retry is a new dispatch, so it is a new step, not a duplicate.
+- **The outbox delivers writes.** The desktop enqueues each settled step in `ledger_outbox` (in Orca's
+  orchestration SQLite) inside the settlement transaction and a drainer posts it; the unique key
+  absorbs replays.
 - **Server time orders everything.** `created_at` is assigned server-side. `client_ts` is kept for
   forensics only — outcomes originate on laptops and SSH hosts with unreliable clocks.
 - **Offline writes reconcile.** The desktop queues outcomes locally with a monotonic per-device
   sequence and replays on reconnect. Windows are computed by server time, so a late batch cannot
-  retroactively promote a member.
+  retroactively promote a member. Tier 1 ships the outbox without a per-device sequence — server time
+  still orders.
 - **`member_stage_stats` is a cache.** Updated on write, rebuildable from the ledger. Gate evaluation
   reads it; nothing else may write it.
 

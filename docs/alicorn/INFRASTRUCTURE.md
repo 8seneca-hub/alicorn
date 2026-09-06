@@ -48,7 +48,9 @@ Namespace: alicorn
 | `production` | Customer-operated, or Alicorn Cloud | Real |
 
 `local` must come up with `docker compose up` and a seed script that creates an org, three members and
-a workflow. If a new engineer cannot reach a working inbox in fifteen minutes, that is a bug.
+a workflow. If a new engineer cannot reach a working inbox in fifteen minutes, that is a bug. Tier 1
+ships this as `cloud/dev/compose/alicorn-local.yml`, brought up with `pnpm alicorn:up && pnpm
+alicorn:seed` (from `cloud/`).
 
 ## 4. Infrastructure as code
 
@@ -109,6 +111,8 @@ Sizing from the shape of the load, not from a vendor calculator.
 - **Ledger writes**: roughly 40 rows per developer per day. 100 developers ≈ **1.2M rows/year**;
   1,000 developers ≈ 12M. Monthly partitions on `created_at`. Index
   `(tenant_id, member_id, stage_key, created_at DESC)` for the track-record read.
+- **Partitioning deferred**: the exactly-once unique key must stay a single-table constraint;
+  introduce monthly partitions with a side idempotency table when rows exceed ~10M.
 - **Gate evaluation** must stay under **150 ms p99** — it blocks a hand-off. It reads
   `member_stage_stats`, a single indexed row, never an aggregate over the ledger.
 - **Relay**: connection-bound. Reuse the existing relay's regional cell topology rather than
@@ -137,6 +141,8 @@ The ledger is append-only, which makes recovery unusually forgiving: replaying a
 - TLS everywhere, terminated at ingress; mTLS between services when the mesh arrives, not before.
 - Network policies: only `control-api` and `ledger-api` may reach Postgres; only `relay` may reach
   Redis.
+- The services connect as a non-superuser application role (`alicorn_app` locally); superusers bypass
+  row-level security, so a superuser connection string is a misconfiguration, not a convenience.
 - Postgres row-level security is the tenant boundary, not application `WHERE` clauses.
 - Container images: distroless base, non-root, read-only root filesystem, dropped capabilities.
 - Dependency and image scanning in CI, blocking on critical.

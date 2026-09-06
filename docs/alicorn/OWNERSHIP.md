@@ -56,6 +56,6 @@ description rather than editing it in a feature branch — the desktop mirrors i
 
 ## Branches
 
-Both work from `worktree-alicorn-tier-1` (the branch holding the plans, `CLAUDE.md` and the committed
-cloud work), one short-lived branch per task, PR back into it, rebase before merge. Keep Plane in sync:
-move the issue to *In Progress* when you start and *Done* when the PR merges.
+Work from `main` (the branch that was `worktree-alicorn-tier-1`, now pushed as `main`). One
+short-lived branch per Plane issue, named `alc-<n>-<slug>`, PR'd into `main`, rebased before merge.
+Keep Plane in sync: move the issue to *In Progress* when you start and *Done* when the PR merges.
