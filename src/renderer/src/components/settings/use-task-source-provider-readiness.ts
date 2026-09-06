@@ -89,6 +89,13 @@ export function useTaskSourceProviderReadiness(
         connected: jiraConnected,
         checking: jiraChecking,
         visible: visible.has('jira')
+      },
+      // Plane has no status channel yet (PP1 IPC), so it reports settled and
+      // disconnected rather than spinning forever on a check that never runs.
+      plane: {
+        connected: false,
+        checking: false,
+        visible: visible.has('plane')
       }
     }
   }, [

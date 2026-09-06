@@ -235,7 +235,9 @@ export function useTaskPageComposerActions(model: TaskPageJiraListEffectsModel) 
     hasJiraDetail: Boolean(selectedJiraIssue),
     hasLinearIssueDetail: Boolean(selectedLinearIssue),
     hasLinearProjectContext: Boolean(selectedLinearProject),
-    hasLinearViewContext: Boolean(selectedLinearCustomView)
+    hasLinearViewContext: Boolean(selectedLinearCustomView),
+    // No Plane detail surface yet; the list chrome always stays visible.
+    hasPlaneDetail: false
   })
   const nextModel = model as typeof model & {
     openComposerForLinearItem: typeof openComposerForLinearItem
