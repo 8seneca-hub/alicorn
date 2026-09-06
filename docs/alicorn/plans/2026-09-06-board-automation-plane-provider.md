@@ -149,7 +149,25 @@ export async function syncPlaneWorktreeStatus(input: { worktree: Worktree; targe
 ### Task 8 (PP3): CLI verbs + skill guide
 
 **Files:** `src/cli/specs/plane.ts` (`orca plane issue <id|PROJ-123>`, `orca plane search --project <id> [--state <group>] [--query <text>]`, `orca plane comment <id> --body <md>`, `orca plane state <id> --to <state-name>`; flags via `GLOBAL_FLAGS`), `src/cli/handlers/plane/*.ts` (RPC methods `plane.issue`, `plane.search`, `plane.comment`, `plane.setState` in a new `src/main/runtime/rpc/methods/plane.ts` calling the client in main), `skill-guides/orca-plane.md` (mirrors `orca-linear.md`), regenerate `pnpm run generate:bundled-skill-guides`; spec tests.
-- [ ] Commit `feat(plane): CLI verbs and skill guide`.
+- [x] Commit `feat(plane): CLI verbs and skill guide`.
+
+**As built** — four deviations from the sketch, each for a reason:
+- `plane state` reuses the existing `plane.updateIssueState` mutation rather than
+  adding a `plane.setState` write. The new `plane.setState` RPC resolves a state
+  *name* to an id and then calls it — CLI callers name a column, the UI already
+  holds uuids.
+- `plane issue` also returns the issue's comments, since reading an issue without
+  them is rarely what an agent wants; `listIssueComments` is new alongside
+  `addIssueComment`.
+- A readable id (`ALC-11`) resolves by project key + running number. A bare uuid
+  requires `--project`: Plane's detail route is project-scoped and there is no
+  workspace-wide issue lookup, so the alternative is scanning every project.
+- `--state` on `search` filters on the state **group**, not the name. Plane CE has
+  no server-side filtering, so the project's issues are read once and narrowed
+  locally rather than sending query parameters the server ignores.
+
+**Known gap:** `search` reads a whole project before narrowing, so `--limit` caps
+the output but not the fetch. A large project pays the full page walk each call.
 
 ---
 

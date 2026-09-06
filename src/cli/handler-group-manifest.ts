@@ -215,6 +215,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('./handlers/environment.js')).ENVIRONMENT_HANDLERS
   },
   {
+    name: 'plane',
+    keys: ['plane issue', 'plane search', 'plane comment', 'plane state'],
+    load: async () => (await import('./handlers/plane/plane-handlers.js')).PLANE_HANDLERS
+  },
+  {
     name: 'linear',
     keys: [
       'linear save-issue',
