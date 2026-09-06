@@ -43,4 +43,12 @@ describe('addedLinesFromUnifiedDiff', () => {
 
     expect(added.has('src/c.ts')).toBe(false)
   })
+
+  it('handles a hunk header with both counts omitted (single-line hunk)', () => {
+    const diff = ['--- a/src/d.ts', '+++ b/src/d.ts', '@@ -3 +7 @@', '+added line 7'].join('\n')
+
+    const added = addedLinesFromUnifiedDiff(diff)
+
+    expect(added.get('src/d.ts')).toEqual(new Set([7]))
+  })
 })

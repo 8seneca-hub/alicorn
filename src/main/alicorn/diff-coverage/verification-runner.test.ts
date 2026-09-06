@@ -67,14 +67,18 @@ describe('createVerificationRunner', () => {
     )
   })
 
-  it('skips an SSH-hosted (remote) worktree', async () => {
+  it('skips an SSH-hosted (remote) worktree without touching the local filesystem', async () => {
     const writer = makeWriter()
+    const runCheck = vi.fn()
+    // Realistic combination: worktreePath is a path on the remote host, so it does not exist
+    // locally — the host check must short-circuit before this is ever consulted.
+    const pathExists = vi.fn().mockResolvedValue(false)
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
-      runDiffCoverageCheck: vi.fn(),
+      runDiffCoverageCheck: runCheck,
       getBaseRefDefault: async () => 'origin/main',
       resolveWorktreeHost: async () => 'remote',
-      pathExists: async () => true
+      pathExists
     })
 
     await runner(PAYLOAD, writer)
@@ -82,6 +86,8 @@ describe('createVerificationRunner', () => {
     expect(writer.postStepVerification).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'skipped', detail: { reason: 'remote_worktree' } })
     )
+    expect(pathExists).not.toHaveBeenCalled()
+    expect(runCheck).not.toHaveBeenCalled()
   })
 
   it('treats an unknown worktree host as local and runs the check', async () => {

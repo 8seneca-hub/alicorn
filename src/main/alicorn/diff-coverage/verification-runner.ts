@@ -48,12 +48,15 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
     const post = (status: StepVerificationInput['status'], detail: Record<string, unknown>) =>
       postVerification(writer, payload, name, status, detail)
 
-    if (!(await pathExists(join(payload.worktreePath, '.git')))) {
-      return post('skipped', { reason: 'not_a_git_worktree' })
-    }
-
+    // Host check first: worktreePath is a path on the execution host, so testing it against the
+    // local filesystem before knowing the host is wrong either way — false-not-a-git-worktree for a
+    // real SSH worktree, or a same-named local directory silently posted to the ledger instead.
     if ((await deps.resolveWorktreeHost(payload.worktreeId)) === 'remote') {
       return post('skipped', { reason: 'remote_worktree' })
+    }
+
+    if (!(await pathExists(join(payload.worktreePath, '.git')))) {
+      return post('skipped', { reason: 'not_a_git_worktree' })
     }
 
     const baseRef = (await deps.getBaseRefDefault(payload.worktreePath)) ?? 'origin/main'

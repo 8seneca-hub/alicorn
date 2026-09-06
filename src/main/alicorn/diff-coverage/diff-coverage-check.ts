@@ -55,7 +55,8 @@ export async function runDiffCoverageCheck(
         detail: {
           stage: 'command',
           code: result.code,
-          stderrTail: result.stderr.slice(-STDERR_TAIL_MAX_CHARS)
+          stderrTail: result.stderr.slice(-STDERR_TAIL_MAX_CHARS),
+          ...(result.timedOut ? { timedOut: true } : {})
         }
       }
     }

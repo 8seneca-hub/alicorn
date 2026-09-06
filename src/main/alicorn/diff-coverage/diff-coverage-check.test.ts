@@ -81,6 +81,24 @@ describe('runDiffCoverageCheck', () => {
     expect(readFile).not.toHaveBeenCalled()
   })
 
+  it('includes timedOut in the error detail when the command times out', async () => {
+    const runProcess = fakeRunProcess({ code: null, stderr: 'stuck', timedOut: true })
+
+    const result = await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: { ...CHECK, command: 'pnpm test' },
+      runProcess,
+      gitExec: fakeGitExec(),
+      readFile: fakeReadFile()
+    })
+
+    expect(result).toEqual({
+      status: 'error',
+      detail: { stage: 'command', code: null, stderrTail: 'stuck', timedOut: true }
+    })
+  })
+
   it('builds the Windows argv through runProcess rather than a shell', async () => {
     const originalPlatform = process.platform
     Object.defineProperty(process, 'platform', { value: 'win32' })
