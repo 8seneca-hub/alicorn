@@ -387,3 +387,63 @@ describePostgres('ledger routes (postgres)', () => {
     expect(other.rows[0].n).toBe(0)
   })
 })
+
+describePostgres('ledger metrics (postgres)', () => {
+  let pool: pg.Pool
+  let app: Hono<LedgerApiEnv>
+
+  const authHeaders = {
+    authorization: 'Bearer local-dev-token-0123456789',
+    'content-type': 'application/json'
+  }
+
+  function post(path: string, body: unknown) {
+    return app.request(path, { method: 'POST', headers: authHeaders, body: JSON.stringify(body) })
+  }
+
+  beforeAll(async () => {
+    const { appUrl } = await createTestSchema(databaseUrl!, 'ledger_metrics_test')
+    pool = await openControlPlanePool({ databaseUrl: appUrl, schema: 'ledger_metrics_test', applicationName: 'ledger-api-metrics-test' })
+    await applySchema(pool, LEDGER_SCHEMA_STATEMENTS)
+    const config = loadLedgerApiConfig({
+      ALICORN_DATABASE_URL: appUrl,
+      ALICORN_LOCAL_API_TOKEN: 'local-dev-token-0123456789',
+      ALICORN_TENANT_ID: 'local'
+    })
+    app = createLedgerApiApp({ config, pool })
+  })
+
+  afterAll(async () => {
+    await pool.end()
+    await dropTestSchema(databaseUrl!, 'ledger_metrics_test')
+  })
+
+  it('counts a duplicate write and the default gate decision, then folds in an amended verdict', async () => {
+    const body = { runId: 'run_m1', taskId: 'task_m1', dispatchId: 'ctx_m1', outcome: 'succeeded' }
+    const first = await post('/v1/ledger/step-outcomes', body)
+    expect(first.status).toBe(201)
+    const { id } = (await first.json()) as { id: string }
+
+    // Why: identical delivery — exercises the exactly-once path that ledger_write_duplicates_total counts.
+    const second = await post('/v1/ledger/step-outcomes', body)
+    expect(second.status).toBe(200)
+
+    const afterWrites = await app.request('/metrics')
+    expect(afterWrites.status).toBe(200)
+    const afterWritesText = await afterWrites.text()
+    expect(afterWritesText).toContain('ledger_write_duplicates_total 1')
+    // Why: the input schema has no gate fields yet (LC-note) — gate_decision/gate_reason come from
+    // the step_outcomes column defaults ('human'/'level0'), so the one inserted row counts there.
+    expect(afterWritesText).toContain('gate_decisions_total{decision="human",reason="level0"} 1')
+
+    const patch = await app.request(`/v1/ledger/step-outcomes/${id}/human-verdict`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({ humanVerdict: 'amended', amendedAfterMs: 500 })
+    })
+    expect(patch.status).toBe(200)
+
+    const afterVerdict = await app.request('/metrics')
+    const afterVerdictText = await afterVerdict.text()
+    expect(afterVerdictText).toContain('amended_within_window 1')
+  })
+})

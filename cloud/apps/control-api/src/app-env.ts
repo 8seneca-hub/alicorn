@@ -1,5 +1,6 @@
 import type pg from 'pg'
 import type { ControlApiConfig } from './config.js'
+import type { ControlMetrics } from './control-metrics.js'
 
 // Why: Task 4's auth middleware sets `c.set('auth', …)` against this typed env.
 export type AuthContext = { tenantId: string; actor: string }
@@ -11,4 +12,6 @@ export type ControlApiDeps = {
   config: ControlApiConfig
   pool: pg.Pool
   now?: () => number
+  // Why: optional so existing test/prod deps still construct; app.ts defaults it.
+  metrics?: ControlMetrics
 }

@@ -24,7 +24,9 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
     if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
     const result = StepOutcomeInputSchema.safeParse(body.value)
     if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
-    const { id, duplicate } = await insertStepOutcome(deps.pool, auth.tenantId, result.data)
+    const { id, duplicate, gateDecision, gateReason } = await insertStepOutcome(deps.pool, auth.tenantId, result.data)
+    if (duplicate) deps.metrics?.incLedgerWriteDuplicate()
+    else deps.metrics?.incGateDecision(gateDecision, gateReason)
     return c.json({ id, duplicate }, duplicate ? 200 : 201)
   })
 
