@@ -215,6 +215,42 @@ describePostgres('ledger routes (postgres)', () => {
     expect(forbidden.status).toBe(403)
   })
 
+  it('only a correction (amended/rejected) touches last_amended_at, not an accepted verdict', async () => {
+    const acceptedOutcome = await post('/v1/ledger/step-outcomes', {
+      runId: 'run_4', taskId: 'task_4', dispatchId: 'ctx_10', outcome: 'succeeded',
+      memberId: 'm3', projectId: 'p3', repoId: 'r4', branch: 'feat/gate'
+    })
+    const { id: acceptedId } = (await acceptedOutcome.json()) as { id: string }
+
+    const acceptedPatch = await app.request(`/v1/ledger/step-outcomes/${acceptedId}/human-verdict`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({ humanVerdict: 'accepted' })
+    })
+    expect(acceptedPatch.status).toBe(200)
+
+    const { rows: afterAccepted } = await withTenant(pool, 'local', (c) =>
+      c.query(`SELECT last_amended_at FROM member_stage_stats WHERE member_id = 'm3' AND stage_key = 'build' AND project_id = 'p3'`)
+    )
+    expect(afterAccepted[0].last_amended_at).toBeNull()
+
+    const rejectedOutcome = await post('/v1/ledger/step-outcomes', {
+      runId: 'run_4', taskId: 'task_5', dispatchId: 'ctx_11', outcome: 'succeeded',
+      memberId: 'm3', projectId: 'p3', repoId: 'r4', branch: 'feat/gate'
+    })
+    const { id: rejectedId } = (await rejectedOutcome.json()) as { id: string }
+
+    const rejectedPatch = await app.request(`/v1/ledger/step-outcomes/${rejectedId}/human-verdict`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({ humanVerdict: 'rejected' })
+    })
+    expect(rejectedPatch.status).toBe(200)
+
+    const { rows: afterRejected } = await withTenant(pool, 'local', (c) =>
+      c.query(`SELECT last_amended_at FROM member_stage_stats WHERE member_id = 'm3' AND stage_key = 'build' AND project_id = 'p3'`)
+    )
+    expect(afterRejected[0].last_amended_at).not.toBeNull()
+  })
+
   it('rejects malformed JSON with 400 invalid_body', async () => {
     const res = await app.request('/v1/ledger/step-outcomes', {
       method: 'POST',

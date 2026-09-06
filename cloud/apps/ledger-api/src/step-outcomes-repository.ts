@@ -141,7 +141,9 @@ export function patchStepOutcomeHumanVerdict(
       const existing = await client.query(`SELECT id FROM step_outcomes WHERE id = $1`, [id])
       return existing.rows[0] ? 'already_set' : 'not_found'
     }
-    if (row.member_id) {
+    // Why (LC-R3): only a correction (amended/rejected) feeds demotion per ARCHITECTURE §7 —
+    // an accepted verdict leaves last_amended_at untouched.
+    if (row.member_id && (patch.humanVerdict === 'amended' || patch.humanVerdict === 'rejected')) {
       await client.query(
         `UPDATE member_stage_stats SET last_amended_at = now(), updated_at = now()
          WHERE tenant_id = $1 AND member_id = $2 AND stage_key = $3 AND project_id = $4`,
