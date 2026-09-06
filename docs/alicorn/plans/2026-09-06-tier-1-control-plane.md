@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node 24, pnpm 10 (cloud workspace `packageManager`), TypeScript 5.9, hono 4, `@hono/node-server`, `pg` 8, zod 3 (cloud pins `^3.25`; the desktop uses zod 4 — do not share schema files across the boundary), vitest 4, Postgres 16 (`postgres:16-alpine`, the image `cloud-verify.yml` already uses).
 
-**Spec:** `docs/alicorn/PROJECT-BRIEF.md` (§03 base, §08 first slice, §09 gates, §11 decisions), `docs/alicorn/ARCHITECTURE.md` (§5 identity, §6 data model, §9 security), `docs/alicorn/INFRASTRUCTURE.md` (§3 environments), `CLAUDE.md` → *Control plane: Postgres + Keycloak from day one*. Companion plan: `2026-09-06-tier-1-desktop.md` consumes the wire contract defined here.
+**Spec:** `docs/alicorn/PROJECT-BRIEF.md` (§03 base, §08 first slice, §09 gates, §11 decisions), `docs/alicorn/ARCHITECTURE.md` (§5 identity, §6 data model, §9 security), `docs/alicorn/INFRASTRUCTURE.md` (§3 environments), `CLAUDE.md` → *Control plane: Postgres from day one — identity deferred*. Companion plan: `2026-09-06-tier-1-desktop.md` consumes the wire contract defined here.
 
 ## Global Constraints
 
@@ -33,6 +33,56 @@
 5. **Required checks are authored per project** (`project_required_checks`) until stages exist in v1.5. In local mode the human operator is the admin; the member being judged is an agent and never calls this API.
 6. **`member_stage_stats` is written on every outcome insert** (runs, accepted, accept_rate) and is rebuildable. Nothing reads it until gate policy (v1.0); writing it now keeps the v0.1 exit criterion honest.
 7. **The auth middleware is duplicated in both apps** (two ~40-line files) rather than a third shared package with an `hono` dependency; consolidate when a third service appears.
+
+## Amendments applied during execution (R1–R10)
+
+Rulings recorded during execution and review, in the ledger at
+`.superpowers/sdd/2026-09-06-tier-1-control-plane/progress.md`. Settled — do not relitigate.
+
+- **R1** — `withoutTenant` is not implemented in `control-plane-postgres`: tier 1 has no consumer
+  (identity tables, its only use, arrive with the Keycloak plan). YAGNI; a reviewer would flag a
+  dead export.
+- **R2** — Each app gets its own `src/app-env.ts` exporting `AuthContext` and
+  `<App>Env = { Variables: { auth: AuthContext } }`; `create<App>App` returns `Hono<...Env>`, and
+  `requireTenant` is typed `MiddlewareHandler<...Env>`. Without it, Hono's generics fail typecheck
+  once the middleware sets a context variable.
+- **R3** — `CONTROL_SCHEMA_STATEMENTS` (Task 3) adds
+  `CREATE UNIQUE INDEX IF NOT EXISTS members_tenant_name ON members(tenant_id, name)`, and the
+  Members routes (Task 5) map Postgres `23505` on that index to `409 { error: 'duplicate_name' }`.
+  The seed script's idempotent upsert and the Members UI both need the unique constraint, and
+  schema (Task 3) runs before the seed (Task 9).
+- **R4** — `require-tenant.ts` is duplicated verbatim into `ledger-api` rather than factored into a
+  third shared package, per plan decision 7 — a package with an `hono` dependency for ~40 lines is
+  not worth a build step yet.
+- **R5** — Postgres tests run as a non-superuser application role, never the superuser test
+  connection: `createTestSchema(baseUrl, schema)` creates role `cp_test_<schema>`, a schema it
+  owns, and returns `{ appUrl }`; tests open their pool with `appUrl`. `dropTestSchema` drops the
+  schema and the role. `openControlPlanePool` issues `CREATE SCHEMA` only when `pg_namespace` lacks
+  it, because an app role has no `CREATE` on the database. The compose stack's init SQL creates a
+  matching non-superuser `alicorn_app` role for both services; CI keeps the superuser URL only
+  because each test suite creates its own scoped role. Why: superusers bypass row-level security
+  even when it is `FORCE`d, so a test run as superuser proves nothing about tenant isolation.
+- **R6** — `scopedTestDatabaseUrl` is not implemented: after R5, `createTestSchema` already returns
+  `appUrl` and `openControlPlanePool` sets `search_path` itself, so no task consumes a separate
+  helper. The brief's mention of it was stale.
+- **R7** — The pool's `error` event is logged at `warn` (matching the relay's idle-client handling)
+  instead of silently discarded, for diagnosability.
+- **R8** — `ControlApiDeps` (and its ledger-api twin `LedgerApiDeps`) live in `app-env.ts`, with
+  `app.ts` re-exporting them, so route modules import deps types from `app-env.ts` rather than
+  `app.ts` — avoiding a type-only import cycle as more route files land.
+- **R9** — Desktop-plan module ownership is decoupled for maximal parallel independence: Corrections
+  watcher & Rulebook moves to Huy; a shared `alicornFetch` helper (`control-plane-http.ts`) ships
+  with B1; B2 is control-api client + ledger reads only, with ledger writes living in Huy's
+  `ledger-writer.ts` calling `alicornFetch` directly; D5 and D7 likewise call `alicornFetch`
+  directly instead of importing B2/B3. Tracked fully in `docs/alicorn/OWNERSHIP.md` and the
+  companion desktop plan — this control-plane plan is unaffected beyond the shared-helper seam.
+- **R10** — Final fix-wave rulings: (a) member skill uniqueness is enforced with a zod `.refine`
+  that fails parsing (`400 invalid_body`) rather than silently deduping; (b) the cross-package
+  `pretest` race is fixed by building `control-plane-contract` and `control-plane-postgres` once
+  from the root `pretest` and dropping `pnpm clean &&` from their own `build` scripts (an idempotent
+  re-run of `tsc` instead of a `rm -rf dist` race); (c) `SpendPatchSchema.usage` defaults to `null`
+  so a spend patch may omit it, and the ledger-api exactly-once test races all N deliveries
+  concurrently instead of awaiting the first one separately.
 
 ## File structure
 
@@ -342,7 +392,7 @@ git commit -m "feat(cloud): add control-plane wire contract package"
 - Test: `src/tenant-transaction-postgres.test.ts`, `src/rls-policy-sql.test.ts`
 
 **Interfaces:**
-- Produces: `openControlPlanePool(input: { databaseUrl: string; schema: string; applicationName: string; poolMax?: number }): Promise<pg.Pool>` (creates the schema, sets `search_path` per connection); `applySchema(pool, statements: readonly string[]): Promise<void>`; `withTenant<T>(pool, tenantId: string, fn: (client: pg.PoolClient) => Promise<T>): Promise<T>`; `withoutTenant<T>(pool, fn)` (plain transaction, identity tables only); `tenantRlsPolicySql(table: string): string`; `scopedTestDatabaseUrl(baseUrl, schema)`, `createTestSchema(baseUrl, schema)`, `dropTestSchema(baseUrl, schema)`; `describePostgres` helper: `export const describePostgres = process.env.ALICORN_TEST_POSTGRES_URL ? describe : describe.skip` lives in each test file (vitest import), not in the package.
+- Produces: `openControlPlanePool(input: { databaseUrl: string; schema: string; applicationName: string; poolMax?: number }): Promise<pg.Pool>` (issues `CREATE SCHEMA` only when `pg_namespace` lacks it — an app role has no `CREATE` on the database, R5; sets `search_path` per connection); `applySchema(pool, statements: readonly string[]): Promise<void>`; `withTenant<T>(pool, tenantId: string, fn: (client: pg.PoolClient) => Promise<T>): Promise<T>` (`withoutTenant` is not implemented — R1); `tenantRlsPolicySql(table: string): string`; `createTestSchema(baseUrl, schema): Promise<{ appUrl: string }>` (creates a non-superuser role `cp_test_<schema>` and a schema it owns, returns a connection string for that role — R5); `dropTestSchema(baseUrl, schema)` (drops the schema and the role — R5; `scopedTestDatabaseUrl` is not implemented, R6); `describePostgres` helper: `export const describePostgres = process.env.ALICORN_TEST_POSTGRES_URL ? describe : describe.skip` lives in each test file (vitest import), not in the package.
 
 - [ ] **Step 1: Scaffold** — package.json like A1 but name `@alicorn-cloud/control-plane-postgres`, dependencies `{ "pg": "^8.22.0" }`, devDependencies add `"@types/pg": "^8.20.0"`. `vitest.config.ts`:
 ```ts
@@ -449,7 +499,7 @@ END $$;`
 }
 ```
 
-`src/pool.ts`:
+`src/pool.ts` (as amended by R5, R7):
 ```ts
 import pg from 'pg'
 import { assertIdentifier } from './rls-policy-sql.js'
@@ -464,7 +514,11 @@ export async function openControlPlanePool(input: {
   const admin = new pg.Client({ connectionString: input.databaseUrl })
   await admin.connect()
   try {
-    await admin.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
+    // Why: an app role (R5) has no CREATE on the database — only create the schema if missing.
+    const schemaExists = await admin.query('SELECT 1 FROM pg_namespace WHERE nspname = $1', [schema])
+    if (schemaExists.rows.length === 0) {
+      await admin.query(`CREATE SCHEMA ${schema}`)
+    }
   } finally {
     await admin.end()
   }
@@ -480,7 +534,11 @@ export async function openControlPlanePool(input: {
     lock_timeout: 1_000,
     idle_in_transaction_session_timeout: 10_000
   })
-  pool.on('error', () => {}) // idle-client errors surface on the next checkout
+  pool.on('error', (error) => {
+    // Why (R7): node-postgres removes failed idle clients itself; leaving `error` unhandled would
+    // crash the process, but silently discarding it (as originally planned) hides real failures.
+    console.warn('[alicorn-control-plane-postgres] idle PostgreSQL client failed', error.message)
+  })
   return pool
 }
 ```
@@ -500,7 +558,7 @@ export async function applySchema(pool: pg.Pool, statements: readonly string[]):
 }
 ```
 
-`src/tenant-transaction.ts`:
+`src/tenant-transaction.ts` (as amended by R1 — no `withoutTenant`):
 ```ts
 import type pg from 'pg'
 async function transaction<T>(pool: pg.Pool, prepare: (c: pg.PoolClient) => Promise<void>, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
@@ -522,9 +580,6 @@ async function transaction<T>(pool: pg.Pool, prepare: (c: pg.PoolClient) => Prom
 export function withTenant<T>(pool: pg.Pool, tenantId: string, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
   if (!tenantId) throw new Error('tenant_required')
   return transaction(pool, async (c) => { await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [tenantId]) }, fn)
-}
-export function withoutTenant<T>(pool: pg.Pool, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
-  return transaction(pool, async () => {}, fn)
 }
 ```
 
@@ -703,7 +758,7 @@ export function loadControlApiConfig(env: NodeJS.ProcessEnv = process.env): Cont
 }
 ```
 
-`src/schema-sql.ts` (ARCHITECTURE §6 product tables; *Decisions* 2 and 5):
+`src/schema-sql.ts` (ARCHITECTURE §6 product tables; *Decisions* 2 and 5; index as amended by R3):
 ```ts
 import { tenantRlsPolicySql } from '@alicorn-cloud/control-plane-postgres'
 export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
@@ -721,7 +776,7 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      created_by TEXT NOT NULL,
      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
-  `CREATE INDEX IF NOT EXISTS members_tenant ON members(tenant_id, name)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS members_tenant_name ON members(tenant_id, name)`,
   tenantRlsPolicySql('members'),
   `CREATE TABLE IF NOT EXISTS member_skills (
      tenant_id TEXT NOT NULL,
@@ -746,20 +801,31 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
 ]
 ```
 
-`src/app.ts`:
+`src/app-env.ts` (R2; `ControlApiDeps` lives here rather than in `app.ts` — R8):
 ```ts
-import { Hono } from 'hono'
 import type pg from 'pg'
 import type { ControlApiConfig } from './config.js'
+
+export type AuthContext = { tenantId: string; actor: string }
+export type ControlApiEnv = { Variables: { auth: AuthContext } }
 
 export type ControlApiDeps = {
   config: ControlApiConfig
   pool: pg.Pool
   now?: () => number
 }
+```
 
-export function createControlApiApp(deps: ControlApiDeps): Hono {
-  const app = new Hono()
+`src/app.ts` (as amended by R2, R8):
+```ts
+import { Hono } from 'hono'
+import type { ControlApiEnv } from './app-env.js'
+
+export type { ControlApiDeps } from './app-env.js'
+import type { ControlApiDeps } from './app-env.js'
+
+export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
+  const app = new Hono<ControlApiEnv>()
   app.get('/healthz', (c) => c.json({ ok: true, service: 'control-api' }))
   // Routes are registered by later tasks: registerMembersRoutes(app, deps) (A5),
   // registerOrgPolicyRoutes / registerRequiredChecksRoutes (A6).

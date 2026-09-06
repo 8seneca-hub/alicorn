@@ -10,6 +10,10 @@ import type { ControlApiDeps } from './app-env.js'
 
 export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
   const app = new Hono<ControlApiEnv>()
+  app.onError((error, c) => {
+    console.error('[alicorn-control-api] unhandled', error)
+    return c.json({ error: 'internal' }, 500)
+  })
   app.get('/healthz', (c) => c.json({ ok: true, service: 'control-api' }))
   app.use('/v1/*', requireTenant(deps))
   registerMembersRoutes(app, deps)

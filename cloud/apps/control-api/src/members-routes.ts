@@ -2,6 +2,7 @@ import type { Hono } from 'hono'
 import { MemberInputSchema } from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import { createMember, deleteMember, getMember, listMembers, updateMember } from './members-repository.js'
+import { readJsonBody } from './read-json-body.js'
 
 // Why: 23505 also fires for a duplicate skill in the payload (member_skills PK) —
 // scope the mapping to the members_tenant_name index so only a real name conflict becomes 409 (R3).
@@ -22,7 +23,9 @@ export function registerMembersRoutes(app: Hono<ControlApiEnv>, deps: ControlApi
 
   app.post('/v1/members', async (c) => {
     const auth = c.get('auth')
-    const result = MemberInputSchema.safeParse(await c.req.json())
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = MemberInputSchema.safeParse(body.value)
     if (!result.success) {
       return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     }
@@ -44,7 +47,9 @@ export function registerMembersRoutes(app: Hono<ControlApiEnv>, deps: ControlApi
 
   app.put('/v1/members/:id', async (c) => {
     const auth = c.get('auth')
-    const result = MemberInputSchema.safeParse(await c.req.json())
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = MemberInputSchema.safeParse(body.value)
     if (!result.success) {
       return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     }

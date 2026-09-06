@@ -14,7 +14,6 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      created_by TEXT NOT NULL,
      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
-  `CREATE INDEX IF NOT EXISTS members_tenant ON members(tenant_id, name)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS members_tenant_name ON members(tenant_id, name)`,
   tenantRlsPolicySql('members'),
   `CREATE TABLE IF NOT EXISTS member_skills (

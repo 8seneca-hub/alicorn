@@ -28,7 +28,7 @@ export const StepOutcomeInputSchema = z.object({
 
 export const SpendPatchSchema = z.object({
   spendCents: z.number().int().nonnegative().nullable(),
-  usage: z.record(z.unknown()).nullable()
+  usage: z.record(z.unknown()).nullable().default(null)
 })
 
 export const StepVerificationInputSchema = z.object({

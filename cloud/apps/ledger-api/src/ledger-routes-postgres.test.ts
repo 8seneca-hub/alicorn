@@ -55,18 +55,14 @@ describePostgres('ledger routes (postgres)', () => {
       runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1', outcome: 'succeeded',
       memberId: 'm1', projectId: 'p1', repoId: 'r1', branch: 'feat/x'
     }
-    const first = await post('/v1/ledger/step-outcomes', body)
-    expect(first.status).toBe(201)
-    const firstBody = (await first.json()) as { id: string; duplicate: boolean }
-    expect(firstBody.duplicate).toBe(false)
-
-    const again = await Promise.all([1, 2, 3].map(() => post('/v1/ledger/step-outcomes', body)))
-    expect(again.map((r) => r.status)).toEqual([200, 200, 200])
-    for (const res of again) {
-      const b = (await res.json()) as { id: string; duplicate: boolean }
-      expect(b.duplicate).toBe(true)
-      expect(b.id).toBe(firstBody.id)
-    }
+    // Why: race N=4 identical deliveries concurrently — the first-write-wins path only proves
+    // exactly-once if no delivery is privileged by being awaited on its own beforehand.
+    const responses = await Promise.all([1, 2, 3, 4].map(() => post('/v1/ledger/step-outcomes', body)))
+    expect(responses.map((r) => r.status).sort()).toEqual([200, 200, 200, 201])
+    const bodies = (await Promise.all(responses.map((r) => r.json()))) as { id: string; duplicate: boolean }[]
+    const ids = new Set(bodies.map((b) => b.id))
+    expect(ids.size).toBe(1)
+    expect(bodies.filter((b) => !b.duplicate)).toHaveLength(1)
 
     const retry = await post('/v1/ledger/step-outcomes', {
       ...body, dispatchId: 'ctx_2', outcome: 'failed', reviewBackendBypass: true
@@ -166,6 +162,16 @@ describePostgres('ledger routes (postgres)', () => {
     const missingBranch = await app.request('/v1/ledger/provenance?repoId=r1', { headers: authHeaders })
     expect(missingBranch.status).toBe(400)
     expect(await missingBranch.json()).toEqual({ error: 'invalid_query' })
+  })
+
+  it('rejects malformed JSON with 400 invalid_body', async () => {
+    const res = await app.request('/v1/ledger/step-outcomes', {
+      method: 'POST',
+      headers: authHeaders,
+      body: '{not json'
+    })
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'invalid_body', issues: [] })
   })
 
   it('rejects a mismatched org header with 403', async () => {

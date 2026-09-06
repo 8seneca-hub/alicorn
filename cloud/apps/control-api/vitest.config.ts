@@ -6,8 +6,8 @@ import { defaultExclude, defineConfig } from 'vitest/config'
 // database, and those tests take session-level locks with a 1s lock_timeout.
 // Running them alongside anything else collides into lock timeouts, capacity
 // exhaustion, and afterAll hangs. Keep them in their own serialized project so
-// only they give up file parallelism; the rest of the suite opens SQLite data
-// directories and stays fully parallel.
+// only they give up file parallelism; the rest of the suite needs no database
+// and stays fully parallel.
 const sourceDirectory = fileURLToPath(new URL('src', import.meta.url))
 const sharedPostgresTests = readdirSync(sourceDirectory)
   .filter((entry) => entry.endsWith('.test.ts'))

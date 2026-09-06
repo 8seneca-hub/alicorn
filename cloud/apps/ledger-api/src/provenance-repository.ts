@@ -2,7 +2,9 @@ import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
 import type { ProvenanceReport, RunCost } from '@alicorn-cloud/control-plane-contract'
 import { toStepOutcomeRecord } from './step-outcomes-repository.js'
+import type { StepOutcomeRow } from './step-outcomes-repository.js'
 import { toStepVerificationRecord } from './step-verifications-repository.js'
+import type { StepVerificationRow } from './step-verifications-repository.js'
 
 export function getProvenance(
   pool: pg.Pool,
@@ -10,14 +12,14 @@ export function getProvenance(
   input: { repoId: string; branch: string }
 ): Promise<ProvenanceReport> {
   return withTenant(pool, tenantId, async (client) => {
-    const { rows: outcomeRows } = await client.query(
+    const { rows: outcomeRows } = await client.query<StepOutcomeRow>(
       `SELECT * FROM step_outcomes WHERE repo_id = $1 AND branch = $2 ORDER BY created_at, id`,
       [input.repoId, input.branch]
     )
     const outcomes = outcomeRows.map(toStepOutcomeRecord)
     const dispatchIds = outcomes.map((o) => o.dispatchId)
 
-    const { rows: verificationRows } = await client.query(
+    const { rows: verificationRows } = await client.query<StepVerificationRow>(
       `SELECT * FROM step_verifications WHERE dispatch_id = ANY($1) ORDER BY created_at`,
       [dispatchIds]
     )

@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import type { MiddlewareHandler } from 'hono'
-import type { AuthContext, LedgerApiEnv } from './app-env.js'
+import type { LedgerApiEnv } from './app-env.js'
 
 // Why: re-export for test and route type imports.
 export type { AuthContext } from './app-env.js'

@@ -94,7 +94,10 @@ disposable database — CI sets it to the same `postgres:16-alpine` service the 
 use, because those tests create their own schemas and non-superuser roles per run and need
 `CREATE ROLE`.
 
-See `docs/alicorn/LOCAL-DEV.md` for the full local-dev walkthrough.
+See `docs/alicorn/LOCAL-DEV.md` (arrives with B1) for the full local-dev walkthrough.
+
+The init SQL runs only on a fresh volume; after changing it,
+`docker compose -f dev/compose/alicorn-local.yml down -v`.
 
 ## What is not here
 

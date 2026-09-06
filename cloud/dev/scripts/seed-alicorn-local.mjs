@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import pg from 'pg'
+import { pathToFileURL } from 'node:url'
 
 // Why: matches the members the Members UI expects for a first run — one of each
 // role tier1 needs (developer/reviewer/qa), with the Reviewer carrying the
@@ -69,7 +70,7 @@ function printResults(members, tenantId) {
   console.log(`  export ALICORN_LOCAL_API_TOKEN=${process.env.ALICORN_LOCAL_API_TOKEN ?? 'local-dev-token-change-me-0001'}`)
 }
 
-async function main() {
+export async function main() {
   const tenantId = process.env.ALICORN_TENANT_ID ?? 'local'
   const client = new pg.Client({ connectionString: resolveDatabaseUrl() })
   await client.connect()
@@ -86,7 +87,9 @@ async function main() {
   }
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
+// Why: import.meta.url vs. a resolved file:// URL — endsWith on a basename breaks on Windows
+// (backslash paths) and matches any script sharing this file's basename (I2).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     console.error(error)
     process.exitCode = 1

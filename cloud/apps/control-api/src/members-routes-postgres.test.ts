@@ -132,6 +132,34 @@ describePostgres('members routes (postgres)', () => {
     expect(Array.isArray(body.issues)).toBe(true)
   })
 
+  it('rejects duplicate skills in the body with 400', async () => {
+    const res = await app.request('/v1/members', {
+      method: 'POST',
+      headers: { ...authHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Someone Else',
+        role: 'developer',
+        backend: 'codex',
+        workspaceKind: 'folder',
+        permissionMode: 'ask',
+        skills: ['tdd', 'tdd']
+      })
+    })
+    expect(res.status).toBe(400)
+    const body = (await res.json()) as { error: string }
+    expect(body.error).toBe('invalid_body')
+  })
+
+  it('rejects malformed JSON with 400 invalid_body', async () => {
+    const res = await app.request('/v1/members', {
+      method: 'POST',
+      headers: { ...authHeaders, 'content-type': 'application/json' },
+      body: '{not json'
+    })
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'invalid_body', issues: [] })
+  })
+
   it('rejects a mismatched org header with 403', async () => {
     const res = await app.request('/v1/members', { headers: { ...authHeaders, 'x-alicorn-org': 'acme' } })
     expect(res.status).toBe(403)

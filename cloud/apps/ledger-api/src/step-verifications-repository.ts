@@ -7,7 +7,7 @@ import type { StepVerificationInput } from '@alicorn-cloud/control-plane-contrac
 // Why: the contract only exports the schema for this record, not a standalone type.
 type StepVerificationRecord = z.infer<typeof StepVerificationRecordSchema>
 
-type StepVerificationRow = {
+export type StepVerificationRow = {
   id: string
   run_id: string
   task_id: string

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { RequiredChecksSchema } from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import { getRequiredChecks, putRequiredChecks } from './required-checks-repository.js'
+import { readJsonBody } from './read-json-body.js'
 
 const PutRequiredChecksBodySchema = z.object({ checks: RequiredChecksSchema })
 
@@ -28,7 +29,9 @@ export function registerRequiredChecksRoutes(app: Hono<ControlApiEnv>, deps: Con
     if (!isValidProjectId(projectId)) {
       return c.json({ error: 'invalid_project_id' }, 400)
     }
-    const result = PutRequiredChecksBodySchema.safeParse(await c.req.json())
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = PutRequiredChecksBodySchema.safeParse(body.value)
     if (!result.success) {
       return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     }

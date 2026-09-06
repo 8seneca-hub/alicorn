@@ -11,11 +11,14 @@ import { insertStepOutcome, patchStepOutcomeSpend } from './step-outcomes-reposi
 import { insertStepVerification } from './step-verifications-repository.js'
 import { insertContextCapture } from './context-captures-repository.js'
 import { getProvenance, getRunCost } from './provenance-repository.js'
+import { readJsonBody } from './read-json-body.js'
 
 export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDeps): void {
   app.post('/v1/ledger/step-outcomes', async (c) => {
     const auth = c.get('auth')
-    const result = StepOutcomeInputSchema.safeParse(await c.req.json())
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = StepOutcomeInputSchema.safeParse(body.value)
     if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     const { id, duplicate } = await insertStepOutcome(deps.pool, auth.tenantId, result.data)
     return c.json({ id, duplicate }, duplicate ? 200 : 201)
@@ -23,7 +26,9 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
 
   app.patch('/v1/ledger/step-outcomes/:id/spend', async (c) => {
     const auth = c.get('auth')
-    const result = SpendPatchSchema.safeParse(await c.req.json())
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = SpendPatchSchema.safeParse(body.value)
     if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     const updated = await patchStepOutcomeSpend(deps.pool, auth.tenantId, c.req.param('id'), result.data)
     if (!updated) return c.json({ error: 'not_found' }, 404)
@@ -32,7 +37,9 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
 
   app.post('/v1/ledger/step-verifications', async (c) => {
     const auth = c.get('auth')
-    const result = StepVerificationInputSchema.safeParse(await c.req.json())
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = StepVerificationInputSchema.safeParse(body.value)
     if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     const { id, duplicate } = await insertStepVerification(deps.pool, auth.tenantId, result.data)
     return c.json({ id, duplicate }, duplicate ? 200 : 201)
@@ -40,13 +47,15 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
 
   app.post('/v1/ledger/context-captures', async (c) => {
     const auth = c.get('auth')
-    const body = await c.req.json()
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
     // Why: reject an oversized prompt with a distinct 413 before zod, whose max() would
     // otherwise just fold it into a generic 400 invalid_body.
-    if (typeof body?.prompt === 'string' && Buffer.byteLength(body.prompt, 'utf8') > CONTEXT_CAPTURE_MAX_PROMPT_BYTES) {
+    const prompt = (body.value as { prompt?: unknown })?.prompt
+    if (typeof prompt === 'string' && Buffer.byteLength(prompt, 'utf8') > CONTEXT_CAPTURE_MAX_PROMPT_BYTES) {
       return c.json({ error: 'prompt_too_large' }, 413)
     }
-    const result = ContextCaptureInputSchema.safeParse(body)
+    const result = ContextCaptureInputSchema.safeParse(body.value)
     if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     const { id, duplicate } = await insertContextCapture(deps.pool, auth.tenantId, result.data)
     return c.json({ id, duplicate }, duplicate ? 200 : 201)

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
-import { requireTenant, type AuthContext } from './require-tenant.js'
+import { requireTenant } from './require-tenant.js'
 import type { ControlApiEnv } from './app-env.js'
 
 const config = { tenantId: 'local', localApiToken: 'local-dev-token-0123456789' }

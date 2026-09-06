@@ -3,7 +3,7 @@ import { withTenant } from '@alicorn-cloud/control-plane-postgres'
 import type { SpendPatch, StepOutcomeInput, StepOutcomeRecord } from '@alicorn-cloud/control-plane-contract'
 import { upsertMemberStageStats } from './member-stage-stats.js'
 
-type StepOutcomeRow = {
+export type StepOutcomeRow = {
   id: string
   tenant_id: string
   run_id: string

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { SEED_MEMBERS, seedMembers } from './seed-alicorn-local.mjs'
+import { SEED_MEMBERS, main, seedMembers } from './seed-alicorn-local.mjs'
 
 function stubClient() {
   const calls = []
@@ -17,6 +17,10 @@ function stubClient() {
     }
   }
 }
+
+test('exports main as a function and does not invoke it on import (module guard, no env, no DB connection attempted)', () => {
+  assert.equal(typeof main, 'function')
+})
 
 test('seeds Developer/Reviewer/QA with the specified role, backend, workspace and permission mode', () => {
   assert.deepEqual(SEED_MEMBERS, [

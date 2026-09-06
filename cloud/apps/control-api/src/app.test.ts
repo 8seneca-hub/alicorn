@@ -14,4 +14,14 @@ describe('control-api app', () => {
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ ok: true, service: 'control-api' })
   })
+
+  it('returns 500 { error: internal } for an unhandled route error', async () => {
+    const app = createControlApiApp(testDeps())
+    app.get('/boom', () => {
+      throw new Error('x')
+    })
+    const res = await app.request('/boom')
+    expect(res.status).toBe(500)
+    expect(await res.json()).toEqual({ error: 'internal' })
+  })
 })

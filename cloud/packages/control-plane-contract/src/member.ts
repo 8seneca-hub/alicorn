@@ -15,7 +15,7 @@ export const MemberInputSchema = z.object({
   workspaceKind: z.enum(WORKSPACE_KINDS),
   permissionMode: z.enum(PERMISSION_MODES),
   systemRules: z.string().max(20_000).default(''),
-  skills: z.array(z.string().trim().min(1).max(200)).max(50).default([])
+  skills: z.array(z.string().trim().min(1).max(200)).max(50).default([]).refine((s) => new Set(s).size === s.length, 'skills must be unique')
 })
 
 export const MemberSchema = MemberInputSchema.extend({
