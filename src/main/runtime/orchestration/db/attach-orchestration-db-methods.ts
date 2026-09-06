@@ -1,6 +1,7 @@
 import { attachActiveOrRecentDispatchMethods } from './alicorn/active-or-recent-dispatch-methods'
 import { attachCorrectionScanMethods } from './alicorn/correction-scan-methods'
 import { attachDispatchLedgerMethods } from './alicorn/dispatch-ledger-methods'
+import { attachBoardTransitionMethods } from './alicorn/board-transition-methods'
 import { attachDispatchMemberMethods } from './alicorn/dispatch-member-methods'
 import { attachLedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
 import { attachTaskStrategyMethods } from './alicorn/task-strategy-methods'
@@ -131,6 +132,7 @@ export function attachOrchestrationDbMethods(ctor: { prototype: object }): void 
   attachLedgerOutboxMethods(ctor)
   attachTaskStrategyMethods(ctor)
   attachDispatchMemberMethods(ctor)
+  attachBoardTransitionMethods(ctor)
   attachActiveOrRecentDispatchMethods(ctor)
   attachCorrectionScanMethods(ctor)
   attachDispatchLedgerMethods(ctor)
