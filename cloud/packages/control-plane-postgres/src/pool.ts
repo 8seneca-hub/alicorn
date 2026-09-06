@@ -30,6 +30,9 @@ export async function openControlPlanePool(input: {
     lock_timeout: 1_000,
     idle_in_transaction_session_timeout: 10_000
   })
-  pool.on('error', () => {}) // idle-client errors surface on the next checkout
+  pool.on('error', (error) => {
+    // Why: node-postgres removes failed idle clients itself; leaving `error` unhandled would crash the process.
+    console.warn('[alicorn-control-plane-postgres] idle PostgreSQL client failed', error.message)
+  })
   return pool
 }
