@@ -43,6 +43,42 @@ Control API and Ledger API are separate services because they have different wri
 different retention rules and different blast radius. They share a Postgres instance until measurement
 says otherwise.
 
+**The board rule engine is not a service.** It runs in Alicorn Desktop's main process as an
+in-process coordinator, owns a system Run per project (`coordinator_handle = 'board:<repoId>'`),
+and calls the same internal functions the `orchestration.taskCreate` / `orchestration.workerStart`
+handlers call after their run-scope checks. A board dispatch is therefore an ordinary
+`dispatch_contexts` row with Member provenance, and reaches the ledger through the outbox like any
+other. Guard rails — dispatch ceiling, column-revisit loop detection, kill switch — are state in the
+orchestration SQLite (`alicorn_board_transitions`, `alicorn_board_automation_state`), never prompts.
+
+### A board rule is a degenerate one-stage workflow
+
+This is the relationship to keep straight, because the two features look independent and are not:
+
+| Workflow (WF1, v1.5) | Board rule (BA1, v1.0) |
+|---|---|
+| stage with `key`, `member_id`, `required_checks` | rule with `toStatusId`, `memberId`, `promptTemplate` |
+| transition fires the next stage | a column change fires the rule |
+| `stage.key` → `step_outcomes.stage_key` | `to_status_id` → *(see below)* |
+| `reversibility` / `inherited_cost` authored on the stage | not expressible — every board dispatch is `single` and ungated |
+
+A board rule is what a one-stage workflow degenerates into when there is no graph to walk: one
+trigger, one member, one prompt. When workflows land (**WF3**), a board column becomes a stage
+trigger and `to_status_id` becomes the stage key rather than a parallel concept. Nothing about the
+board's storage needs to change for that — `alicorn_board_transitions` already records the
+destination column per transition, which is the value a stage key would carry.
+
+**Not yet wired: `to_status_id` does not reach `step_outcomes.stage_key`.** The step-outcome builder
+derives `stage_key` from the worker's `--phase` free text and defaults to `'build'`
+(`src/main/alicorn/step-outcome-builder.ts`); the board rule engine passes the destination column
+into the *prompt template*, not as a phase. So every board dispatch currently records
+`stage_key: 'build'` regardless of which column triggered it. That matters because
+`member_stage_stats` is keyed on `(member_id, stage_key)` and the autonomy policy reads it — a
+reviewer dispatched by an *In Review* column accumulates track record mixed in with implementation
+work, which is exactly the distinction §7 depends on. Closing this is a one-line change at a seam
+the ledger module owns; until it lands, per-stage track record from board dispatches is not
+trustworthy.
+
 ## 4. Topology
 
 ```

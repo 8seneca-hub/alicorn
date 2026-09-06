@@ -216,7 +216,14 @@ Wire: subscribe to the workspace-status change event in main (find where `Worksp
 ### Task 14 (WF3-prep + docs): leave room for stages; document
 
 **Files:** `docs/alicorn/ARCHITECTURE.md` §3/§7 (board rule = a degenerate one-stage workflow; `to_status_id` becomes `stage_key` when workflows land — WF3), `docs/alicorn/OWNERSHIP.md` seams (+ stage_key derivation from board transitions in the step-outcome builder), `docs/alicorn/plane-api-notes.md` finalised.
-- [ ] Commit `docs(alicorn): board automation model and Plane provider notes`.
+- [x] Commit `docs(alicorn): board automation model and Plane provider notes`.
+
+**Found while writing it:** `to_status_id` never reaches `step_outcomes.stage_key`. The builder
+derives `stage_key` from the worker's `--phase` and defaults to `'build'`; the rule engine passes
+the column into the prompt template instead. Every board dispatch therefore records
+`stage_key: 'build'`, which undercuts decision 2 above and mixes reviewer track record into
+implementation work in `member_stage_stats`. Documented as an open seam in OWNERSHIP rather than
+fixed here — the change belongs on the ledger side.
 
 ---
 

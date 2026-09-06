@@ -59,6 +59,15 @@ description rather than editing it in a feature branch — the desktop mirrors i
 - **Env names** (A9 compose, Huy — read by B1, Nghia): `ALICORN_CONTROL_API_URL`,
   `ALICORN_LEDGER_API_URL`, `ALICORN_TENANT_ID`, `ALICORN_LOCAL_API_TOKEN`. `LOCAL-DEV.md` is created
   by B1; E1 (Huy) appends the smoke checklist.
+- **`step_outcomes.stage_key` for board dispatches is an open seam (ledger module, Huy).** The board
+  rule engine (Nghia) records the destination column on every transition
+  (`alicorn_board_transitions.to_status_id`) but passes it into the prompt template, not as a worker
+  `--phase`. `src/main/alicorn/step-outcome-builder.ts` derives `stage_key` from `--phase` and
+  defaults to `'build'`, so every board dispatch currently lands under `'build'`. Since
+  `member_stage_stats` is keyed on `(member_id, stage_key)` and the autonomy policy reads it, a
+  reviewer dispatched by an *In Review* column accumulates track record mixed in with implementation
+  work. The fix is on the ledger side of the seam — the builder reading the board transition for the
+  dispatch — so it is not being made from the board module unilaterally. See ARCHITECTURE §3.
 
 ## Branches
 
