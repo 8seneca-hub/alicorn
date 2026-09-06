@@ -52,6 +52,7 @@ import {
   renderPluginsSettingsSection
 } from './settings-advanced-section-renderers'
 import { renderProjectSettingsSections } from './settings-project-section-renderer'
+import { renderAlicornMembersSettingsSection } from './settings-alicorn-section-renderers'
 
 export function renderSettingsLoading(
   interactions: SettingsInteractionController
@@ -125,6 +126,7 @@ export function renderSettingsPage(context: SettingsRenderContext): React.JSX.El
                 {renderIntegrationsSettingsSection(context)}
                 {renderMobileSettingsSection(context)}
                 {renderAutomationsSettingsSection(context)}
+                {renderAlicornMembersSettingsSection(context)}
                 {renderArtifactsSettingsSection(context)}
                 {renderShareSkillsSettingsSection(context)}
                 {renderGitSettingsSection(context)}
