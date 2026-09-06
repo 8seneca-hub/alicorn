@@ -172,3 +172,9 @@ tests/e2e/.cross-version-checkouts/
 # IS committed). Also keeps oxfmt/oxlint, which honor this file, from walking
 # vendored gems.
 /mobile/vendor/
+
+# Foreman run journals (local run artifacts; the run report goes in the PR, not in git)
+/.foreman/
+
+# Subagent-driven-development scratch (ledgers, briefs, review packages)
+/.superpowers/

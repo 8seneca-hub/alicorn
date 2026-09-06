@@ -1,0 +1,155 @@
+# Foreman templates
+
+Three templates: the brief you send, the report you get back, and the journal you keep.
+
+---
+
+## 1 · Subagent brief
+
+Paste this shape into every `Agent` dispatch. A brief missing any section produces work you will
+have to throw away.
+
+```markdown
+## Objective
+<One paragraph. What "done" looks like, concretely and verifiably.>
+
+## Scope
+Repo/paths you own:   <exact paths>
+Commands you may run: <build, test, lint — be specific>
+Workspace:            <worktree | folder>
+
+## Boundaries — do NOT do these
+- Do not touch <path>. Another subagent owns it.
+- Do not refactor anything you were not asked to change.
+- Do not commit, push, or open a PR.
+- <anything else that is someone else's job>
+
+## Contract you build against
+<Paste the interface contract verbatim — the endpoint shape, the type, the schema.
+Never paste another subagent's transcript or reasoning. The contract is the only
+thing that crosses between subagents.>
+
+## Verification
+Before reporting done, run: <exact command>
+It must: <exact expected result>
+If it cannot run, say so in `status: blocked` — do not report success.
+
+## Report back
+Return ONLY the report schema below. Nothing else — no transcript, no narration,
+no file contents. Hard ceiling ~1500 tokens.
+If you need to say more, write it to a file and return the path in `artifacts`.
+```
+
+**Model selection.** Pass an explicit `model` on the dispatch. Implementation gets a strong model;
+mechanical work (renames, scaffolding, doc lookup) gets a cheap one. **Review gets a model different
+from whichever wrote the code** — this is not optional, it is the quality mechanism.
+
+**Isolation.** For anything that edits files, dispatch with `isolation: "worktree"` so subagents
+cannot clobber each other.
+
+---
+
+## 2 · Report schema
+
+What comes back across the boundary. Enforce the ceiling — if a report arrives as a wall of prose,
+reject it and re-dispatch with the schema quoted more forcefully.
+
+```yaml
+status: done | blocked | needs_decision | failed
+
+summary: |
+  <At most three sentences. What you did, not how you felt about it.>
+
+changes:
+  - repo: <name>
+    path: <path>
+    kind: added | modified | deleted
+    why: <half a line>
+  # paths only — never file contents
+
+interface_delta:
+  # Only if you changed something another part of the system depends on.
+  # This is the ONLY thing that crosses to another subagent.
+  - kind: http_endpoint | type | event | schema | cli
+    name: <e.g. POST /refunds/partial>
+    shape: <request/response, or the type signature>
+    breaking: true | false
+
+verification:
+  command: <exact command run>
+  result: pass | fail | could_not_run
+  evidence: <one line — counts, or the failing assertion>
+
+open_questions:
+  - <only things that genuinely block, not curiosities>
+
+artifacts:
+  - <path to anything too long for this report>
+
+cost:
+  tokens_in: <n>
+  tokens_out: <n>
+```
+
+**`could_not_run` is not `pass`.** A subagent that could not verify says so. Fail closed.
+
+---
+
+## 3 · Journal
+
+Lives at `.foreman/<task-id>/journal.md`. Written as you go. This is the source of truth — your
+context is a cache of it.
+
+```markdown
+# <TASK-ID> — <title>
+
+**Status:** planning | running | blocked | done
+**Started:** <date>   **Budget:** <tokens or $, if set>
+**Spent so far:** <running total>
+
+## Objective
+<One paragraph, from the user.>
+
+## Decisions
+| # | Decision | Chosen | Why | Reversible? |
+|---|---|---|---|---|
+| 1 | Multi-currency at launch | yes | asked user, they confirmed | no — changes schema |
+
+## Assumptions made without asking
+> These went into the run report. Any of them may be overridden — note which nodes
+> depend on each, so a reversal re-dispatches only those.
+
+| # | Assumption | Blast radius | Nodes depending on it |
+|---|---|---|---|
+| 1 | Idempotency keys scoped per merchant | contained | 3, 4 |
+
+## Plan
+| Node | Owner | Depends on | Status | Model |
+|---|---|---|---|---|
+| 1 | orient — map the area | — | done | haiku |
+| 2 | backend endpoint | 1 | running | opus |
+| 3 | frontend, against contract | 1 | running | opus |
+| 4 | review | 2, 3 | pending | **codex/sonnet — not the author** |
+
+## Contract registry
+<Accumulated interface deltas from reports. This is what subagents build against.
+Never the transcripts.>
+
+## Log
+- `<time>` node 2 dispatched — brief: implement POST /refunds/partial
+- `<time>` node 2 done — 14 files, tests green, 1 interface delta
+- `<time>` node 4 findings ×2 → back to node 2
+
+## Not done, and why
+- <things deliberately left out of scope>
+```
+
+---
+
+## Compaction
+
+When your context approaches ~40% of the window: write everything to the journal, then continue
+reading only the journal. Do not carry old reports forward — that is what the file is for.
+
+The test of a good journal: **if this session died right now, could a fresh lead pick up from the
+file alone?** If not, it is not written down well enough yet.
