@@ -1,6 +1,7 @@
 import type { OrchestrationDb } from './db'
 import type { MessageRow, WorkerReportOutcome } from './types'
 import { parsePaneKey } from '../../../shared/stable-pane-id'
+import { enqueueInterruptionsForDispatch } from '../../alicorn/interruptions/interruption-capture'
 
 // Why: the tab half can change on pane break-out, while opaque legacy keys
 // have no safe equivalence beyond exact equality.
@@ -294,6 +295,10 @@ function reconcileWorkerDoneMessage(
   })
   if (settlement.action === 'rejected') {
     return rejectLifecycleMessage(db, msg, settlement.code, settlement.reason, onLog)
+  }
+  // Why one line: gates/asks/escalation captured only on a real (non-duplicate) settlement.
+  if (settlement.action === 'settled' && !settlement.duplicate) {
+    enqueueInterruptionsForDispatch(db, { runId: task.run_id, taskId, dispatchId })
   }
   suppressEarlierHeartbeats(db, msg, dispatchId)
 

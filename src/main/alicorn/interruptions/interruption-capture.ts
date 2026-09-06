@@ -1,0 +1,108 @@
+import type { OrchestrationDb } from '../../runtime/orchestration/db'
+import { parseSqliteUtc } from '../run-usage-attribution'
+
+const ERROR_LOG_THROTTLE_MS = 5 * 60_000
+let lastErrorLogAt = 0
+
+// Why: SQLite's datetime('now') has no zone marker; the outbox wire payload needs true ISO.
+function toIso(sqliteUtc: string): string {
+  return new Date(parseSqliteUtc(sqliteUtc) ?? 0).toISOString()
+}
+
+export type DispatchInterruptionIds = { runId: string; taskId: string; dispatchId: string }
+
+type InterruptionKind = 'gate' | 'ask' | 'escalation'
+
+type GateRow = { id: string; created_at: string }
+type AskRow = { message_id: string; created_at: string }
+type EscalationRow = { escalation_offered_at: string | null }
+
+function enqueueOne(
+  db: OrchestrationDb,
+  ids: DispatchInterruptionIds,
+  kind: InterruptionKind,
+  sourceId: string,
+  occurredAtSqliteUtc: string
+): number {
+  const { duplicate } = db.enqueueLedgerOutbox({
+    kind: 'interruption',
+    dedupeKey: `interruption:${kind}:${sourceId}`,
+    payload: {
+      runId: ids.runId,
+      taskId: ids.taskId,
+      dispatchId: ids.dispatchId,
+      kind,
+      sourceId,
+      resolvedBy: null,
+      occurredAt: toIso(occurredAtSqliteUtc)
+    }
+  })
+  return duplicate ? 0 : 1
+}
+
+function enqueueInterruptions(db: OrchestrationDb, ids: DispatchInterruptionIds): number {
+  const dispatch = db.getDispatchContextById(ids.dispatchId)
+  if (!dispatch?.dispatched_at || !dispatch.completed_at) {
+    return 0
+  }
+  const [start, end] = [dispatch.dispatched_at, dispatch.completed_at]
+  let enqueued = 0
+
+  const gates = db.db
+    .prepare(
+      `SELECT id, created_at FROM decision_gates WHERE task_id = ? AND created_at BETWEEN ? AND ?`
+    )
+    .all(ids.taskId, start, end) as GateRow[]
+  for (const gate of gates) {
+    enqueued += enqueueOne(db, ids, 'gate', gate.id, gate.created_at)
+  }
+
+  const asks = db.db
+    .prepare(`SELECT message_id, created_at FROM question_threads WHERE dispatch_id = ?`)
+    .all(ids.dispatchId) as AskRow[]
+  for (const ask of asks) {
+    enqueued += enqueueOne(db, ids, 'ask', ask.message_id, ask.created_at)
+  }
+
+  const strategy = db.db
+    .prepare(`SELECT escalation_offered_at FROM alicorn_task_strategy WHERE task_id = ?`)
+    .get(ids.taskId) as EscalationRow | undefined
+  const offeredAt = strategy?.escalation_offered_at
+  if (offeredAt && offeredAt >= start && offeredAt <= end) {
+    enqueued += enqueueOne(db, ids, 'escalation', ids.dispatchId, offeredAt)
+  }
+
+  return enqueued
+}
+
+function logCaptureErrorThrottled(dispatchId: string, error: unknown): void {
+  const now = Date.now()
+  if (now - lastErrorLogAt < ERROR_LOG_THROTTLE_MS) {
+    return
+  }
+  lastErrorLogAt = now
+  console.warn(
+    '[alicorn] interruption capture skipped',
+    dispatchId,
+    error instanceof Error ? error.message : String(error)
+  )
+}
+
+/**
+ * Records the gates, questions and escalation offer that fell inside a settled dispatch's
+ * span as ledger interruptions, through the outbox (exactly-once via dedupe key). Returns the
+ * number of newly enqueued rows; a re-run over the same dispatch enqueues none.
+ *
+ * Never throws: this runs on the settlement path and a capture failure must not fail the report.
+ */
+export function enqueueInterruptionsForDispatch(
+  db: OrchestrationDb,
+  ids: DispatchInterruptionIds
+): number {
+  try {
+    return enqueueInterruptions(db, ids)
+  } catch (error) {
+    logCaptureErrorThrottled(ids.dispatchId, error)
+    return 0
+  }
+}
