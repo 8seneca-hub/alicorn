@@ -123,6 +123,7 @@ function installWillQuitHandler(): void {
     state.starNag?.stop()
     state.automations?.stop()
     state.ledgerOutboxDrainer?.stop()
+    state.correctionsSweep?.stop()
     state.runCostPublisher?.stop()
     state.contextCeilingWatcher?.stop()
     // Why: plugin hosts are forked children; dispose sends shutdown and

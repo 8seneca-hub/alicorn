@@ -4,6 +4,7 @@ import { attachDispatchLedgerMethods } from './alicorn/dispatch-ledger-methods'
 import { attachBoardTransitionMethods } from './alicorn/board-transition-methods'
 import { attachDispatchMemberMethods } from './alicorn/dispatch-member-methods'
 import { attachLedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
+import { attachSettledDispatchCorrectionsMethods } from './alicorn/settled-dispatch-corrections-methods'
 import { attachTaskStrategyMethods } from './alicorn/task-strategy-methods'
 import { attachCoordinatorRunStore } from './coordinator-runs/coordinator-run-store'
 import { attachDecisionGateStore } from './decision-gates/decision-gate-store'
@@ -136,4 +137,5 @@ export function attachOrchestrationDbMethods(ctor: { prototype: object }): void 
   attachActiveOrRecentDispatchMethods(ctor)
   attachCorrectionScanMethods(ctor)
   attachDispatchLedgerMethods(ctor)
+  attachSettledDispatchCorrectionsMethods(ctor)
 }

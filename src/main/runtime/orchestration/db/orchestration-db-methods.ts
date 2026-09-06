@@ -4,6 +4,7 @@ import type { DispatchLedgerMethods } from './alicorn/dispatch-ledger-methods'
 import type { BoardTransitionMethods } from './alicorn/board-transition-methods'
 import type { DispatchMemberMethods } from './alicorn/dispatch-member-methods'
 import type { LedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
+import type { SettledDispatchCorrectionsMethods } from './alicorn/settled-dispatch-corrections-methods'
 import type { TaskStrategyMethods } from './alicorn/task-strategy-methods'
 import type { CoordinatorRunStoreMethods } from './coordinator-runs/coordinator-run-store'
 import type { DecisionGateStoreMethods } from './decision-gates/decision-gate-store'
@@ -134,4 +135,5 @@ export type OrchestrationDbMethods = CreateTablesMethods &
   ActiveOrRecentDispatchMethods &
   CorrectionScanMethods &
   DispatchLedgerMethods &
-  BoardTransitionMethods
+  BoardTransitionMethods &
+  SettledDispatchCorrectionsMethods

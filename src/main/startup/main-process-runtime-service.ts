@@ -21,6 +21,7 @@ import type { RuntimeDesktopWindowStatus } from '../../shared/runtime-types'
 import { ArtifactCloudService } from '../artifacts/artifact-cloud-service'
 import { SkillCloudService } from '../skills/skill-cloud-service'
 import { isArtifactSharingEnabled } from '../../shared/artifact-sharing-gate'
+import { startCorrectionsSweep } from '../alicorn/corrections/corrections-sweep'
 import { startLedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
 import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
 import { attributeDispatchUsage } from '../alicorn/run-usage-attribution'
@@ -39,6 +40,7 @@ import { createMemberDirectory } from '../alicorn/member-directory'
 import { getControlPlaneClient } from '../alicorn/control-plane-client-instance'
 
 const LEDGER_OUTBOX_DRAIN_INTERVAL_MS = 5_000
+const CORRECTIONS_SWEEP_INTERVAL_MS = 600_000
 
 export function getDesktopWindowStatus(): RuntimeDesktopWindowStatus {
   const activation = state.desktopActivationGate
@@ -164,6 +166,14 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
       }
     }),
     intervalMs: LEDGER_OUTBOX_DRAIN_INTERVAL_MS
+  })
+  // Why next to the drainer: same settled-state read, and corrections patch the
+  // outcomes the drainer just posted.
+  state.correctionsSweep = startCorrectionsSweep({
+    getDb: () => runtime.getOrchestrationDb(),
+    runtime,
+    store,
+    intervalMs: CORRECTIONS_SWEEP_INTERVAL_MS
   })
   runtime.prepareLegacyWorkerTerminalRecovery()
   // Why before anything can attach: a client host that reattaches to a restarted runtime is only
