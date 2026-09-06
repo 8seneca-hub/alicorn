@@ -1,0 +1,51 @@
+// Hand-mirrored from cloud/packages/control-plane-contract/src/ledger.ts —
+// the write side. Field names must stay identical to the zod input schemas.
+
+import type { ExecutionStrategy, StepOutcomeBackend } from './ledger'
+
+export type StepOutcomeInput = {
+  runId: string
+  taskId: string
+  dispatchId: string
+  projectId?: string
+  repoId?: string
+  worktreeId?: string
+  branch?: string
+  memberId?: string
+  backend: StepOutcomeBackend
+  stageKey: string
+  executionStrategy: ExecutionStrategy
+  outcome: 'succeeded' | 'failed'
+  filesModified: string[]
+  reportSummary?: string
+  reviewBackendBypass: boolean
+  escalationOffered: boolean
+  escalationAccepted: boolean | null
+  clientTs?: string
+}
+
+export type SpendPatch = {
+  spendCents: number | null
+  usage: Record<string, unknown> | null
+}
+
+export type StepVerificationInput = {
+  runId: string
+  taskId: string
+  dispatchId: string
+  kind: 'diff_coverage'
+  name: string
+  required: boolean
+  status: 'passed' | 'failed' | 'skipped' | 'error'
+  detail: Record<string, unknown>
+}
+
+export type ContextCaptureInput = {
+  runId: string
+  taskId: string
+  dispatchId: string
+  // Why: exactly one of prompt / promptPath — overflow is written to a file and the path is recorded.
+  prompt?: string
+  promptPath?: string
+  contextSlice: Record<string, unknown>
+}

@@ -1,0 +1,248 @@
+import type { OrchestrationDb } from '../runtime/orchestration/db'
+import type { LedgerOutboxRow } from '../runtime/orchestration/db/alicorn/alicorn-rows'
+import { buildStepOutcomeInput } from './step-outcome-builder'
+import { ControlPlaneUnavailableError } from './control-plane-http'
+import type { LedgerWriter } from './ledger/ledger-writer'
+import type { ContextCaptureInput, SpendPatch } from '../../shared/alicorn/ledger-inputs'
+
+const BASE_BACKOFF_MS = 5_000
+const MAX_BACKOFF_MS = 5 * 60_000
+// Why 60s: transcripts (spend usage) flush after the report lands, not before.
+const SPEND_ATTRIBUTION_DELAY_MS = 60_000
+const UNAVAILABLE_LOG_INTERVAL_MS = 5 * 60_000
+
+function backoffMs(attempts: number): number {
+  return Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * 2 ** attempts)
+}
+
+type StepOutcomePayload = {
+  taskId: string
+  dispatchId: string
+  outcome: 'succeeded' | 'failed'
+  result: string
+}
+
+type SpendAttributionPayload = {
+  dispatchId: string
+  taskId: string
+  outcomeId: string
+  backend: string
+  worktreeId: string | null
+  startedAt: string | null
+  completedAt: string | null
+}
+
+type StepVerificationPayload = {
+  dispatchId: string
+  taskId: string
+  runId: string
+  worktreeId: string
+  worktreePath: string
+  branch: string
+  projectId: string
+}
+
+export type SpendAttributor = (input: {
+  backend: string
+  worktreeId: string | null
+  startedAt: string | null
+  completedAt: string | null
+}) => Promise<SpendPatch>
+
+export type VerificationRunner = (
+  payload: StepVerificationPayload,
+  writer: LedgerWriter
+) => Promise<void>
+
+export type DrainerWorktree = {
+  id: string
+  path: string
+  branch: string
+  repoId: string
+  projectId?: string
+}
+
+export type LedgerOutboxDrainerDeps = {
+  getDb: () => OrchestrationDb
+  runtime: { showManagedWorktree: (selector: string) => Promise<DrainerWorktree> }
+  writer: LedgerWriter | null
+  // Why null for now: C5 (attributeDispatchUsage) and D5 (runDiffCoverageCheck) aren't written yet.
+  spendAttributor: SpendAttributor | null
+  verificationRunner: VerificationRunner | null
+  intervalMs: number
+}
+
+export type LedgerOutboxDrainer = {
+  stop(): void
+  drainOnce(): Promise<{ sent: number; failed: number }>
+}
+
+/** Marker thrown to short-circuit a pass without bumping attempts or logging as a failure. */
+class RowUntouched extends Error {}
+
+export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerOutboxDrainer {
+  let lastUnavailableLogAt = 0
+  let running = false
+
+  function logUnavailableOnce(): void {
+    const now = Date.now()
+    if (now - lastUnavailableLogAt >= UNAVAILABLE_LOG_INTERVAL_MS) {
+      lastUnavailableLogAt = now
+      console.warn('[ledger-outbox] control plane unavailable; rows left untouched')
+    }
+  }
+
+  async function resolveWorktree(
+    db: OrchestrationDb,
+    dispatchId: string
+  ): Promise<DrainerWorktree | null> {
+    const worktreeId = db.getWorkerDispatch(dispatchId)?.worktree_id
+    if (!worktreeId) {
+      return null
+    }
+    try {
+      return await deps.runtime.showManagedWorktree(`id:${worktreeId}`)
+    } catch {
+      return null
+    }
+  }
+
+  async function handleStepOutcome(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
+    if (!deps.writer) {
+      throw new RowUntouched()
+    }
+    const payload = JSON.parse(row.payload) as StepOutcomePayload
+    const worktree = await resolveWorktree(db, payload.dispatchId)
+    const stepOutcomeInput = buildStepOutcomeInput({ db, payload, worktree })
+    const posted = await deps.writer.postStepOutcome(stepOutcomeInput)
+    db.markLedgerOutboxSent(row.id)
+
+    const dispatchContext = db.getDispatchContextById(payload.dispatchId)
+    const spendPayload: SpendAttributionPayload = {
+      dispatchId: payload.dispatchId,
+      taskId: payload.taskId,
+      outcomeId: posted.id,
+      backend: stepOutcomeInput.backend,
+      worktreeId: worktree?.id ?? null,
+      startedAt: dispatchContext?.dispatched_at ?? null,
+      completedAt: dispatchContext?.completed_at ?? null
+    }
+    db.enqueueLedgerOutbox({
+      kind: 'spend_attribution',
+      dedupeKey: `spend_attribution:${payload.dispatchId}`,
+      payload: spendPayload,
+      notBefore: new Date(Date.now() + SPEND_ATTRIBUTION_DELAY_MS).toISOString()
+    })
+
+    if (payload.outcome === 'succeeded' && worktree) {
+      const verificationPayload: StepVerificationPayload = {
+        dispatchId: payload.dispatchId,
+        taskId: payload.taskId,
+        runId: stepOutcomeInput.runId,
+        worktreeId: worktree.id,
+        worktreePath: worktree.path,
+        branch: worktree.branch,
+        projectId: worktree.projectId ?? worktree.repoId
+      }
+      db.enqueueLedgerOutbox({
+        kind: 'step_verification',
+        dedupeKey: `step_verification:${payload.dispatchId}:diff_coverage`,
+        payload: verificationPayload
+      })
+    }
+  }
+
+  async function handleContextCapture(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
+    if (!deps.writer) {
+      throw new RowUntouched()
+    }
+    const payload = JSON.parse(row.payload) as ContextCaptureInput
+    await deps.writer.postContextCapture(payload)
+    db.markLedgerOutboxSent(row.id)
+  }
+
+  async function handleSpendAttribution(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
+    if (!deps.spendAttributor || !deps.writer) {
+      throw new RowUntouched()
+    }
+    const payload = JSON.parse(row.payload) as SpendAttributionPayload
+    const patch = await deps.spendAttributor({
+      backend: payload.backend,
+      worktreeId: payload.worktreeId,
+      startedAt: payload.startedAt,
+      completedAt: payload.completedAt
+    })
+    await deps.writer.patchStepOutcomeSpend(payload.outcomeId, patch)
+    db.markLedgerOutboxSent(row.id)
+  }
+
+  async function handleStepVerification(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
+    if (!deps.verificationRunner || !deps.writer) {
+      throw new RowUntouched()
+    }
+    const payload = JSON.parse(row.payload) as StepVerificationPayload
+    await deps.verificationRunner(payload, deps.writer)
+    db.markLedgerOutboxSent(row.id)
+  }
+
+  async function processRow(db: OrchestrationDb, row: LedgerOutboxRow): Promise<void> {
+    switch (row.kind) {
+      case 'step_outcome':
+        return handleStepOutcome(db, row)
+      case 'context_capture':
+        return handleContextCapture(db, row)
+      case 'spend_attribution':
+        return handleSpendAttribution(db, row)
+      case 'step_verification':
+        return handleStepVerification(db, row)
+    }
+  }
+
+  async function drainOnce(): Promise<{ sent: number; failed: number }> {
+    const db = deps.getDb()
+    const rows = db.listDueLedgerOutbox(25)
+    let sent = 0
+    let failed = 0
+    for (const row of rows) {
+      try {
+        await processRow(db, row)
+        sent += 1
+      } catch (error) {
+        if (error instanceof RowUntouched) {
+          continue
+        }
+        if (error instanceof ControlPlaneUnavailableError) {
+          logUnavailableOnce()
+          break
+        }
+        const message = error instanceof Error ? error.message : String(error)
+        db.markLedgerOutboxFailed(
+          row.id,
+          message,
+          new Date(Date.now() + backoffMs(row.attempts)).toISOString()
+        )
+        failed += 1
+      }
+    }
+    return { sent, failed }
+  }
+
+  const timer = setInterval(() => {
+    if (running) {
+      return
+    }
+    running = true
+    drainOnce()
+      .catch((error) => console.error('[ledger-outbox] drain pass failed:', error))
+      .finally(() => {
+        running = false
+      })
+  }, deps.intervalMs)
+
+  return {
+    stop() {
+      clearInterval(timer)
+    },
+    drainOnce
+  }
+}

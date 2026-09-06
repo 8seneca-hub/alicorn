@@ -10,6 +10,7 @@ import type { CodexRuntimeHomeService } from '../codex-accounts/runtime-home-ser
 import type { ClaudeAccountService } from '../claude-accounts/service'
 import type { ClaudeRuntimeAuthService } from '../claude-accounts/runtime-auth-service'
 import type { OrcaRuntimeService } from '../runtime/orca-runtime'
+import type { LedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
 import type { RateLimitService } from '../rate-limits/service'
 import type { OrcaRuntimeRpcServer } from '../runtime/runtime-rpc'
 import type { DesktopRelayService } from '../runtime/relay/desktop-relay-service'
@@ -61,6 +62,7 @@ export const mainProcessState = {
   claudeAccounts: null as ClaudeAccountService | null,
   claudeRuntimeAuth: null as ClaudeRuntimeAuthService | null,
   runtime: null as OrcaRuntimeService | null,
+  ledgerOutboxDrainer: null as LedgerOutboxDrainer | null,
   rateLimits: null as RateLimitService | null,
   runtimeRpc: null as OrcaRuntimeRpcServer | null,
   serveReadinessPublisher: new ServeReadinessPublisher(),

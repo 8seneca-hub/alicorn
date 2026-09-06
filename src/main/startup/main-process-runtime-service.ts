@@ -21,6 +21,10 @@ import type { RuntimeDesktopWindowStatus } from '../../shared/runtime-types'
 import { ArtifactCloudService } from '../artifacts/artifact-cloud-service'
 import { SkillCloudService } from '../skills/skill-cloud-service'
 import { isArtifactSharingEnabled } from '../../shared/artifact-sharing-gate'
+import { startLedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
+import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
+
+const LEDGER_OUTBOX_DRAIN_INTERVAL_MS = 5_000
 
 export function getDesktopWindowStatus(): RuntimeDesktopWindowStatus {
   const activation = state.desktopActivationGate
@@ -115,6 +119,16 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
     skillTransactionRecovery: state.skillTransactionRecovery
   })
   state.runtime = runtime
+  // Why: C3's own writer instance over B1's alicornFetch — never B2's control-plane client.
+  state.ledgerOutboxDrainer = startLedgerOutboxDrainer({
+    getDb: () => runtime.getOrchestrationDb(),
+    runtime,
+    writer: createLedgerWriter(),
+    // Why null: C5 (attributeDispatchUsage) and D5 (runDiffCoverageCheck) aren't written yet.
+    spendAttributor: null,
+    verificationRunner: null,
+    intervalMs: LEDGER_OUTBOX_DRAIN_INTERVAL_MS
+  })
   runtime.prepareLegacyWorkerTerminalRecovery()
   // Why before anything can attach: a client host that reattaches to a restarted runtime is only
   // handed its pages back if the runtime found them first.
