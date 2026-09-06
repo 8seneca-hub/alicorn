@@ -134,4 +134,31 @@ describe('evaluateBoardGuard', () => {
       reason: 'ceiling'
     })
   })
+
+  // Regression: SQLite writes `datetime('now')` as 'YYYY-MM-DD HH:MM:SS' in UTC, which Date.parse
+  // reads as *local* time — seven hours early in UTC+7. Every row then fell outside the one-hour
+  // window and the ceiling never fired.
+  it('counts rows written in SQLite UTC format, not just ISO', () => {
+    const sqliteUtc = (ms: number): string =>
+      new Date(ms).toISOString().replace('T', ' ').slice(0, 19)
+    const transitions = Array.from({ length: BOARD_DISPATCH_CEILING.max }, (_, i) =>
+      row({ id: `bt_${i}`, toStatusId: `col-${i}`, createdAt: sqliteUtc(NOW - i * 60_000) })
+    )
+
+    expect(guard({ transitions, toStatusId: 'fresh-column' })).toMatchObject({
+      allow: false,
+      reason: 'ceiling'
+    })
+  })
+
+  it('still excludes SQLite-format rows older than the window', () => {
+    const old = new Date(NOW - BOARD_DISPATCH_CEILING.windowMs - 60_000)
+      .toISOString()
+      .replace('T', ' ')
+      .slice(0, 19)
+    const transitions = Array.from({ length: BOARD_DISPATCH_CEILING.max }, (_, i) =>
+      row({ id: `bt_${i}`, toStatusId: `col-${i}`, createdAt: old })
+    )
+    expect(guard({ transitions, toStatusId: 'fresh-column' })).toEqual({ allow: true })
+  })
 })
