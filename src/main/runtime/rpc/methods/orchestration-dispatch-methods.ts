@@ -6,6 +6,7 @@ import { buildInjectRejectionMessage } from './orchestration-inject-rejection-me
 import { resolveRunScope } from './orchestration-run-scope'
 import { DispatchParams, DispatchShowParams } from './orchestration-schemas'
 import { enqueueContextCapture, memberContextSlice } from '../../../alicorn/context-capture-enqueue'
+import { resolveMemberLaunchForRequest } from '../../../alicorn/member-launch-request'
 
 export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
   defineMethod({
@@ -92,6 +93,18 @@ export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
         )
       }
 
+      // Resolved before the dispatch context exists so a rejected member — an
+      // unknown id, or a reviewer on the author's backend — creates nothing.
+      const memberLaunch = await resolveMemberLaunchForRequest({
+        runtime,
+        db,
+        taskId: params.task,
+        ...(params.member ? { memberId: params.member } : {}),
+        ...(params.allowSameBackendReview !== undefined
+          ? { allowSameBackendReview: params.allowSameBackendReview }
+          : {})
+      })
+
       revalidateLegacyCoordinator?.()
       const ctx = db.createDispatchContext({
         taskId: params.task,
@@ -102,6 +115,9 @@ export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
         creator: resolveDispatchCreator(runtime, params.from),
         maxDepth: runtime.getNestedWorkerMaxDepth()
       })
+      if (memberLaunch.dispatchMember) {
+        db.setDispatchMember({ dispatchId: ctx.id, ...memberLaunch.dispatchMember })
+      }
       const dispatchCapability = params.inject
         ? db.mintDispatchCapability({
             dispatchId: ctx.id,

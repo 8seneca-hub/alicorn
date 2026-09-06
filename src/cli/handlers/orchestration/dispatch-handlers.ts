@@ -25,6 +25,8 @@ export const ORCHESTRATION_DISPATCH_HANDLER: Record<string, CommandHandler> = {
       to,
       from,
       inject: flags.has('inject') ? true : undefined,
+      member: getOptionalStringFlag(flags, 'member'),
+      allowSameBackendReview: flags.has('allow-same-backend-review') ? true : undefined,
       dryRun,
       returnPreamble,
       devMode: isDevCliInvocation()

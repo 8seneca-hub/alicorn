@@ -228,7 +228,9 @@ export const DispatchParams = z.object({
   dryRun: OptionalBoolean,
   returnPreamble: OptionalBoolean,
   devMode: OptionalBoolean,
-  run: OptionalString
+  run: OptionalString,
+  member: OptionalString,
+  allowSameBackendReview: OptionalBoolean
 })
 
 export const DispatchShowParams = z.object({

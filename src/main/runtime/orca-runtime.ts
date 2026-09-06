@@ -1,3 +1,4 @@
+import { installRuntimeAlicornServices } from './orca-runtime-alicorn-services'
 import { installRuntimeLinearCommandSurface } from './runtime-linear-command-surface'
 import { OrcaRuntimeWithResolveWaiter } from './orca-runtime-resolve-waiter'
 import type { RuntimeCommandSurfaceHost } from './orca-runtime-core'
@@ -10,6 +11,7 @@ const OrcaRuntimeServiceExport = OrcaRuntimeService as unknown as {
 }
 export { OrcaRuntimeServiceExport as OrcaRuntimeService }
 installRuntimeLinearCommandSurface(OrcaRuntimeServiceExport.prototype)
+installRuntimeAlicornServices(OrcaRuntimeServiceExport.prototype)
 
 export type { LegacyWorkerTerminalRecoveryResult } from './runtime-legacy-worker-terminal-recovery-types'
 export type {

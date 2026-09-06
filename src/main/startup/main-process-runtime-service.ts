@@ -31,6 +31,10 @@ import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fe
 import { runDiffCoverageCheck } from '../alicorn/diff-coverage/diff-coverage-check'
 import { getBaseRefDefault } from '../git/repo-default-base-ref'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
+import { getAlicornControlPlaneUrls } from '../alicorn/control-plane-urls'
+import { readAlicornBearer } from '../alicorn/control-plane-session'
+import { createMemberDirectory } from '../alicorn/member-directory'
+import { getControlPlaneClient } from '../alicorn/control-plane-client-instance'
 
 const LEDGER_OUTBOX_DRAIN_INTERVAL_MS = 5_000
 
@@ -194,6 +198,13 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
       }
     }
   })
+  // Null when the control plane is unconfigured; --member is rejected then
+  // rather than launching a worker with no member to record.
+  runtime.setAlicornMemberDirectory(
+    getAlicornControlPlaneUrls(process.env) && readAlicornBearer(process.env)
+      ? createMemberDirectory(getControlPlaneClient())
+      : null
+  )
   runtime.setCommitMessageAgentEnvironmentResolvers({
     // Why: Codex hooks/auth live in Orca's managed runtime home even for the default path, so every launch must resolve CODEX_HOME via runtime-home.
     prepareForCodexLaunch: prepareCodexRuntimeHomeForLaunch,

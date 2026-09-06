@@ -19,7 +19,6 @@ import {
   persistWorkerSetupWaitOutcome
 } from './orchestration-worker-setup-gate'
 import { failWorkerStartWithReceipt } from './orchestration-worker-start-receipt'
-import { prepareLocalWorkerStart } from './orchestration-worker-start-validation'
 import { resolveDispatchCreator } from './orchestration-dispatch-creator'
 import { resolveOrchestrationCaller } from './orchestration-run-scope'
 import {
@@ -27,6 +26,8 @@ import {
   resolveWorkerStartReadinessTimeoutMs
 } from '../../../../shared/orchestration-timing-budgets'
 import { captureWorkerStartContext } from '../../../alicorn/context-capture-enqueue'
+import { buildWorkerStartOptions } from './orchestration-worker-start-validation'
+import { prepareMemberAwareWorkerStart } from './orchestration-member-worker-start'
 
 export const ORCHESTRATION_WORKER_START_METHODS: RpcMethod[] = [
   defineMethod({
@@ -79,8 +80,13 @@ export const ORCHESTRATION_WORKER_START_METHODS: RpcMethod[] = [
       const requestedWorktree = params.worktree ?? 'current'
       const createsWorktree =
         requestedWorktree === 'new-child' || requestedWorktree === 'new-top-level'
-      const { agent, launch } = prepareLocalWorkerStart({ params, createsWorktree, runtime })
-
+      const { agent, launch, stampMember } = await prepareMemberAwareWorkerStart({
+        params,
+        createsWorktree,
+        runtime,
+        db,
+        taskId: task.id
+      })
       const coordinatorTerminal = await runtime.showTerminal(params.from)
       const creationWorktree = createsWorktree
         ? await runtime.showManagedWorktree(`id:${coordinatorTerminal.worktreeId}`)
@@ -114,23 +120,16 @@ export const ORCHESTRATION_WORKER_START_METHODS: RpcMethod[] = [
         }
       }
 
-      const startOptions = {
-        worktree: requestedWorktree,
+      const startOptions = buildWorkerStartOptions({
+        params,
+        createsWorktree,
+        requestedWorktree,
         resolvedWorktreeId: resolvedWorktree?.id ?? null,
-        name: params.name ?? null,
-        repo: params.repo ?? creationWorktree?.repoId ?? null,
-        baseBranch: params.baseBranch ?? null,
-        terminal: params.terminal ?? null,
+        creationRepoId: creationWorktree?.repoId ?? null,
         agent: agent ?? null,
-        launch: launch.receipt,
-        timeoutMs: readinessTimeoutMs,
-        setup: createsWorktree ? (params.setup ?? 'run') : 'not_applicable',
-        setupSource: createsWorktree
-          ? params.setup
-            ? 'explicit_request'
-            : 'orchestration_default'
-          : 'existing_worktree'
-      }
+        launchReceipt: launch.receipt,
+        readinessTimeoutMs
+      })
       const started = db.createStartingWorkerDispatch({
         creator: resolveDispatchCreator(runtime, params.from),
         maxDepth: runtime.getNestedWorkerMaxDepth(),
@@ -140,6 +139,7 @@ export const ORCHESTRATION_WORKER_START_METHODS: RpcMethod[] = [
         runtimeEpoch: runtime.getRuntimeId(),
         mutationReceipt: orchestrationMutation
       })
+      stampMember(started.dispatch.id)
       const effects: WorkerEffect[] = []
       if (resolvedWorktree) {
         effects.push(

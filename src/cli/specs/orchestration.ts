@@ -180,7 +180,7 @@ export const ORCHESTRATION_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'dispatch'],
     summary: 'Dispatch a task to a terminal',
     usage:
-      'orca orchestration dispatch --task <task_id> --to <handle> [--from <handle>] [--run <run_id>] [--inject] [--dry-run] [--return-preamble] [--retry-request <id>] [--json]',
+      'orca orchestration dispatch --task <task_id> --to <handle> [--from <handle>] [--run <run_id>] [--inject] [--dry-run] [--return-preamble] [--member <id>] [--allow-same-backend-review] [--retry-request <id>] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'task',
@@ -190,7 +190,9 @@ export const ORCHESTRATION_COMMAND_SPECS: CommandSpec[] = [
       'inject',
       'dry-run',
       'return-preamble',
-      'retry-request'
+      'retry-request',
+      'member',
+      'allow-same-backend-review'
     ]
   },
   {

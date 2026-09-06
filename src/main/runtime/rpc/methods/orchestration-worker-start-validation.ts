@@ -162,3 +162,38 @@ function resolveWorkerStartAgent(args: {
     }
   }
 }
+
+/**
+ * The start-options record persisted with a worker dispatch. Extracted from the
+ * handler, which sits at its line budget, and cohesive on its own: everything
+ * here describes where and how the worker was launched.
+ */
+export function buildWorkerStartOptions(args: {
+  params: WorkerStartInput
+  createsWorktree: boolean
+  requestedWorktree: string
+  resolvedWorktreeId: string | null
+  creationRepoId: string | null
+  agent: string | null
+  launchReceipt: unknown
+  readinessTimeoutMs: number
+}): Record<string, unknown> {
+  const { params, createsWorktree } = args
+  return {
+    worktree: args.requestedWorktree,
+    resolvedWorktreeId: args.resolvedWorktreeId,
+    name: params.name ?? null,
+    repo: params.repo ?? args.creationRepoId,
+    baseBranch: params.baseBranch ?? null,
+    terminal: params.terminal ?? null,
+    agent: args.agent,
+    launch: args.launchReceipt,
+    timeoutMs: args.readinessTimeoutMs,
+    setup: createsWorktree ? (params.setup ?? 'run') : 'not_applicable',
+    setupSource: createsWorktree
+      ? params.setup
+        ? 'explicit_request'
+        : 'orchestration_default'
+      : 'existing_worktree'
+  }
+}
