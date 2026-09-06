@@ -11,7 +11,10 @@ export async function openControlPlanePool(input: {
   const admin = new pg.Client({ connectionString: input.databaseUrl })
   await admin.connect()
   try {
-    await admin.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
+    const schemaExists = await admin.query('SELECT 1 FROM pg_namespace WHERE nspname = $1', [schema])
+    if (schemaExists.rows.length === 0) {
+      await admin.query(`CREATE SCHEMA ${schema}`)
+    }
   } finally {
     await admin.end()
   }

@@ -12,9 +12,11 @@ const schema = 'cp_tenant_tx_test'
 
 describePostgres('withTenant', () => {
   let pool: pg.Pool
+  let appUrl: string
   beforeAll(async () => {
-    await createTestSchema(databaseUrl!, schema)
-    pool = await openControlPlanePool({ databaseUrl: databaseUrl!, schema, applicationName: 'cp-test' })
+    const result = await createTestSchema(databaseUrl!, schema)
+    appUrl = result.appUrl
+    pool = await openControlPlanePool({ databaseUrl: appUrl, schema, applicationName: 'cp-test' })
     await applySchema(pool, [
       `CREATE TABLE IF NOT EXISTS widgets (id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, name TEXT NOT NULL)`,
       tenantRlsPolicySql('widgets')
@@ -23,6 +25,11 @@ describePostgres('withTenant', () => {
   afterAll(async () => {
     await pool.end()
     await dropTestSchema(databaseUrl!, schema)
+  })
+
+  it('runs as a non-superuser role', async () => {
+    const result = await pool.query('SELECT rolsuper FROM pg_roles WHERE rolname = current_user')
+    expect(result.rows[0].rolsuper).toBe(false)
   })
 
   it('isolates rows by tenant even for the owning role', async () => {
