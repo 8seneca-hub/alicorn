@@ -26,6 +26,11 @@ import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
 import { attributeDispatchUsage } from '../alicorn/run-usage-attribution'
 import { startContextCeilingWatcher } from '../alicorn/context-ceiling-watcher'
 import { ALICORN_EVENTS } from '../../shared/alicorn/ipc-channels'
+import { createVerificationRunner } from '../alicorn/diff-coverage/verification-runner'
+import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fetch'
+import { runDiffCoverageCheck } from '../alicorn/diff-coverage/diff-coverage-check'
+import { getBaseRefDefault } from '../git/repo-default-base-ref'
+import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 
 const LEDGER_OUTBOX_DRAIN_INTERVAL_MS = 5_000
 
@@ -134,8 +139,21 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
         claudeUsage: state.claudeUsage,
         codexUsage: state.codexUsage
       }),
-    // Why null: D5 (runDiffCoverageCheck) isn't written yet.
-    verificationRunner: null,
+    verificationRunner: createVerificationRunner({
+      fetchRequiredChecks,
+      runDiffCoverageCheck,
+      getBaseRefDefault,
+      resolveWorktreeHost: async (worktreeId) => {
+        try {
+          const worktree = await runtime.showManagedWorktree(`id:${worktreeId}`)
+          return !worktree.hostId || worktree.hostId === LOCAL_EXECUTION_HOST_ID
+            ? 'local'
+            : 'remote'
+        } catch {
+          return 'unknown'
+        }
+      }
+    }),
     intervalMs: LEDGER_OUTBOX_DRAIN_INTERVAL_MS
   })
   runtime.prepareLegacyWorkerTerminalRecovery()

@@ -1,0 +1,86 @@
+import { access } from 'node:fs/promises'
+import { join } from 'node:path'
+import type { VerificationRunner } from '../ledger-outbox-drainer'
+import type { LedgerWriter } from '../ledger/ledger-writer'
+import type { StepVerificationInput } from '../../../shared/alicorn/ledger-inputs'
+import type { DiffCoverageCheck, RequiredCheck } from '../../../shared/alicorn/members'
+import type { runDiffCoverageCheck } from './diff-coverage-check'
+
+type VerificationPayload = Parameters<VerificationRunner>[0]
+
+export type WorktreeHost = 'local' | 'remote' | 'unknown'
+
+export type VerificationRunnerDeps = {
+  fetchRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  runDiffCoverageCheck: typeof runDiffCoverageCheck
+  getBaseRefDefault: (worktreePath: string) => Promise<string | null>
+  // SSH-hosted worktrees are skipped (no local diff to run against); 'unknown' is treated as local.
+  resolveWorktreeHost: (worktreeId: string) => Promise<WorktreeHost>
+  pathExists?: (path: string) => Promise<boolean>
+}
+
+async function defaultPathExists(path: string): Promise<boolean> {
+  try {
+    await access(path)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function isDiffCoverageCheck(check: RequiredCheck): check is DiffCoverageCheck {
+  return check.kind === 'diff_coverage'
+}
+
+/** Drainer branch (C3) for `step_verification` rows: today's only required check is diff_coverage. */
+export function createVerificationRunner(deps: VerificationRunnerDeps): VerificationRunner {
+  const pathExists = deps.pathExists ?? defaultPathExists
+
+  return async (payload, writer) => {
+    // A member cannot loosen its own criteria: checks come from the project's admin-authored list.
+    const checks = await deps.fetchRequiredChecks(payload.projectId)
+    const check = checks.find(isDiffCoverageCheck)
+    if (!check) {
+      return
+    }
+
+    const name = `Diff coverage ≥ ${Math.round(check.threshold * 100)}%`
+    const post = (status: StepVerificationInput['status'], detail: Record<string, unknown>) =>
+      postVerification(writer, payload, name, status, detail)
+
+    if (!(await pathExists(join(payload.worktreePath, '.git')))) {
+      return post('skipped', { reason: 'not_a_git_worktree' })
+    }
+
+    if ((await deps.resolveWorktreeHost(payload.worktreeId)) === 'remote') {
+      return post('skipped', { reason: 'remote_worktree' })
+    }
+
+    const baseRef = (await deps.getBaseRefDefault(payload.worktreePath)) ?? 'origin/main'
+    const { status, detail } = await deps.runDiffCoverageCheck({
+      worktreePath: payload.worktreePath,
+      baseRef,
+      check
+    })
+    return post(status, detail)
+  }
+}
+
+async function postVerification(
+  writer: LedgerWriter,
+  payload: VerificationPayload,
+  name: string,
+  status: StepVerificationInput['status'],
+  detail: Record<string, unknown>
+): Promise<void> {
+  await writer.postStepVerification({
+    runId: payload.runId,
+    taskId: payload.taskId,
+    dispatchId: payload.dispatchId,
+    kind: 'diff_coverage',
+    name,
+    required: true,
+    status,
+    detail
+  })
+}
