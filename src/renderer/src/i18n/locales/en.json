@@ -1110,7 +1110,9 @@
         "shareSkillsDescription": "Share your skills with an unlisted link. Anyone who has it can install them.",
         "floatingWorkspaceWebDescription": "Global terminal and markdown tabs.",
         "alicornMembersTitle": "Members",
-        "alicornMembersDescription": "Reusable agent roles: backend, skills, permission mode and workspace kind."
+        "alicornMembersDescription": "Reusable agent roles: backend, skills, permission mode and workspace kind.",
+        "boardAutomationDescription": "Dispatch a member when a workspace moves into a board column.",
+        "boardAutomationTitle": "Board automation"
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "Paste is too large."
@@ -11830,6 +11832,30 @@
               "noProjects": "This workspace has no projects the API key can read."
             }
           }
+        },
+        "boardAutomation": {
+          "add": "Add rule",
+          "empty": "No rules for this board yet.",
+          "enableRule": "Enable rule",
+          "loading": "Loading rules…",
+          "needsMember": "Create a Member first: a rule dispatches one.",
+          "noRepo": "Add a project first: automation rules are configured per board.",
+          "placeholders": "Placeholders: {{worktree}}, {{issue}}, {{status}}, {{worktreePath}}",
+          "projectLabel": "Project",
+          "remove": "Remove",
+          "rulesDescription": "Moving a workspace into a column dispatches the bound member. New rules start disabled.",
+          "rulesTitle": "Rules",
+          "saveFailed": "Could not save board automation rules",
+          "search": {
+            "automation": "automation",
+            "board": "board",
+            "description": "Dispatch a member when a workspace moves into a board column.",
+            "dispatch": "dispatch",
+            "rule": "rule",
+            "title": "Board automation"
+          },
+          "sectionDescription": "Dispatch a member when a workspace moves into a board column.",
+          "sectionTitle": "Board automation"
         }
       },
       "right": {
