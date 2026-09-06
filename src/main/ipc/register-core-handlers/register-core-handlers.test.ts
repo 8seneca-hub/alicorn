@@ -137,6 +137,11 @@ const {
 vi.mock('electron', () => ({
   app: {
     getPath: getPathMock
+  },
+  // registerAlicornHandlers registers its channels directly on ipcMain rather
+  // than through a registrar mock, so the real object has to exist here.
+  ipcMain: {
+    handle: vi.fn()
   }
 }))
 

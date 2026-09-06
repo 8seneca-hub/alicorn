@@ -21,6 +21,7 @@ import { getLocalProjectWorktreeGitOptions } from '../project-runtime-git-option
 import { getWorktreeSharedLinkPaths } from '../git/worktree-shared-directories'
 import { getRepoExecutionHostId, getRepoSshConnectionId } from '../../shared/execution-host'
 import { getRepoHostedReviewExecutionHostId } from '../source-control/hosted-review-execution-host'
+import { composeHostedReviewBodyWithProvenance } from './hosted-review-provenance-body'
 
 function assertRegisteredRepo(repoPath: string, store: Store, repoId?: string): Repo {
   if (repoId) {
@@ -171,16 +172,25 @@ export function registerHostedReviewHandlers(store: Store, stats: StatsCollector
             ...(sharedLinkPaths.length > 0 ? { sharedLinkPaths } : {})
           }
         : undefined
+    const executionHostId = getRepoHostedReviewExecutionHostId(repo)
+    const composed = await composeHostedReviewBodyWithProvenance({
+      repoId: repo.id,
+      worktreePath,
+      executionHostId,
+      ...(executionOptions ? { executionOptions } : {}),
+      body: args.body,
+      useTemplate: args.useTemplate,
+      ...(args.head ? { head: args.head } : {})
+    })
     const input = {
       provider: args.provider,
       base: args.base,
       head: args.head,
       title: args.title,
-      body: args.body,
+      body: composed.body,
       draft: args.draft,
-      ...(args.useTemplate !== undefined ? { useTemplate: args.useTemplate } : {})
+      ...(composed.useTemplate !== undefined ? { useTemplate: composed.useTemplate } : {})
     }
-    const executionHostId = getRepoHostedReviewExecutionHostId(repo)
     const result = executionOptions
       ? await createHostedReview(worktreePath, input, executionHostId, executionOptions)
       : await createHostedReview(worktreePath, input, executionHostId)
