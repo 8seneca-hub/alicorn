@@ -88,6 +88,18 @@ function sharedCreateFields(
       ? { linkedAzureDevOpsPR: request.linkedAzureDevOpsPR }
       : {}),
     ...(request.linkedGiteaPR !== undefined ? { linkedGiteaPR: request.linkedGiteaPR } : {}),
+    ...(request.linkedPlaneIssue !== undefined
+      ? { linkedPlaneIssue: request.linkedPlaneIssue }
+      : {}),
+    ...(request.linkedPlaneIssueSequence !== undefined
+      ? { linkedPlaneIssueSequence: request.linkedPlaneIssueSequence }
+      : {}),
+    ...(request.linkedPlaneWorkspaceSlug !== undefined
+      ? { linkedPlaneWorkspaceSlug: request.linkedPlaneWorkspaceSlug }
+      : {}),
+    ...(request.linkedPlaneProjectId !== undefined
+      ? { linkedPlaneProjectId: request.linkedPlaneProjectId }
+      : {}),
     ...(options?.linkedWorkItem !== undefined ? { linkedWorkItem: options.linkedWorkItem } : {}),
     ...(options?.linkedTaskSourceContext !== undefined
       ? { linkedTaskSourceContext: options.linkedTaskSourceContext }

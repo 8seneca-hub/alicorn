@@ -6,6 +6,7 @@ import { PullRequestIcon, checksLabel } from './WorktreeCardHelpers'
 import type { WorktreeCardPrDisplay } from './worktree-card-pr-display'
 import type { IssueInfo } from '../../../../shared/github/pull-request-types'
 import { translate } from '@/i18n/i18n'
+import type { PlaneStateGroup } from '../../../../shared/plane-types'
 
 function MetadataStatusBadge({
   label,
@@ -71,6 +72,46 @@ export function LinearStateBadge({ stateName }: { stateName: string }): React.JS
       : active
         ? 'border-amber-500/25 bg-amber-500/5 text-amber-600 dark:text-amber-300'
         : 'border-border bg-muted/30 text-muted-foreground'
+
+  return (
+    <MetadataStatusBadge
+      label={translate(
+        'auto.components.sidebar.WorktreeCardMetadataStatusBadges.af2b07bda5',
+        'State: {{value0}}',
+        { value0: stateName }
+      )}
+      className={tone}
+    >
+      <Icon />
+    </MetadataStatusBadge>
+  )
+}
+
+// Plane carries an explicit state group, so the tone comes from data rather
+// than from matching the state's user-editable name the way Linear's must.
+export function PlaneStateBadge({
+  stateName,
+  group
+}: {
+  stateName: string
+  group: PlaneStateGroup
+}): React.JSX.Element {
+  const Icon =
+    group === 'completed'
+      ? CircleCheck
+      : group === 'cancelled'
+        ? CircleX
+        : group === 'started'
+          ? Clock
+          : CircleDot
+  const tone =
+    group === 'completed'
+      ? 'border-purple-500/25 bg-purple-500/5 text-purple-600 dark:text-purple-300'
+      : group === 'cancelled'
+        ? 'border-rose-500/25 bg-rose-500/5 text-rose-600 dark:text-rose-300'
+        : group === 'started'
+          ? 'border-amber-500/25 bg-amber-500/5 text-amber-600 dark:text-amber-300'
+          : 'border-border bg-muted/30 text-muted-foreground'
 
   return (
     <MetadataStatusBadge

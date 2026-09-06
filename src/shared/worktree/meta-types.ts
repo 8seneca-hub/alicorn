@@ -48,6 +48,11 @@ export type WorktreeMeta = {
   linkedAzureDevOpsPR?: number | null
   /** Optional for backward compatibility — see Worktree.linkedGiteaPR. */
   linkedGiteaPR?: number | null
+  /** Optional for backward compatibility — see Worktree.linkedPlaneIssue. */
+  linkedPlaneIssue?: string | null
+  linkedPlaneIssueSequence?: number | null
+  linkedPlaneWorkspaceSlug?: string | null
+  linkedPlaneProjectId?: string | null
   linkedWorkItem?: WorkspaceLinkedItem | null
   linkedTaskSourceContext?: TaskSourceContext | null
   isArchived: boolean
