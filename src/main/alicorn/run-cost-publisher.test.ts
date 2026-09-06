@@ -40,7 +40,10 @@ describe('startRunCostPublisher', () => {
     db.close()
   })
 
-  function startDispatchedWorker(startOptions: unknown): string {
+  function startDispatchedWorker(
+    startOptions: unknown,
+    worktreeId: string | null = 'wt_1'
+  ): string {
     const task = db.createTask({ spec: 'work' })
     const { dispatch } = db.createStartingWorkerDispatch({
       taskId: task.id,
@@ -49,11 +52,13 @@ describe('startRunCostPublisher', () => {
       maxDepth: Number.MAX_SAFE_INTEGER
     })
     db.markWorkerDispatchReady(dispatch.id)
-    db.recordWorkerStage({
-      dispatchId: dispatch.id,
-      stage: 'input_accepted',
-      worktreeId: 'wt_1'
-    })
+    if (worktreeId) {
+      db.recordWorkerStage({
+        dispatchId: dispatch.id,
+        stage: 'input_accepted',
+        worktreeId
+      })
+    }
     return dispatch.id
   }
 
@@ -122,6 +127,102 @@ describe('startRunCostPublisher', () => {
 
     expect(payload).toEqual({ [dispatchId]: { costUsd: null, status: 'unavailable' } })
     expect(claudeGetAutomationRunUsage).not.toHaveBeenCalled()
+  })
+
+  it('reports pending for a dispatch that has no worktree yet, without touching any store', async () => {
+    const dispatchId = startDispatchedWorker({ agent: 'claude' }, null)
+    const getAutomationRunUsage = vi.fn()
+    const publish = vi.fn()
+    publisher = startRunCostPublisher({
+      getDb: () => db,
+      claudeUsage: { getAutomationRunUsage, getLastScanCompletedAt: () => LAST_SCAN_MS },
+      codexUsage: null,
+      publish,
+      intervalMs: 0,
+      now: () => NOW_MS
+    })
+
+    const payload = await publisher.tickOnce()
+
+    expect(payload).toEqual({ [dispatchId]: { costUsd: null, status: 'pending' } })
+    expect(getAutomationRunUsage).not.toHaveBeenCalled()
+  })
+
+  it('uses now() as completedAt when the store has never completed a scan', async () => {
+    const dispatchId = startDispatchedWorker({ agent: 'claude' })
+    const getAutomationRunUsage = vi.fn().mockResolvedValue(knownUsage(0.5))
+    publisher = startRunCostPublisher({
+      getDb: () => db,
+      claudeUsage: { getAutomationRunUsage, getLastScanCompletedAt: () => null },
+      codexUsage: null,
+      publish: vi.fn(),
+      intervalMs: 0,
+      now: () => NOW_MS
+    })
+
+    await publisher.tickOnce()
+
+    expect(getAutomationRunUsage).toHaveBeenCalledWith(
+      expect.objectContaining({ completedAt: NOW_MS })
+    )
+    void dispatchId
+  })
+
+  it('isolates a throwing dispatch: the good one stays known, the bad one becomes unavailable, and the tick still resolves', async () => {
+    const goodId = startDispatchedWorker({ agent: 'claude' }, 'wt_good')
+    const badId = startDispatchedWorker({ agent: 'claude' }, 'wt_bad')
+    const getAutomationRunUsage = vi
+      .fn()
+      .mockImplementation(async (input: { worktreeId: string }) => {
+        if (input.worktreeId === 'wt_bad') {
+          throw new Error('boom')
+        }
+        return knownUsage(0.5)
+      })
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    publisher = startRunCostPublisher({
+      getDb: () => db,
+      claudeUsage: { getAutomationRunUsage, getLastScanCompletedAt: () => LAST_SCAN_MS },
+      codexUsage: null,
+      publish: vi.fn(),
+      intervalMs: 0,
+      now: () => NOW_MS
+    })
+
+    const payload = await publisher.tickOnce()
+
+    expect(payload).toEqual({
+      [goodId]: { costUsd: 0.5, status: 'known' },
+      [badId]: { costUsd: null, status: 'unavailable' }
+    })
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    warnSpy.mockRestore()
+  })
+
+  it('does not start a second tick while the previous one is still in flight', () => {
+    startDispatchedWorker({ agent: 'claude' })
+    let resolveUsage: ((usage: AutomationRunUsage) => void) | undefined
+    const getAutomationRunUsage = vi.fn(
+      () =>
+        new Promise<AutomationRunUsage>((resolve) => {
+          resolveUsage = resolve
+        })
+    )
+    vi.useFakeTimers()
+    publisher = startRunCostPublisher({
+      getDb: () => db,
+      claudeUsage: { getAutomationRunUsage, getLastScanCompletedAt: () => LAST_SCAN_MS },
+      codexUsage: null,
+      publish: vi.fn(),
+      intervalMs: 1_000,
+      now: () => NOW_MS
+    })
+
+    vi.advanceTimersByTime(2_500)
+    expect(getAutomationRunUsage).toHaveBeenCalledTimes(1)
+
+    resolveUsage?.(knownUsage(0.5))
+    vi.useRealTimers()
   })
 
   it('stop() clears the interval so tickOnce no longer runs on a schedule', () => {

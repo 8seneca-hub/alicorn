@@ -7,6 +7,7 @@ import { backendFromWorkerStartOptions } from './step-outcome-builder'
 import { parseSqliteUtc } from './run-usage-attribution'
 
 const RECENT_WINDOW_MS = 24 * 60 * 60 * 1000
+const ERROR_LOG_INTERVAL_MS = 5 * 60_000
 
 type UsageStore = Pick<
   ClaudeUsageStore | CodexUsageStore,
@@ -36,6 +37,18 @@ export function startRunCostPublisher(deps: RunCostPublisherDeps): RunCostPublis
   const now = deps.now ?? Date.now
   let lastPublishedJson: string | null = null
   let stopped = false
+  let running = false
+  let lastErrorLogAt = 0
+
+  // Why throttled: a store that keeps throwing (e.g. a corrupt cache) must not
+  // spam the log every tick — same idea as the drainer's logUnavailableOnce.
+  function logDispatchErrorOnce(dispatchId: string, error: unknown): void {
+    const nowMs = now()
+    if (nowMs - lastErrorLogAt >= ERROR_LOG_INTERVAL_MS) {
+      lastErrorLogAt = nowMs
+      console.warn(`[alicorn-run-cost] cost lookup failed for dispatch ${dispatchId}:`, error)
+    }
+  }
 
   async function costForDispatch(
     row: ActiveOrRecentDispatchRow
@@ -74,7 +87,14 @@ export function startRunCostPublisher(deps: RunCostPublisherDeps): RunCostPublis
     const rows = db.listActiveOrRecentlyCompletedDispatches(sinceUtc)
     const payload: RunCostByDispatch = {}
     for (const row of rows) {
-      payload[row.dispatchId] = await costForDispatch(row)
+      try {
+        payload[row.dispatchId] = await costForDispatch(row)
+      } catch (error) {
+        // Why isolated per-dispatch: one throwing store call must not blank the
+        // whole tick's payload — every other dispatch's cost is still good data.
+        payload[row.dispatchId] = { costUsd: null, status: 'unavailable' }
+        logDispatchErrorOnce(row.dispatchId, error)
+      }
     }
     const serialized = JSON.stringify(payload)
     if (serialized !== lastPublishedJson) {
@@ -88,9 +108,17 @@ export function startRunCostPublisher(deps: RunCostPublisherDeps): RunCostPublis
   const timer =
     intervalMs > 0
       ? setInterval(() => {
-          if (!stopped) {
-            void tickOnce().catch(() => {})
+          // Why a running guard: a slow tick must not overlap the next scheduled one —
+          // two concurrent ticks racing to set lastPublishedJson could publish stale data.
+          if (stopped || running) {
+            return
           }
+          running = true
+          void tickOnce()
+            .catch(() => {})
+            .finally(() => {
+              running = false
+            })
         }, intervalMs)
       : null
   timer?.unref?.()

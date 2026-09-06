@@ -145,6 +145,7 @@ CREATE TABLE IF NOT EXISTS dispatch_contexts (
 
 CREATE INDEX IF NOT EXISTS idx_dispatch_task ON dispatch_contexts(task_id);
 CREATE INDEX IF NOT EXISTS idx_dispatch_status ON dispatch_contexts(status);
+CREATE INDEX IF NOT EXISTS idx_dispatch_status_completed_at ON dispatch_contexts(status, completed_at);
 CREATE INDEX IF NOT EXISTS idx_dispatch_assignee_handle ON dispatch_contexts(assignee_handle);
 
 CREATE TABLE IF NOT EXISTS decision_gates (
