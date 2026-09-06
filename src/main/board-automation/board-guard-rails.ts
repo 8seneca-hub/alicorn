@@ -1,5 +1,4 @@
 import type { BoardTransitionRow } from '../runtime/orchestration/db/alicorn/alicorn-rows'
-import { parseSqliteUtc } from '../alicorn/run-usage-attribution'
 
 // Why these numbers: a dispatched agent costs real tokens, so the ceiling is deliberately low —
 // three automated dispatches an hour for one workspace is already more than a human would trigger.
@@ -30,19 +29,17 @@ export type BoardGuardInput = {
   killed: boolean
 }
 
+const SQLITE_UTC = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/
+
 /**
- * Rows arrive from SQLite as `YYYY-MM-DD HH:MM:SS` in UTC, which `Date.parse` reads as *local*
- * time — seven hours early in UTC+7, which pushed every row outside the one-hour window and stopped
- * the ceiling firing at all. Parse the SQLite shape first, and accept ISO for callers that build
- * rows themselves.
+ * Rows arrive from SQLite as `YYYY-MM-DD HH:MM:SS[.mmm]` in UTC, which `Date.parse` reads as
+ * *local* time — seven hours early in UTC+7, which pushed every row outside the one-hour window and
+ * stopped the ceiling firing at all. Stamping the marker makes it UTC again; ISO input, from a
+ * caller that builds rows itself, is already unambiguous.
  */
 function transitionTimeMs(createdAt: string): number | null {
-  const sqlite = parseSqliteUtc(createdAt)
-  if (sqlite !== null) {
-    return sqlite
-  }
-  const iso = Date.parse(createdAt)
-  return Number.isNaN(iso) ? null : iso
+  const ms = Date.parse(SQLITE_UTC.test(createdAt) ? `${createdAt.replace(' ', 'T')}Z` : createdAt)
+  return Number.isNaN(ms) ? null : ms
 }
 
 function dispatchedSince(

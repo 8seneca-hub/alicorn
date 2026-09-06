@@ -51,8 +51,8 @@ export function recordBoardTransition(
   this.db
     .prepare(
       `INSERT INTO alicorn_board_transitions
-         (id, repo_id, worktree_id, task_id, dispatch_id, from_status_id, to_status_id, rule_id, outcome)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         (id, repo_id, worktree_id, task_id, dispatch_id, from_status_id, to_status_id, rule_id, outcome, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .run(
       id,
@@ -63,7 +63,8 @@ export function recordBoardTransition(
       row.fromStatusId ?? null,
       row.toStatusId,
       row.ruleId,
-      row.outcome
+      row.outcome,
+      nowSqliteUtcTextMs()
     )
   return id
 }
@@ -75,6 +76,19 @@ export function recordBoardTransition(
  */
 function toSqliteUtcText(ms: number): string {
   return new Date(ms).toISOString().replace('T', ' ').slice(0, 19)
+}
+
+/**
+ * Written with millisecond precision, unlike the column's second-resolution `datetime('now')`
+ * default, so the stored time is accurate to what happened.
+ *
+ * Precision alone is not enough to order by, though: two transitions can land in the same
+ * millisecond, and the generated id is random. Both listings therefore tie-break on `rowid`, which
+ * is insertion order. A lower bound at second precision still compares correctly against these
+ * values, because '…:00' sorts below '…:00.123'.
+ */
+function nowSqliteUtcTextMs(): string {
+  return new Date().toISOString().replace('T', ' ').replace('Z', '')
 }
 
 // Why ms rather than a formatted string: the caller cannot then pass a shape that compares wrong.
@@ -89,9 +103,26 @@ export function listBoardTransitions(
     .prepare(
       `SELECT * FROM alicorn_board_transitions
        WHERE worktree_id = ? AND created_at >= ?
-       ORDER BY created_at, id`
+       ORDER BY created_at, rowid`
     )
     .all(worktreeId, toSqliteUtcText(sinceMs)) as AlicornBoardTransitionRow[]
+  return rows.map(toBoardTransition)
+}
+
+// Why a repo-scoped read as well: the kill switch answers "why is nothing happening on this
+// board?", which is a repo question, not a workspace one.
+export function listBoardTransitionsForRepo(
+  this: OrchestrationDb,
+  repoId: string,
+  sinceMs: number
+): BoardTransitionRow[] {
+  const rows = this.db
+    .prepare(
+      `SELECT * FROM alicorn_board_transitions
+       WHERE repo_id = ? AND created_at >= ?
+       ORDER BY created_at, rowid`
+    )
+    .all(repoId, toSqliteUtcText(sinceMs)) as AlicornBoardTransitionRow[]
   return rows.map(toBoardTransition)
 }
 
@@ -141,6 +172,7 @@ export function setBoardAutomationDisabled(
 export type BoardTransitionMethods = {
   recordBoardTransition: typeof recordBoardTransition
   listBoardTransitions: typeof listBoardTransitions
+  listBoardTransitionsForRepo: typeof listBoardTransitionsForRepo
   getBoardAutomationState: typeof getBoardAutomationState
   setBoardAutomationDisabled: typeof setBoardAutomationDisabled
 }
@@ -149,6 +181,7 @@ export function attachBoardTransitionMethods(ctor: { prototype: object }): void 
   Object.assign(ctor.prototype, {
     recordBoardTransition,
     listBoardTransitions,
+    listBoardTransitionsForRepo,
     getBoardAutomationState,
     setBoardAutomationDisabled
   })

@@ -4,6 +4,7 @@ import { createTaskInRun } from '../runtime/rpc/methods/orchestration-task-inter
 import { startWorkerForTask } from '../runtime/rpc/methods/orchestration-worker-internal'
 import { BOARD_LOOP_WINDOW_MS, evaluateBoardGuard, type GuardVerdict } from './board-guard-rails'
 import { boardCoordinatorHandle, ensureBoardRun } from './board-system-run'
+import { isBoardAutomationKilled } from './board-kill-switch'
 import { renderBoardPromptTemplate, type BoardRuleStore } from './board-rule-store'
 
 // Why its own budget: an automated start has nobody watching it, so it waits as long as a human
@@ -66,9 +67,7 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
         return { allow: false, reason: 'skipped', detail: 'No enabled rule for this column.' }
       }
 
-      const killed =
-        db.getBoardAutomationState('global').disabledAt !== null ||
-        db.getBoardAutomationState(boardCoordinatorHandle(event.repoId)).disabledAt !== null
+      const killed = isBoardAutomationKilled(db, event.repoId)
 
       // One read covers both guards: the loop window is the wider of the two.
       const transitions = db.listBoardTransitions(event.worktreeId, now() - BOARD_LOOP_WINDOW_MS)
