@@ -50,6 +50,6 @@ export class LedgerMetrics {
   }
 }
 
-function escapeLabel(value: string): string {
+export function escapeLabel(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')
 }

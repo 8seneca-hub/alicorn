@@ -24,9 +24,17 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
     if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
     const result = StepOutcomeInputSchema.safeParse(body.value)
     if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
-    const { id, duplicate, gateDecision, gateReason } = await insertStepOutcome(deps.pool, auth.tenantId, result.data)
-    if (duplicate) deps.metrics?.incLedgerWriteDuplicate()
-    else deps.metrics?.incGateDecision(gateDecision, gateReason)
+    const { id, duplicate } = await insertStepOutcome(deps.pool, auth.tenantId, result.data)
+    if (duplicate) {
+      deps.metrics?.incLedgerWriteDuplicate()
+    } else {
+      // Why: the input schema has no gate fields yet (the gates plan adds them) — read loosely so
+      // this counter lights up the day they land, with no other change needed here.
+      const { gateDecision, gateReason } = result.data as { gateDecision?: string; gateReason?: string }
+      if (typeof gateDecision === 'string' && typeof gateReason === 'string') {
+        deps.metrics?.incGateDecision(gateDecision, gateReason)
+      }
+    }
     return c.json({ id, duplicate }, duplicate ? 200 : 201)
   })
 

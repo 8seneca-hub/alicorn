@@ -418,7 +418,7 @@ describePostgres('ledger metrics (postgres)', () => {
     await dropTestSchema(databaseUrl!, 'ledger_metrics_test')
   })
 
-  it('counts a duplicate write and the default gate decision, then folds in an amended verdict', async () => {
+  it('counts a duplicate write, never a gate decision the request never carried, then folds in an amended verdict', async () => {
     const body = { runId: 'run_m1', taskId: 'task_m1', dispatchId: 'ctx_m1', outcome: 'succeeded' }
     const first = await post('/v1/ledger/step-outcomes', body)
     expect(first.status).toBe(201)
@@ -432,9 +432,9 @@ describePostgres('ledger metrics (postgres)', () => {
     expect(afterWrites.status).toBe(200)
     const afterWritesText = await afterWrites.text()
     expect(afterWritesText).toContain('ledger_write_duplicates_total 1')
-    // Why: the input schema has no gate fields yet (LC-note) — gate_decision/gate_reason come from
-    // the step_outcomes column defaults ('human'/'level0'), so the one inserted row counts there.
-    expect(afterWritesText).toContain('gate_decisions_total{decision="human",reason="level0"} 1')
+    // Why: the input schema has no gate fields yet — a plain outcome post never carries one, so the
+    // series must stay absent rather than climb off the step_outcomes column defaults.
+    expect(afterWritesText).not.toContain('gate_decisions_total{')
 
     const patch = await app.request(`/v1/ledger/step-outcomes/${id}/human-verdict`, {
       method: 'PATCH', headers: authHeaders,

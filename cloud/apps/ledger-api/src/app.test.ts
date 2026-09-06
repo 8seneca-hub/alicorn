@@ -25,6 +25,26 @@ describe('ledger-api app', () => {
     expect(await res.json()).toEqual({ error: 'internal' })
   })
 
+  it('still logs one JSON line for an unhandled route error, with status 500 and a request_id', async () => {
+    const lines: string[] = []
+    const spy = vi.spyOn(console, 'log').mockImplementation((line: unknown) => {
+      lines.push(String(line))
+    })
+    const app = createLedgerApiApp(testDeps())
+    app.get('/boom', () => {
+      throw new Error('x')
+    })
+    const res = await app.request('/boom')
+    spy.mockRestore()
+
+    expect(res.status).toBe(500)
+    expect(lines).toHaveLength(1)
+    const entry = JSON.parse(lines[0]!)
+    expect(entry).toMatchObject({ service: 'ledger-api', method: 'GET', path: '/boom', status: 500 })
+    expect(typeof entry.request_id).toBe('string')
+    expect(res.headers.get('x-request-id')).toBe(entry.request_id)
+  })
+
   it('logs one JSON line per request, with tenant_id for an authenticated call and echoed x-request-id', async () => {
     const lines: string[] = []
     const spy = vi.spyOn(console, 'log').mockImplementation((line: unknown) => {

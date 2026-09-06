@@ -70,16 +70,16 @@ export function insertStepOutcome(
   pool: pg.Pool,
   tenantId: string,
   input: StepOutcomeInput
-): Promise<{ id: string; duplicate: boolean; gateDecision: string; gateReason: string }> {
+): Promise<{ id: string; duplicate: boolean }> {
   return withTenant(pool, tenantId, async (client) => {
-    const { rows } = await client.query<{ id: string; gate_decision: string; gate_reason: string }>(
+    const { rows } = await client.query<{ id: string }>(
       `INSERT INTO step_outcomes (
          tenant_id, run_id, task_id, dispatch_id, project_id, repo_id, worktree_id, branch,
          member_id, backend, stage_key, execution_strategy, outcome, files_modified,
          report_summary, review_backend_bypass, escalation_offered, escalation_accepted, client_ts
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14::jsonb, $15, $16, $17, $18, $19)
        ON CONFLICT (tenant_id, run_id, task_id, stage_key, dispatch_id) DO NOTHING
-       RETURNING id, gate_decision, gate_reason`,
+       RETURNING id`,
       [
         tenantId, input.runId, input.taskId, input.dispatchId,
         input.projectId ?? null, input.repoId ?? null, input.worktreeId ?? null, input.branch ?? null,
@@ -101,14 +101,13 @@ export function insertStepOutcome(
           accepted: input.outcome === 'succeeded'
         })
       }
-      return { id: row.id, duplicate: false, gateDecision: row.gate_decision, gateReason: row.gate_reason }
+      return { id: row.id, duplicate: false }
     }
-    const existing = await client.query<{ id: string; gate_decision: string; gate_reason: string }>(
-      `SELECT id, gate_decision, gate_reason FROM step_outcomes WHERE tenant_id = $1 AND run_id = $2 AND task_id = $3 AND stage_key = $4 AND dispatch_id = $5`,
+    const existing = await client.query<{ id: string }>(
+      `SELECT id FROM step_outcomes WHERE tenant_id = $1 AND run_id = $2 AND task_id = $3 AND stage_key = $4 AND dispatch_id = $5`,
       [tenantId, input.runId, input.taskId, input.stageKey, input.dispatchId]
     )
-    const existingRow = existing.rows[0]!
-    return { id: existingRow.id, duplicate: true, gateDecision: existingRow.gate_decision, gateReason: existingRow.gate_reason }
+    return { id: existing.rows[0]!.id, duplicate: true }
   })
 }
 
