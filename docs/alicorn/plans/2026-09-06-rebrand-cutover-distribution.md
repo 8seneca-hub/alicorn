@@ -115,7 +115,14 @@ export function compareAgainstBaseline(findings, baseline) // { newFindings, all
   ```
 - [ ] **Step 4:** `pnpm run build:mac` (unsigned local) packages; `plutil -p dist/mac*/Alicorn.app/Contents/Info.plist | grep -E 'CFBundleIdentifier|CFBundleURLSchemes'` shows the new id and both schemes. **Not run** — deferred with the icon work, since a package built on the Orca mark proves nothing about identity. Renderer/shared suites are green.
 - [x] **Step 5: Commit** `feat(rebrand): Alicorn product identity, dual protocol schemes, NOTICE`.
-- [ ] **Step 6 (new): `appId` cutover** — `com.stablyai.orca` → `com.8seneca.alicorn` across the contract JSON+TS, the mac channel test, the three helper bundle ids and the diagnostics predicate, keeping the old id recognised for preferences (`macos-press-and-hold-default.ts`) and TCC (`macos-tcc-prompt-watch.ts`). Commit `feat(rebrand): alicorn bundle identifier with legacy preference and TCC compat`.
+- [x] **Step 6: `appId` cutover** — done. `src/shared/app-bundle-id.ts` now holds `APP_BUNDLE_ID` and `LEGACY_APP_BUNDLE_ID`; the preferences matcher and the TCC responsible-identifier set accept both families, everything that *declares* our identity uses the new one only. The surface was wider than the step listed: also `src/main/startup/dev-instance-identity.ts` (Windows AppUserModelID), `src/main/ipc/notification-system-settings-link.ts` (the System Settings deep link), and `src/main/computer/macos-computer-use-permissions.ts` (the helper-id fallback, which has to match what `build-computer-macos.mjs` stamps).
+
+  **Two consequences to put in the release notes, not to fix in code:**
+
+  - **macOS safeStorage secrets do not survive the rename.** Electron derives the Keychain service name from CFBundleName (`"<appName> Safe Storage"`), so `productName: 'Alicorn'` moves it and every stored secret becomes unreachable — the same hazard `dev-instance-identity.ts` documents for dev branches. It cannot be migrated silently, for the same reason decision 4 gives for `appId`: this is a new app to macOS. Users re-enter credentials once, and the release notes must say so.
+  - **The Orca-branded `defaults` domain and TCC grants are read, never written.** `isAppPreferencesDomain` and `APP_RESPONSIBLE_IDENTIFIERS` accept the legacy family so an upgrading user's press-and-hold choice is not overwritten and their TCC prompts stay attributed. Both retire when Orca upgrades stop being supported.
+
+  **Deliberately left on Orca:** `BASE_APP_NAME` in `dev-instance-identity.ts`. It names the *dev* Keychain item, and changing it orphans every team member's dev secrets for a cosmetic gain while the rest of the rebrand is still in flight. Flip it with R2.
 - [ ] **Step 7 (new): icons** — once Alicorn artwork exists: replace `resources/icon-source/icon.icon` and `resources/app-icons/*`, run `bash resources/icon-source/generate.sh`, then the deferred `build:mac` + `plutil` check from step 4.
 
 ---

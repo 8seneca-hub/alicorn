@@ -9,7 +9,7 @@ describe('dev-instance-identity', () => {
       isDev: false,
       devLabel: null,
       dockBadgeLabel: null,
-      appUserModelId: 'com.stablyai.orca'
+      appUserModelId: 'com.8seneca.alicorn'
     })
   })
 
@@ -52,7 +52,7 @@ describe('dev-instance-identity', () => {
     })
     expect(identity.name).toBe('Orca: nwparker/dev-indicator')
     expect(identity.dockBadgeLabel).toBeNull()
-    expect(identity.appUserModelId).toMatch(/^com\.stablyai\.orca\.dev\.[a-f0-9]{10}$/)
+    expect(identity.appUserModelId).toMatch(/^com\.8seneca\.alicorn\.dev\.[a-f0-9]{10}$/)
   })
 
   it('includes the branch when it differs from the worktree basename', () => {

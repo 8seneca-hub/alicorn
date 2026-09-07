@@ -49,8 +49,16 @@ describe('parseTccPromptEvent', () => {
 })
 
 describe('isOrcaAttributedPrompt', () => {
-  it('accepts the app and detached terminal helper across Orca build identities', () => {
+  // Both families: TCC grants are keyed by bundle id, so an upgrading user's
+  // approvals were recorded against the Orca identities and must stay attributed.
+  it('accepts the app and detached terminal helper across both build identities', () => {
     for (const id of [
+      'com.8seneca.alicorn',
+      'com.8seneca.alicorn.helper',
+      'com.8seneca.alicorn.dev',
+      'com.8seneca.alicorn.dev.helper',
+      'com.8seneca.alicorn.local',
+      'com.8seneca.alicorn.local.helper',
       'com.stablyai.orca',
       'com.stablyai.orca.helper',
       'com.stablyai.orca.dev',

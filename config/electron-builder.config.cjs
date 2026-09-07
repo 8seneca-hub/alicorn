@@ -62,12 +62,11 @@ const devChannelRepo = isHourlyChannel
     : isAdhocChannel
       ? 'alicorn-adhoc'
       : null
-// Why still the Orca bundle id: changing it is a compat surface of its own —
-// src/shared/local-build-compatibility-contract.{json,ts}, the macOS preferences
-// domain match in macos-press-and-hold-default.ts and the TCC bundle-id list in
-// macos-tcc-prompt-watch.ts all key off it, and an upgrading user's prefs and TCC
-// grants live under the old id. Rebrand plan R1 tracks it as its own commit.
-const appId = 'com.stablyai.orca'
+// Keep in step with `appId` in src/shared/local-build-compatibility-contract.json
+// and APP_BUNDLE_ID in src/shared/app-bundle-id.ts — this file is CJS and cannot
+// import either, so app-bundle-id.test.ts pins the three together. The old id is
+// still recognised at runtime for preferences and TCC; see app-bundle-id.ts.
+const appId = 'com.8seneca.alicorn'
 const featureWallResources = {
   from: 'resources/onboarding/feature-wall',
   to: 'onboarding/feature-wall'

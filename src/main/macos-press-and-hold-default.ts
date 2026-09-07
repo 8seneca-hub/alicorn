@@ -1,3 +1,4 @@
+import { APP_BUNDLE_ID, LEGACY_APP_BUNDLE_ID } from '../shared/app-bundle-id'
 import { mkdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { runProcessSync, type ProcessResult } from '../shared/child-process/run-process'
@@ -11,7 +12,7 @@ import { writeFileAtomically } from './codex-accounts/fs-utils'
  * The key is unset by default, which is why every terminal-hosting Mac app ships this opt-out.
  *
  * Written once and never again: a user who wants the accent picker back sets
- * `defaults write com.stablyai.orca ApplePressAndHoldEnabled -bool true` (or deletes the key), and
+ * `defaults write com.8seneca.alicorn ApplePressAndHoldEnabled -bool true` (or deletes the key), and
  * the recorded decision below keeps a later launch from overwriting that choice.
  *
  * A fresh write is assumed to land for the *next* launch, not the current one: it goes out through
@@ -41,8 +42,6 @@ const DEFAULTS_BINARY = '/usr/bin/defaults'
 const DEFAULTS_TIMEOUT_MS = 5_000
 /** Why: `defaults` exits 1 for "does not exist"; anything else means the probe itself failed. */
 const DEFAULTS_MISSING_STATUS = 1
-
-const ORCA_BUNDLE_ID = 'com.stablyai.orca'
 
 export type PressAndHoldDecision =
   /** Not macOS — nothing is read or written. */
@@ -82,8 +81,16 @@ export type PressAndHoldHost = {
 
 /** Only Orca's own bundle: an unpackaged run is `com.github.Electron`, shared with every other
  *  unpackaged Electron app on the machine. */
-export function isOrcaPreferencesDomain(domain: string): boolean {
-  return domain === ORCA_BUNDLE_ID || domain.startsWith(`${ORCA_BUNDLE_ID}.`)
+/**
+ * Why the legacy id is still matched: `defaults` domains are keyed by bundle id,
+ * so a user upgrading from an Orca build still has this preference written under
+ * `com.stablyai.orca`. Refusing to recognise it would re-apply the default over
+ * a choice they already made.
+ */
+export function isAppPreferencesDomain(domain: string): boolean {
+  return [APP_BUNDLE_ID, LEGACY_APP_BUNDLE_ID].some(
+    (bundleId) => domain === bundleId || domain.startsWith(`${bundleId}.`)
+  )
 }
 
 /** `<bundle>/Contents/MacOS/<exe>` → `<bundle>/Contents/Info.plist`. */
@@ -198,7 +205,7 @@ export function ensureMacPressAndHoldDefault(host: PressAndHoldHost): PressAndHo
   }
 
   const domain = host.resolveBundleIdentifier()
-  if (!domain || !isOrcaPreferencesDomain(domain)) {
+  if (!domain || !isAppPreferencesDomain(domain)) {
     return record('foreign-bundle', domain)
   }
 
