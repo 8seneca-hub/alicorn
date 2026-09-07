@@ -1,5 +1,6 @@
 import { execFileSync, spawn, spawnSync } from 'node:child_process'
 import { join } from 'node:path'
+import { APP_BUNDLE_ID } from '../../shared/app-bundle-id'
 import { RuntimeClientError } from './runtime-client-error'
 import { resolveMacOSComputerUseAppPath } from './macos-native-provider-paths'
 import { getComputerUsePermissionStatus } from './macos-computer-use-permission-status'
@@ -10,7 +11,9 @@ import type {
   ComputerUsePermissionStatusResult
 } from '../../shared/computer-use-permissions-types'
 
-const DEFAULT_COMPUTER_USE_BUNDLE_ID = 'com.stablyai.orca.computer-use'
+// Fallback only — the helper's own Info.plist is the source of truth. Keep in step
+// with the id build-computer-macos.mjs stamps.
+const DEFAULT_COMPUTER_USE_BUNDLE_ID = `${APP_BUNDLE_ID}.computer-use`
 
 export { getComputerUsePermissionStatus } from './macos-computer-use-permission-status'
 
