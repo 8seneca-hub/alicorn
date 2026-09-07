@@ -32,11 +32,11 @@
 
 ### Task 1 (UI4): five design-system aliases
 `src/renderer/src/assets/main.css`: in `:root` and `.dark` add `--status-live: var(--status-success); --status-attention: var(--agent-question); --status-critical: var(--destructive); --focus-ring: 2px; --motion-fast: 150ms;` and expose the three colours in `@theme inline` (`--color-status-live` …). Test: `main-css-tokens.test.ts` reads the file and asserts the five names exist in both blocks and no existing token line changed (snapshot of the pre-existing token names).
-- [ ] Commit `feat(design-system): five Alicorn token aliases`.
+- [x] Commit `feat(design-system): five Alicorn token aliases`.
 
 ### Task 2 (UI2a): agent tabs open in chat by default
 `default-global-settings.ts`: `experimentalNativeChat: true`, `openAgentTabsInChatByDefault: true`; move the setting from `ExperimentalPane` to the General pane as "Open agent tabs in chat" (`NativeChatExperimentalSetting.tsx` renamed `AgentTabChatSetting.tsx`). Test: fresh settings → `decideInitialAgentTabViewMode` returns `'chat'` for a supported agent.
-- [ ] Commit `feat(interface): agent tabs open in chat by default`.
+- [x] Commit `feat(interface): agent tabs open in chat by default`.
 
 ### Task 3 (UI2b): a new tab opens an agent
 `NewWorkspaceComposerAgentSection.tsx`, `AgentCombobox.tsx` (Decision 4: `resolveDefaultComposerAgent(settings, installedAgents)`; `BLANK_VALUE` stays as "Shell only"), `worktree-initial-terminal-seeding.ts` (seed an agent tab with the chat box focused when a default agent resolves). Tests: combobox default; seeding creates an agent tab and focuses the composer.
