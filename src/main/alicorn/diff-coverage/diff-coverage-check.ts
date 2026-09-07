@@ -41,7 +41,8 @@ function wslSpecForCheck(
   distro: string,
   worktreePath: string,
   command: string,
-  timeoutMs: number
+  timeoutMs: number,
+  signal?: AbortSignal
 ): WslSpec {
   return {
     script: command,
@@ -50,7 +51,8 @@ function wslSpecForCheck(
     loginPath: 'preferred',
     cwd: toLinuxPath(worktreePath),
     timeoutMs,
-    maxOutputBytes: 1_000_000
+    maxOutputBytes: 1_000_000,
+    signal
   }
 }
 
@@ -76,7 +78,9 @@ export async function runDiffCoverageCheck(
     const distro = input.gitOptions?.wslDistro
     const isWindows = process.platform === 'win32'
     const result = distro
-      ? await runWsl(wslSpecForCheck(distro, worktreePath, check.command, check.timeoutMs))
+      ? await runWsl(
+          wslSpecForCheck(distro, worktreePath, check.command, check.timeoutMs, input.signal)
+        )
       : await runProcess({
           program: isWindows ? (process.env.ComSpec ?? 'cmd.exe') : '/bin/sh',
           args: isWindows ? ['/d', '/s', '/c', check.command] : ['-lc', check.command],
@@ -92,7 +96,13 @@ export async function runDiffCoverageCheck(
           stage: 'command',
           code: result.code,
           stderrTail: result.stderr.slice(-STDERR_TAIL_MAX_CHARS),
-          ...(result.timedOut ? { timedOut: true } : {})
+          ...(result.timedOut ? { timedOut: true } : {}),
+          // WSL only: distinguishes a guest PATH-probe failure (exit 127, tool
+          // absent from the distro) from a real test failure -- otherwise the
+          // ledger can't tell the two apart.
+          ...('environmentResolved' in result
+            ? { environmentResolved: result.environmentResolved }
+            : {})
         }
       }
     }

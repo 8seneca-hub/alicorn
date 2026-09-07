@@ -232,6 +232,21 @@ describe('scripts', () => {
   })
 })
 
+describe('signal', () => {
+  it('forwards the signal straight through to runProcess', async () => {
+    seedWslGuestEnvironmentForTests(undefined, ENVIRONMENT)
+    const controller = new AbortController()
+    await runWslProcess({ loginPath: 'preferred', program: '/bin/true', signal: controller.signal })
+    expect(runProcessMock.mock.calls.at(-1)?.[0].signal).toBe(controller.signal)
+  })
+
+  it('passes signal undefined for a spec with none, so existing callers are unaffected', async () => {
+    seedWslGuestEnvironmentForTests(undefined, ENVIRONMENT)
+    await runWslProcess({ loginPath: 'preferred', program: '/bin/true' })
+    expect(runProcessMock.mock.calls.at(-1)?.[0].signal).toBeUndefined()
+  })
+})
+
 describe('guest cwd', () => {
   it('cds inside the guest rather than passing a Windows cwd to wsl.exe', async () => {
     seedWslGuestEnvironmentForTests(undefined, ENVIRONMENT)

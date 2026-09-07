@@ -72,6 +72,8 @@ export type WslSpec = WslCommand & {
   env?: Readonly<Record<string, string>>
   timeoutMs?: number
   maxOutputBytes?: number
+  /** Aborts the guest process, not just the promise. */
+  signal?: AbortSignal
 }
 
 export type WslResult = {
@@ -247,7 +249,8 @@ export async function runWslProcess(spec: WslSpec): Promise<WslResult> {
     env: buildHostEnv(spec.env),
     input: delivery === 'stdin' ? spec.script : undefined,
     timeoutMs: remainingMs,
-    maxOutputBytes: spec.maxOutputBytes
+    maxOutputBytes: spec.maxOutputBytes,
+    signal: spec.signal
   })
 
   return {

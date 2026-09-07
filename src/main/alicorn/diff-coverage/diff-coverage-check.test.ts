@@ -173,7 +173,7 @@ describe('runDiffCoverageCheck', () => {
     expect(spec.program).toBeUndefined()
   })
 
-  it('produces the same command-stage error shape as the host path on a non-zero WSL exit', async () => {
+  it('produces the same command-stage error shape as the host path on a non-zero WSL exit, plus environmentResolved', async () => {
     const runWsl = fakeRunWsl({ code: 2, stderr: 'boom' })
 
     const result = await runDiffCoverageCheck({
@@ -188,8 +188,48 @@ describe('runDiffCoverageCheck', () => {
 
     expect(result).toEqual({
       status: 'error',
-      detail: { stage: 'command', code: 2, stderrTail: 'boom' }
+      detail: { stage: 'command', code: 2, stderrTail: 'boom', environmentResolved: true }
     })
+  })
+
+  it('forwards the signal to runWsl so an aborted check reaches the guest process', async () => {
+    const runWsl = fakeRunWsl()
+    const controller = new AbortController()
+
+    await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: { ...CHECK, command: 'pnpm test' },
+      gitOptions: { wslDistro: 'Ubuntu' },
+      runWsl,
+      gitExec: fakeGitExec(),
+      readFile: fakeReadFile(),
+      signal: controller.signal
+    })
+
+    expect(runWsl).toHaveBeenCalledWith(expect.objectContaining({ signal: controller.signal }))
+  })
+
+  it('marks a WSL command failure with environmentResolved: false when the login PATH could not be resolved', async () => {
+    // exit 127 with an unresolved environment means the guest never had the
+    // tool on any PATH -- a probe failure, not a real test failure.
+    const runWsl = fakeRunWsl({
+      code: 127,
+      stderr: 'sh: pnpm: not found',
+      environmentResolved: false
+    })
+
+    const result = await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: { ...CHECK, command: 'pnpm test' },
+      gitOptions: { wslDistro: 'Ubuntu' },
+      runWsl,
+      gitExec: fakeGitExec(),
+      readFile: fakeReadFile()
+    })
+
+    expect(result.detail).toMatchObject({ environmentResolved: false })
   })
 
   it('does not call runWsl when no wslDistro is set, and still forwards the signal to runProcess', async () => {
