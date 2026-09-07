@@ -68,16 +68,16 @@ trigger and `to_status_id` becomes the stage key rather than a parallel concept.
 board's storage needs to change for that — `alicorn_board_transitions` already records the
 destination column per transition, which is the value a stage key would carry.
 
-**Not yet wired: `to_status_id` does not reach `step_outcomes.stage_key`.** The step-outcome builder
-derives `stage_key` from the worker's `--phase` free text and defaults to `'build'`
-(`src/main/alicorn/step-outcome-builder.ts`); the board rule engine passes the destination column
-into the *prompt template*, not as a phase. So every board dispatch currently records
-`stage_key: 'build'` regardless of which column triggered it. That matters because
-`member_stage_stats` is keyed on `(member_id, stage_key)` and the autonomy policy reads it — a
-reviewer dispatched by an *In Review* column accumulates track record mixed in with implementation
-work, which is exactly the distinction §7 depends on. Closing this is a one-line change at a seam
-the ledger module owns; until it lands, per-stage track record from board dispatches is not
-trustworthy.
+**`to_status_id` reaches `step_outcomes.stage_key`.** The step-outcome builder resolves a settled
+dispatch back to the board transition that started it and uses the destination column as the stage
+key (`src/main/alicorn/step-outcome-builder.ts`). The column **wins over the worker's own
+`--phase`**: the stage a member is measured under is authored config, never something the member
+being judged chooses for itself — the same rule that keeps required checks off the member. A
+dispatch with no board transition still falls back to the reported phase, then to `'build'`.
+
+This is what makes per-stage track record mean anything: `member_stage_stats` is keyed on
+`(member_id, stage_key)` and the autonomy policy reads it, so a reviewer dispatched by an
+*In Review* column must not accumulate its record mixed in with implementation work.
 
 ## 4. Topology
 

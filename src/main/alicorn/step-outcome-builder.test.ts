@@ -238,4 +238,91 @@ describe('buildStepOutcomeInput', () => {
     expect(accepted.escalationOffered).toBe(true)
     expect(accepted.escalationAccepted).toBe(true)
   })
+
+  // Why these: `member_stage_stats` is keyed on (member_id, stage_key) and the autonomy policy
+  // reads it, so a board dispatch landing under 'build' mixes reviewer track record into
+  // implementation work.
+  describe('stageKey for a board dispatch', () => {
+    function settledBoardDispatch(options: { phase?: string; toStatusId?: string }) {
+      db = new OrchestrationDb(':memory:')
+      const task = db.createTask({ spec: 'work' })
+      const dispatch = createRootDispatch(db, task.id, 'term_worker')
+      if (options.toStatusId) {
+        db.recordBoardTransition({
+          repoId: 'repo_1',
+          worktreeId: 'wt_1',
+          taskId: task.id,
+          dispatchId: dispatch.id,
+          toStatusId: options.toStatusId,
+          ruleId: 'rule_1',
+          outcome: 'dispatched'
+        })
+      }
+      const result = JSON.stringify({
+        ...(options.phase ? { phase: options.phase } : {}),
+        body: 'done'
+      })
+      db.settleWorkerReport({
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        outcome: 'succeeded',
+        result
+      })
+      return buildStepOutcomeInput({
+        db,
+        payload: { taskId: task.id, dispatchId: dispatch.id, outcome: 'succeeded', result },
+        worktree: { id: 'wt_1', path: '/tmp/wt', branch: 'feature', repoId: 'repo_1' }
+      })
+    }
+
+    it('records the column that dispatched the work', () => {
+      expect(settledBoardDispatch({ toStatusId: 'in-review' }).stageKey).toBe('in-review')
+    })
+
+    // The stage a member is judged on is authored config, never chosen by the member itself.
+    it('lets the column win over the phase the worker reported', () => {
+      expect(settledBoardDispatch({ toStatusId: 'in-review', phase: 'build' }).stageKey).toBe(
+        'in-review'
+      )
+    })
+
+    it('still uses the reported phase when no board transition dispatched it', () => {
+      expect(settledBoardDispatch({ phase: 'review' }).stageKey).toBe('review')
+    })
+
+    it('falls back to build when neither names a stage', () => {
+      expect(settledBoardDispatch({}).stageKey).toBe('build')
+    })
+
+    // A refusal carries no dispatch id, so it must never be resolved onto another dispatch.
+    it('ignores a refusal recorded for the same worktree', () => {
+      db = new OrchestrationDb(':memory:')
+      const task = db.createTask({ spec: 'work' })
+      const dispatch = createRootDispatch(db, task.id, 'term_worker')
+      db.recordBoardTransition({
+        repoId: 'repo_1',
+        worktreeId: 'wt_1',
+        toStatusId: 'in-review',
+        ruleId: 'rule_1',
+        outcome: 'refused_ceiling'
+      })
+      const result = JSON.stringify({ body: 'done' })
+      db.settleWorkerReport({
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        outcome: 'succeeded',
+        result
+      })
+      const input = buildStepOutcomeInput({
+        db,
+        payload: { taskId: task.id, dispatchId: dispatch.id, outcome: 'succeeded', result },
+        worktree: { id: 'wt_1', path: '/tmp/wt', branch: 'feature', repoId: 'repo_1' }
+      })
+      expect(input.stageKey).toBe('build')
+    })
+
+    it('truncates an oversized column id to the 64-char ledger limit', () => {
+      expect(settledBoardDispatch({ toStatusId: 'x'.repeat(80) }).stageKey).toBe('x'.repeat(64))
+    })
+  })
 })

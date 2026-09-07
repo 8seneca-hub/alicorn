@@ -94,6 +94,21 @@ function nowSqliteUtcTextMs(): string {
 // Why ms rather than a formatted string: the caller cannot then pass a shape that compares wrong.
 // Ascending, so the loop detector reads a worktree's moves forwards in time and the ceiling counts
 // a window without re-sorting.
+// Why: the step-outcome builder needs the column that triggered a dispatch, so a settled board
+// dispatch is measured under that column rather than under whatever phase the worker reported.
+// Only 'dispatched' rows carry a dispatch id, so a refusal can never be resolved here.
+export function getBoardTransitionByDispatch(
+  this: OrchestrationDb,
+  dispatchId: string
+): BoardTransitionRow | null {
+  const row = this.db
+    .prepare(
+      'SELECT * FROM alicorn_board_transitions WHERE dispatch_id = ? ORDER BY created_at DESC LIMIT 1'
+    )
+    .get(dispatchId) as AlicornBoardTransitionRow | undefined
+  return row ? toBoardTransition(row) : null
+}
+
 export function listBoardTransitions(
   this: OrchestrationDb,
   worktreeId: string,
@@ -171,6 +186,7 @@ export function setBoardAutomationDisabled(
 
 export type BoardTransitionMethods = {
   recordBoardTransition: typeof recordBoardTransition
+  getBoardTransitionByDispatch: typeof getBoardTransitionByDispatch
   listBoardTransitions: typeof listBoardTransitions
   listBoardTransitionsForRepo: typeof listBoardTransitionsForRepo
   getBoardAutomationState: typeof getBoardAutomationState
@@ -180,6 +196,7 @@ export type BoardTransitionMethods = {
 export function attachBoardTransitionMethods(ctor: { prototype: object }): void {
   Object.assign(ctor.prototype, {
     recordBoardTransition,
+    getBoardTransitionByDispatch,
     listBoardTransitions,
     listBoardTransitionsForRepo,
     getBoardAutomationState,

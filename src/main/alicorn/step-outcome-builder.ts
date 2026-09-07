@@ -72,6 +72,11 @@ export function buildStepOutcomeInput(input: {
   // Why sanitize: --phase is worker free text; empty or oversized values would
   // otherwise reach the ledger as a stageKey that fails its 1-64 char validation.
   const phase = parsedResult.phase?.trim()
+  // A board dispatch is measured under the column that triggered it, and that column
+  // wins over the worker's own --phase: the stage a member is judged on is authored
+  // config, never something the member being judged chooses for itself.
+  const boardColumn = db.getBoardTransitionByDispatch(payload.dispatchId)?.toStatusId?.trim()
+  const stageKey = boardColumn || phase || 'build'
 
   return {
     runId: task.run_id,
@@ -85,7 +90,7 @@ export function buildStepOutcomeInput(input: {
     backend:
       (member?.backend as StepOutcomeBackend | undefined) ??
       backendFromWorkerStartOptions(worker?.start_options),
-    stageKey: phase ? phase.slice(0, 64) : 'build',
+    stageKey: stageKey.slice(0, 64),
     executionStrategy: strategy.strategy,
     outcome: payload.outcome,
     filesModified: parsedResult.filesModified ?? [],
