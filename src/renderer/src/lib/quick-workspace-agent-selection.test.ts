@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { TUI_AGENT_AUTO_PICK_ORDER } from '../../../shared/tui-agent-selection'
+import { getDefaultSettings } from '../../../shared/constants'
 import { AGENT_CATALOG } from './agent-catalog'
 import {
   pickQuickWorkspaceAgent,
@@ -29,6 +30,16 @@ describe('pickQuickWorkspaceAgent', () => {
   it('uses detected enabled agents after detection resolves', () => {
     expect(pickQuickWorkspaceAgent(null, ['codex'], ['claude'])).toBe('codex')
     expect(pickQuickWorkspaceAgent('codex', ['claude', 'codex'], ['codex'])).toBe('claude')
+  })
+
+  // Alicorn UI2b: a fresh profile has no defaultTuiAgent, and the composer must still
+  // land on an agent — "Shell only" is a choice the user makes, never the starting point.
+  it('lands on an installed agent when the profile has no default', () => {
+    const settings = getDefaultSettings('/tmp')
+    expect(settings.defaultTuiAgent).toBeNull()
+    expect(
+      pickQuickWorkspaceAgent(settings.defaultTuiAgent, ['codex'], settings.disabledTuiAgents)
+    ).toBe('codex')
   })
 })
 

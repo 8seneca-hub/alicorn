@@ -39,8 +39,10 @@
 - [x] Commit `feat(interface): agent tabs open in chat by default`.
 
 ### Task 3 (UI2b): a new tab opens an agent
-`NewWorkspaceComposerAgentSection.tsx`, `AgentCombobox.tsx` (Decision 4: `resolveDefaultComposerAgent(settings, installedAgents)`; `BLANK_VALUE` stays as "Shell only"), `worktree-initial-terminal-seeding.ts` (seed an agent tab with the chat box focused when a default agent resolves). Tests: combobox default; seeding creates an agent tab and focuses the composer.
-- [ ] Localise. Commit `feat(interface): new tabs open an agent, not a shell`.
+`AgentCombobox.tsx`: `BLANK_VALUE` is labelled "Shell only" (the pre-rename "Blank Terminal" stays a search alias in `agent-picker-search.ts`). Decision 4 needs no new code — `pickQuickWorkspaceAgent` in `quick-workspace-agent-selection.ts` is already `settings.defaultTuiAgent ?? first installed supported agent`, and `NewWorkspaceComposerModal` already feeds it to the composer, so a fresh profile lands on an agent rather than a shell. Test: fresh settings → the composer default resolves to an installed agent.
+
+**The seeding clause was dropped, deliberately.** This task originally also changed `worktree-initial-terminal-seeding.ts` to launch the default agent whenever a tab is auto-seeded. Creation already opens an agent (the composer supplies the startup), so the clause added only *agent-on-reactivation* — and that re-arms the relaunch loop guarded by `worktree-activation-created-agent.test.ts` and `worktree-reactivation-tab-forkbomb.test.ts`: each activate/close cycle would spawn a fresh agent process. Those ratchets outrank the clause. If reopening an emptied workspace should start an agent, it needs its own design with a relaunch guard, not a flag on the seeding path.
+- [x] Localise. Commit `feat(interface): new tabs open an agent, not a shell`.
 
 ### Task 4 (UI2c): terminal in the right sidebar
 `ui-chrome-types.ts` (`'terminal'` in `RightSidebarTab`), `right-sidebar-effective-tab.ts` (+ test case), `right-sidebar-panel-content.tsx` (lazy `TerminalPanel`), `right-sidebar/terminal-panel/TerminalPanel.tsx` (hosts the existing terminal pane component for the active worktree; folder workspaces and SSH hosts use the same pane), activity-bar entry + `Cmd/Ctrl+J` accelerator (platform-checked; label `⌘J` / `Ctrl+J`). Tests: effective-tab; render mounts the pane; shortcut mapping per platform.

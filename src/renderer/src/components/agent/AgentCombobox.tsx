@@ -345,7 +345,7 @@ export default function AgentCombobox({
                   icon={<Terminal className="size-3.5" />}
                   label={
                     emptyLabel ??
-                    translate('auto.components.agent.AgentCombobox.986f946354', 'Blank Terminal')
+                    translate('auto.components.agent.AgentCombobox.shellOnly', 'Shell only')
                   }
                 />
               )}
@@ -391,10 +391,7 @@ export default function AgentCombobox({
                     onSelect: () => handleSelect(null),
                     onSetDefault: onSetDefault ? () => onSetDefault('blank') : undefined,
                     icon: <Terminal className="size-3.5" />,
-                    label: translate(
-                      'auto.components.agent.AgentCombobox.986f946354',
-                      'Blank Terminal'
-                    )
+                    label: translate('auto.components.agent.AgentCombobox.shellOnly', 'Shell only')
                   })
                 : null}
               {filteredAgents.map((agent) =>

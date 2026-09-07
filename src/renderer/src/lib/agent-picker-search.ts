@@ -76,7 +76,9 @@ export function agentPickerBlankTerminalMatches(rawQuery: string): boolean {
     return true
   }
 
+  // 'Blank Terminal' is the pre-"Shell only" label, kept as a search alias.
   return (
+    scoreCandidate(query, 'Shell only', 0) !== NO_MATCH ||
     scoreCandidate(query, 'Blank Terminal', 0) !== NO_MATCH ||
     scoreCandidate(query, 'terminal', 0) !== NO_MATCH ||
     scoreCandidate(query, 'shell', 0) !== NO_MATCH
