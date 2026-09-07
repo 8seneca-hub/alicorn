@@ -230,6 +230,12 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
 - **A verdict is written once.** `human_verdict` is set by the first signal (a follow-up commit, a
   revert, a reopened task, or a person); a later, different signal is a new event to log, never an
   overwrite.
+- **Dead rows are kept.** A row the Ledger API rejects with a non-retryable error, or that fails 50
+  times, is marked `dead_at`/`dead_reason`, listed by `orca ledger outbox --dead` and requeued by
+  hand; it is never deleted. A dead row keeps its `dedupe_key`, so requeueing cannot double-count.
+- **Required checks do not block ledger delivery.** A `step_verification` row runs a project's own
+  command, so it drains in its own worker with a row timeout; the ordinary writes never queue behind
+  it. A timeout is retryable — a slow project is not a permanent failure.
 
 ## 7. Autonomy policy
 

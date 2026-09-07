@@ -300,7 +300,8 @@ and the command itself says so.
 - Cloud services test against a real Postgres when `ALICORN_TEST_POSTGRES_URL` is set (same shape as
   the relay's `ORCA_RELAY_TEST_POSTGRES_URL`); without it those suites skip, they do not fake it.
 - Anything written to the Ledger goes through the outbox. Never `fetch` the Ledger API directly from
-  a settlement path.
+  a settlement path. A dead outbox row is an operator signal (`orca ledger outbox --dead`), not
+  garbage: it is kept, never deleted, and a human requeues it once the cause is fixed.
 - Gates, questions and escalation offers are recorded as ledger interruptions at settlement; the
   north-star metric is `orca ledger report`. Human corrections (follow-up commits, reverts, reopened
   tasks) reach the ledger through the corrections sweep — never write `human_verdict` any other way.

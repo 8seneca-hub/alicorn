@@ -111,4 +111,4 @@ Results are recorded in the PR description or the Plane issue (E1 / ALC-27) when
 5. `worker-start --member <Reviewer on claude>` on a dependent task → rejected `reviewer_backend_conflict`; with `--allow-same-backend-review` → allowed; ledger row `review_backend_bypass true`.
 6. Push the branch, create a PR from the sidebar → PR body has the Provenance section with the bypass warning and the diff-coverage line (after configuring the project's required check).
 7. Sidebar agent row shows `$0.xx` while a Claude worker runs.
-8. Kill the desktop between `worker_done` and the drainer's next tick (stop the Ledger API first so the send fails, then quit the app, restart both) → the outcome is delivered once; `SELECT count(*) FROM step_outcomes WHERE dispatch_id = …` is 1.
+8. Kill the desktop between `worker_done` and the drainer's next tick (stop the Ledger API first so the send fails, then quit the app, restart both) → the outcome is delivered once; `SELECT count(*) FROM step_outcomes WHERE dispatch_id = …` is 1. Then `orca ledger outbox` shows no dead rows — a row here means the Ledger API rejected it permanently, and `orca ledger outbox --dead` explains why.
