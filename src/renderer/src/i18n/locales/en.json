@@ -3522,6 +3522,9 @@
           "TabBarQuickCommandHostLoadStatus": {
             "82e294f3ca": "Host unavailable",
             "7c129b08ff": "Loading host…"
+          },
+          "TabRunCostBadge": {
+            "estimatedSpend": "Estimated spend for this tab (API-equivalent)"
           }
         }
       },
@@ -8739,7 +8742,9 @@
           "ad5d036ecc": "Could not request microphone permission. Voice dictation was not enabled.",
           "f9a9cf6928": "Microphone permission is required before enabling voice dictation.",
           "1eac933202": "Opened macOS Privacy & Security. Enable dictation again after granting access.",
-          "cd9fe37556": "Microphone permission granted"
+          "cd9fe37556": "Microphone permission granted",
+          "confirmBeforeDestructive": "Confirm before destructive instructions",
+          "confirmBeforeDestructiveHint": "Show what was heard before sending an agent an instruction that cannot be undone."
         },
         "WorktreeSymlinksSection": {
           "1c1e35b219": "Remove {{value0}}",
@@ -12997,7 +13002,8 @@
               "sidebar": {
                 "activity": {
                   "items": {
-                    "7f0215bd93": "Run"
+                    "7f0215bd93": "Run",
+                    "terminal": "Terminal"
                   }
                 }
               }
@@ -13393,6 +13399,13 @@
                 "812f26e81d": "A floor, not a total — some dispatches ran on a backend Orca does not price, or have not been measured yet.",
                 "7cf5a7f9b2": "Cost of this run so far.",
                 "0276527834": "after"
+              }
+            }
+          },
+          "terminal": {
+            "panel": {
+              "TerminalPanel": {
+                "noWorkspace": "Open a workspace to use the terminal."
               }
             }
           }
@@ -15313,6 +15326,12 @@
           "3de5a129e7": "Listening",
           "4977162383": "Too loud",
           "25f2b7a6a5": "Speaking"
+        },
+        "ConfirmDestructiveDictationDialog": {
+          "title": "Send this to the agent?",
+          "body": "This dictated instruction asks for something that cannot be undone.",
+          "discard": "Discard",
+          "send": "Send"
         }
       },
       "dashboard": {

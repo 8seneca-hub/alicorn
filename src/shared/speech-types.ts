@@ -73,6 +73,10 @@ export type VoiceSettings = {
   language: string
   dictationMode: DictationMode
   terminalConfirmBeforeInsert: boolean
+  /** Ask before delivering a dictated transcript that asks for something irreversible.
+   *  Optional so profiles written before it existed hydrate cleanly; absent is treated as on,
+   *  because opting out of the confirmation has to be a deliberate choice. */
+  confirmBeforeDestructive?: boolean
   userModels: UserModelConfig[]
   openAiApiKeyConfigured: boolean
   /** null = system default input device */

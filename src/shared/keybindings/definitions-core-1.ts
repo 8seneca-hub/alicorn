@@ -226,6 +226,16 @@ export const KEYBINDING_DEFINITION_CORE_1: readonly KeybindingDefinition[] = [
     defaultBindings: platformBindings([])
   },
   {
+    id: 'sidebar.terminal.toggle',
+    title: 'Show Terminal',
+    group: 'Global',
+    scope: 'global',
+    searchKeywords: ['shortcut', 'sidebar', 'terminal', 'shell'],
+    // Why Mod+Backquote: VS Code's terminal-toggle convention, unbound here, and identical on
+    // every platform. Mod+J is already the worktree jump palette.
+    defaultBindings: platformBindings(['Mod+Backquote'])
+  },
+  {
     id: 'sidebar.ports.toggle',
     title: 'Show Ports',
     group: 'Global',

@@ -113,6 +113,9 @@ export type TabsSlice = {
     direction: TabSplitDirection,
     opts?: { activate?: boolean }
   ) => string | null
+  /** The worktree's right-sidebar terminal group, created on first use. Never enters the main
+   *  layout or takes focus away from it — see TabGroup.surface. */
+  ensureSidebarTerminalGroup: (worktreeId: string) => string
   moveUnifiedTabToGroup: (
     tabId: string,
     targetGroupId: string,

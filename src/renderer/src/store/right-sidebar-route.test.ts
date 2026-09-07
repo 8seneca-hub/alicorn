@@ -48,4 +48,13 @@ describe('normalizeRightSidebarRoute', () => {
       rightSidebarExplorerView: 'files'
     })
   })
+
+  // Why: the terminal panel is reachable by keybinding (sidebar.terminal.toggle); a normalizer
+  // that does not know the tab silently rewrites it to Explorer and the chord does nothing.
+  it('keeps the terminal tab', () => {
+    expect(normalizeRightSidebarRoute('terminal')).toEqual({
+      rightSidebarTab: 'terminal',
+      rightSidebarExplorerView: 'files'
+    })
+  })
 })

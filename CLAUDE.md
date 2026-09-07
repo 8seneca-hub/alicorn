@@ -137,10 +137,33 @@ document them where a merge conflict will send someone looking.
   (`src/renderer/src/app-shell/reconcile-hydrated-workspace-tab-models.ts`). We key it to the agent
   session: one tab per ticket, panels split inside a tab, a workspace hosting many tabs. Each tab
   carries its own status and running cost.
+
+  **As built (2026-09-07): the user-visible half shipped; the re-keying did not, and is no longer
+  scheduled with it.** Status and running cost are both on the tab —
+  `components/tab-bar/terminal-tab-activity-status.ts` rolls a tab's panes up to one status, and
+  `terminal-tab-run-cost.ts` sums that tab's dispatches through D7's `summarizeRunCost`. Neither
+  needed the tab model changed: the pane→tab relation lives in the **pane key**
+  (`shared/stable-pane-id.ts`), not in `Tab`. The re-keying itself was measured before starting —
+  `unifiedTabsByWorktree` appears in 174 non-test files, `tabsByWorktree` in 962 references — so it
+  is its own ticket now, sequenced with the multi-repo feature workspace (MR1) that actually wants
+  session-keyed tabs. Do not treat "a tab is a session" as blocking anything in the tab bar.
 - **A new tab opens an agent, not a shell.** An IDE opens an editor because you were going to type; an
   ADE opens a live agent session with the chat box focused, because you were going to brief someone.
   The terminal moves to the right sidebar, one keystroke away. Reuse the existing `native-chat`,
   `right-sidebar` and `new-workspace` surfaces — this is a change of default, not new machinery.
+
+  **As built (2026-09-07).** The sidebar terminal is `RightSidebarTab 'terminal'`
+  (`components/right-sidebar/terminal-panel/`), toggled with **`Mod+Backquote`** — not the `Cmd+J`
+  the plan named, which is the worktree jump palette. It hosts the same `TerminalPane` the main area
+  does, on a group marked `TabGroup.surface = 'sidebar'`: the group carries the real `worktreeId`, so
+  SSH hosts and folder workspaces resolve identically to the main view, and two places skip it so it
+  never surfaces there — `layoutSpanningGroups` and `selectHydratedActiveGroupId`. Keying it to
+  `FLOATING_TERMINAL_WORKTREE_ID` was rejected: that id resolves to a null connection by design and
+  could never reach an SSH host. **Adding a right-sidebar tab means four edits, not one** — the union
+  in `shared/ui-chrome-types.ts`, the guard in `store/right-sidebar-route.ts` (which silently
+  rewrites an unknown tab to `explorer`), the activity-bar entry, and
+  `STATIC_RIGHT_SIDEBAR_TABS` in `main/runtime/rpc/methods/client-ui-schemas.ts`, whose value-domain
+  parity ratchet is what stops a paired client rejecting the whole `ui.set` payload.
 
 ## Decisions taken — PROJECT-BRIEF §11, accepted 2026-09-06
 

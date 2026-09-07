@@ -24,6 +24,7 @@ import { TAB_CONTAINER_WIDTH_CLASSES, TAB_LABEL_WIDTH_CLASSES } from './tab-widt
 import { useOptionalShortcutLabel } from '@/hooks/useShortcutLabel'
 import { useTabStripPointerActivation } from './tab-strip-pointer-activation'
 import { TerminalTabLeadingIcon } from './TerminalTabLeadingIcon'
+import { TabRunCostBadge } from './TabRunCostBadge'
 import {
   isTerminalTabActivityLive,
   resolveTerminalTabActivityStatus,
@@ -296,6 +297,7 @@ export default function SortableTab({
           </TooltipContent>
         </Tooltip>
       )}
+      {!isEditing && <TabRunCostBadge tabId={tab.id} />}
       {tab.color && !isEditing && (
         <span
           className="mr-1.5 size-2 rounded-full shrink-0"

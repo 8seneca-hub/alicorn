@@ -238,10 +238,19 @@ export function createTerminalTabCreationActions(
             })
           },
           activeGroupIdByWorktree: nextActiveGroupIdByWorktree,
-          layoutByWorktree: {
-            ...s.layoutByWorktree,
-            [worktreeId]: s.layoutByWorktree[worktreeId] ?? { type: 'leaf', groupId: group.id }
-          },
+          // Why the surface guard: a sidebar-owned group is hosted by the right sidebar, so it must
+          // never become the main layout's root — seeding it there is how a worktree with no main
+          // tabs yet would render its sidebar terminal in the main view.
+          layoutByWorktree:
+            group.surface === 'sidebar' && !s.layoutByWorktree[worktreeId]
+              ? s.layoutByWorktree
+              : {
+                  ...s.layoutByWorktree,
+                  [worktreeId]: s.layoutByWorktree[worktreeId] ?? {
+                    type: 'leaf',
+                    groupId: group.id
+                  }
+                },
           activeTabId: shouldActivate ? tab.id : orphanCleanupPatch.activeTabId,
           activeTabIdByWorktree: {
             ...orphanCleanupPatch.activeTabIdByWorktree,
