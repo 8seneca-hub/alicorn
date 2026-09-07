@@ -11,6 +11,9 @@ export type InheritedCost = (typeof INHERITED_COSTS)[number]
 
 export type TriggerKind = 'on_success' | 'on_failure' | 'manual'
 
+export const STAGE_KINDS = ['worker', 'code'] as const
+export type StageKind = (typeof STAGE_KINDS)[number]
+
 export type WorkflowStage = {
   /** Matches a board column id (`WorkspaceStatus.id`) and `step_outcomes.stage_key`. */
   key: string
@@ -19,6 +22,10 @@ export type WorkflowStage = {
   memberId: string | null
   /** Board column that dispatches this stage (`WorkspaceStatus.id`), or null when none does. */
   columnId: string | null
+  /** `code` runs a deterministic command with no member and no model. */
+  kind: StageKind
+  /** Set for a `code` stage, null on a `worker` one. */
+  codeCommand: string | null
   reversibility: StageReversibility
   inheritedCost: InheritedCost
   requiredChecks: RequiredCheck[]

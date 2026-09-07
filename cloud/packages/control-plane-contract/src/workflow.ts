@@ -5,6 +5,9 @@ export const STAGE_REVERSIBILITY = ['free', 'contained', 'irreversible'] as cons
 export const INHERITED_COSTS = ['low', 'high'] as const
 export const TRIGGER_KINDS = ['on_success', 'on_failure', 'manual'] as const
 
+export const STAGE_KINDS = ['worker', 'code'] as const
+export const StageKindSchema = z.enum(STAGE_KINDS)
+
 export const StageReversibilitySchema = z.enum(STAGE_REVERSIBILITY)
 export const InheritedCostSchema = z.enum(INHERITED_COSTS)
 
@@ -25,6 +28,14 @@ export const StageInputSchema = z.object({
    * `key` alone assumed they matched, and they do not — see plan decision 11.
    */
   columnId: z.string().trim().min(1).max(64).nullable().default(null),
+  /**
+   * `code` runs a deterministic command with no member and no model — merge, rank, dedupe, format.
+   * Routing that work through a model is the most common waste the framework names
+   * (GRAPH-ENGINEERING, WF5), so it is a first-class stage kind rather than a degenerate worker.
+   */
+  kind: StageKindSchema.default('worker'),
+  /** Required for a `code` stage and meaningless on a `worker` one. */
+  codeCommand: z.string().trim().min(1).max(2000).nullable().default(null),
   // Why: ARCHITECTURE §7 — authored, never inferred, and the default is the safe value.
   reversibility: StageReversibilitySchema.default('contained'),
   inheritedCost: InheritedCostSchema.default('low'),
@@ -54,6 +65,24 @@ const WorkflowGraphShape = z.object({
 type WorkflowGraph = z.infer<typeof WorkflowGraphShape>
 
 function checkGraph(graph: WorkflowGraph, ctx: z.RefinementCtx): void {
+  graph.stages.forEach((stage, i) => {
+    if (stage.kind === 'code' && !stage.codeCommand) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['stages', i, 'codeCommand'],
+        message: 'code_stage_requires_command'
+      })
+    }
+    // Why reject rather than ignore: a member authored on a code stage reads as "this dispatches
+    // an agent", and silently dropping it would make the canvas lie about what runs.
+    if (stage.kind === 'code' && stage.memberId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['stages', i, 'memberId'],
+        message: 'code_stage_takes_no_member'
+      })
+    }
+  })
   const keys = new Set<string>()
   graph.stages.forEach((stage, i) => {
     if (keys.has(stage.key)) {

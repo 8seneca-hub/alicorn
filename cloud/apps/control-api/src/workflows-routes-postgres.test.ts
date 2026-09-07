@@ -185,6 +185,50 @@ describePostgres('workflows routes (postgres)', () => {
     expect(workflow.stages[0]!.memberId).toBeNull()
   })
 
+  // Why through Postgres and not only the contract: `kind` and `code_command` arrive on an existing
+  // table through ALTER, so a stage that validates can still fail to store.
+  it('stores a code stage with its command and no member', async () => {
+    const res = await create(
+      graph({
+        name: 'With a code stage',
+        stages: [
+          { key: 'build', ordinal: 0, memberId },
+          {
+            key: 'format',
+            name: 'Format',
+            ordinal: 1,
+            kind: 'code',
+            codeCommand: 'pnpm format',
+            columnId: 'in-review'
+          }
+        ],
+        transitions: [{ from: 'build', to: 'format', trigger: { kind: 'on_success' } }]
+      })
+    )
+    expect(res.status).toBe(201)
+    const { workflow } = (await res.json()) as { workflow: Workflow }
+    expect(workflow.stages[1]).toMatchObject({
+      kind: 'code',
+      codeCommand: 'pnpm format',
+      memberId: null,
+      columnId: 'in-review'
+    })
+    // A worker stage keeps the default, so an existing workflow is unchanged by the new columns.
+    expect(workflow.stages[0]).toMatchObject({ kind: 'worker', codeCommand: null })
+  })
+
+  it('refuses a code stage with nothing to run', async () => {
+    const res = await create(
+      graph({
+        name: 'Code with no command',
+        stages: [{ key: 'format', ordinal: 0, kind: 'code' }],
+        transitions: []
+      })
+    )
+    expect(res.status).toBe(400)
+    expect((await res.json()) as { error: string }).toMatchObject({ error: 'invalid_body' })
+  })
+
   it('rejects an invalid graph before it reaches Postgres', async () => {
     const res = await create(graph({ name: 'Bad', transitions: [{ from: 'spec', to: 'qa', trigger: { kind: 'on_success' } }] }))
     expect(res.status).toBe(400)

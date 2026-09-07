@@ -61,10 +61,14 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      ordinal INTEGER NOT NULL,
      member_id TEXT REFERENCES members(id) ON DELETE SET NULL,
      column_id TEXT,
+     kind TEXT NOT NULL DEFAULT 'worker' CHECK (kind IN ('worker', 'code')),
+     code_command TEXT,
      reversibility TEXT NOT NULL DEFAULT 'contained' CHECK (reversibility IN ('free', 'contained', 'irreversible')),
      inherited_cost TEXT NOT NULL DEFAULT 'low' CHECK (inherited_cost IN ('low', 'high')),
      required_checks JSONB NOT NULL DEFAULT '[]'::jsonb)`,
   `ALTER TABLE stages ADD COLUMN IF NOT EXISTS column_id TEXT`,
+  `ALTER TABLE stages ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'worker'`,
+  `ALTER TABLE stages ADD COLUMN IF NOT EXISTS code_command TEXT`,
   `CREATE UNIQUE INDEX IF NOT EXISTS stages_workflow_key ON stages(workflow_id, key)`,
   // Why unique: two stages on one column would make a board move ambiguous, and the engine would
   // have to guess which member to dispatch.

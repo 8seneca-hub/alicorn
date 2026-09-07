@@ -9,6 +9,8 @@ function stage(key: string, over: Partial<WorkflowStage> = {}): WorkflowStage {
     ordinal: 0,
     memberId: 'member-1',
     columnId: key,
+    kind: 'worker' as const,
+    codeCommand: null,
     reversibility: 'contained',
     inheritedCost: 'low',
     requiredChecks: [],

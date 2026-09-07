@@ -7,6 +7,7 @@ import { boardCoordinatorHandle, ensureBoardRun } from './board-system-run'
 import { isBoardAutomationKilled } from './board-kill-switch'
 import { renderBoardPromptTemplate, type BoardRuleStore } from './board-rule-store'
 import type { WorkflowDirectory } from './workflow-directory'
+import { codeStageOutcome, runCodeStage } from '../alicorn/workflows/code-stage-runner'
 
 // Why its own budget: an automated start has nobody watching it, so it waits as long as a human
 // start does rather than an ad-hoc number.
@@ -33,6 +34,8 @@ export type BoardDispatchResult =
   | { allow: false; reason: 'skipped'; detail: string }
   | { allow: false; reason: 'start_failed'; detail: string }
   | { allow: false; reason: 'workflow_unavailable'; detail: string }
+  | { allow: true; ranCode: { stageKey: string; exitCode: number } }
+  | { allow: false; reason: 'code_failed'; detail: string }
   | Extract<GuardVerdict, { allow: false }>
 
 /**
@@ -45,6 +48,7 @@ export type BoardDispatchResult =
 type ColumnBinding =
   | { source: 'stage'; memberId: string; promptTemplate: string; ruleId: string }
   | { source: 'rule'; memberId: string; promptTemplate: string; ruleId: string }
+  | { source: 'code'; command: string; ruleId: string; stageName: string }
 
 export type BoardRuleEngineDeps = {
   runtime: OrcaRuntimeService
@@ -52,6 +56,8 @@ export type BoardRuleEngineDeps = {
   rules: BoardRuleStore
   /** Absent before WF3 wiring; the engine then uses ad-hoc rules only. */
   workflows?: WorkflowDirectory | null
+  /** Injected for tests; defaults to the real `runProcess`-backed runner. */
+  runCode?: typeof runCodeStage
   now?: () => number
 }
 
@@ -116,6 +122,21 @@ async function resolveColumnBinding(
     return fallback()
   }
   const stage = resolved.stage
+  // A code stage runs a command instead of dispatching anybody: deterministic work must never be
+  // routed through a model (GRAPH-ENGINEERING, WF5).
+  if (stage.kind === 'code') {
+    return stage.codeCommand
+      ? {
+          kind: 'bound',
+          binding: {
+            source: 'code',
+            command: stage.codeCommand,
+            ruleId: stage.key,
+            stageName: stage.name
+          }
+        }
+      : { kind: 'none' }
+  }
   // A stage with no member is a human step — Merge and Deploy in the shipped template — so it
   // dispatches nobody rather than falling back to a rule that would.
   if (!stage.memberId) {
@@ -200,6 +221,26 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
               : 'refused_killed'
         )
         return verdict
+      }
+
+      // A code stage runs here and dispatches nobody: deterministic work must never be routed
+      // through a model, and running it inline keeps the board move as its only trigger.
+      if (rule.source === 'code') {
+        const outcome = await (deps.runCode ?? runCodeStage)({
+          worktreePath: event.worktreePath,
+          command: rule.command
+        })
+        record('dispatched', {})
+        return codeStageOutcome(outcome) === 'succeeded'
+          ? { allow: true, ranCode: { stageKey: rule.ruleId, exitCode: outcome.exitCode } }
+          : {
+              allow: false,
+              reason: 'code_failed',
+              detail:
+                outcome.stderrTail.trim() ||
+                outcome.stdoutTail.trim() ||
+                `${rule.stageName} exited ${outcome.exitCode}.`
+            }
       }
 
       const run = ensureBoardRun(db, event.repoId)

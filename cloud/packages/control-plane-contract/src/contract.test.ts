@@ -106,6 +106,7 @@ describe('workflow contract', () => {
     const parsed = WorkflowInputSchema.parse(graph())
     expect(parsed.stages[0]).toEqual({
       key: 'spec', name: '', ordinal: 0, memberId: null, columnId: null,
+      kind: 'worker', codeCommand: null,
       reversibility: 'contained', inheritedCost: 'low', requiredChecks: []
     })
   })
@@ -205,5 +206,45 @@ describe('workflow templates', () => {
 
   it('authors no required checks — only diff_coverage is expressible today', () => {
     expect(WorkflowTemplateSchema.parse(FEATURE_DELIVERY_TEMPLATE).stages.every((s) => !('requiredChecks' in s))).toBe(true)
+  })
+})
+
+describe('code stages', () => {
+  const codeGraph = (over: Record<string, unknown> = {}) => ({
+    projectId: 'local',
+    name: 'With a code stage',
+    stages: [{ key: 'format', ordinal: 0, kind: 'code', codeCommand: 'pnpm format', ...over }],
+    transitions: []
+  })
+
+  it('accepts a code stage carrying a command', () => {
+    const parsed = WorkflowInputSchema.parse(codeGraph())
+    expect(parsed.stages[0]).toMatchObject({ kind: 'code', codeCommand: 'pnpm format' })
+  })
+
+  // Why reject: a code stage with nothing to run is a stage that can never complete, and the
+  // failure would only appear when a board move reached it.
+  it('rejects a code stage with no command', () => {
+    expect(() => WorkflowInputSchema.parse(codeGraph({ codeCommand: null }))).toThrow(
+      /code_stage_requires_command/
+    )
+  })
+
+  // Why reject rather than ignore: a member on a code stage reads as "this dispatches an agent",
+  // and dropping it silently would make the canvas lie about what runs.
+  it('rejects a member on a code stage', () => {
+    expect(() => WorkflowInputSchema.parse(codeGraph({ memberId: 'member-1' }))).toThrow(
+      /code_stage_takes_no_member/
+    )
+  })
+
+  it('defaults a stage to worker so existing workflows are unchanged', () => {
+    const parsed = WorkflowInputSchema.parse({
+      projectId: 'local',
+      name: 'Plain',
+      stages: [{ key: 'build', ordinal: 0 }],
+      transitions: []
+    })
+    expect(parsed.stages[0]).toMatchObject({ kind: 'worker', codeCommand: null })
   })
 })
