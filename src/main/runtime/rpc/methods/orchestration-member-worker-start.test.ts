@@ -15,7 +15,8 @@ function member(backend: MemberBackend): Member {
     createdAt: '2026-09-06T00:00:00.000Z',
     updatedAt: '2026-09-06T00:00:00.000Z',
     name: 'Lead',
-    role: 'lead',
+    // A lead is a dispatch role, not a member role: any member can be dispatched to lead.
+    role: 'developer',
     backend,
     workspaceKind: 'worktree',
     permissionMode: 'ask',

@@ -5,11 +5,15 @@ import {
 } from './windows-powershell-hook-launcher'
 
 const MANAGED_SCRIPT_BASE_NAME = /^[A-Za-z0-9_-]+$/
+const MANAGED_SCRIPT_ENV_VAR = /^[A-Za-z_][A-Za-z0-9_]*$/
 const WINDOWS_GIT_BASH_RUNTIME_HOME_UNSAFE = '*\\&*|*\\^*|*\\(*|*\\)*|*\\;*|*,*|*=*|*%*|*\\!*'
 
 export function wrapRuntimeHomeHookCommand(
   scriptBaseName: string,
-  options: { neutralJsonWhenMissing?: boolean } = {}
+  // `requiredEnvVar` names a variable Orca sets only on the panes this hook is meant for, so
+  // every other session answers without spawning a shell for the script — the same reasoning as
+  // `wrapPosixHookCommand`, which cannot be reused here because it resolves no runtime home.
+  options: { neutralJsonWhenMissing?: boolean; requiredEnvVar?: string } = {}
 ): string {
   if (!MANAGED_SCRIPT_BASE_NAME.test(scriptBaseName)) {
     throw new Error(`Invalid managed script base name: ${scriptBaseName}`)
@@ -30,5 +34,12 @@ export function wrapRuntimeHomeHookCommand(
   const windowsBranch = `if [ -f ${windowsScript} ]; then case "\${HOME-}" in ${WINDOWS_GIT_BASH_RUNTIME_HOME_UNSAFE}) ${encodedWindowsBranch} ;; *) ${windowsScript} ;; esac; else ${missingScriptFallback}; fi`
   const posixBranch = `if [ -f ${posixScript} ] && [ -r ${posixScript} ] && [ -x ${posixScript} ]; then /bin/sh ${posixScript}; else ${missingScriptFallback}; fi`
   // Why: OSTYPE is shell-owned, so platform selection adds no process to every hook invocation.
-  return `if [ -z "\${HOME-}" ]; then ${missingScriptFallback}; else case "\${OSTYPE-}" in msys*|cygwin*|win32*) ${windowsBranch} ;; *) ${posixBranch} ;; esac; fi`
+  const platformCommand = `if [ -z "\${HOME-}" ]; then ${missingScriptFallback}; else case "\${OSTYPE-}" in msys*|cygwin*|win32*) ${windowsBranch} ;; *) ${posixBranch} ;; esac; fi`
+  if (!options.requiredEnvVar) {
+    return platformCommand
+  }
+  if (!MANAGED_SCRIPT_ENV_VAR.test(options.requiredEnvVar)) {
+    throw new Error(`Invalid managed hook env var: ${options.requiredEnvVar}`)
+  }
+  return `if [ -z "\${${options.requiredEnvVar}-}" ]; then ${missingScriptFallback}; else ${platformCommand}; fi`
 }

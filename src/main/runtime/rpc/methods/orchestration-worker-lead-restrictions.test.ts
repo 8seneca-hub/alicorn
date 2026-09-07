@@ -14,7 +14,8 @@ function lead(backend: MemberBackend): Member {
     createdAt: '2026-09-06T00:00:00.000Z',
     updatedAt: '2026-09-06T00:00:00.000Z',
     name: 'Lead',
-    role: 'lead',
+    // A lead is a dispatch role, not a member role: any member can be dispatched to lead.
+    role: 'developer',
     backend,
     workspaceKind: 'worktree',
     permissionMode: 'ask',
@@ -102,7 +103,7 @@ describe('worker-start lead restrictions', () => {
   })
 
   it('leaves an ordinary worker dispatch unrestricted', async () => {
-    setup({ ...lead('claude'), role: 'developer' })
+    setup(lead('claude'))
 
     await startLead({ role: undefined })
 
