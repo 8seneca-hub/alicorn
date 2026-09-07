@@ -74,7 +74,9 @@ parking, no drag. Also note the shortcut in this task's heading is unavailable:
 `Mod+J` / `Mod+Shift+J` is `worktree.palette` (`keybindings/definitions-core-1.ts:39`), the tipped
 Cmd+J jump palette. Use `Mod+\`` — VS Code's terminal-toggle convention, unused in our definitions,
 and identical on every platform.
-- [ ] Localise. Commit `feat(interface): terminal panel in the right sidebar`. **After Task 6.**
+- [x] Localise. Commit `feat(interface): terminal panel in the right sidebar`. **Landed without Task 6**
+  — sidebar-owned `TabGroup.surface`; `Mod+Backquote`; `createTab` layout-seed guard;
+  `normalizeRightSidebarRoute` and `STATIC_RIGHT_SIDEBAR_TABS` both needed the new tab.
 
 ### Task 5 (UI1a): tab status rollup and cost badge
 `src/renderer/src/lib/tab-status-rollup.ts` (pure, Decision 2: `rollupTabStatus(entries: AgentStatusEntry[]) → TabStatus`), `tab-cost.ts` (`tabCostCents(runCosts, tabRunIds) → { cents: number | null; partial: boolean }` from D7's store), tab bar: status dot (`--status-live/attention/critical`) + cost text ("$0.42", "≥ $0.42" partial, "—" unknown). Tests: rollup priority; cost partial/unknown; component renders badges.
@@ -128,7 +130,31 @@ multi-repo feature workspace (MR1) that actually wants it.
 
 ### Task 8 (VI1): voice to agent prompt
 `src/shared/speech-types.ts` (`VoiceSettings.confirmBeforeDestructive?: boolean`, default true in settings), `dictation/dictation-intent.ts` (pure: `classifyDictation(text, target) → { route: 'agent_prompt' | 'insert'; destructive: boolean }` per Decision 6), `DictationController.tsx` (route `agent_prompt` → `terminal.send` RPC → `sendTerminalAgentPrompt`; destructive → `ConfirmDestructiveDictationDialog`), settings toggle. Tests: classification table; agent-directed transcript calls the mocked send path not `insertText`; destructive held until confirmed.
-- [ ] Localise. Commit `feat(interface): voice routes to the agent as a prompt; destructive intent confirms`.
+**Partly landed 2026-09-07 — the classifier is in; delivery needs one decision this plan did not
+make.** `dictation/dictation-intent.ts` + its classification table shipped (21 cases, including the
+false-positive guards: `format`/`warm` must not match `rm`, and both spoken forms `reset hard` /
+`force-push` must match). Two corrections to the task text:
+
+- *Delivery is `submitPromptToAgentPty`* (`lib/agent-paste-draft.ts`), not `terminal.send`. The
+  renderer already owns agent-prompt delivery: bracketed paste plus Enter inside
+  `runTerminalPtyInputTransaction`, so a concurrent paste cannot submit a half-written prompt.
+  `terminal.send` is the raw-PTY write and would type the transcript as keystrokes — exactly what the
+  global constraint forbids. `sendTerminalAgentPrompt` is the main-process end of the same idea.
+- *Routing and destructiveness are independent.* Decision 6 reads as though the confirmation belongs
+  to the agent route; it does not. "rm the build output" typed into a live shell is the more dangerous
+  of the two, so the classifier flags on the words alone and the caller gates either route.
+
+**The open decision: final transcripts arrive as a stream of segments, not one string.**
+`onFinalTranscript` fires repeatedly within one dictation session and the insert path appends each
+segment as it lands (`formatFinalTranscriptSegment`). An agent prompt cannot work that way — each
+segment would paste *and press Enter*, submitting three partial turns for one sentence. So the agent
+route has to buffer every segment and submit once when the session stops, which makes
+`DictationController`'s lifecycle (not just its insert call) part of this task, and raises questions
+this plan should answer first: what happens to a buffered prompt when dictation errors or is
+cancelled, and whether the indicator should show the buffer while it fills.
+- [x] Commit `feat(interface): classify a dictated transcript — agent prompt vs insert, destructive or not`.
+- [ ] Decide the buffer-and-submit lifecycle above, then wire `DictationController`,
+      `ConfirmDestructiveDictationDialog`, and the `voice.confirmBeforeDestructive` setting.
 
 ### Task 9: docs — `CLAUDE.md` *Interface decisions* (as built, migration note), `docs/alicorn/DESIGN-SYSTEM.md` (aliases live in `main.css`). Commit `docs(alicorn): interface as built`.
 
