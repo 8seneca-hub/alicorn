@@ -1,4 +1,10 @@
 import {
+  DEEP_LINK_SCHEME,
+  hasAcceptedDeepLinkPrefix,
+  isAcceptedDeepLinkProtocol,
+  LEGACY_DEEP_LINK_SCHEME
+} from './deep-link-scheme'
+import {
   PAIRING_OFFER_VERSION,
   PairingOfferSchema,
   type PairingOffer
@@ -23,7 +29,10 @@ export function encodePairingOffer(offer: PairingOffer): string {
   }
   // Why: Android camera intents and Expo Router preserve query params more
   // reliably than URL fragments when launching a custom-scheme app.
-  return `orca://pair?code=${base64url}`
+  // Why still `orca://`: the mobile app registers `scheme: "orca"` (mobile/app.json)
+  // and is deliberately out of the R1 rebrand, so emitting `alicorn://` here would
+  // hand out a code no installed phone can open. Flip this with R6.
+  return `${LEGACY_DEEP_LINK_SCHEME}://pair?code=${base64url}`
 }
 
 export function decodePairingOffer(url: string): PairingOffer {
@@ -32,7 +41,9 @@ export function decodePairingOffer(url: string): PairingOffer {
   }
   const code = extractPairingCodeFromUrl(url)
   if (!code) {
-    throw new Error('Invalid pairing URL: must start with orca://pair and include a pairing code')
+    throw new Error(
+      `Invalid pairing URL: must start with ${DEEP_LINK_SCHEME}://pair or ${LEGACY_DEEP_LINK_SCHEME}://pair and include a pairing code`
+    )
   }
   return decodePairingBase64(code)
 }
@@ -46,7 +57,7 @@ function extractPairingCodeFromUrl(url: string): string | null {
   }
   // Why: prefix checks accepted routes like `orca://pairing?...`; only the
   // pairing deep-link host may carry runtime auth material.
-  if (parsed.protocol !== 'orca:' || parsed.hostname !== 'pair') {
+  if (!isAcceptedDeepLinkProtocol(parsed.protocol) || parsed.hostname !== 'pair') {
     return null
   }
   if (parsed.pathname !== '' && parsed.pathname !== '/') {
@@ -59,7 +70,7 @@ function extractPairingCodeFromUrl(url: string): string | null {
   return parsed.hash ? parsed.hash.slice(1) || null : null
 }
 
-// Why: accept either an `orca://pair?...` URL or the bare base64
+// Why: accept either a pairing deep link (both schemes) or the bare base64
 // string so the mobile paste-pair flow can take whichever the user
 // actually copied from desktop.
 export function parsePairingCode(input: string): PairingOffer | null {
@@ -71,7 +82,7 @@ export function parsePairingCode(input: string): PairingOffer | null {
     return null
   }
   try {
-    if (trimmed.toLowerCase().startsWith('orca://')) {
+    if (hasAcceptedDeepLinkPrefix(trimmed)) {
       return decodePairingOffer(trimmed)
     }
     return decodePairingBase64(trimmed)

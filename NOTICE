@@ -1,0 +1,10 @@
+Alicorn — an agent development environment.
+
+Copyright (c) 2026 8seneca (LEGAL ENTITY NAME TO BE CONFIRMED — see Plane R1).
+
+This product is a fork of Orca (https://github.com/stablyai/orca), licensed under
+the MIT License. The original copyright notice is retained unchanged in LICENSE
+and continues to apply to the inherited code.
+
+Forked at: <UPSTREAM_BASE tag and commit SHA — filled in when the upstream cut is
+recorded; see docs/alicorn/plans/2026-09-06-rebrand-cutover-distribution.md>.
