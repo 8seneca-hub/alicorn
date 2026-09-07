@@ -59,6 +59,7 @@ import { registerOrcaProfileHandlers } from '../orca-profiles'
 import { registerAlicornHandlers } from '../alicorn-handlers'
 import { registerBoardAutomationHandlers } from '../board-automation-handlers'
 import { createBoardRuleEngine } from '../../board-automation/board-rule-engine'
+import { LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
 import { createBoardRuleStore } from '../../board-automation/board-rule-store'
 import { createWorkflowDirectory } from '../../board-automation/workflow-directory'
 import { getControlPlaneClient } from '../../alicorn/control-plane-client-instance'
@@ -228,7 +229,19 @@ export function registerCoreHandlers(
       rules: createBoardRuleStore(() => store.getSettings()),
       // Why the same client instance: workflow reads share the control-plane session and cache
       // behaviour the rest of the desktop already uses.
-      workflows: createWorkflowDirectory(getControlPlaneClient())
+      workflows: createWorkflowDirectory(getControlPlaneClient()),
+      // Same resolution the verification runner uses: a code stage runs on this machine, so an
+      // SSH-hosted workspace must refuse rather than exec against another host's path.
+      resolveWorktreeHost: async (worktreeId) => {
+        try {
+          const worktree = await runtime.showManagedWorktree(`id:${worktreeId}`)
+          return !worktree.hostId || worktree.hostId === LOCAL_EXECUTION_HOST_ID
+            ? 'local'
+            : 'remote'
+        } catch {
+          return 'unknown'
+        }
+      }
     })
   })
   registerBrowserHandlers()

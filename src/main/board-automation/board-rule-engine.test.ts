@@ -336,7 +336,11 @@ describe('board rule engine', () => {
       requiredChecks: []
     }
 
-    function withCodeStage(runCode: unknown, stage = CODE_STAGE) {
+    function withCodeStage(
+      runCode: unknown,
+      stage = CODE_STAGE,
+      resolveWorktreeHost?: (worktreeId: string) => Promise<'local' | 'remote' | 'unknown'>
+    ) {
       return createBoardRuleEngine({
         runtime: {} as never,
         getDb: () => db,
@@ -349,7 +353,8 @@ describe('board rule engine', () => {
             workflowVersion: 1
           })
         } as never,
-        runCode: runCode as never
+        runCode: runCode as never,
+        ...(resolveWorktreeHost ? { resolveWorktreeHost } : {})
       })
     }
 
@@ -419,6 +424,50 @@ describe('board rule engine', () => {
 
       expect(result).toMatchObject({ allow: false, reason: 'skipped' })
       expect(runCode).not.toHaveBeenCalled()
+    })
+
+    // `worktreePath` is a path on the *execution* host. Running it locally for an SSH workspace
+    // either fails or — worse — hits a same-named local directory and reports success for work
+    // that never touched the real workspace. Same reasoning as the diff-coverage skip.
+    it('refuses a code stage on a remote worktree instead of running it locally', async () => {
+      const runCode = vi.fn()
+
+      const result = await withCodeStage(
+        runCode,
+        CODE_STAGE,
+        async () => 'remote'
+      ).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'code_unsupported_remote' })
+      expect(runCode).not.toHaveBeenCalled()
+    })
+
+    // Nothing is recorded, so the refusal costs the workspace none of its dispatch ceiling.
+    it('records no transition when it refuses a remote code stage', async () => {
+      await withCodeStage(vi.fn(), CODE_STAGE, async () => 'remote').onWorkspaceStatusChanged(EVENT)
+
+      expect(db.listBoardTransitions('wt-1', 0)).toEqual([])
+    })
+
+    // An unreadable host is treated as local, matching the verification runner: refusing every
+    // stage the moment the runtime hiccups would be worse than running where we already are.
+    it('runs a code stage when the host cannot be resolved', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 0,
+        durationMs: 1,
+        stdoutTail: '',
+        stderrTail: '',
+        timedOut: false
+      }))
+
+      const result = await withCodeStage(
+        runCode,
+        CODE_STAGE,
+        async () => 'unknown'
+      ).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: true })
+      expect(runCode).toHaveBeenCalled()
     })
 
     it('still refuses a code stage when the board is killed', async () => {

@@ -36,6 +36,7 @@ export type BoardDispatchResult =
   | { allow: false; reason: 'workflow_unavailable'; detail: string }
   | { allow: true; ranCode: { stageKey: string; exitCode: number } }
   | { allow: false; reason: 'code_failed'; detail: string }
+  | { allow: false; reason: 'code_unsupported_remote'; detail: string }
   | Extract<GuardVerdict, { allow: false }>
 
 /**
@@ -58,6 +59,12 @@ export type BoardRuleEngineDeps = {
   workflows?: WorkflowDirectory | null
   /** Injected for tests; defaults to the real `runProcess`-backed runner. */
   runCode?: typeof runCodeStage
+  /**
+   * Where the workspace actually lives. A code stage runs on the local machine, so an SSH-hosted
+   * workspace refuses rather than executing against a path that is not this host's. Absent (or
+   * `unknown`) reads as local — see the code-stage branch.
+   */
+  resolveWorktreeHost?: (worktreeId: string) => Promise<'local' | 'remote' | 'unknown'>
   now?: () => number
 }
 
@@ -226,6 +233,19 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
       // A code stage runs here and dispatches nobody: deterministic work must never be routed
       // through a model, and running it inline keeps the board move as its only trigger.
       if (rule.source === 'code') {
+        // `worktreePath` is a path on the *execution* host. Running the command locally for an SSH
+        // workspace either fails outright or — worse — finds a same-named local directory and
+        // reports success for work that never touched the real workspace. `unknown` reads as local,
+        // matching the diff-coverage runner: refusing every stage the moment the runtime hiccups
+        // would be worse than running where we already are. Nothing is recorded, so a refused stage
+        // costs the workspace none of its dispatch ceiling.
+        if ((await deps.resolveWorktreeHost?.(event.worktreeId)) === 'remote') {
+          return {
+            allow: false,
+            reason: 'code_unsupported_remote',
+            detail: `${rule.stageName} runs a command, and this workspace is on a remote host.`
+          }
+        }
         const outcome = await (deps.runCode ?? runCodeStage)({
           worktreePath: event.worktreePath,
           command: rule.command
