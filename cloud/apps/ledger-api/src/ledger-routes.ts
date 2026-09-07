@@ -1,4 +1,5 @@
 import type { Hono } from 'hono'
+import { withTenant } from '@alicorn-cloud/control-plane-postgres'
 import {
   CONTEXT_CAPTURE_MAX_PROMPT_BYTES,
   ContextCaptureInputSchema,
@@ -12,7 +13,7 @@ import {
 import type { LedgerApiDeps, LedgerApiEnv } from './app-env.js'
 import { insertStepOutcome, patchStepOutcomeHumanVerdict, patchStepOutcomeSpend } from './step-outcomes-repository.js'
 import { insertStepVerification } from './step-verifications-repository.js'
-import { insertContextCapture } from './context-captures-repository.js'
+import { insertContextCapture, listContextCapturesForRun } from './context-captures-repository.js'
 import { getProvenance, getRunCost } from './provenance-repository.js'
 import { getInterruptionsReport, insertInterruption } from './interruptions-repository.js'
 import { readJsonBody } from './read-json-body.js'
@@ -99,6 +100,14 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
     if (!repoId || !branch) return c.json({ error: 'invalid_query' }, 400)
     const report = await getProvenance(deps.pool, auth.tenantId, { repoId, branch })
     return c.json(report)
+  })
+
+  app.get('/v1/ledger/runs/:runId/context-captures', async (c) => {
+    const auth = c.get('auth')
+    const captures = await withTenant(deps.pool, auth.tenantId, (client) =>
+      listContextCapturesForRun(client, c.req.param('runId'))
+    )
+    return c.json({ captures })
   })
 
   app.get('/v1/ledger/runs/:runId/cost', async (c) => {

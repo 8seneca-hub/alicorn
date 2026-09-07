@@ -1,6 +1,15 @@
 import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
-import type { ContextCaptureInput } from '@alicorn-cloud/control-plane-contract'
+import type { ContextCaptureInput, ContextCaptureRead } from '@alicorn-cloud/control-plane-contract'
+
+interface ContextCaptureRow {
+  dispatch_id: string
+  created_at: Date
+  prompt_bytes: number
+  prompt: string | null
+  prompt_path: string | null
+  context_slice: unknown
+}
 
 export function insertContextCapture(
   pool: pg.Pool,
@@ -27,4 +36,22 @@ export function insertContextCapture(
     )
     return { id: existing.rows[0]!.id, duplicate: true }
   })
+}
+
+// Scoped by run, not repo/branch: a run is the reading order an inspector opens.
+// dispatch_id as tiebreaker keeps the order total when created_at ties.
+export async function listContextCapturesForRun(c: pg.PoolClient, runId: string): Promise<ContextCaptureRead[]> {
+  const { rows } = await c.query<ContextCaptureRow>(
+    `SELECT dispatch_id, created_at, prompt_bytes, prompt, prompt_path, context_slice
+     FROM context_captures WHERE run_id = $1 ORDER BY created_at ASC, dispatch_id ASC`,
+    [runId]
+  )
+  return rows.map((r) => ({
+    dispatchId: r.dispatch_id,
+    createdAt: r.created_at.toISOString(),
+    promptBytes: r.prompt_bytes,
+    prompt: r.prompt,
+    promptPath: r.prompt_path,
+    contextSlice: r.context_slice
+  }))
 }

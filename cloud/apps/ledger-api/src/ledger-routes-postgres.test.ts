@@ -8,14 +8,15 @@ import {
   withTenant
 } from '@alicorn-cloud/control-plane-postgres'
 import type { Hono } from 'hono'
-import { InterruptionsReportSchema, ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
-import type { InterruptionsReport, ProvenanceReport, RunCost } from '@alicorn-cloud/control-plane-contract'
+import { ContextCaptureListSchema, InterruptionsReportSchema, ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
+import type { ContextCaptureRead, InterruptionsReport, ProvenanceReport, RunCost } from '@alicorn-cloud/control-plane-contract'
 import { createLedgerApiApp } from './app.js'
 import { loadLedgerApiConfig } from './config.js'
 import type { LedgerApiEnv } from './app-env.js'
 import { LEDGER_SCHEMA_STATEMENTS } from './schema-sql.js'
 import { _resetAmendedWithinWindowCacheForTests } from './ledger-metrics.js'
 import { patchStepOutcomeHumanVerdict } from './step-outcomes-repository.js'
+import { insertContextCapture } from './context-captures-repository.js'
 
 const databaseUrl = process.env.ALICORN_TEST_POSTGRES_URL
 const describePostgres = databaseUrl ? describe : describe.skip
@@ -126,6 +127,47 @@ describePostgres('ledger routes (postgres)', () => {
       runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_4', prompt: 'hi', promptPath: '/tmp/x'
     })
     expect(both.status).toBe(400)
+  })
+
+  it('reads a run\'s context captures back oldest first, distinguishing an inline prompt from one spilled to a file', async () => {
+    // Why dispatch ids sort opposite of insertion order: proves the route orders by created_at,
+    // not by accidentally sorting on the tiebreaker column.
+    const inline = await post('/v1/ledger/context-captures', {
+      runId: 'run_ctx_read', taskId: 'task_ctx_read', dispatchId: 'zz_inline_capture',
+      prompt: 'the exact prompt a member saw', contextSlice: { taskSpec: 'x' }
+    })
+    expect(inline.status).toBe(201)
+
+    const spilled = await post('/v1/ledger/context-captures', {
+      runId: 'run_ctx_read', taskId: 'task_ctx_read', dispatchId: 'aa_spilled_capture',
+      promptPath: '/var/alicorn/prompts/task_ctx_read.txt'
+    })
+    expect(spilled.status).toBe(201)
+
+    // Why call the repository directly: local auth mode only ever authenticates as tenant
+    // 'local', so this is the only way to plant a row for a second tenant and prove RLS hides it.
+    await insertContextCapture(pool, 'other-tenant', {
+      runId: 'run_ctx_read', taskId: 'task_ctx_read', dispatchId: 'ctx_other_tenant', prompt: 'not yours', contextSlice: {}
+    })
+
+    const res = await app.request('/v1/ledger/runs/run_ctx_read/context-captures', { headers: authHeaders })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { captures: ContextCaptureRead[] }
+    expect(ContextCaptureListSchema.parse(body)).toEqual(body)
+    expect(body.captures).toHaveLength(2)
+
+    expect(body.captures[0]).toMatchObject({
+      dispatchId: 'zz_inline_capture', prompt: 'the exact prompt a member saw', promptPath: null
+    })
+    expect(body.captures[1]).toMatchObject({
+      dispatchId: 'aa_spilled_capture', prompt: null, promptPath: '/var/alicorn/prompts/task_ctx_read.txt'
+    })
+  })
+
+  it('returns an empty array for a run with no captures, not a 404', async () => {
+    const res = await app.request('/v1/ledger/runs/run_does_not_exist/context-captures', { headers: authHeaders })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ captures: [] })
   })
 
   it('patches spend and reports run cost', async () => {

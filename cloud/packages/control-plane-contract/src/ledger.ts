@@ -77,6 +77,18 @@ export const StepOutcomeRecordSchema = StepOutcomeInputSchema.extend({
 })
 export const StepVerificationRecordSchema = StepVerificationInputSchema.extend({ id: z.string(), createdAt: z.string().datetime() })
 
+// Distinct from ContextCaptureInputSchema (the write shape): a reader must be able to tell
+// a spilled-to-file prompt from an inline one, never collapse the two into one field.
+export const ContextCaptureReadSchema = z.object({
+  dispatchId: z.string(),
+  createdAt: z.string(),
+  promptBytes: z.number().int(),
+  prompt: z.string().nullable(),
+  promptPath: z.string().nullable(),
+  contextSlice: z.unknown().nullable()
+})
+export const ContextCaptureListSchema = z.object({ captures: z.array(ContextCaptureReadSchema) })
+
 export const ProvenanceReportSchema = z.object({
   repoId: z.string(),
   branch: z.string(),
@@ -133,6 +145,7 @@ export type SpendPatch = z.infer<typeof SpendPatchSchema>
 export type HumanVerdictPatch = z.infer<typeof HumanVerdictPatchSchema>
 export type StepVerificationInput = z.infer<typeof StepVerificationInputSchema>
 export type ContextCaptureInput = z.infer<typeof ContextCaptureInputSchema>
+export type ContextCaptureRead = z.infer<typeof ContextCaptureReadSchema>
 export type ProvenanceReport = z.infer<typeof ProvenanceReportSchema>
 export type RunCost = z.infer<typeof RunCostSchema>
 export type InterruptionInput = z.infer<typeof InterruptionInputSchema>
