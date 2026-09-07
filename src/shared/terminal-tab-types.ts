@@ -2,6 +2,18 @@ import type { AiVaultSessionTitle } from './ai-vault-session-title'
 import type { TuiAgent } from './tui-agent'
 
 // ─── Terminal Tab (legacy — used by persistence and TerminalContentSlice) ─
+/**
+ * Whether a terminal belongs to a surface other than the main tab area.
+ *
+ * The two sweeps that reclaim terminals — orphan detection and the unified model's legacy adoption —
+ * both key on "this terminal has no unified tab", which is precisely true of a surface-owned one.
+ * One predicate so neither can drift from the other: a false positive here either kills a live
+ * sidebar terminal or drags it into the tab strip.
+ */
+export function isSurfaceOwnedTerminalTab(tab: Pick<TerminalTab, 'surface'>): boolean {
+  return tab.surface !== undefined
+}
+
 export type TerminalTab = {
   id: string
   ptyId: string | null
@@ -34,6 +46,16 @@ export type TerminalTab = {
   shellOverride?: string
   /** Keeps an ephemeral host fallback out of the active project's runtime. */
   forceHostRuntime?: boolean
+  /**
+   * The surface that owns this terminal, when it is not the main tab area.
+   *
+   * A `sidebar` terminal belongs to the right sidebar's terminal panel. It keeps the real
+   * `worktreeId` — so SSH hosts and folder workspaces resolve exactly as they do for any other
+   * terminal — but it deliberately has no unified `Tab`, which is what keeps it out of the tab
+   * strip and the split layout. Absent means the main tab area owns it, so every existing tab
+   * hydrates unchanged.
+   */
+  surface?: 'sidebar'
   /** Why: explorer-created terminals can start below the workspace root while
    *  still belonging to that workspace for tab/session ownership. */
   startupCwd?: string
