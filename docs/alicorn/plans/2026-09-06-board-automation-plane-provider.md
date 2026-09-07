@@ -40,6 +40,22 @@
    dispatch ceiling of three per hour. The loop rule guards the *shape*, the ceiling guards the
    *budget*, and the ceiling is the real backstop. Revisit from the ledger if refusals cluster.
 
+12. **A stage names the board column that dispatches it — `stages.column_id`** (decided 2026-09-07,
+    resolving decision 11). Option (b), letting a workflow's stages define the board's columns, was
+    the truest reading of "one model, two views" and was rejected on evidence: `workspaceStatuses`
+    is *global* UI state, so a per-project workflow cannot define the column set without one
+    project reshaping every other project's board. Making columns per-project is Interface-scale
+    work, far beyond WF3. Option (c), a mapping object on the workflow, adds a third place to look.
+    So the binding lives on the stage, next to `reversibility` and `inherited_cost`, which the stage
+    already owns. `column_id` is nullable — Architecture, Design, Verify and Deploy in the shipped
+    template are reached by transitions rather than by a board move — and unique per workflow, since
+    two stages on one column would make a move ambiguous. `step_outcomes.stage_key` therefore stays
+    the *stage* key, not the column id: several stages share a column, and keying
+    `member_stage_stats` on the column would mix a reviewer's record into implementation work, which
+    is the exact harm #25 fixed. **#25's builder should prefer the bound stage's key over the column
+    when a stage exists** — that file is the ledger module's, so it is flagged rather than changed
+    here.
+
 11. **The stage and column vocabularies do not match, and binding by key alone is not enough**
     (found 2026-09-07 by running WF3 against the seeded stack). WF4's template keys stages by
     pipeline step — `spec, architecture, design, build, review, verify, merge, deploy` — while the

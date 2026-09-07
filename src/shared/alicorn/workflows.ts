@@ -17,6 +17,8 @@ export type WorkflowStage = {
   name: string
   ordinal: number
   memberId: string | null
+  /** Board column that dispatches this stage (`WorkspaceStatus.id`), or null when none does. */
+  columnId: string | null
   reversibility: StageReversibility
   inheritedCost: InheritedCost
   requiredChecks: RequiredCheck[]

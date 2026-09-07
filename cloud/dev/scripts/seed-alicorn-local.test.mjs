@@ -84,9 +84,9 @@ test('falls back to selecting the existing member id when the insert hits the un
 const TEMPLATE = {
   name: 'Feature delivery',
   stages: [
-    { key: 'spec', name: 'Spec', ordinal: 0, memberRole: 'analyst', reversibility: 'free', inheritedCost: 'low' },
-    { key: 'build', name: 'Build', ordinal: 1, memberRole: 'developer', reversibility: 'contained', inheritedCost: 'low' },
-    { key: 'merge', name: 'Merge', ordinal: 2, memberRole: null, reversibility: 'irreversible', inheritedCost: 'low' }
+    { key: 'spec', name: 'Spec', ordinal: 0, memberRole: 'analyst', columnId: 'todo', reversibility: 'free', inheritedCost: 'low' },
+    { key: 'build', name: 'Build', ordinal: 1, memberRole: 'developer', columnId: 'in-progress', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'merge', name: 'Merge', ordinal: 2, memberRole: null, columnId: 'completed', reversibility: 'irreversible', inheritedCost: 'low' }
   ],
   transitions: [
     { from: 'spec', to: 'build', trigger: { kind: 'on_success' } },
@@ -121,9 +121,11 @@ test('seedWorkflows writes the template graph and binds stage roles to the seede
   assert.deepEqual(stageInserts.map((s) => s.params[3]), ['Spec', 'Build', 'Merge'])
   // Roles resolve to member ids; an unowned stage such as Merge stays null.
   assert.deepEqual(stageInserts.map((s) => s.params[5]), ['member-3', 'member-1', null])
-  assert.deepEqual(stageInserts.map((s) => s.params[6]), ['free', 'contained', 'irreversible'])
+  // Column each stage dispatches on; several stages may share one, which is why columnId exists.
+  assert.deepEqual(stageInserts.map((s) => s.params[6]), ['todo', 'in-progress', 'completed'])
+  assert.deepEqual(stageInserts.map((s) => s.params[7]), ['free', 'contained', 'irreversible'])
   // Checks are the operator's call — the template authors none.
-  assert.deepEqual(stageInserts.map((s) => s.params[8]), ['[]', '[]', '[]'])
+  assert.deepEqual(stageInserts.map((s) => s.params[9]), ['[]', '[]', '[]'])
 
   const edgeInserts = statements.filter((s) => s.sql.startsWith('INSERT INTO transitions'))
   assert.deepEqual(

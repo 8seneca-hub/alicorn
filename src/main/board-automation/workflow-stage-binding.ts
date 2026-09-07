@@ -18,12 +18,13 @@ export type StageBinding =
 /**
  * The stage a board column binds to.
  *
- * The binding is by `key`: a stage keyed `in-review` *is* the In review column. That is the whole
- * "one model, two views" claim — the board and the canvas render one object rather than two that
- * happen to agree — and it is why WF1 made the wire address stages by key rather than by id.
+ * Binds on `columnId`, not on `key`. The two vocabularies are different granularities — WF4's
+ * template has eight pipeline stages against the board's four columns, and verifying WF3 against
+ * the seeded stack showed the key sets share nothing (plan decision 11). A stage therefore names
+ * the column that dispatches it, and several stages may sit behind one column.
  */
 export function bindColumnToStage(workflow: Workflow, toStatusId: string): StageBinding {
-  const stage = workflow.stages.find((candidate) => candidate.key === toStatusId)
+  const stage = workflow.stages.find((candidate) => candidate.columnId === toStatusId)
   if (!stage) {
     return { kind: 'no-stage', workflowId: workflow.id, workflowVersion: workflow.version }
   }

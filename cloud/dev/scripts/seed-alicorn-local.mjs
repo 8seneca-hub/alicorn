@@ -83,8 +83,8 @@ export async function seedWorkflows(client, tenantId, members, template) {
 
   for (const stage of template.stages) {
     await run(
-      `INSERT INTO stages (tenant_id, workflow_id, key, name, ordinal, member_id, reversibility, inherited_cost, required_checks)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb)
+      `INSERT INTO stages (tenant_id, workflow_id, key, name, ordinal, member_id, column_id, reversibility, inherited_cost, required_checks)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb)
        ON CONFLICT (workflow_id, key) DO NOTHING`,
       [
         tenantId,
@@ -93,6 +93,7 @@ export async function seedWorkflows(client, tenantId, members, template) {
         stage.name,
         stage.ordinal,
         stage.memberRole ? (memberIdByRole.get(stage.memberRole) ?? null) : null,
+        stage.columnId ?? null,
         stage.reversibility,
         stage.inheritedCost,
         '[]'

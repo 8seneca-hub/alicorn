@@ -13,10 +13,11 @@ const WORKFLOW = {
   version: 1,
   stages: [
     {
-      key: 'in-review',
+      key: 'review',
       name: 'Review',
       ordinal: 0,
       memberId: 'member-1',
+      columnId: 'in-review',
       reversibility: 'contained' as const,
       inheritedCost: 'low' as const,
       requiredChecks: []

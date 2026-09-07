@@ -105,7 +105,7 @@ describe('workflow contract', () => {
   it('applies the safe stage defaults', () => {
     const parsed = WorkflowInputSchema.parse(graph())
     expect(parsed.stages[0]).toEqual({
-      key: 'spec', name: '', ordinal: 0, memberId: null,
+      key: 'spec', name: '', ordinal: 0, memberId: null, columnId: null,
       reversibility: 'contained', inheritedCost: 'low', requiredChecks: []
     })
   })
