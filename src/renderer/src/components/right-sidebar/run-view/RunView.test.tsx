@@ -123,6 +123,18 @@ describe('RunView', () => {
     expect(screen.getByText('after 2, 3')).toBeInTheDocument()
   })
 
+  // Why: a row says `after 2, 3`, so the ids those refer to have to be on screen or the dependency
+  // cannot be followed by eye. Asserting the dependency string alone missed this.
+  it('shows each node id, so a dependency can be resolved to a row', async () => {
+    seed(READY)
+    renderRunView()
+
+    await waitFor(() => expect(screen.getByText('after 2, 3')).toBeInTheDocument())
+    for (const id of ['1', '2', '3', '4']) {
+      expect(screen.getByText(id)).toBeInTheDocument()
+    }
+  })
+
   it('shows the run status and objective', async () => {
     seed(READY)
     renderRunView()

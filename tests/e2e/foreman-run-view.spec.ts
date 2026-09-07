@@ -3,47 +3,78 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { test, expect } from './helpers/orca-app'
-import { loadWorktreesUntilPathsPresent } from './helpers/worktree-registration'
+import { resolveE2eWorktreeId } from './helpers/worktree-registration'
+import { renderJournal } from '../../src/main/alicorn/foreman/journal-markdown'
 
-// The four-node example from docs/alicorn/foreman-templates.md §3, written as a lead would.
-const JOURNAL = `# run_alc42 — partial refunds
-
-**Status:** running
-**Started:** 2026-09-07T00:00:00.000Z   **Budget:** $50.00
-**Spent so far:** $12.34
-
-## Objective
-Ship partial refunds end to end, behind a flag.
-
-## Decisions
-| # | Decision | Chosen | Why | Reversible? |
-|---|---|---|---|---|
-| 1 | Multi-currency at launch | yes | asked user, they confirmed | no — changes schema |
-
-## Assumptions made without asking
-| # | Assumption | Blast radius | Nodes depending on it |
-|---|---|---|---|
-| 1 | Idempotency keys scoped per merchant | contained | 3, 4 |
-
-## Plan
-| Node | Title | Owner | Depends on | Status | Model | Dispatch |
-|---|---|---|---|---|---|---|
-| 1 | orient — map the area | scout | — | done | haiku | ctx_1 |
-| 2 | backend endpoint | builder | 1 | dispatched | opus | ctx_2 |
-| 3 | frontend, against contract | builder | 1 | dispatched | opus | ctx_3 |
-| 4 | review | reviewer — not the author | 2, 3 | pending | codex/sonnet | — |
-
-## Contract registry
-POST /refunds/partial
-
-## Log
-| At | Line |
-|---|---|
-| 2026-09-07T00:01:00.000Z | dispatched node 2 |
-
-## Not done
-- nothing yet
-`
+// Rendered by the product's own writer rather than hand-written markdown: a fixture that spells a
+// section heading differently from the parser tests the fixture, not the panel.
+const JOURNAL = renderJournal({
+  runId: 'run_alc42',
+  objective: 'Ship partial refunds end to end, behind a flag.',
+  status: 'running',
+  startedAt: '2026-09-07T00:00:00.000Z',
+  budgetCents: 5_000,
+  spentCents: 1_234,
+  decisions: [
+    {
+      n: 1,
+      decision: 'Multi-currency at launch',
+      chosen: 'yes',
+      why: 'asked the user, they confirmed',
+      reversible: false
+    }
+  ],
+  assumptions: [
+    {
+      n: 1,
+      assumption: 'Idempotency keys scoped per merchant',
+      blastRadius: 'contained',
+      dependents: ['3', '4']
+    }
+  ],
+  // The template's own four-node example: orient, two builders against a contract, then review.
+  plan: [
+    {
+      id: '1',
+      title: 'orient — map the area',
+      owner: 'scout',
+      dependsOn: [],
+      status: 'done',
+      model: 'haiku',
+      dispatchId: 'ctx_1'
+    },
+    {
+      id: '2',
+      title: 'backend endpoint',
+      owner: 'builder',
+      dependsOn: ['1'],
+      status: 'dispatched',
+      model: 'opus',
+      dispatchId: 'ctx_2'
+    },
+    {
+      id: '3',
+      title: 'frontend, against contract',
+      owner: 'builder',
+      dependsOn: ['1'],
+      status: 'dispatched',
+      model: 'opus',
+      dispatchId: 'ctx_3'
+    },
+    {
+      id: '4',
+      title: 'review',
+      owner: 'reviewer — not the author',
+      dependsOn: ['2', '3'],
+      status: 'pending',
+      model: 'codex/sonnet',
+      dispatchId: null
+    }
+  ],
+  contractRegistry: 'POST /refunds/partial',
+  log: [{ at: '2026-09-07T00:01:00.000Z', line: 'dispatched node 2' }],
+  notDone: ['nothing yet']
+})
 
 test.describe('Foreman run view', () => {
   test('draws the plan and the cost meter for a run on disk', async ({
@@ -60,24 +91,18 @@ test.describe('Foreman run view', () => {
       mkdirSync(path.join(worktreePath, '.foreman', 'run_alc42'), { recursive: true })
       writeFileSync(path.join(worktreePath, '.foreman', 'run_alc42', 'journal.md'), JOURNAL)
 
-      await loadWorktreesUntilPathsPresent(orcaPage, testRepoPath, [worktreePath])
+      const worktreeId = await resolveE2eWorktreeId(orcaPage, testRepoPath, worktreePath)
       await orcaPage.evaluate(
-        ({ targetPath }) => {
+        ({ worktreeId }) => {
           const store = window.__store
           if (!store) {
             throw new Error('window.__store is not available')
           }
-          const worktree = Object.values(store.getState().worktreesByRepo)
-            .flat()
-            .find((entry) => entry.path === targetPath)
-          if (!worktree) {
-            throw new Error(`E2E worktree missing from the store: ${targetPath}`)
-          }
-          store.getState().setActiveWorktree(worktree.id)
+          store.getState().setActiveWorktree(worktreeId)
           store.getState().setRightSidebarTab('run')
           store.getState().setRightSidebarOpen(true)
         },
-        { targetPath: worktreePath }
+        { worktreeId }
       )
 
       // Every node title, so a row that fails to render is a failure here rather than a screenshot
@@ -92,6 +117,13 @@ test.describe('Foreman run view', () => {
       await expect(orcaPage.getByText('run_alc42')).toBeVisible()
       // Nothing has been priced in a fresh profile, so the meter must say so rather than show $0.
       await expect(orcaPage.getByTestId('run-view-cost')).toHaveText('—')
+      // The ids `after 2, 3` refers to must be on screen too, or the dependency is unreadable.
+      // Scoped to the plan list: a bare `getByText('2')` matches the status bar and the terminal.
+      await expect(orcaPage.getByText('after 2, 3')).toBeVisible()
+      const plan = orcaPage.getByTestId('run-view-plan')
+      for (const id of ['1', '2', '3', '4']) {
+        await expect(plan.getByText(id, { exact: true })).toBeVisible()
+      }
 
       testInfo.attach('run-view', {
         body: await orcaPage.screenshot(),

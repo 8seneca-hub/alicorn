@@ -75,7 +75,7 @@ function RunViewBody({
           )}
         />
       ) : (
-        <ul className="flex flex-col">
+        <ul className="flex flex-col" data-testid="run-view-plan">
           {run.plan.map((node) => (
             <PlanNodeRow key={node.id} node={node} />
           ))}
@@ -134,7 +134,12 @@ function PlanNodeRow({ node }: { node: ForemanPlanNode }): React.JSX.Element {
         aria-label={node.status}
       />
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="truncate text-xs text-foreground">{node.title}</span>
+        {/* The id is what `after 2, 3` refers to; without it on the row, a dependency cannot be
+            followed by eye. */}
+        <span className="flex min-w-0 items-baseline gap-1.5">
+          <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{node.id}</span>
+          <span className="truncate text-xs text-foreground">{node.title}</span>
+        </span>
         <span className="flex flex-wrap items-center gap-x-2 text-[10px] text-muted-foreground">
           <span>{node.owner}</span>
           {node.model ? <span className="font-mono">{node.model}</span> : null}

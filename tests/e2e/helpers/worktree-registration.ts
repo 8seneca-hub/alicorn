@@ -16,8 +16,11 @@ const WORKTREE_CACHE_TTL_POLL_MS = 10_000
  * Loads the repo's worktrees into the renderer store and resolves the id of the
  * worktree at `targetWorktreePath`, polling past the 5s scan-cache TTL so a
  * raw `git worktree add` that Orca never observed still becomes visible.
+ *
+ * Exported because the TTL poll and the `/private/var` normalization are both easy to get wrong
+ * and expensive to debug — a spec that reimplements either reads as a product bug.
  */
-async function resolveE2eWorktreeId(
+export async function resolveE2eWorktreeId(
   page: Page,
   repoPath: string,
   targetWorktreePath: string
