@@ -67,6 +67,9 @@ describe('outbox retention', () => {
     const row = db.db.prepare('SELECT dead_at FROM ledger_outbox WHERE id = ?').get(id) as
       | { dead_at: string | null }
       | undefined
+    // Why toBeDefined() first: on a deleted row `row` is undefined and `row?.dead_at` is too,
+    // which would still satisfy not.toBeNull() -- the survival check has to assert the row exists.
+    expect(row).toBeDefined()
     expect(row?.dead_at).not.toBeNull()
   })
 

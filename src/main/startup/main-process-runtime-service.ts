@@ -187,8 +187,9 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
     store,
     intervalMs: CORRECTIONS_SWEEP_INTERVAL_MS
   })
-  // Why next to the sweeps above: same settled-state read, and it must not run before the
-  // drainer has had a chance to deliver the rows it is about to expire (LG3).
+  // Why next to the sweeps above: same settled-state read. Startup order is not what keeps this
+  // safe -- registration order does not decide fire order. The age predicate does: a row must be
+  // both delivered and 30 days old to expire, so no sweep can outrun the drainer (LG3).
   state.outboxRetention = startOutboxRetention({
     getDb: () => runtime.getOrchestrationDb()
   })
