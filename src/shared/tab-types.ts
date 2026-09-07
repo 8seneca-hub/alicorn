@@ -93,4 +93,9 @@ export type TabGroup = {
    *  sessions persisted before this field was added still hydrate cleanly —
    *  hydration seeds from activeTabId. */
   recentTabIds?: string[]
+  /** Which surface owns the group. Absent means the worktree's main tab layout. A `'sidebar'`
+   *  group belongs to the right sidebar's terminal panel: it carries the real `worktreeId` so
+   *  host resolution (SSH, folder workspaces) is identical to the main area, but it is never
+   *  spliced into the main layout. See layoutSpanningGroups. */
+  surface?: 'sidebar'
 }
