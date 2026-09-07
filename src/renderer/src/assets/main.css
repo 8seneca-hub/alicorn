@@ -100,6 +100,9 @@
   --color-terminal-pane-title-on-light-input-bg: var(--terminal-pane-title-on-light-input-bg);
   --color-terminal-pane-title-on-light-separator: var(--terminal-pane-title-on-light-separator);
   --color-ai-action-accent: var(--ai-action-accent);
+  --color-status-live: var(--status-live);
+  --color-status-attention: var(--status-attention);
+  --color-status-critical: var(--status-critical);
   --color-status-success: var(--status-success);
   --color-status-success-background: var(--status-success-background);
   --color-status-success-border: var(--status-success-border);
@@ -245,6 +248,12 @@
      meet >=3:1 against `--card`, not only the hover/drag strong state. */
   --tab-group-split-divider: #868690;
   --tab-group-split-divider-strong: #71717a;
+  /* Alicorn status/motion aliases — always alias an existing Orca token, never a raw value. */
+  --status-live: var(--status-success);
+  --status-attention: var(--agent-question);
+  --status-critical: var(--destructive);
+  --focus-ring: 2px;
+  --motion-fast: 150ms;
 }
 
 /* ── Dark Mode ───────────────────────────────────────── */
@@ -355,6 +364,12 @@
   /* Brighter than terminal defaults so the always-visible line clears 3:1 on `--card`. */
   --tab-group-split-divider: #71717a;
   --tab-group-split-divider-strong: #a1a1aa;
+  /* Alicorn status/motion aliases — always alias an existing Orca token, never a raw value. */
+  --status-live: var(--status-success);
+  --status-attention: var(--agent-question);
+  --status-critical: var(--destructive);
+  --focus-ring: 2px;
+  --motion-fast: 150ms;
 }
 
 .plugin-security-chrome {
