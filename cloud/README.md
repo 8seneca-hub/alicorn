@@ -69,9 +69,8 @@ SQLite for this data — see `docs/alicorn/ROADMAP.md`):
 - `apps/ledger-api` (port 8082, schema `ledger`): the append-only measurement ledger —
   step outcomes, step verifications, context captures — plus provenance and cost reads.
 
-Both run in auth mode `local` for now (identity/Keycloak is deferred): one constant
-tenant and one shared bearer token, never a superuser connection — see
-`dev/compose/postgres-init/01-alicorn-app-role.sql`.
+Both run in auth mode `local` by default: one constant tenant and one shared bearer token,
+never a superuser connection — see `dev/compose/postgres-init/01-alicorn-app-role.sql`.
 
 Bring the local stack up with Docker:
 
@@ -88,6 +87,16 @@ If port 5432 is already taken on your machine, set `ALICORN_PG_PORT` (e.g. `5434
 stack — the default `ALICORN_LOCAL_API_TOKEN` (`local-dev-token-change-me-0001`) is for this
 local stack only; export a real token for anything that leaves the laptop.
 
+**Keycloak mode.** The compose stack also has a `keycloak` service (Keycloak 26, port 8080)
+that imports the `alicorn` realm and `alicorn-desktop` client from
+`dev/keycloak/alicorn-realm.json` on boot. `ALICORN_AUTH_MODE=keycloak pnpm alicorn:up` starts
+it alongside the rest of the stack (first Keycloak boot takes about a minute); the admin
+console is at `http://127.0.0.1:8080` (`admin`/`admin`), and the imported realm has a dev user
+(`dev`/`dev`). `pnpm alicorn:verify-keycloak` checks the realm's discovery document and JWKS
+once Keycloak reports healthy. Token verification is not wired into `control-api`/`ledger-api`
+yet (a later task) — in `keycloak` mode both currently fail fast at startup with `keycloak mode
+not implemented`, so use `local` mode for anything that needs the APIs actually running.
+
 The Postgres suites in `apps/control-api` and `apps/ledger-api` (and
 `packages/control-plane-postgres`) run only when `ALICORN_TEST_POSTGRES_URL` points at a
 disposable database — CI sets it to the same `postgres:16-alpine` service the relay tests
@@ -101,8 +110,8 @@ Prometheus text at `GET /metrics` on its normal port (loopback-bound by the comp
 
 See [docs/alicorn/LOCAL-DEV.md](../docs/alicorn/LOCAL-DEV.md) for the full local-dev walkthrough.
 
-The init SQL runs only on a fresh volume; after changing it,
-`docker compose -f dev/compose/alicorn-local.yml down -v`.
+The init SQL (including the Keycloak role in `02-keycloak-role.sql`) runs only on a fresh
+volume; after changing it, `docker compose -f dev/compose/alicorn-local.yml down -v`.
 
 ## What is not here
 
