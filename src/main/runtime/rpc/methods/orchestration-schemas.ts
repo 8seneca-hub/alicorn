@@ -1,3 +1,4 @@
+import { FOREMAN_REPORT_MAX_CHARS } from '../../../../shared/alicorn/foreman-report'
 import { z } from 'zod'
 import { setImmediate as yieldToEventLoop } from 'node:timers/promises'
 import { OptionalFiniteNumber, OptionalString, OptionalBoolean, requiredString } from '../schemas'
@@ -99,7 +100,12 @@ export const SendParams = z
     to: OptionalString,
     subject: requiredString('Missing --subject'),
     from: OptionalString,
-    body: OptionalString,
+    // Why a cap on every run, not just orchestrated ones: this is a sanity bound against a runaway
+    // agent, four times the Foreman ceiling so it never fires on a legitimate report. The
+    // orchestrated ceiling is enforced in lifecycle-reconciliation, where the strategy is known.
+    body: OptionalString.refine((value) => (value?.length ?? 0) <= FOREMAN_REPORT_MAX_CHARS * 4, {
+      message: `Message body exceeds ${FOREMAN_REPORT_MAX_CHARS * 4} characters.`
+    }),
     type: z
       .enum(MESSAGE_TYPES, {
         error: SEND_MESSAGE_TYPE_ERROR

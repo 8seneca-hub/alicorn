@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { OrchestrationDb } from './db'
 import { reconcileLifecycleMessage } from './lifecycle-reconciliation'
 import { createRootDispatch } from './db/root-dispatch-test-fixture'
+import { FOREMAN_REPORT_MAX_CHARS } from '../../../shared/alicorn/foreman-report'
 
 describe('lifecycle reconciliation', () => {
   let db: OrchestrationDb
@@ -514,5 +515,72 @@ describe('lifecycle reconciliation', () => {
     expect(reconcileLifecycleMessage(db, lateHeartbeat)).toEqual({ action: 'suppressed' })
     expect(db.getMessageById(lateHeartbeat.id)).toMatchObject({ read: 1 })
     expect(db.getMessageById(lateHeartbeat.id)?.delivered_at).not.toBeNull()
+  })
+
+  // Why server-side at all: the CLI bounds the body before it crosses the wire, but a worker can
+  // call this RPC directly, and an orchestrated run's lead reads the report into its own context.
+  describe('report ceiling on an orchestrated run', () => {
+    function settle(options: { strategy: 'single' | 'orchestrated'; bodyLength: number }) {
+      db = new OrchestrationDb(':memory:')
+      const task = db.createTask({ spec: 'work' })
+      const dispatch = createRootDispatch(db, task.id, 'term_worker')
+      db.setTaskExecutionStrategy(task.id, options.strategy, 'user')
+      const message = db.insertMessage({
+        from: 'term_worker',
+        to: 'term_coordinator',
+        subject: 'Done',
+        type: 'worker_done',
+        body: 'x'.repeat(options.bodyLength),
+        payload: JSON.stringify({
+          taskId: task.id,
+          dispatchId: dispatch.id,
+          outcome: 'succeeded'
+        })
+      })
+      return reconcileLifecycleMessage(db, message)
+    }
+
+    it('rejects an oversized report on an orchestrated task', () => {
+      const result = settle({ strategy: 'orchestrated', bodyLength: FOREMAN_REPORT_MAX_CHARS + 1 })
+      expect(result).toMatchObject({ action: 'rejected', code: 'body_too_large' })
+    })
+
+    it('names the ceiling and the way out in the rejection reason', () => {
+      const result = settle({ strategy: 'orchestrated', bodyLength: FOREMAN_REPORT_MAX_CHARS + 1 })
+      expect(result.action === 'rejected' && result.reason).toContain('--report-path')
+    })
+
+    it('accepts a report exactly at the ceiling', () => {
+      expect(
+        settle({ strategy: 'orchestrated', bodyLength: FOREMAN_REPORT_MAX_CHARS }).action
+      ).toBe('completed')
+    })
+
+    // `single` is the default and stays the default: the Foreman ceiling is a cost only
+    // orchestrated runs pay. The absolute cap for every run lives in the send schema.
+    it('leaves a single-agent run alone at the same size', () => {
+      expect(settle({ strategy: 'single', bodyLength: FOREMAN_REPORT_MAX_CHARS + 1 }).action).toBe(
+        'completed'
+      )
+    })
+
+    it('leaves a task with no recorded strategy alone', () => {
+      db = new OrchestrationDb(':memory:')
+      const task = db.createTask({ spec: 'work' })
+      const dispatch = createRootDispatch(db, task.id, 'term_worker')
+      const message = db.insertMessage({
+        from: 'term_worker',
+        to: 'term_coordinator',
+        subject: 'Done',
+        type: 'worker_done',
+        body: 'x'.repeat(FOREMAN_REPORT_MAX_CHARS + 1),
+        payload: JSON.stringify({
+          taskId: task.id,
+          dispatchId: dispatch.id,
+          outcome: 'succeeded'
+        })
+      })
+      expect(reconcileLifecycleMessage(db, message).action).toBe('completed')
+    })
   })
 })
