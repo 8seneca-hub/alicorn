@@ -40,18 +40,26 @@ export function insertContextCapture(
 
 // Scoped by run, not repo/branch: a run is the reading order an inspector opens.
 // dispatch_id as tiebreaker keeps the order total when created_at ties.
-export async function listContextCapturesForRun(c: pg.PoolClient, runId: string): Promise<ContextCaptureRead[]> {
-  const { rows } = await c.query<ContextCaptureRow>(
-    `SELECT dispatch_id, created_at, prompt_bytes, prompt, prompt_path, context_slice
-     FROM context_captures WHERE run_id = $1 ORDER BY created_at ASC, dispatch_id ASC`,
-    [runId]
-  )
-  return rows.map((r) => ({
-    dispatchId: r.dispatch_id,
-    createdAt: r.created_at.toISOString(),
-    promptBytes: r.prompt_bytes,
-    prompt: r.prompt,
-    promptPath: r.prompt_path,
-    contextSlice: r.context_slice
-  }))
+// Why withTenant here and not at the caller: tenant scoping is a property of the
+// function, so a route cannot forget it — every sibling repository reads the same way.
+export function listContextCapturesForRun(
+  pool: pg.Pool,
+  tenantId: string,
+  runId: string
+): Promise<ContextCaptureRead[]> {
+  return withTenant(pool, tenantId, async (client) => {
+    const { rows } = await client.query<ContextCaptureRow>(
+      `SELECT dispatch_id, created_at, prompt_bytes, prompt, prompt_path, context_slice
+       FROM context_captures WHERE run_id = $1 ORDER BY created_at ASC, dispatch_id ASC`,
+      [runId]
+    )
+    return rows.map((r) => ({
+      dispatchId: r.dispatch_id,
+      createdAt: r.created_at.toISOString(),
+      promptBytes: r.prompt_bytes,
+      prompt: r.prompt,
+      promptPath: r.prompt_path,
+      contextSlice: r.context_slice
+    }))
+  })
 }

@@ -1,5 +1,4 @@
 import type { Hono } from 'hono'
-import { withTenant } from '@alicorn-cloud/control-plane-postgres'
 import {
   CONTEXT_CAPTURE_MAX_PROMPT_BYTES,
   ContextCaptureInputSchema,
@@ -104,9 +103,7 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
 
   app.get('/v1/ledger/runs/:runId/context-captures', async (c) => {
     const auth = c.get('auth')
-    const captures = await withTenant(deps.pool, auth.tenantId, (client) =>
-      listContextCapturesForRun(client, c.req.param('runId'))
-    )
+    const captures = await listContextCapturesForRun(deps.pool, auth.tenantId, c.req.param('runId'))
     return c.json({ captures })
   })
 
