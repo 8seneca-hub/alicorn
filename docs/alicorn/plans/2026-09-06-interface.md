@@ -156,7 +156,14 @@ cancelled, and whether the indicator should show the buffer while it fills.
 - [ ] Decide the buffer-and-submit lifecycle above, then wire `DictationController`,
       `ConfirmDestructiveDictationDialog`, and the `voice.confirmBeforeDestructive` setting.
 
-### Task 9: docs — `CLAUDE.md` *Interface decisions* (as built, migration note), `docs/alicorn/DESIGN-SYSTEM.md` (aliases live in `main.css`). Commit `docs(alicorn): interface as built`.
+### Task 9: docs — as built
+`CLAUDE.md` *Interface decisions* carries both departures as built: the tab-bar half of "a tab is a
+session" shipped without the re-keying (and why it never needed it), and the sidebar terminal's group
+surface, `Mod+Backquote`, and the four edits a new right-sidebar tab actually costs.
+`docs/alicorn/DESIGN-SYSTEM.md` records that the five aliases live in `main.css` and that the
+prototype `tokens.css` is reference-only. No migration note: there is no migration, because Task 6
+was re-scoped out.
+- [x] Commit `docs(alicorn): interface as built`.
 
 ## Self-review
 UI4 (1), UI2 (2, 3, 4), UI1 (5, 6), UI3 (7), VI1 (8). Constraints: reuse existing surfaces (2–4); migration + fallback (6); cost from D7 (5); exactly five aliases (1); voice via `sendTerminalAgentPrompt` + confirm (8). Types: `TabStatus`/`rollupTabStatus` (5) rendered by 6's tab bar; `Tab.sessionId` (6). Order **1 → 2 → 3 → 5 → 4 → 8 → 9**, with **6 removed from this plan** (re-scoped; see its amendment).

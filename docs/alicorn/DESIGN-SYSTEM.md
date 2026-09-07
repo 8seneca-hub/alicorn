@@ -133,6 +133,12 @@ is an application interface, not a marketing page. Discarded as a domain mismatc
 Ground, type, radius and elevation are unchanged — see
 `tokens/tokens.css`, which carries per-value provenance. This release **adds** only:
 
+> **Shipped 2026-09-07.** These five live in `src/renderer/src/assets/main.css` (`:root` and
+> `.dark`), with the three colours also exposed through `@theme inline` as `--color-status-*`.
+> `tokens/tokens.css` under `prototype/` stays reference-only — read it for provenance, never
+> import it. `main-css-tokens.test.ts` asserts all five exist in both blocks and that no
+> pre-existing token line moved.
+
 ```css
 --status-live:      var(--status-success);   /* normal    */
 --status-attention: var(--agent-question);   /* warning   */
