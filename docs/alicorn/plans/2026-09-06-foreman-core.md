@@ -79,7 +79,19 @@ export function fitReportBody(body: string, opts: { writeSpill: (content: string
 // ≤ max → unchanged; > max → writeSpill(full body) → body = JSON of the parsed report with `summary`, `status`, `verification`, `cost` kept and `changes`/`interface_delta`/`open_questions` truncated to the first N entries + `artifacts: [reportPath]`
 ```
 CLI (`orchestration send --type worker_done`): if the run's strategy is orchestrated (`--orchestrated` flag injected by the preamble, or detected from `ORCA_ALICORN_STRATEGY` env stamped at dispatch), parse `--body` with `ForemanReportSchema` (400-style `RuntimeClientError('invalid_report', issues)`), then `fitReportBody` (spill to `.foreman/<run>/<dispatch>-report.md`); with `--report-path` already given and body over the limit → error `report_ambiguous`.
-- [ ] Tests: schema accepts the template report and rejects a 4-sentence summary; fit spills > 6000 chars and sets `artifacts`; handler rejects invalid reports for orchestrated runs and passes free text for single runs. Commit `feat(foreman): bounded worker reports — schema, ceiling and overflow spill at the CLI boundary`.
+- [x] Tests: schema accepts the template report and rejects a 4-sentence summary; fit spills > 6000 chars and sets `artifacts`; handler rejects invalid reports for orchestrated runs and passes free text for single runs. Commit `feat(foreman): bounded worker reports — schema, ceiling and overflow spill at the CLI boundary`.
+
+**As built.** `ORCA_ALICORN_STRATEGY` is read but nothing stamps it yet — that is Task 4's preamble
+change — so only the `--orchestrated` flag fires today. Both detection paths are implemented and
+tested so Task 4 is a one-line env addition rather than a change here.
+
+`fitReportBody` spills a body that is *not* a parseable report as well as one that is: an oversized
+body is often oversized because it is free text, and throwing there would fail the worker's
+settlement rather than bound it. The unparseable case spills and returns
+`{ status: 'needs_decision', artifacts: [path] }`.
+
+The pass-through preserves `body: undefined` rather than coercing to `''` — a single-agent
+`worker_done` with no body must not start sending an empty one.
 
 ---
 

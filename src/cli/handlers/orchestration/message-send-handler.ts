@@ -4,6 +4,7 @@ import { getOptionalStringFlag, getRequiredStringFlag } from '../../flags'
 import { RuntimeClientError } from '../../runtime-client'
 import { requireWorkerDoneSettlement } from '../orchestration-worker-settlement'
 import { getOptionalStructuredMessagePayload } from './message-payload'
+import { applyWorkerDoneReportCeiling } from './worker-done-report-ceiling'
 import { callOrchestrationMutation } from './mutation-request'
 import { isDevCliInvocation } from './runtime-compatibility'
 import {
@@ -83,12 +84,26 @@ export const ORCHESTRATION_SEND_HANDLER: Record<string, CommandHandler> = {
 
     // Why: lifecycle senders preserve ORCA_TERMINAL_HANDLE across restarts for older runtimes.
     const from = await resolveOrchestrationTerminalHandle(flags, cwd, client, 'from')
+    // Why here and not in main: the ceiling exists to keep a lead's context bounded, and the body
+    // has to be shrunk before it crosses the wire, not after. Task 2 re-checks it server-side.
+    const reportPath = getOptionalStringFlag(flags, 'report-path')
+    const report =
+      type === 'worker_done'
+        ? applyWorkerDoneReportCeiling({
+            body: getOptionalStringFlag(flags, 'body'),
+            flags,
+            cwd,
+            runId: getOptionalStringFlag(flags, 'run') ?? 'run',
+            dispatchId: getOptionalStringFlag(flags, 'dispatch-id') ?? 'dispatch',
+            reportPath
+          })
+        : null
     const sendParams = {
       from,
       to,
       run: getOptionalStringFlag(flags, 'run'),
       subject: getRequiredStringFlag(flags, 'subject'),
-      body: getOptionalStringFlag(flags, 'body'),
+      body: report ? report.body : getOptionalStringFlag(flags, 'body'),
       type,
       priority: getOptionalStringFlag(flags, 'priority'),
       threadId: getOptionalStringFlag(flags, 'thread-id'),
