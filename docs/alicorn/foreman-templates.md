@@ -101,14 +101,14 @@ Lives at `.foreman/<task-id>/journal.md`. Written as you go. This is the source 
 context is a cache of it.
 
 ```markdown
-# <TASK-ID> — <title>
+# run_alc42 — partial refunds
 
-**Status:** planning | running | blocked | done
-**Started:** <date>   **Budget:** <tokens or $, if set>
-**Spent so far:** <running total>
+**Status:** running
+**Started:** 2026-09-07T00:00:00.000Z   **Budget:** $50.00
+**Spent so far:** $12.34
 
 ## Objective
-<One paragraph, from the user.>
+One paragraph, from the user.
 
 ## Decisions
 | # | Decision | Chosen | Why | Reversible? |
@@ -124,12 +124,17 @@ context is a cache of it.
 | 1 | Idempotency keys scoped per merchant | contained | 3, 4 |
 
 ## Plan
-| Node | Owner | Depends on | Status | Model |
-|---|---|---|---|---|
-| 1 | orient — map the area | — | done | haiku |
-| 2 | backend endpoint | 1 | running | opus |
-| 3 | frontend, against contract | 1 | running | opus |
-| 4 | review | 2, 3 | pending | **codex/sonnet — not the author** |
+| Node | Title | Owner | Depends on | Status | Model | Dispatch |
+|---|---|---|---|---|---|---|
+| 1 | orient — map the area | scout | — | done | haiku | ctx_1 |
+| 2 | backend endpoint | builder | 1 | dispatched | opus | ctx_2 |
+| 3 | frontend, against contract | builder | 1 | dispatched | opus | ctx_3 |
+| 4 | review | reviewer — not the author | 2, 3 | pending | codex/sonnet | — |
+
+Run status is one of `planning`, `running`, `paused`, `blocked`, `done`, `failed`; node status is
+one of `pending`, `dispatched`, `done`, `failed`, `blocked`. Budget and spend are money or `—`. Empty cells are `—`, and
+a literal `|` inside a cell is escaped `\|` — `src/main/alicorn/foreman/journal-markdown.ts` reads
+this file back, so a hand-written journal has to round-trip.
 
 ## Contract registry
 <Accumulated interface deltas from reports. This is what subagents build against.
