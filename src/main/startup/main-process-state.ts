@@ -65,6 +65,7 @@ export const mainProcessState = {
   ledgerOutboxDrainer: null as LedgerOutboxDrainer | null,
   verificationWorker: null as { stop: () => void } | null,
   correctionsSweep: null as { stop: () => void } | null,
+  outboxRetention: null as { stop: () => void } | null,
   contextCeilingWatcher: null as { stop: () => void } | null,
   runCostPublisher: null as { stop: () => void } | null,
   rateLimits: null as RateLimitService | null,

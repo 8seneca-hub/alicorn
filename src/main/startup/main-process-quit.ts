@@ -125,6 +125,7 @@ function installWillQuitHandler(): void {
     state.ledgerOutboxDrainer?.stop()
     state.verificationWorker?.stop()
     state.correctionsSweep?.stop()
+    state.outboxRetention?.stop()
     state.runCostPublisher?.stop()
     state.contextCeilingWatcher?.stop()
     // Why: plugin hosts are forked children; dispose sends shutdown and

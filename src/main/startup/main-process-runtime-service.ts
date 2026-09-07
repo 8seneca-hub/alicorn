@@ -22,6 +22,7 @@ import { ArtifactCloudService } from '../artifacts/artifact-cloud-service'
 import { SkillCloudService } from '../skills/skill-cloud-service'
 import { isArtifactSharingEnabled } from '../../shared/artifact-sharing-gate'
 import { startCorrectionsSweep } from '../alicorn/corrections/corrections-sweep'
+import { startOutboxRetention } from '../alicorn/outbox-retention'
 import { startLedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
 import { startVerificationWorker } from '../alicorn/verification-worker'
 import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
@@ -185,6 +186,11 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
     runtime,
     store,
     intervalMs: CORRECTIONS_SWEEP_INTERVAL_MS
+  })
+  // Why next to the sweeps above: same settled-state read, and it must not run before the
+  // drainer has had a chance to deliver the rows it is about to expire (LG3).
+  state.outboxRetention = startOutboxRetention({
+    getDb: () => runtime.getOrchestrationDb()
   })
   runtime.prepareLegacyWorkerTerminalRecovery()
   // Why before anything can attach: a client host that reattaches to a restarted runtime is only

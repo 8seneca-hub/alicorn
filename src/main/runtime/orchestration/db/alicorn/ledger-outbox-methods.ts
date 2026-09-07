@@ -144,6 +144,33 @@ export function requeueAllDeadLedgerOutbox(this: OrchestrationDb, kind?: LedgerO
   return Number(result.changes)
 }
 
+// Why sent_at IS NOT NULL and dead_at IS NULL: a dead row is an operator signal kept until requeued (LG1).
+export function deleteSentLedgerOutboxBefore(this: OrchestrationDb, cutoffIso: string): number {
+  const result = this.db
+    .prepare(
+      `DELETE FROM ledger_outbox WHERE sent_at IS NOT NULL AND dead_at IS NULL AND sent_at < ?`
+    )
+    .run(cutoffIso)
+  return Number(result.changes)
+}
+
+export function countLedgerOutbox(this: OrchestrationDb): {
+  pending: number
+  sent: number
+  dead: number
+} {
+  const row = this.db
+    .prepare(
+      `SELECT
+         count(*) FILTER (WHERE sent_at IS NULL AND dead_at IS NULL) AS pending,
+         count(*) FILTER (WHERE sent_at IS NOT NULL) AS sent,
+         count(*) FILTER (WHERE dead_at IS NOT NULL) AS dead
+       FROM ledger_outbox`
+    )
+    .get() as { pending: number; sent: number; dead: number }
+  return row
+}
+
 export type LedgerOutboxMethods = {
   enqueueLedgerOutbox: typeof enqueueLedgerOutbox
   listDueLedgerOutbox: typeof listDueLedgerOutbox
@@ -154,6 +181,8 @@ export type LedgerOutboxMethods = {
   countDeadLedgerOutbox: typeof countDeadLedgerOutbox
   requeueLedgerOutbox: typeof requeueLedgerOutbox
   requeueAllDeadLedgerOutbox: typeof requeueAllDeadLedgerOutbox
+  deleteSentLedgerOutboxBefore: typeof deleteSentLedgerOutboxBefore
+  countLedgerOutbox: typeof countLedgerOutbox
 }
 
 export function attachLedgerOutboxMethods(ctor: { prototype: object }): void {
@@ -166,6 +195,8 @@ export function attachLedgerOutboxMethods(ctor: { prototype: object }): void {
     listDeadLedgerOutbox,
     countDeadLedgerOutbox,
     requeueLedgerOutbox,
-    requeueAllDeadLedgerOutbox
+    requeueAllDeadLedgerOutbox,
+    deleteSentLedgerOutboxBefore,
+    countLedgerOutbox
   })
 }
