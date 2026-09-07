@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { ControlApiEnv } from './app-env.js'
-import { requireTenant } from './require-tenant.js'
+import { requireTenant } from '@alicorn-cloud/control-plane-auth'
 import { registerMembersRoutes } from './members-routes.js'
 import { registerOrgPolicyRoutes } from './org-policy-routes.js'
 import { registerRequiredChecksRoutes } from './required-checks-routes.js'
@@ -26,7 +26,7 @@ export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
   app.get('/healthz', (c) => c.json({ ok: true, service: 'control-api' }))
   // Why (LC-R4): unauthenticated like /healthz — same port, no second listener; loopback/network-policy covers reachability.
   app.get('/metrics', (c) => c.text(metrics.renderPrometheus(), 200, { 'content-type': 'text/plain; version=0.0.4; charset=utf-8' }))
-  app.use('/v1/*', requireTenant(deps))
+  app.use('/v1/*', requireTenant({ config: deps.config.auth }))
   registerMembersRoutes(app, deps)
   registerOrgPolicyRoutes(app, deps)
   registerRequiredChecksRoutes(app, deps)

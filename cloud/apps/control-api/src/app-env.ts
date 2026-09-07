@@ -1,10 +1,10 @@
 import type pg from 'pg'
+import type { ControlPlaneAuthEnv } from '@alicorn-cloud/control-plane-auth'
 import type { ControlApiConfig } from './config.js'
 import type { ControlMetrics } from './control-metrics.js'
 
-// Why: Task 4's auth middleware sets `c.set('auth', …)` against this typed env.
-export type AuthContext = { tenantId: string; actor: string }
-export type ControlApiEnv = { Variables: { auth: AuthContext } }
+export type { AuthContext } from '@alicorn-cloud/control-plane-auth'
+export type ControlApiEnv = ControlPlaneAuthEnv
 
 // Why: moved here from app.ts (R8) — route files importing ControlApiDeps from app.ts
 // created a type-only import cycle back through app.ts's route registrations.

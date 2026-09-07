@@ -9,12 +9,13 @@
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "dev": "tsx watch src/index.ts",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "pretest": "pnpm --filter @alicorn-cloud/control-plane-contract build && pnpm --filter @alicorn-cloud/control-plane-postgres build",
+    "pretest": "pnpm --filter @alicorn-cloud/control-plane-contract build && pnpm --filter @alicorn-cloud/control-plane-postgres build && pnpm --filter @alicorn-cloud/control-plane-auth build",
     "start": "node dist/index.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@alicorn-cloud/control-plane-auth": "workspace:*",
     "@alicorn-cloud/control-plane-contract": "workspace:*",
     "@alicorn-cloud/control-plane-postgres": "workspace:*",
     "@hono/node-server": "^1.19.14",

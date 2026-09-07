@@ -9,8 +9,8 @@ describe('loadControlApiConfig', () => {
     const c = loadControlApiConfig(base)
     expect(c.port).toBe(8081)
     expect(c.databaseSchema).toBe('control')
-    expect(c.authMode).toBe('local')
-    expect(c.tenantId).toBe('local')
+    expect(c.auth.authMode === 'local').toBe(true)
+    if (c.auth.authMode === 'local') expect(c.auth.tenantId).toBe('local')
   })
   it('fails without a database url', () => {
     expect(() => loadControlApiConfig({ ALICORN_LOCAL_API_TOKEN: base.ALICORN_LOCAL_API_TOKEN })).toThrow()

@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
 import { requireTenant } from './require-tenant.js'
-import type { ControlApiEnv } from './app-env.js'
+import type { ControlPlaneAuthEnv } from './auth-context.js'
 
-const config = { tenantId: 'local', localApiToken: 'local-dev-token-0123456789' }
+const config = { authMode: 'local' as const, tenantId: 'local', localApiToken: 'local-dev-token-0123456789' }
 function app() {
-  const a = new Hono<ControlApiEnv>()
+  const a = new Hono<ControlPlaneAuthEnv>()
   a.use('/v1/*', requireTenant({ config }))
   a.get('/v1/whoami', (c) => c.json(c.get('auth')))
   return a
@@ -19,13 +19,13 @@ describe('requireTenant (local mode)', () => {
     const res = await app().request('/v1/whoami', { headers: { authorization: `Bearer ${config.localApiToken}`, 'x-alicorn-org': 'acme' } })
     expect(res.status).toBe(403)
   })
-  it('accepts the shared token and stamps tenant + actor', async () => {
+  it('accepts the shared token and stamps tenant + actor + userId', async () => {
     const res = await app().request('/v1/whoami', { headers: { authorization: `Bearer ${config.localApiToken}`, 'x-alicorn-org': 'local', 'x-alicorn-actor': 'huy' } })
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ tenantId: 'local', actor: 'huy' })
+    expect(await res.json()).toEqual({ tenantId: 'local', actor: 'huy', userId: null })
   })
   it('defaults the actor', async () => {
     const res = await app().request('/v1/whoami', { headers: { authorization: `Bearer ${config.localApiToken}` } })
-    expect(await res.json()).toEqual({ tenantId: 'local', actor: 'local' })
+    expect(await res.json()).toEqual({ tenantId: 'local', actor: 'local', userId: null })
   })
 })

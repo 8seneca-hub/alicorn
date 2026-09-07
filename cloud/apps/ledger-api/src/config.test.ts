@@ -9,8 +9,8 @@ describe('loadLedgerApiConfig', () => {
     const c = loadLedgerApiConfig(base)
     expect(c.port).toBe(8082)
     expect(c.databaseSchema).toBe('ledger')
-    expect(c.authMode).toBe('local')
-    expect(c.tenantId).toBe('local')
+    expect(c.auth.authMode === 'local').toBe(true)
+    if (c.auth.authMode === 'local') expect(c.auth.tenantId).toBe('local')
   })
   it('fails without a database url', () => {
     expect(() => loadLedgerApiConfig({ ALICORN_LOCAL_API_TOKEN: base.ALICORN_LOCAL_API_TOKEN })).toThrow()
