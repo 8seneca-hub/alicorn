@@ -237,6 +237,48 @@ describe('board automation IPC handlers', () => {
       })
     })
 
+    // A code stage takes its own edge; main resolves which column that is, the renderer moves.
+    it('passes a code stage\u2019s forward column back to the renderer', async () => {
+      onWorkspaceStatusChanged.mockResolvedValue({
+        allow: true,
+        ranCode: { stageKey: 'format', exitCode: 0 },
+        moveToStatusId: 'completed'
+      })
+
+      expect(await invoke(BOARD_AUTOMATION_IPC.statusChanged, CHANGE)).toEqual({
+        dispatched: true,
+        moveToStatusId: 'completed'
+      })
+    })
+
+    it('passes a correction column back even though nothing was dispatched', async () => {
+      onWorkspaceStatusChanged.mockResolvedValue({
+        allow: false,
+        reason: 'code_failed',
+        detail: 'tsc: 4 errors',
+        moveToStatusId: 'in-progress'
+      })
+
+      expect(await invoke(BOARD_AUTOMATION_IPC.statusChanged, CHANGE)).toEqual({
+        dispatched: false,
+        moveToStatusId: 'in-progress'
+      })
+    })
+
+    // A gated stage moves nowhere: that is the whole point of the gate.
+    it('reports a gated code stage with no move', async () => {
+      onWorkspaceStatusChanged.mockResolvedValue({
+        allow: false,
+        reason: 'code_gated',
+        detail: 'no correction edge',
+        gateId: 'gate_1'
+      })
+
+      expect(await invoke(BOARD_AUTOMATION_IPC.statusChanged, CHANGE)).toEqual({
+        dispatched: false
+      })
+    })
+
     it('reports a refusal as not dispatched', async () => {
       onWorkspaceStatusChanged.mockResolvedValue({ allow: false, reason: 'ceiling', detail: 'x' })
 

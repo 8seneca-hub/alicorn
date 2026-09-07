@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useAppStore } from '@/store'
 import { useAllWorktrees, useRepoMap } from '@/store/selectors'
+import type { WorkspaceStatus } from '../../../../shared/worktree/types'
 import { useWorkspaceStatusDocumentDrop } from './use-workspace-status-drop'
 import { useWorkspaceKanbanAreaSelection } from './use-workspace-kanban-area-selection'
 import { useWorkspaceKanbanCardPointerDrag } from './use-workspace-kanban-card-pointer-drag'
@@ -130,9 +131,18 @@ function WorkspaceKanbanDrawerContent({
     worktreesById: worktreeById,
     workspaceStatuses
   })
+  // Why a ref: the move action is built from `dispatchBoardAutomation`, and a code stage's own
+  // forward edge has to re-enter that same move. The ref breaks the construction cycle without
+  // giving automation a second, weaker path onto the board.
+  const moveWorktreeToStatusRef = useRef<(worktreeId: string, status: WorkspaceStatus) => void>(
+    () => {}
+  )
   const dispatchBoardAutomation = useBoardAutomationDispatch({
     worktreeById,
-    workspaceStatuses
+    workspaceStatuses,
+    onAutomationMove: useCallback((worktreeId: string, status: WorkspaceStatus) => {
+      moveWorktreeToStatusRef.current(worktreeId, status)
+    }, [])
   })
   const {
     dropPointerDraggedWorktreesInStatus,
@@ -157,6 +167,9 @@ function WorkspaceKanbanDrawerContent({
     manualOrderCatalog,
     worktreesByStatus
   })
+  useEffect(() => {
+    moveWorktreeToStatusRef.current = moveWorktreeToStatus
+  }, [moveWorktreeToStatus])
   // Why: dragging or right-clicking one visible match must not silently move
   // hidden selected cards. selectedWorktreeIds stays unfiltered so highlighting
   // and area-selection anchoring still see the whole selection.

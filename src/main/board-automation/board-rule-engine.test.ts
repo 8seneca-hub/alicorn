@@ -336,10 +336,35 @@ describe('board rule engine', () => {
       requiredChecks: []
     }
 
+    const BUILD_STAGE: WorkflowStage = {
+      ...CODE_STAGE,
+      key: 'build',
+      name: 'Build',
+      kind: 'worker',
+      codeCommand: null,
+      columnId: 'in-progress'
+    }
+    const DONE_STAGE: WorkflowStage = {
+      ...BUILD_STAGE,
+      key: 'qa',
+      name: 'QA',
+      columnId: 'completed'
+    }
+
+    // The shape WF5 is built around: a forward edge onward and a correction edge back.
+    const GRAPH = {
+      stages: [BUILD_STAGE, CODE_STAGE, DONE_STAGE],
+      transitions: [
+        { from: 'format', to: 'qa', trigger: { kind: 'on_success' } },
+        { from: 'format', to: 'build', trigger: { kind: 'on_failure' } }
+      ]
+    }
+
     function withCodeStage(
       runCode: unknown,
       stage = CODE_STAGE,
-      resolveWorktreeHost?: (worktreeId: string) => Promise<'local' | 'remote' | 'unknown'>
+      resolveWorktreeHost?: (worktreeId: string) => Promise<'local' | 'remote' | 'unknown'>,
+      workflow: unknown = GRAPH
     ) {
       return createBoardRuleEngine({
         runtime: {} as never,
@@ -349,6 +374,7 @@ describe('board rule engine', () => {
           resolveColumn: async () => ({
             kind: 'stage',
             stage,
+            workflow,
             workflowId: 'wf-1',
             workflowVersion: 1
           })
@@ -356,6 +382,16 @@ describe('board rule engine', () => {
         runCode: runCode as never,
         ...(resolveWorktreeHost ? { resolveWorktreeHost } : {})
       })
+    }
+
+    function exits(exitCode: number, tails: { stdout?: string; stderr?: string } = {}) {
+      return vi.fn(async () => ({
+        exitCode,
+        durationMs: 1,
+        stdoutTail: tails.stdout ?? '',
+        stderrTail: tails.stderr ?? '',
+        timedOut: false
+      }))
     }
 
     // Why never a member: routing deterministic work through a model is the most common waste the
@@ -463,6 +499,74 @@ describe('board rule engine', () => {
 
       expect(result).toMatchObject({ allow: false, reason: 'code_failed' })
       expect(result).toHaveProperty('detail', expect.stringContaining('prettier'))
+    })
+
+    describe('routing', () => {
+      // Exit 0 is the only success, and a successful stage hands the workspace on rather than
+      // waiting for someone to drag the card.
+      it('hands the workspace to the forward edge on exit 0', async () => {
+        const result = await withCodeStage(exits(0)).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({ allow: true, moveToStatusId: 'completed' })
+      })
+
+      // The return edge is a first-class part of the graph, not an error path bolted on.
+      it('hands the workspace back along the correction edge on a non-zero exit', async () => {
+        const result = await withCodeStage(exits(2)).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({
+          allow: false,
+          reason: 'code_failed',
+          moveToStatusId: 'in-progress'
+        })
+      })
+
+      // Gate by blast radius, not by confidence: a failure the graph does not handle is unverified
+      // work, and unverified work never advances on its own.
+      it('gates a failure the workflow has no correction edge for', async () => {
+        const noReturn = { ...GRAPH, transitions: [GRAPH.transitions[0]] }
+
+        const result = await withCodeStage(
+          exits(2, { stderr: 'tsc: 4 errors' }),
+          CODE_STAGE,
+          undefined,
+          noReturn
+        ).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({ allow: false, reason: 'code_gated' })
+        expect(result).not.toHaveProperty('moveToStatusId')
+      })
+
+      it('raises a gate a human can answer, and records it as an interruption', async () => {
+        const noReturn = { ...GRAPH, transitions: [] }
+
+        const result = (await withCodeStage(
+          exits(2, { stderr: 'tsc: 4 errors' }),
+          CODE_STAGE,
+          undefined,
+          noReturn
+        ).onWorkspaceStatusChanged(EVENT)) as { gateId: string }
+
+        const gate = db.getGate(result.gateId)
+        expect(gate).toMatchObject({ status: 'pending' })
+        expect(gate?.question).toContain('tsc: 4 errors')
+        const interruption = db.listDueLedgerOutbox(10).find((row) => row.kind === 'interruption')
+        expect(JSON.parse(interruption!.payload)).toMatchObject({
+          kind: 'gate',
+          sourceId: result.gateId
+        })
+      })
+
+      // A terminal stage is the end of the chain, not something to interrupt anyone over.
+      it('moves nowhere when a stage succeeds with no forward edge', async () => {
+        const result = await withCodeStage(exits(0), CODE_STAGE, undefined, {
+          ...GRAPH,
+          transitions: []
+        }).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({ allow: true })
+        expect(result).not.toHaveProperty('moveToStatusId')
+      })
     })
 
     // A code stage with nothing to run cannot complete; the contract rejects it, and the engine

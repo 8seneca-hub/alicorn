@@ -22,10 +22,17 @@ function worktree(over: Partial<Worktree> = {}): Worktree {
   } as Worktree
 }
 
-function dispatchFor(worktrees: Worktree[]) {
+function dispatchFor(
+  worktrees: Worktree[],
+  onAutomationMove?: (worktreeId: string, status: string) => void
+) {
   const map = new Map(worktrees.map((item) => [item.id, item]))
   return renderHook(() =>
-    useBoardAutomationDispatch({ worktreeById: map, workspaceStatuses: STATUSES })
+    useBoardAutomationDispatch({
+      worktreeById: map,
+      workspaceStatuses: STATUSES,
+      ...(onAutomationMove ? { onAutomationMove } : {})
+    })
   ).result.current
 }
 
@@ -54,6 +61,35 @@ describe('useBoardAutomationDispatch', () => {
     dispatchFor([worktree(), worktree({ id: 'wt-2' })])(['wt-1', 'wt-2'], 'in-review')
 
     expect(statusChanged).toHaveBeenCalledTimes(2)
+  })
+
+  // A code stage finishes inline and hands the workspace along its own edge; the renderer applies
+  // that through the ordinary move so the write and the guard rails are a human drag's.
+  it('applies the column a code stage handed the workspace to', async () => {
+    statusChanged.mockResolvedValue({ dispatched: true, moveToStatusId: 'in-review' })
+    const onAutomationMove = vi.fn()
+
+    dispatchFor([worktree()], onAutomationMove)(['wt-1'], 'todo')
+    await vi.waitFor(() => expect(onAutomationMove).toHaveBeenCalledWith('wt-1', 'in-review'))
+  })
+
+  // A stage names a column id, and one renamed away must not be written onto the workspace as a
+  // status nothing renders.
+  it('ignores a column the board does not have', async () => {
+    statusChanged.mockResolvedValue({ dispatched: true, moveToStatusId: 'archived' })
+    const onAutomationMove = vi.fn()
+
+    dispatchFor([worktree()], onAutomationMove)(['wt-1'], 'todo')
+    await vi.waitFor(() => expect(statusChanged).toHaveBeenCalled())
+    expect(onAutomationMove).not.toHaveBeenCalled()
+  })
+
+  it('moves nothing when the stage handed the workspace nowhere', async () => {
+    const onAutomationMove = vi.fn()
+
+    dispatchFor([worktree()], onAutomationMove)(['wt-1'], 'in-review')
+    await vi.waitFor(() => expect(statusChanged).toHaveBeenCalled())
+    expect(onAutomationMove).not.toHaveBeenCalled()
   })
 
   // Why: rules are bound to a board, and a workspace with no repo belongs to none.

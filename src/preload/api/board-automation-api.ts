@@ -25,5 +25,6 @@ export type BoardAutomationApi = {
     worktreePath: string
     issueRef?: string | null
     workspaceName?: string | null
-  }) => Promise<{ dispatched: boolean }>
+    // A code stage takes its own forward or correction edge; the renderer applies the move.
+  }) => Promise<{ dispatched: boolean; moveToStatusId?: string }>
 }

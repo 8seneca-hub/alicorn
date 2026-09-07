@@ -51,6 +51,26 @@ function enqueueOne(
   return duplicate ? 0 : 1
 }
 
+/**
+ * Records one gate as a ledger interruption, for a step that has no dispatch to sweep.
+ *
+ * The dispatch-wide capture below derives its rows from a settled dispatch's window; a code stage
+ * settles nothing, so its gate is enqueued here directly. Same kind, same `gate:<id>` dedupe key,
+ * so a gate can never be counted twice whichever path finds it.
+ */
+export function enqueueGateInterruption(
+  db: OrchestrationDb,
+  ids: DispatchInterruptionIds,
+  gate: { id: string; createdAt: string }
+): number {
+  try {
+    return enqueueOne(db, ids, 'gate', gate.id, gate.createdAt)
+  } catch (error) {
+    logCaptureErrorThrottled(ids.dispatchId, error)
+    return 0
+  }
+}
+
 // LC-R9: a gate ends the dispatch that raised it (createGate completes the active one), so a
 // gate/ask/escalation between two dispatches belongs to neither's own [dispatched_at, completed_at]
 // span. The metric is per completed task, not per dispatch — which dispatch carries the row only

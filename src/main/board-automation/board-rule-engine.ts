@@ -9,6 +9,9 @@ import { renderBoardPromptTemplate, type BoardRuleStore } from './board-rule-sto
 import type { WorkflowDirectory } from './workflow-directory'
 import { codeStageOutcome, runCodeStage } from '../alicorn/workflows/code-stage-runner'
 import { enqueueCodeStageOutcome } from '../alicorn/workflows/code-stage-outcome-enqueue'
+import { routeCodeStage } from '../alicorn/workflows/code-stage-routing'
+import { enqueueGateInterruption } from '../alicorn/interruptions/interruption-capture'
+import type { Workflow } from '../../shared/alicorn/workflows'
 
 // Why its own budget: an automated start has nobody watching it, so it waits as long as a human
 // start does rather than an ad-hoc number.
@@ -35,8 +38,9 @@ export type BoardDispatchResult =
   | { allow: false; reason: 'skipped'; detail: string }
   | { allow: false; reason: 'start_failed'; detail: string }
   | { allow: false; reason: 'workflow_unavailable'; detail: string }
-  | { allow: true; ranCode: { stageKey: string; exitCode: number } }
-  | { allow: false; reason: 'code_failed'; detail: string }
+  | { allow: true; ranCode: { stageKey: string; exitCode: number }; moveToStatusId?: string }
+  | { allow: false; reason: 'code_failed'; detail: string; moveToStatusId?: string }
+  | { allow: false; reason: 'code_gated'; detail: string; gateId: string }
   | { allow: false; reason: 'code_unsupported_remote'; detail: string }
   | Extract<GuardVerdict, { allow: false }>
 
@@ -50,7 +54,14 @@ export type BoardDispatchResult =
 type ColumnBinding =
   | { source: 'stage'; memberId: string; promptTemplate: string; ruleId: string }
   | { source: 'rule'; memberId: string; promptTemplate: string; ruleId: string }
-  | { source: 'code'; command: string; ruleId: string; stageName: string }
+  | {
+      source: 'code'
+      command: string
+      ruleId: string
+      stageName: string
+      /** The stage's own graph, read after the command exits to pick the edge it takes. */
+      workflow: Pick<Workflow, 'stages' | 'transitions'>
+    }
 
 export type BoardRuleEngineDeps = {
   runtime: OrcaRuntimeService
@@ -140,7 +151,8 @@ async function resolveColumnBinding(
             source: 'code',
             command: stage.codeCommand,
             ruleId: stage.key,
-            stageName: stage.name
+            stageName: stage.name,
+            workflow: resolved.workflow
           }
         }
       : { kind: 'none' }
@@ -269,16 +281,37 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
           result: outcome
         })
         record('dispatched', { taskId: codeTask.id, dispatchId: codeDispatchId })
-        return codeStageOutcome(outcome) === 'succeeded'
-          ? { allow: true, ranCode: { stageKey: rule.ruleId, exitCode: outcome.exitCode } }
-          : {
-              allow: false,
-              reason: 'code_failed',
-              detail:
-                outcome.stderrTail.trim() ||
-                outcome.stdoutTail.trim() ||
-                `${rule.stageName} exited ${outcome.exitCode}.`
-            }
+
+        const settled = codeStageOutcome(outcome)
+        const route = routeCodeStage(rule.workflow, rule.ruleId, settled)
+        const ids = { runId: codeRun.id, taskId: codeTask.id, dispatchId: codeDispatchId }
+        if (settled === 'succeeded') {
+          return {
+            allow: true,
+            ranCode: { stageKey: rule.ruleId, exitCode: outcome.exitCode },
+            ...(route.kind === 'move' ? { moveToStatusId: route.toStatusId } : {})
+          }
+        }
+        const detail =
+          outcome.stderrTail.trim() ||
+          outcome.stdoutTail.trim() ||
+          `${rule.stageName} exited ${outcome.exitCode}.`
+        // A failure the graph does not handle stops here: unverified work never advances on its
+        // own, and the gate is what puts it in front of a human rather than dropping it.
+        if (route.kind === 'gate') {
+          const gate = db.createGate({
+            taskId: codeTask.id,
+            question: `${rule.stageName} failed and the workflow has nowhere to send it. ${detail}`
+          })
+          enqueueGateInterruption(db, ids, { id: gate.id, createdAt: gate.created_at })
+          return { allow: false, reason: 'code_gated', detail: route.detail, gateId: gate.id }
+        }
+        return {
+          allow: false,
+          reason: 'code_failed',
+          detail,
+          ...(route.kind === 'move' ? { moveToStatusId: route.toStatusId } : {})
+        }
       }
 
       const run = ensureBoardRun(db, event.repoId)
