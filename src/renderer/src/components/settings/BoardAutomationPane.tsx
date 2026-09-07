@@ -110,6 +110,10 @@ export function BoardAutomationPane(): React.JSX.Element {
               className="h-8 rounded-md border border-border bg-background px-2 text-sm"
               value={activeRepoId}
               onChange={(event) => setRepoId(event.target.value)}
+              aria-label={translate(
+                'auto.components.settings.boardAutomation.projectLabel',
+                'Project'
+              )}
             >
               {repos.map((repo) => (
                 <option key={repo.id} value={repo.id}>
@@ -144,6 +148,10 @@ export function BoardAutomationPane(): React.JSX.Element {
             <select
               className="h-8 rounded-md border border-border bg-background px-2 text-sm"
               value={rule.toStatusId}
+              aria-label={translate(
+                'auto.components.settings.boardAutomation.columnLabel',
+                'Column'
+              )}
               onChange={(event) =>
                 void save(
                   rules.map((item) =>
@@ -162,6 +170,10 @@ export function BoardAutomationPane(): React.JSX.Element {
             <select
               className="h-8 rounded-md border border-border bg-background px-2 text-sm"
               value={rule.memberId}
+              aria-label={translate(
+                'auto.components.settings.boardAutomation.memberLabel',
+                'Member'
+              )}
               onChange={(event) =>
                 void save(
                   rules.map((item) =>
