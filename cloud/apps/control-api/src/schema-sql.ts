@@ -60,10 +60,15 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      name TEXT NOT NULL DEFAULT '',
      ordinal INTEGER NOT NULL,
      member_id TEXT REFERENCES members(id) ON DELETE SET NULL,
+     column_id TEXT,
      reversibility TEXT NOT NULL DEFAULT 'contained' CHECK (reversibility IN ('free', 'contained', 'irreversible')),
      inherited_cost TEXT NOT NULL DEFAULT 'low' CHECK (inherited_cost IN ('low', 'high')),
      required_checks JSONB NOT NULL DEFAULT '[]'::jsonb)`,
+  `ALTER TABLE stages ADD COLUMN IF NOT EXISTS column_id TEXT`,
   `CREATE UNIQUE INDEX IF NOT EXISTS stages_workflow_key ON stages(workflow_id, key)`,
+  // Why unique: two stages on one column would make a board move ambiguous, and the engine would
+  // have to guess which member to dispatch.
+  `CREATE UNIQUE INDEX IF NOT EXISTS stages_workflow_column ON stages(workflow_id, column_id) WHERE column_id IS NOT NULL`,
   // Why: no unique index on (workflow_id, ordinal) — a reorder would violate it mid-statement,
   // and contiguity is already enforced by the wire schema before any SQL runs.
   `CREATE INDEX IF NOT EXISTS stages_workflow_ordinal ON stages(workflow_id, ordinal)`,

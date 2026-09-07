@@ -16,6 +16,15 @@ export const StageInputSchema = z.object({
   name: z.string().trim().max(120).default(''),
   ordinal: z.number().int().nonnegative(),
   memberId: z.string().min(1).nullable().default(null),
+  /**
+   * Board column this stage dispatches on (`WorkspaceStatus.id`), or null for a stage no column
+   * triggers.
+   *
+   * Separate from `key` because the two vocabularies are different granularities: a pipeline has
+   * eight stages where a board has four columns, so several stages can share one column. Binding on
+   * `key` alone assumed they matched, and they do not — see plan decision 11.
+   */
+  columnId: z.string().trim().min(1).max(64).nullable().default(null),
   // Why: ARCHITECTURE §7 — authored, never inferred, and the default is the safe value.
   reversibility: StageReversibilitySchema.default('contained'),
   inheritedCost: InheritedCostSchema.default('low'),

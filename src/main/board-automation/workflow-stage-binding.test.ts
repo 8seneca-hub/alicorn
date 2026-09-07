@@ -8,6 +8,7 @@ function stage(key: string, over: Partial<WorkflowStage> = {}): WorkflowStage {
     name: key,
     ordinal: 0,
     memberId: 'member-1',
+    columnId: key,
     reversibility: 'contained',
     inheritedCost: 'low',
     requiredChecks: [],
@@ -31,33 +32,75 @@ function workflow(stages: WorkflowStage[]): Workflow {
 }
 
 describe('bindColumnToStage', () => {
-  // Why by key: a stage keyed `in-review` *is* the In review column. That is the "one model, two
-  // views" claim, and why WF1 made the wire address stages by key rather than by id.
-  it('binds a column to the stage sharing its key', () => {
-    const binding = bindColumnToStage(workflow([stage('build'), stage('in-review')]), 'in-review')
+  // Why on columnId and not key: the two vocabularies are different granularities — eight pipeline
+  // stages against four board columns — and verified against the seeded stack the key sets share
+  // nothing (decision 11).
+  it('binds a column to the stage naming it', () => {
+    const binding = bindColumnToStage(
+      workflow([
+        stage('build', { columnId: 'in-progress' }),
+        stage('review', { columnId: 'in-review' })
+      ]),
+      'in-review'
+    )
 
     expect(binding).toMatchObject({ kind: 'stage', workflowId: 'wf-1', workflowVersion: 3 })
-    expect(binding.kind === 'stage' && binding.stage.key).toBe('in-review')
+    expect(binding.kind === 'stage' && binding.stage.key).toBe('review')
   })
 
   // Why distinct from 'none': a workflow that deliberately does not stage a column means nothing
   // happens there, which is different from a project that has no workflow at all.
   it('reports no-stage for a column the workflow does not cover', () => {
-    const binding = bindColumnToStage(workflow([stage('build')]), 'in-review')
+    const binding = bindColumnToStage(
+      workflow([stage('build', { columnId: 'in-progress' })]),
+      'in-review'
+    )
 
     expect(binding).toMatchObject({ kind: 'no-stage', workflowId: 'wf-1' })
   })
 
   it('carries the stage attributes the autonomy policy reads', () => {
     const binding = bindColumnToStage(
-      workflow([stage('merge', { reversibility: 'irreversible', inheritedCost: 'high' })]),
-      'merge'
+      workflow([
+        stage('merge', {
+          columnId: 'completed',
+          reversibility: 'irreversible',
+          inheritedCost: 'high'
+        })
+      ]),
+      'completed'
     )
 
     expect(binding.kind === 'stage' && binding.stage).toMatchObject({
       reversibility: 'irreversible',
       inheritedCost: 'high'
     })
+  })
+})
+
+describe('bindColumnToStage — unbound stages', () => {
+  // Why: a stage no column dispatches (Architecture, Design, Deploy in the shipped template) must
+  // never be picked up by a board move, however its key is spelled.
+  it('never binds a stage with no column', () => {
+    const binding = bindColumnToStage(
+      workflow([stage('architecture', { columnId: null })]),
+      'architecture'
+    )
+    expect(binding.kind).toBe('no-stage')
+  })
+
+  // Several stages behind one column is the case columnId exists for; the unique index in the
+  // schema keeps it from being ambiguous.
+  it('binds the one stage naming the column when others share a key prefix', () => {
+    const binding = bindColumnToStage(
+      workflow([
+        stage('build', { columnId: 'in-progress' }),
+        stage('verify', { columnId: null }),
+        stage('review', { columnId: 'in-review' })
+      ]),
+      'in-progress'
+    )
+    expect(binding.kind === 'stage' && binding.stage.key).toBe('build')
   })
 })
 

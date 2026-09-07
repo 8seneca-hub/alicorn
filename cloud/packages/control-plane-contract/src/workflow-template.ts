@@ -14,6 +14,8 @@ export const WorkflowTemplateStageSchema = z.object({
   name: z.string().min(1).max(120),
   ordinal: z.number().int().nonnegative(),
   memberRole: MemberRoleSchema.nullable(),
+  /** Board column that dispatches this stage, or null when no column does. */
+  columnId: z.string().min(1).max(64).nullable(),
   reversibility: StageReversibilitySchema,
   inheritedCost: InheritedCostSchema
 })
@@ -43,16 +45,16 @@ export const FEATURE_DELIVERY_TEMPLATE = {
   name: 'Feature delivery',
   description: 'Spec through Deploy, gated where reversal is expensive: Architecture inherits cost, Merge and Deploy are irreversible.',
   stages: [
-    { key: 'spec', name: 'Spec', ordinal: 0, memberRole: 'analyst', reversibility: 'free', inheritedCost: 'low' },
+    { key: 'spec', name: 'Spec', ordinal: 0, memberRole: 'analyst', columnId: 'todo', reversibility: 'free', inheritedCost: 'low' },
     // Why: "inherited hard stop" in the prototype — a wrong interface is inherited by everything after it.
-    { key: 'architecture', name: 'Architecture', ordinal: 1, memberRole: 'analyst', reversibility: 'free', inheritedCost: 'high' },
+    { key: 'architecture', name: 'Architecture', ordinal: 1, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'high' },
     // Why: MEMBER_ROLES has no `designer`; the prototype's Designer maps to `other` until it does.
-    { key: 'design', name: 'Design', ordinal: 2, memberRole: 'other', reversibility: 'free', inheritedCost: 'low' },
-    { key: 'build', name: 'Build', ordinal: 3, memberRole: 'developer', reversibility: 'contained', inheritedCost: 'low' },
-    { key: 'review', name: 'Review', ordinal: 4, memberRole: 'reviewer', reversibility: 'contained', inheritedCost: 'low' },
-    { key: 'verify', name: 'Verify', ordinal: 5, memberRole: 'qa', reversibility: 'contained', inheritedCost: 'low' },
-    { key: 'merge', name: 'Merge', ordinal: 6, memberRole: null, reversibility: 'irreversible', inheritedCost: 'low' },
-    { key: 'deploy', name: 'Deploy', ordinal: 7, memberRole: null, reversibility: 'irreversible', inheritedCost: 'low' }
+    { key: 'design', name: 'Design', ordinal: 2, memberRole: 'other', columnId: null, reversibility: 'free', inheritedCost: 'low' },
+    { key: 'build', name: 'Build', ordinal: 3, memberRole: 'developer', columnId: 'in-progress', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'review', name: 'Review', ordinal: 4, memberRole: 'reviewer', columnId: 'in-review', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'verify', name: 'Verify', ordinal: 5, memberRole: 'qa', columnId: null, reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'merge', name: 'Merge', ordinal: 6, memberRole: null, columnId: 'completed', reversibility: 'irreversible', inheritedCost: 'low' },
+    { key: 'deploy', name: 'Deploy', ordinal: 7, memberRole: null, columnId: null, reversibility: 'irreversible', inheritedCost: 'low' }
   ],
   transitions: [
     { from: 'spec', to: 'architecture', trigger: { kind: 'on_success' } },

@@ -39,6 +39,7 @@ type StageRow = {
   name: string
   ordinal: number
   member_id: string | null
+  column_id: string | null
   reversibility: Stage['reversibility']
   inherited_cost: Stage['inheritedCost']
   required_checks: unknown
@@ -52,6 +53,7 @@ function toStage(row: StageRow): Stage {
     name: row.name,
     ordinal: row.ordinal,
     memberId: row.member_id,
+    columnId: row.column_id,
     reversibility: row.reversibility,
     inheritedCost: row.inherited_cost,
     // Why: parse stored JSONB back through the schema so check defaults are always present.
@@ -61,7 +63,7 @@ function toStage(row: StageRow): Stage {
 
 async function readGraph(client: pg.PoolClient, row: WorkflowRow): Promise<Workflow> {
   const stages = await client.query<StageRow>(
-    `SELECT key, name, ordinal, member_id, reversibility, inherited_cost, required_checks
+    `SELECT key, name, ordinal, member_id, column_id, reversibility, inherited_cost, required_checks
      FROM stages WHERE workflow_id = $1 ORDER BY ordinal`,
     [row.id]
   )
@@ -107,8 +109,10 @@ async function writeGraph(
   const values: string[] = []
   const params: unknown[] = []
   input.stages.forEach((stage, i) => {
-    const p = i * 9
-    values.push(`($${p + 1}, $${p + 2}, $${p + 3}, $${p + 4}, $${p + 5}, $${p + 6}, $${p + 7}, $${p + 8}, $${p + 9}::jsonb)`)
+    const p = i * 10
+    values.push(
+      `($${p + 1}, $${p + 2}, $${p + 3}, $${p + 4}, $${p + 5}, $${p + 6}, $${p + 7}, $${p + 8}, $${p + 9}, $${p + 10}::jsonb)`
+    )
     params.push(
       tenantId,
       workflowId,
@@ -117,18 +121,20 @@ async function writeGraph(
       stage.name === '' ? stage.key : stage.name,
       stage.ordinal,
       stage.memberId,
+      stage.columnId,
       stage.reversibility,
       stage.inheritedCost,
       JSON.stringify(stage.requiredChecks)
     )
   })
   await client.query(
-    `INSERT INTO stages (tenant_id, workflow_id, key, name, ordinal, member_id, reversibility, inherited_cost, required_checks)
+    `INSERT INTO stages (tenant_id, workflow_id, key, name, ordinal, member_id, column_id, reversibility, inherited_cost, required_checks)
      VALUES ${values.join(', ')}
      ON CONFLICT (workflow_id, key) DO UPDATE SET
        name = EXCLUDED.name,
        ordinal = EXCLUDED.ordinal,
        member_id = EXCLUDED.member_id,
+       column_id = EXCLUDED.column_id,
        reversibility = EXCLUDED.reversibility,
        inherited_cost = EXCLUDED.inherited_cost,
        required_checks = EXCLUDED.required_checks`,
@@ -258,6 +264,7 @@ export function createWorkflowFromTemplate(
         name: stage.name,
         ordinal: stage.ordinal,
         memberId: stage.memberRole ? (memberIdByRole.get(stage.memberRole) ?? null) : null,
+        columnId: stage.columnId,
         reversibility: stage.reversibility,
         inheritedCost: stage.inheritedCost,
         requiredChecks: []

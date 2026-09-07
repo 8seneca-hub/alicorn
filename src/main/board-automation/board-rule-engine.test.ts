@@ -174,10 +174,11 @@ describe('board rule engine', () => {
 
   describe('stage binding (WF3)', () => {
     const STAGE = {
-      key: 'in-review',
+      key: 'review',
       name: 'Review',
       ordinal: 0,
       memberId: 'member-from-stage',
+      columnId: 'in-review',
       reversibility: 'contained' as const,
       inheritedCost: 'low' as const,
       requiredChecks: []
@@ -218,7 +219,7 @@ describe('board rule engine', () => {
         workflowVersion: 1
       })).onWorkspaceStatusChanged(EVENT)
 
-      expect(db.listBoardTransitions('wt-1', 0)[0]).toMatchObject({ ruleId: 'in-review' })
+      expect(db.listBoardTransitions('wt-1', 0)[0]).toMatchObject({ ruleId: 'review' })
     })
 
     // Why refuse: without the stage we would be guessing at reversibility, which ARCHITECTURE §7
