@@ -246,14 +246,30 @@ describe('board rule engine', () => {
       )
     })
 
-    // Why not fall through: a workflow that deliberately does not stage a column means nothing
-    // happens there, and a rule that would dispatch anyway defeats the authored model.
-    it('dispatches nothing for a column the workflow leaves unstaged', async () => {
+    // Regression: WF4's template keys stages by pipeline step (spec, build, review, …) while board
+    // columns are todo/in-progress/in-review/completed — verified against the seeded stack, no
+    // overlap. Treating an unstaged column as authored silence took automation down entirely and
+    // bypassed the rules that did work.
+    it('falls back to the rule for a column the workflow leaves unstaged', async () => {
       const result = await withWorkflows(() => ({
         kind: 'no-stage',
         workflowId: 'wf-1',
         workflowVersion: 1
       })).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: true })
+      expect(startWorkerForTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({ member: 'member-reviewer' })
+        })
+      )
+    })
+
+    it('dispatches nothing when a column is unstaged and has no rule either', async () => {
+      const result = await withWorkflows(
+        () => ({ kind: 'no-stage', workflowId: 'wf-1', workflowVersion: 1 }),
+        []
+      ).onWorkspaceStatusChanged(EVENT)
 
       expect(result).toMatchObject({ allow: false, reason: 'skipped' })
       expect(startWorkerForTask).not.toHaveBeenCalled()

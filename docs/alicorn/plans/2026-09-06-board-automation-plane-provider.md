@@ -40,6 +40,18 @@
    dispatch ceiling of three per hour. The loop rule guards the *shape*, the ceiling guards the
    *budget*, and the ceiling is the real backstop. Revisit from the ledger if refusals cluster.
 
+11. **The stage and column vocabularies do not match, and binding by key alone is not enough**
+    (found 2026-09-07 by running WF3 against the seeded stack). WF4's template keys stages by
+    pipeline step — `spec, architecture, design, build, review, verify, merge, deploy` — while the
+    board's columns are `todo, in-progress, in-review, completed`. The overlap is empty: `review` is
+    not `in-review`, `build` is not `in-progress`. Decision 2 assumed `stage_key` *is* the column id;
+    WF4 authored a different vocabulary and nobody reconciled them, so WF3's binding-by-key resolved
+    every column to `no-stage`. Amends decision 10: an unstaged column now falls back to the rules
+    rather than reading as authored silence, so a naming mismatch degrades instead of taking
+    automation down. **The real fix is an explicit column ↔ stage binding**, which is a design
+    decision — either stages carry the column they bind to, or the workflow declares the mapping.
+    Until then "one model, two views" is true of the data model but not yet of the vocabularies.
+
 10. **Stages are authoritative when a workflow exists; ad-hoc rules are the fallback** (WF3,
     2026-09-07). A stage keyed `in-review` *is* the In review column — the binding is by key, which
     is why WF1 made the wire address stages that way. A stage wins over a rule because it carries

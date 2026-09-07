@@ -101,10 +101,16 @@ async function resolveColumnBinding(
   if (resolved.kind === 'unavailable') {
     return { kind: 'unavailable', detail: resolved.detail }
   }
-  // A workflow that exists but does not stage this column is a deliberate "nothing happens here",
-  // so it does not silently fall through to a rule that would.
+  // Falls back rather than treating an unstaged column as authored silence.
+  //
+  // Verified against the seeded stack: WF4's template keys stages by pipeline step
+  // (spec, build, review, …) while board columns are todo/in-progress/in-review/completed —
+  // no overlap at all. Reading an unstaged column as "nothing happens here" therefore took
+  // automation down completely and bypassed the rules that did work, rather than degrading.
+  // Until a column carries an explicit stage binding, an unstaged column means "this workflow does
+  // not speak for this column", which is what the rules are for.
   if (resolved.kind === 'no-stage') {
-    return { kind: 'none' }
+    return fallback()
   }
   if (resolved.kind === 'none') {
     return fallback()
