@@ -1,3 +1,4 @@
+import { isSurfaceOwnedTerminalTab } from '../../../../shared/terminal-tab-types'
 import type { AppState } from '../types'
 
 type TerminalTabReconnectState = Pick<
@@ -71,6 +72,11 @@ export function getOrphanTerminalIds(
     runtimeTabs
       .filter((tab) => {
         if (unifiedTerminalEntityIds.has(tab.id)) {
+          return false
+        }
+        // A surface-owned terminal has no unified tab by design, which is exactly what this sweep
+        // reads as orphaned. Sweeping it would kill a live sidebar terminal under the user.
+        if (isSurfaceOwnedTerminalTab(tab)) {
           return false
         }
         // A missing PTY is not proof that the user closed the tab: the host

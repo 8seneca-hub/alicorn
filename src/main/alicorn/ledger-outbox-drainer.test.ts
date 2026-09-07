@@ -3,6 +3,7 @@ import { OrchestrationDb } from '../runtime/orchestration/db'
 import { createRootDispatch } from '../runtime/orchestration/db/root-dispatch-test-fixture'
 import { startLedgerOutboxDrainer, type LedgerOutboxDrainer } from './ledger-outbox-drainer'
 import { ControlPlaneRequestError, ControlPlaneUnavailableError } from './control-plane-http'
+import { enqueueCodeStageOutcome } from './workflows/code-stage-outcome-enqueue'
 import type { LedgerWriter } from './ledger/ledger-writer'
 
 const WORKTREE = {
@@ -97,6 +98,69 @@ describe('startLedgerOutboxDrainer', () => {
     const notBeforeMs = new Date(spendRow.not_before!).getTime()
     expect(notBeforeMs - Date.now()).toBeGreaterThan(55_000)
     expect(notBeforeMs - Date.now()).toBeLessThan(65_000)
+  })
+
+  describe('code stage outcomes', () => {
+    function enqueueCodeStage(): void {
+      db = new OrchestrationDb(':memory:')
+      const task = db.createTask({ spec: 'Format' })
+      enqueueCodeStageOutcome(db, {
+        runId: 'run_1',
+        taskId: task.id,
+        stageKey: 'format',
+        projectId: WORKTREE.projectId,
+        repoId: WORKTREE.repoId,
+        worktreeId: WORKTREE.id,
+        branch: WORKTREE.branch,
+        result: {
+          exitCode: 0,
+          durationMs: 4,
+          stdoutTail: 'formatted',
+          stderrTail: '',
+          timedOut: false
+        }
+      })
+    }
+
+    function codeStageDrainer(writer: LedgerWriter): LedgerOutboxDrainer {
+      return startLedgerOutboxDrainer({
+        getDb: () => db,
+        // A code stage resolves no worktree: it has no dispatch to resolve one from.
+        runtime: { showManagedWorktree: vi.fn().mockRejectedValue(new Error('no dispatch')) },
+        writer,
+        spendAttributor: null,
+        intervalMs: 60_000
+      })
+    }
+
+    // The payload is already built, so nothing is looked up at drain time — which is the point:
+    // a code stage has no dispatch, no member and no worker report to resolve.
+    it('posts the payload as written and marks the row sent', async () => {
+      enqueueCodeStage()
+      const writer = fakeWriter()
+      drainer = codeStageDrainer(writer)
+
+      const result = await drainer.drainOnce()
+
+      expect(result).toMatchObject({ sent: 1, dead: 0 })
+      expect(writer.postStepOutcome).toHaveBeenCalledWith(
+        expect.objectContaining({ backend: 'code', stageKey: 'format', outcome: 'succeeded' })
+      )
+      expect(db.listDueLedgerOutbox()).toHaveLength(0)
+    })
+
+    // No spend row: a code stage runs no model, so there is nothing to attribute and no dispatch
+    // for the attributor to read usage from. No verification row either — diff coverage measures a
+    // member's diff against its base, and there is no member here.
+    it('enqueues no follow-up rows', async () => {
+      enqueueCodeStage()
+      drainer = codeStageDrainer(fakeWriter())
+
+      await drainer.drainOnce()
+
+      const farFuture = new Date(Date.now() + 120_000).toISOString()
+      expect(db.listDueLedgerOutbox(25, farFuture)).toEqual([])
+    })
   })
 
   it('stores the dispatch↔outcome id mapping after a step_outcome post', async () => {

@@ -13,8 +13,12 @@ export const StepOutcomeInputSchema = z.object({
   worktreeId: z.string().min(1).optional(),
   branch: z.string().min(1).optional(),
   memberId: z.string().min(1).optional(),
-  // Why: `other` covers agents Orca launches but Alicorn does not price or police.
-  backend: z.union([MemberBackendSchema, z.literal('other')]).default('other'),
+  // Why: `other` covers agents Orca launches but Alicorn does not price or police. `code` is a
+  // stage that ran a command instead of a model, so it is accepted here but is not a member
+  // backend — no member can be configured to run one.
+  backend: z
+    .union([MemberBackendSchema, z.literal('other'), z.literal('code')])
+    .default('other'),
   stageKey: z.string().min(1).max(64).default('build'),
   executionStrategy: ExecutionStrategySchema.default('single'),
   outcome: z.enum(['succeeded', 'failed']),

@@ -126,3 +126,25 @@ describe('getOrphanTerminalIds reconnect-map liveness', () => {
     expect(getOrphanTerminalIds(state, 'wt-1')).toContain('stale-layout')
   })
 })
+
+describe('surface-owned terminals', () => {
+  // A sidebar terminal has no unified tab by design. The sweep's whole test for an orphan is
+  // "no unified tab", so without the exemption it hard-deletes a live terminal and its scrollback.
+  it('never sweeps a sidebar-owned terminal', () => {
+    const state = makeState({
+      tabsByWorktree: { 'wt-1': [makeTab({ id: 'sidebar-1', surface: 'sidebar' })] }
+    })
+
+    expect(getOrphanTerminalIds(state, 'wt-1')).toEqual(new Set())
+  })
+
+  // With teeth: the identical tab without the marker is swept, so the exemption is what saves it
+  // rather than some other liveness signal in the fixture.
+  it('sweeps the same terminal when it is not surface-owned', () => {
+    const state = makeState({
+      tabsByWorktree: { 'wt-1': [makeTab({ id: 'sidebar-1' })] }
+    })
+
+    expect(getOrphanTerminalIds(state, 'wt-1')).toEqual(new Set(['sidebar-1']))
+  })
+})

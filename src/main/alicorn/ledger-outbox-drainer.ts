@@ -4,6 +4,7 @@ import type {
   LedgerOutboxRow
 } from '../runtime/orchestration/db/alicorn/alicorn-rows'
 import { buildStepOutcomeInput } from './step-outcome-builder'
+import { isCodeStagePayload, type CodeStagePayload } from './workflows/code-stage-outcome-enqueue'
 import { settleOutboxRow } from './outbox-row-processing'
 import type { LedgerWriter } from './ledger/ledger-writer'
 import type {
@@ -130,7 +131,15 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     row: LedgerOutboxRow,
     writer: LedgerWriter
   ): Promise<void> {
-    const payload = JSON.parse(row.payload) as StepOutcomePayload
+    const parsed = JSON.parse(row.payload) as StepOutcomePayload | CodeStagePayload
+    // A code stage's input is complete at enqueue time: it has no dispatch to resolve a worktree
+    // or a member from, no model spend to attribute, and no member diff to run coverage over.
+    if (isCodeStagePayload(parsed)) {
+      await writer.postStepOutcome(parsed.outcome)
+      settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
+      return
+    }
+    const payload = parsed
     const worktree = await resolveWorktree(db, payload.dispatchId)
     const stepOutcomeInput = buildStepOutcomeInput({ db, payload, worktree })
     const posted = await writer.postStepOutcome(stepOutcomeInput)

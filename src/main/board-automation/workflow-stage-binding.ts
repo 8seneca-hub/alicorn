@@ -10,7 +10,14 @@ import type { Workflow, WorkflowStage } from '../../shared/alicorn/workflows'
  * production deploy, so that case refuses.
  */
 export type StageBinding =
-  | { kind: 'stage'; stage: WorkflowStage; workflowId: string; workflowVersion: number }
+  | {
+      kind: 'stage'
+      stage: WorkflowStage
+      /** The whole graph, so a finished stage can resolve its own forward and correction edges. */
+      workflow: Workflow
+      workflowId: string
+      workflowVersion: number
+    }
   | { kind: 'no-stage'; workflowId: string; workflowVersion: number }
   | { kind: 'none' }
   | { kind: 'unavailable'; detail: string }
@@ -28,7 +35,13 @@ export function bindColumnToStage(workflow: Workflow, toStatusId: string): Stage
   if (!stage) {
     return { kind: 'no-stage', workflowId: workflow.id, workflowVersion: workflow.version }
   }
-  return { kind: 'stage', stage, workflowId: workflow.id, workflowVersion: workflow.version }
+  return {
+    kind: 'stage',
+    stage,
+    workflow,
+    workflowId: workflow.id,
+    workflowVersion: workflow.version
+  }
 }
 
 // Why the first workflow: a project has one board, so one workflow governs it. Until WF4's

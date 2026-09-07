@@ -85,7 +85,10 @@ export function registerBoardAutomationHandlers(deps: BoardAutomationHandlerDeps
 
   ipcMain.handle(
     BOARD_AUTOMATION_IPC.statusChanged,
-    async (_event, args: Partial<WorkspaceStatusChange>): Promise<{ dispatched: boolean }> => {
+    async (
+      _event,
+      args: Partial<WorkspaceStatusChange>
+    ): Promise<{ dispatched: boolean; moveToStatusId?: string }> => {
       const worktreeId = asNonEmptyString(args?.worktreeId)
       const repoId = asNonEmptyString(args?.repoId)
       const toStatusId = asNonEmptyString(args?.toStatusId)
@@ -104,7 +107,15 @@ export function registerBoardAutomationHandlers(deps: BoardAutomationHandlerDeps
           issueRef: asNonEmptyString(args?.issueRef),
           workspaceName: asNonEmptyString(args?.workspaceName)
         })
-        return { dispatched: result.allow }
+        // Why main decides and the renderer moves: a code stage's forward and correction edges are
+        // authored on the workflow, but the board is the renderer's state — it owns the write, the
+        // task-status sync and the undo that go with it.
+        return {
+          dispatched: result.allow,
+          ...('moveToStatusId' in result && result.moveToStatusId
+            ? { moveToStatusId: result.moveToStatusId }
+            : {})
+        }
       } catch (error) {
         console.warn('[alicorn] board automation dispatch failed', error)
         return { dispatched: false }

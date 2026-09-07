@@ -336,7 +336,36 @@ describe('board rule engine', () => {
       requiredChecks: []
     }
 
-    function withCodeStage(runCode: unknown, stage = CODE_STAGE) {
+    const BUILD_STAGE: WorkflowStage = {
+      ...CODE_STAGE,
+      key: 'build',
+      name: 'Build',
+      kind: 'worker',
+      codeCommand: null,
+      columnId: 'in-progress'
+    }
+    const DONE_STAGE: WorkflowStage = {
+      ...BUILD_STAGE,
+      key: 'qa',
+      name: 'QA',
+      columnId: 'completed'
+    }
+
+    // The shape WF5 is built around: a forward edge onward and a correction edge back.
+    const GRAPH = {
+      stages: [BUILD_STAGE, CODE_STAGE, DONE_STAGE],
+      transitions: [
+        { from: 'format', to: 'qa', trigger: { kind: 'on_success' } },
+        { from: 'format', to: 'build', trigger: { kind: 'on_failure' } }
+      ]
+    }
+
+    function withCodeStage(
+      runCode: unknown,
+      stage = CODE_STAGE,
+      resolveWorktreeHost?: (worktreeId: string) => Promise<'local' | 'remote' | 'unknown'>,
+      workflow: unknown = GRAPH
+    ) {
       return createBoardRuleEngine({
         runtime: {} as never,
         getDb: () => db,
@@ -345,12 +374,24 @@ describe('board rule engine', () => {
           resolveColumn: async () => ({
             kind: 'stage',
             stage,
+            workflow,
             workflowId: 'wf-1',
             workflowVersion: 1
           })
         } as never,
-        runCode: runCode as never
+        runCode: runCode as never,
+        ...(resolveWorktreeHost ? { resolveWorktreeHost } : {})
       })
+    }
+
+    function exits(exitCode: number, tails: { stdout?: string; stderr?: string } = {}) {
+      return vi.fn(async () => ({
+        exitCode,
+        durationMs: 1,
+        stdoutTail: tails.stdout ?? '',
+        stderrTail: tails.stderr ?? '',
+        timedOut: false
+      }))
     }
 
     // Why never a member: routing deterministic work through a model is the most common waste the
@@ -371,6 +412,59 @@ describe('board rule engine', () => {
       expect(runCode).toHaveBeenCalledWith(
         expect.objectContaining({ command: 'pnpm format', worktreePath: EVENT.worktreePath })
       )
+    })
+
+    // Every step is recorded, and a step that ran without a model is exactly the one worth being
+    // able to prove ran at all. It goes through the outbox, never a direct post.
+    it('records the outcome in the ledger outbox, with no member and the code backend', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 0,
+        durationMs: 3,
+        stdoutTail: 'formatted 2 files',
+        stderrTail: '',
+        timedOut: false
+      }))
+
+      await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      const rows = db.listDueLedgerOutbox(10)
+      expect(rows).toHaveLength(1)
+      expect(rows[0]).toMatchObject({ kind: 'step_outcome' })
+      expect(JSON.parse(rows[0]!.payload)).toMatchObject({
+        source: 'code',
+        outcome: {
+          backend: 'code',
+          stageKey: 'format',
+          outcome: 'succeeded',
+          worktreeId: 'wt-1',
+          repoId: 'repo-1',
+          reportSummary: 'formatted 2 files'
+        }
+      })
+    })
+
+    it('records a failed code stage in the ledger too', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 2,
+        durationMs: 3,
+        stdoutTail: '',
+        stderrTail: 'prettier: parse error',
+        timedOut: false
+      }))
+
+      await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      expect(JSON.parse(db.listDueLedgerOutbox(10)[0]!.payload)).toMatchObject({
+        outcome: { outcome: 'failed', reportSummary: 'prettier: parse error' }
+      })
+    })
+
+    // A refusal never ran anything, so there is nothing to measure — recording one would inflate
+    // the very counts the autonomy policy reads.
+    it('records nothing in the ledger when it refuses a remote code stage', async () => {
+      await withCodeStage(vi.fn(), CODE_STAGE, async () => 'remote').onWorkspaceStatusChanged(EVENT)
+
+      expect(db.listDueLedgerOutbox(10)).toEqual([])
     })
 
     it('records the transition so the ceiling counts a code stage too', async () => {
@@ -407,6 +501,74 @@ describe('board rule engine', () => {
       expect(result).toHaveProperty('detail', expect.stringContaining('prettier'))
     })
 
+    describe('routing', () => {
+      // Exit 0 is the only success, and a successful stage hands the workspace on rather than
+      // waiting for someone to drag the card.
+      it('hands the workspace to the forward edge on exit 0', async () => {
+        const result = await withCodeStage(exits(0)).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({ allow: true, moveToStatusId: 'completed' })
+      })
+
+      // The return edge is a first-class part of the graph, not an error path bolted on.
+      it('hands the workspace back along the correction edge on a non-zero exit', async () => {
+        const result = await withCodeStage(exits(2)).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({
+          allow: false,
+          reason: 'code_failed',
+          moveToStatusId: 'in-progress'
+        })
+      })
+
+      // Gate by blast radius, not by confidence: a failure the graph does not handle is unverified
+      // work, and unverified work never advances on its own.
+      it('gates a failure the workflow has no correction edge for', async () => {
+        const noReturn = { ...GRAPH, transitions: [GRAPH.transitions[0]] }
+
+        const result = await withCodeStage(
+          exits(2, { stderr: 'tsc: 4 errors' }),
+          CODE_STAGE,
+          undefined,
+          noReturn
+        ).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({ allow: false, reason: 'code_gated' })
+        expect(result).not.toHaveProperty('moveToStatusId')
+      })
+
+      it('raises a gate a human can answer, and records it as an interruption', async () => {
+        const noReturn = { ...GRAPH, transitions: [] }
+
+        const result = (await withCodeStage(
+          exits(2, { stderr: 'tsc: 4 errors' }),
+          CODE_STAGE,
+          undefined,
+          noReturn
+        ).onWorkspaceStatusChanged(EVENT)) as { gateId: string }
+
+        const gate = db.getGate(result.gateId)
+        expect(gate).toMatchObject({ status: 'pending' })
+        expect(gate?.question).toContain('tsc: 4 errors')
+        const interruption = db.listDueLedgerOutbox(10).find((row) => row.kind === 'interruption')
+        expect(JSON.parse(interruption!.payload)).toMatchObject({
+          kind: 'gate',
+          sourceId: result.gateId
+        })
+      })
+
+      // A terminal stage is the end of the chain, not something to interrupt anyone over.
+      it('moves nowhere when a stage succeeds with no forward edge', async () => {
+        const result = await withCodeStage(exits(0), CODE_STAGE, undefined, {
+          ...GRAPH,
+          transitions: []
+        }).onWorkspaceStatusChanged(EVENT)
+
+        expect(result).toMatchObject({ allow: true })
+        expect(result).not.toHaveProperty('moveToStatusId')
+      })
+    })
+
     // A code stage with nothing to run cannot complete; the contract rejects it, and the engine
     // does not invent a command for it either.
     it('does nothing for a code stage with no command', async () => {
@@ -419,6 +581,50 @@ describe('board rule engine', () => {
 
       expect(result).toMatchObject({ allow: false, reason: 'skipped' })
       expect(runCode).not.toHaveBeenCalled()
+    })
+
+    // `worktreePath` is a path on the *execution* host. Running it locally for an SSH workspace
+    // either fails or — worse — hits a same-named local directory and reports success for work
+    // that never touched the real workspace. Same reasoning as the diff-coverage skip.
+    it('refuses a code stage on a remote worktree instead of running it locally', async () => {
+      const runCode = vi.fn()
+
+      const result = await withCodeStage(
+        runCode,
+        CODE_STAGE,
+        async () => 'remote'
+      ).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'code_unsupported_remote' })
+      expect(runCode).not.toHaveBeenCalled()
+    })
+
+    // Nothing is recorded, so the refusal costs the workspace none of its dispatch ceiling.
+    it('records no transition when it refuses a remote code stage', async () => {
+      await withCodeStage(vi.fn(), CODE_STAGE, async () => 'remote').onWorkspaceStatusChanged(EVENT)
+
+      expect(db.listBoardTransitions('wt-1', 0)).toEqual([])
+    })
+
+    // An unreadable host is treated as local, matching the verification runner: refusing every
+    // stage the moment the runtime hiccups would be worse than running where we already are.
+    it('runs a code stage when the host cannot be resolved', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 0,
+        durationMs: 1,
+        stdoutTail: '',
+        stderrTail: '',
+        timedOut: false
+      }))
+
+      const result = await withCodeStage(
+        runCode,
+        CODE_STAGE,
+        async () => 'unknown'
+      ).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: true })
+      expect(runCode).toHaveBeenCalled()
     })
 
     it('still refuses a code stage when the board is killed', async () => {

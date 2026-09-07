@@ -1,3 +1,4 @@
+import { isSurfaceOwnedTerminalTab } from '../../../../../shared/terminal-tab-types'
 import type { AppState } from '../../types'
 import type { Tab } from '../../../../../shared/tab-types'
 import { dedupeTabOrder, ensureGroup, sanitizeRecentTabIds, updateGroup } from '../tab-group-state'
@@ -37,6 +38,11 @@ export function projectWorktreeTabModelReconciliation(
   )
   const legacyRuntimeTerminalTabs = runtimeTerminalTabs.filter((tab) => {
     if (unifiedTerminalEntityIds.has(tab.id)) {
+      return false
+    }
+    // A surface-owned terminal has no unified tab deliberately, not because it lost one. Adopting
+    // it here would put the sidebar's terminal into the tab strip and the split layout.
+    if (isSurfaceOwnedTerminalTab(tab)) {
       return false
     }
     // Why: reconnectable legacy tabs must re-enter the unified model instead of being orphaned.

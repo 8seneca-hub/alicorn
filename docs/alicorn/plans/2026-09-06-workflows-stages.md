@@ -109,7 +109,23 @@ export async function runCodeStage(input: { worktreePath: string; command: strin
 export function codeStageOutcome(result: CodeStageResult): 'succeeded' | 'failed'
 ```
 Flow: task enters a code stage → `runCodeStage` → enqueue a `step_outcome` through the outbox (`stageKey`, `memberId: null`, `backend: 'code'`, `reportSummary: stdoutTail`) → exit 0 takes the stage's forward transition, otherwise its correction edge (or gates with reason `unverified` when none exists). SSH worktrees run through the provider's exec; folder workspaces are allowed.
-- [ ] Tests: exit 0 → forward; non-zero → correction edge; no correction edge → gate; timeout; outcome enqueued once. Commit `feat(alicorn): code stages — deterministic steps that never touch a model`.
+- [x] Tests: exit 0 → forward; non-zero → correction edge; no correction edge → gate; timeout; outcome enqueued once. Commit `feat(alicorn): code stages — deterministic steps that never touch a model`.
+
+**As built.** Two departures from the sketch above, both deliberate:
+
+- **SSH worktrees refuse rather than running through a provider exec.** There is no remote exec seam
+  for an arbitrary authored command, and running one locally against a remote `worktree_path` either
+  fails or silently hits a same-named local directory. The engine resolves the execution host and
+  refuses a remote one — the same posture as the diff-coverage runner's `remote_worktree` skip.
+  Folder workspaces are allowed, as specified.
+- **The outbox row reuses the `step_outcome` kind** with a `source: 'code'` payload carrying the whole
+  input, rather than taking a kind of its own. `ledger_outbox.kind` is a SQLite CHECK constraint, so a
+  new value would mean rebuilding a table holding unsent rows for no gain. No `spend_attribution` or
+  `step_verification` follows: there is no model spend and no member diff.
+
+Main resolves the edge; the renderer performs the move, because the board is renderer state and
+re-entering the ordinary move keeps the metadata write, the task-status sync and the loop and ceiling
+guards identical to a human's drag.
 
 ### Task 9: docs — `docs/alicorn/ARCHITECTURE.md` §6 (tables as built, effective checks union, stage and edge kinds), `CLAUDE.md` *Working in this repo* ("stage keys come from the template; `--phase` is narration"), `docs/alicorn/GRAPH-ENGINEERING.md` (WF5 row → shipped). Commit `docs(alicorn): workflows and stages as built`.
 

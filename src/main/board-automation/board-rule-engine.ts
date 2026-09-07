@@ -8,6 +8,10 @@ import { isBoardAutomationKilled } from './board-kill-switch'
 import { renderBoardPromptTemplate, type BoardRuleStore } from './board-rule-store'
 import type { WorkflowDirectory } from './workflow-directory'
 import { codeStageOutcome, runCodeStage } from '../alicorn/workflows/code-stage-runner'
+import { enqueueCodeStageOutcome } from '../alicorn/workflows/code-stage-outcome-enqueue'
+import { routeCodeStage } from '../alicorn/workflows/code-stage-routing'
+import { enqueueGateInterruption } from '../alicorn/interruptions/interruption-capture'
+import type { Workflow } from '../../shared/alicorn/workflows'
 
 // Why its own budget: an automated start has nobody watching it, so it waits as long as a human
 // start does rather than an ad-hoc number.
@@ -34,8 +38,10 @@ export type BoardDispatchResult =
   | { allow: false; reason: 'skipped'; detail: string }
   | { allow: false; reason: 'start_failed'; detail: string }
   | { allow: false; reason: 'workflow_unavailable'; detail: string }
-  | { allow: true; ranCode: { stageKey: string; exitCode: number } }
-  | { allow: false; reason: 'code_failed'; detail: string }
+  | { allow: true; ranCode: { stageKey: string; exitCode: number }; moveToStatusId?: string }
+  | { allow: false; reason: 'code_failed'; detail: string; moveToStatusId?: string }
+  | { allow: false; reason: 'code_gated'; detail: string; gateId: string }
+  | { allow: false; reason: 'code_unsupported_remote'; detail: string }
   | Extract<GuardVerdict, { allow: false }>
 
 /**
@@ -48,7 +54,14 @@ export type BoardDispatchResult =
 type ColumnBinding =
   | { source: 'stage'; memberId: string; promptTemplate: string; ruleId: string }
   | { source: 'rule'; memberId: string; promptTemplate: string; ruleId: string }
-  | { source: 'code'; command: string; ruleId: string; stageName: string }
+  | {
+      source: 'code'
+      command: string
+      ruleId: string
+      stageName: string
+      /** The stage's own graph, read after the command exits to pick the edge it takes. */
+      workflow: Pick<Workflow, 'stages' | 'transitions'>
+    }
 
 export type BoardRuleEngineDeps = {
   runtime: OrcaRuntimeService
@@ -58,6 +71,12 @@ export type BoardRuleEngineDeps = {
   workflows?: WorkflowDirectory | null
   /** Injected for tests; defaults to the real `runProcess`-backed runner. */
   runCode?: typeof runCodeStage
+  /**
+   * Where the workspace actually lives. A code stage runs on the local machine, so an SSH-hosted
+   * workspace refuses rather than executing against a path that is not this host's. Absent (or
+   * `unknown`) reads as local — see the code-stage branch.
+   */
+  resolveWorktreeHost?: (worktreeId: string) => Promise<'local' | 'remote' | 'unknown'>
   now?: () => number
 }
 
@@ -132,7 +151,8 @@ async function resolveColumnBinding(
             source: 'code',
             command: stage.codeCommand,
             ruleId: stage.key,
-            stageName: stage.name
+            stageName: stage.name,
+            workflow: resolved.workflow
           }
         }
       : { kind: 'none' }
@@ -226,21 +246,72 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
       // A code stage runs here and dispatches nobody: deterministic work must never be routed
       // through a model, and running it inline keeps the board move as its only trigger.
       if (rule.source === 'code') {
+        // `worktreePath` is a path on the *execution* host. Running the command locally for an SSH
+        // workspace either fails outright or — worse — finds a same-named local directory and
+        // reports success for work that never touched the real workspace. `unknown` reads as local,
+        // matching the diff-coverage runner: refusing every stage the moment the runtime hiccups
+        // would be worse than running where we already are. Nothing is recorded, so a refused stage
+        // costs the workspace none of its dispatch ceiling.
+        if ((await deps.resolveWorktreeHost?.(event.worktreeId)) === 'remote') {
+          return {
+            allow: false,
+            reason: 'code_unsupported_remote',
+            detail: `${rule.stageName} runs a command, and this workspace is on a remote host.`
+          }
+        }
+        // The same Run and task-create path a dispatched member takes: a code stage is a step in
+        // the ledger like any other, and a step needs a run and a task to hang on.
+        const codeRun = ensureBoardRun(db, event.repoId)
+        const codeTask = createTaskInRun(deps.runtime, codeRun, {
+          spec: `${rule.stageName}: ${rule.command}`,
+          executionStrategy: 'single'
+        })
         const outcome = await (deps.runCode ?? runCodeStage)({
           worktreePath: event.worktreePath,
           command: rule.command
         })
-        record('dispatched', {})
-        return codeStageOutcome(outcome) === 'succeeded'
-          ? { allow: true, ranCode: { stageKey: rule.ruleId, exitCode: outcome.exitCode } }
-          : {
-              allow: false,
-              reason: 'code_failed',
-              detail:
-                outcome.stderrTail.trim() ||
-                outcome.stdoutTail.trim() ||
-                `${rule.stageName} exited ${outcome.exitCode}.`
-            }
+        const { dispatchId: codeDispatchId } = enqueueCodeStageOutcome(db, {
+          runId: codeRun.id,
+          taskId: codeTask.id,
+          stageKey: rule.ruleId,
+          // A board's repo is its project — the same fallback the worker path's worktree read makes.
+          projectId: event.repoId,
+          repoId: event.repoId,
+          worktreeId: event.worktreeId,
+          result: outcome
+        })
+        record('dispatched', { taskId: codeTask.id, dispatchId: codeDispatchId })
+
+        const settled = codeStageOutcome(outcome)
+        const route = routeCodeStage(rule.workflow, rule.ruleId, settled)
+        const ids = { runId: codeRun.id, taskId: codeTask.id, dispatchId: codeDispatchId }
+        if (settled === 'succeeded') {
+          return {
+            allow: true,
+            ranCode: { stageKey: rule.ruleId, exitCode: outcome.exitCode },
+            ...(route.kind === 'move' ? { moveToStatusId: route.toStatusId } : {})
+          }
+        }
+        const detail =
+          outcome.stderrTail.trim() ||
+          outcome.stdoutTail.trim() ||
+          `${rule.stageName} exited ${outcome.exitCode}.`
+        // A failure the graph does not handle stops here: unverified work never advances on its
+        // own, and the gate is what puts it in front of a human rather than dropping it.
+        if (route.kind === 'gate') {
+          const gate = db.createGate({
+            taskId: codeTask.id,
+            question: `${rule.stageName} failed and the workflow has nowhere to send it. ${detail}`
+          })
+          enqueueGateInterruption(db, ids, { id: gate.id, createdAt: gate.created_at })
+          return { allow: false, reason: 'code_gated', detail: route.detail, gateId: gate.id }
+        }
+        return {
+          allow: false,
+          reason: 'code_failed',
+          detail,
+          ...(route.kind === 'move' ? { moveToStatusId: route.toStatusId } : {})
+        }
       }
 
       const run = ensureBoardRun(db, event.repoId)

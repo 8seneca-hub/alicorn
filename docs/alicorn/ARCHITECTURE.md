@@ -164,7 +164,7 @@ autonomy_policies(id, tenant_id, project_id, stage_key, member_id, mode,
 
 -- Ledger (append-only) ---------------------------------------------------
 step_outcomes    (id, tenant_id, run_id, task_id, dispatch_id, project_id,
-                  repo_id, worktree_id, branch, member_id, backend,
+                  repo_id, worktree_id, branch, member_id, backend, -- backend: claude|codex|grok|openclaude|other|code
                   stage_key, execution_strategy, outcome, files_modified,
                   report_summary, spend_cents, usage,
                   gate_decision, gate_reason, gate_id,
@@ -210,6 +210,14 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
   `FEATURE_DELIVERY_STAGE_KEYS`.
 - **Deleting a member unassigns its stages** (`ON DELETE SET NULL`). An unassigned stage is a visible,
   fixable state; a vanished workflow is not.
+- **A code stage runs on the machine it is authored for, or not at all.** `code_command` is executed
+  through `runProcess` on the desktop; `worktree_path` is a path on the *execution* host, so an
+  SSH-hosted workspace refuses rather than running the command locally, where it would either fail or
+  find a same-named local directory and report success for work that never happened.
+- **A code stage takes an edge or gates; it never simply stops.** Exit 0 takes `on_success`, any other
+  exit takes `on_failure`, and a failure with no correction edge raises a gate with reason
+  `unverified`. Exit 0 is the only success, and a timeout is recorded as exit 124 rather than an
+  absent code — an outcome has to be `succeeded` or `failed`.
 
 ### Rules that keep the ledger honest
 
@@ -227,6 +235,12 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
   still orders.
 - **`member_stage_stats` is a cache.** Updated on write, rebuildable from the ledger. Gate evaluation
   reads it; nothing else may write it.
+- **A code stage is a step like any other.** It records a `step_outcome` with `backend: 'code'`, no
+  `member_id`, and a synthetic `dispatch_id` derived from its task — it dispatches nobody, and the
+  column is `NOT NULL`. `code` is deliberately not a member backend: no member can be configured to
+  run one. No spend row follows (there is no model) and no verification row (diff coverage measures a
+  member's diff), and a stage that refused to run records nothing at all rather than inflating the
+  counts the autonomy policy reads.
 - **A verdict is written once.** `human_verdict` is set by the first signal (a follow-up commit, a
   revert, a reopened task, or a person); a later, different signal is a new event to log, never an
   overwrite.
