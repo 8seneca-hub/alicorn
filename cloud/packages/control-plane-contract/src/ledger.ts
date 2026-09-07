@@ -87,7 +87,15 @@ export const ContextCaptureReadSchema = z.object({
   promptPath: z.string().nullable(),
   contextSlice: z.unknown().nullable()
 })
-export const ContextCaptureListSchema = z.object({ captures: z.array(ContextCaptureReadSchema) })
+// Why a cap: this is the only route that returns capture *content*, and an orchestrated run can
+// hold a thousand dispatches whose prompts alone reach 64 KiB each before contextSlice, which has
+// no size limit of its own. pg buffers the whole result set, so an uncapped read is a memory
+// ceiling. `truncated` makes the cut visible instead of silently showing a partial run.
+export const CONTEXT_CAPTURE_LIST_LIMIT = 200
+export const ContextCaptureListSchema = z.object({
+  captures: z.array(ContextCaptureReadSchema),
+  truncated: z.boolean()
+})
 
 export const ProvenanceReportSchema = z.object({
   repoId: z.string(),

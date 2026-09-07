@@ -2,6 +2,11 @@ import type { ClaudeUsageStore } from '../claude-usage/store'
 import type { CodexUsageStore } from '../codex-usage/store'
 import type { SpendPatch } from '../../shared/alicorn/ledger-inputs'
 
+/** Inverse of parseSqliteUtc. Kept beside it so the pair cannot drift apart. */
+export function toSqliteUtc(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 19).replace('T', ' ')
+}
+
 /** SQLite stores UTC as 'YYYY-MM-DD HH:MM:SS' with no timezone marker. */
 export function parseSqliteUtc(value: string | null): number | null {
   if (value === null) {

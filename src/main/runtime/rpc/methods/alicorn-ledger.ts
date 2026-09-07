@@ -100,9 +100,13 @@ export const ALICORN_LEDGER_METHODS: RpcMethod[] = [
       const rows = params.dead
         ? db.listDeadLedgerOutbox(params.limit)
         : db.listDueLedgerOutbox(params.limit, new Date().toISOString())
+      // Why the whole-table counts and not just the listed page: a misconfigured ledger URL parks
+      // every row in `pending` without ever dead-lettering, so `dead: 0` reads healthy while the
+      // queue grows unboundedly (LG3). The pending total is the only signal that contradicts it.
       return {
         rows: rows.map(toOutboxListRow),
-        deadCount: db.countDeadLedgerOutbox()
+        deadCount: db.countDeadLedgerOutbox(),
+        counts: db.countLedgerOutbox()
       }
     }
   }),

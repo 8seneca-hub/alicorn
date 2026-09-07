@@ -72,7 +72,12 @@ export type WslSpec = WslCommand & {
   env?: Readonly<Record<string, string>>
   timeoutMs?: number
   maxOutputBytes?: number
-  /** Aborts the guest process, not just the promise. */
+  /**
+   * Aborts the `wsl.exe` process tree, not just the promise. Guest-side teardown -- whether the
+   * Linux process inside the distro dies with it -- is not covered by an automated test: the
+   * real-WSL suite is gated to win32 plus ORCA_REAL_WSL_RUNNER_TEST and no CI job sets it.
+   * Applies to the command leg only; the login-PATH probe has its own short budget instead.
+   */
   signal?: AbortSignal
 }
 

@@ -25,15 +25,29 @@ function formatOutboxRow(row: OutboxListRow): string {
   ].join(' | ')
 }
 
+function formatOutboxTotals(result: OutboxListResult): string {
+  const counts = result.counts
+  return counts
+    ? `pending: ${counts.pending} | sent: ${counts.sent} | dead: ${counts.dead}`
+    : `dead: ${result.deadCount}`
+}
+
+// Why totals can appear with no rows listed: `--dead` on a queue stalled behind a bad ledger URL
+// prints "no dead rows", which reads as healthy while thousands of rows sit pending (LG3). An
+// all-zero table stays quiet, so a genuinely empty outbox is not made noisy to catch that case.
+function hasAnyRows(result: OutboxListResult): boolean {
+  const counts = result.counts
+  return counts ? counts.pending + counts.sent + counts.dead > 0 : result.deadCount > 0
+}
+
 function formatOutboxList(result: OutboxListResult, dead: boolean): string {
+  const empty = dead ? 'no dead rows' : 'no pending rows'
   if (result.rows.length === 0) {
-    return dead ? 'no dead rows' : 'no pending rows'
+    return hasAnyRows(result) ? [formatOutboxTotals(result), empty].join('\n') : empty
   }
-  return [
-    `dead: ${result.deadCount}`,
-    OUTBOX_LIST_HEADER,
-    ...result.rows.map(formatOutboxRow)
-  ].join('\n')
+  return [formatOutboxTotals(result), OUTBOX_LIST_HEADER, ...result.rows.map(formatOutboxRow)].join(
+    '\n'
+  )
 }
 
 export const LEDGER_OUTBOX_HANDLERS: Record<string, CommandHandler> = {

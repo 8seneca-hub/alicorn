@@ -8,7 +8,7 @@ import {
   withTenant
 } from '@alicorn-cloud/control-plane-postgres'
 import type { Hono } from 'hono'
-import { ContextCaptureListSchema, InterruptionsReportSchema, ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
+import { CONTEXT_CAPTURE_LIST_LIMIT, ContextCaptureListSchema, InterruptionsReportSchema, ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
 import type { ContextCaptureRead, InterruptionsReport, ProvenanceReport, RunCost } from '@alicorn-cloud/control-plane-contract'
 import { createLedgerApiApp } from './app.js'
 import { loadLedgerApiConfig } from './config.js'
@@ -167,7 +167,24 @@ describePostgres('ledger routes (postgres)', () => {
   it('returns an empty array for a run with no captures, not a 404', async () => {
     const res = await app.request('/v1/ledger/runs/run_does_not_exist/context-captures', { headers: authHeaders })
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ captures: [] })
+    expect(await res.json()).toEqual({ captures: [], truncated: false })
+  })
+
+  // Why: this is the only route returning capture content, and pg buffers the whole result set --
+  // an uncapped run would be a memory ceiling. Truncation must be visible, not silent.
+  it('caps a long run at the list limit and says it truncated', async () => {
+    const runId = 'run_capture_cap'
+    for (let i = 0; i <= CONTEXT_CAPTURE_LIST_LIMIT; i += 1) {
+      await insertContextCapture(pool, 'local', {
+        runId, taskId: 'task_cap', dispatchId: `dispatch_cap_${String(i).padStart(4, '0')}`,
+        prompt: 'p', contextSlice: {}
+      })
+    }
+    const res = await app.request(`/v1/ledger/runs/${runId}/context-captures`, { headers: authHeaders })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { captures: unknown[]; truncated: boolean }
+    expect(body.captures).toHaveLength(CONTEXT_CAPTURE_LIST_LIMIT)
+    expect(body.truncated).toBe(true)
   })
 
   it('patches spend and reports run cost', async () => {

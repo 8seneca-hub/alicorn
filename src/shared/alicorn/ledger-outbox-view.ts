@@ -13,4 +13,11 @@ export type OutboxListRow = {
   createdAt: string
 }
 
-export type OutboxListResult = { rows: OutboxListRow[]; deadCount: number }
+/** Whole-table totals. Optional so an older host that omits them still parses (additive wire change). */
+export type OutboxCounts = { pending: number; sent: number; dead: number }
+
+export type OutboxListResult = {
+  rows: OutboxListRow[]
+  deadCount: number
+  counts?: OutboxCounts
+}

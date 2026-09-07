@@ -136,6 +136,28 @@ describe('ledger outbox CLI', () => {
 
     expect(String(log.mock.calls[0]?.[0])).toBe('no dead rows')
   })
+
+  // Why: a misconfigured ledger URL parks every row in `pending` without dead-lettering any of
+  // them, so "no dead rows" alone reads as healthy while the queue grows unboundedly (LG3).
+  it('shows the pending backlog when --dead finds nothing but the table is not empty', async () => {
+    const call = vi.fn().mockResolvedValue(
+      envelope<OutboxListResult>({
+        rows: [],
+        deadCount: 0,
+        counts: { pending: 41_208, sent: 12, dead: 0 }
+      })
+    )
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    await LEDGER_OUTBOX_HANDLERS['ledger outbox']({
+      flags: new Map([['dead', true]]),
+      client: { call } as unknown as RuntimeClient,
+      cwd: '/tmp/worktree',
+      json: false
+    })
+
+    expect(String(log.mock.calls[0]?.[0])).toBe('pending: 41208 | sent: 12 | dead: 0\nno dead rows')
+  })
 })
 
 describe('ledger outbox-requeue CLI', () => {

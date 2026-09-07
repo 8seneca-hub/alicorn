@@ -103,8 +103,7 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
 
   app.get('/v1/ledger/runs/:runId/context-captures', async (c) => {
     const auth = c.get('auth')
-    const captures = await listContextCapturesForRun(deps.pool, auth.tenantId, c.req.param('runId'))
-    return c.json({ captures })
+    return c.json(await listContextCapturesForRun(deps.pool, auth.tenantId, c.req.param('runId')))
   })
 
   app.get('/v1/ledger/runs/:runId/cost', async (c) => {

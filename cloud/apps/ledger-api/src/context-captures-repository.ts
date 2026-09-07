@@ -1,6 +1,10 @@
 import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
-import type { ContextCaptureInput, ContextCaptureRead } from '@alicorn-cloud/control-plane-contract'
+import {
+  CONTEXT_CAPTURE_LIST_LIMIT,
+  type ContextCaptureInput,
+  type ContextCaptureRead
+} from '@alicorn-cloud/control-plane-contract'
 
 interface ContextCaptureRow {
   dispatch_id: string
@@ -42,24 +46,31 @@ export function insertContextCapture(
 // dispatch_id as tiebreaker keeps the order total when created_at ties.
 // Why withTenant here and not at the caller: tenant scoping is a property of the
 // function, so a route cannot forget it — every sibling repository reads the same way.
+// Why the +1 and the flag: fetching one past the cap is how we know the run had more without a
+// second count query, and reporting it keeps a truncated inspector from looking like a short run.
 export function listContextCapturesForRun(
   pool: pg.Pool,
   tenantId: string,
   runId: string
-): Promise<ContextCaptureRead[]> {
+): Promise<{ captures: ContextCaptureRead[]; truncated: boolean }> {
   return withTenant(pool, tenantId, async (client) => {
     const { rows } = await client.query<ContextCaptureRow>(
       `SELECT dispatch_id, created_at, prompt_bytes, prompt, prompt_path, context_slice
-       FROM context_captures WHERE run_id = $1 ORDER BY created_at ASC, dispatch_id ASC`,
-      [runId]
+       FROM context_captures WHERE run_id = $1 ORDER BY created_at ASC, dispatch_id ASC
+       LIMIT $2`,
+      [runId, CONTEXT_CAPTURE_LIST_LIMIT + 1]
     )
-    return rows.map((r) => ({
-      dispatchId: r.dispatch_id,
-      createdAt: r.created_at.toISOString(),
-      promptBytes: r.prompt_bytes,
-      prompt: r.prompt,
-      promptPath: r.prompt_path,
-      contextSlice: r.context_slice
-    }))
+    const truncated = rows.length > CONTEXT_CAPTURE_LIST_LIMIT
+    return {
+      captures: rows.slice(0, CONTEXT_CAPTURE_LIST_LIMIT).map((r) => ({
+        dispatchId: r.dispatch_id,
+        createdAt: r.created_at.toISOString(),
+        promptBytes: r.prompt_bytes,
+        prompt: r.prompt,
+        promptPath: r.prompt_path,
+        contextSlice: r.context_slice
+      })),
+      truncated
+    }
   })
 }

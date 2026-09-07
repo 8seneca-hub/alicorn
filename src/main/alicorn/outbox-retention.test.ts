@@ -1,13 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { OrchestrationDb } from '../runtime/orchestration/db'
+import { toSqliteUtc } from './run-usage-attribution'
 import { startOutboxRetention } from './outbox-retention'
 
-// Fixed instant so "N days ago" is deterministic; matches sqlite's own
-// datetime('now') text shape ('YYYY-MM-DD HH:MM:SS') for correct string comparison.
+// Fixed instant so "N days ago" is deterministic.
 const NOW_MS = new Date('2026-09-07T12:00:00.000Z').getTime()
 
+// Why the shared formatter and not a local copy: if sqlite's stored shape ever widens, a private
+// copy here would keep fabricating the old form and the cutoff comparison would silently stop
+// matching -- a green test over a broken sweep.
 function daysAgoSqlite(days: number): string {
-  return new Date(NOW_MS - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19).replace('T', ' ')
+  return toSqliteUtc(NOW_MS - days * 24 * 60 * 60 * 1000)
 }
 
 describe('outbox retention', () => {
@@ -110,5 +113,49 @@ describe('outbox retention', () => {
     retention.stop()
 
     expect(result).toEqual({ deleted: 1, counts: { pending: 1, sent: 1, dead: 1 } })
+  })
+
+  // Why this matters more than the interval: a desktop session quit daily never reaches t+24h,
+  // so without a leading sweep retention would never run once for the common usage pattern.
+  it('sweeps shortly after start without waiting for the daily interval', () => {
+    vi.useFakeTimers()
+    try {
+      const { id } = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'old', payload: {} })
+      db.db.prepare('UPDATE ledger_outbox SET sent_at = ? WHERE id = ?').run(daysAgoSqlite(31), id)
+
+      const retention = startOutboxRetention({
+        getDb: () => db,
+        now: () => NOW_MS,
+        startDelayMs: 30_000
+      })
+      expect(db.db.prepare('SELECT id FROM ledger_outbox WHERE id = ?').get(id)).toBeDefined()
+
+      vi.advanceTimersByTime(30_000)
+      retention.stop()
+
+      expect(db.db.prepare('SELECT id FROM ledger_outbox WHERE id = ?').get(id)).toBeUndefined()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('stop() cancels the leading sweep before it fires', () => {
+    vi.useFakeTimers()
+    try {
+      const { id } = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'old', payload: {} })
+      db.db.prepare('UPDATE ledger_outbox SET sent_at = ? WHERE id = ?').run(daysAgoSqlite(31), id)
+
+      const retention = startOutboxRetention({
+        getDb: () => db,
+        now: () => NOW_MS,
+        startDelayMs: 30_000
+      })
+      retention.stop()
+      vi.advanceTimersByTime(60_000)
+
+      expect(db.db.prepare('SELECT id FROM ledger_outbox WHERE id = ?').get(id)).toBeDefined()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
