@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BoardAutomationRule } from '../../shared/global-settings-types'
+import type { WorkflowStage } from '../../shared/alicorn/workflows'
 import { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import { createBoardRuleEngine } from './board-rule-engine'
 import { createBoardRuleStore } from './board-rule-store'
@@ -179,6 +180,8 @@ describe('board rule engine', () => {
       ordinal: 0,
       memberId: 'member-from-stage',
       columnId: 'in-review',
+      kind: 'worker' as const,
+      codeCommand: null,
       reversibility: 'contained' as const,
       inheritedCost: 'low' as const,
       requiredChecks: []
@@ -316,6 +319,116 @@ describe('board rule engine', () => {
         expect.anything(),
         expect.objectContaining({ spec: 'Review alc-49-board.' })
       )
+    })
+  })
+
+  describe('code stages (WF5)', () => {
+    const CODE_STAGE: WorkflowStage = {
+      key: 'format',
+      name: 'Format',
+      ordinal: 0,
+      memberId: null,
+      columnId: 'in-review',
+      kind: 'code' as const,
+      codeCommand: 'pnpm format',
+      reversibility: 'contained' as const,
+      inheritedCost: 'low' as const,
+      requiredChecks: []
+    }
+
+    function withCodeStage(runCode: unknown, stage = CODE_STAGE) {
+      return createBoardRuleEngine({
+        runtime: {} as never,
+        getDb: () => db,
+        rules: createBoardRuleStore(() => ({ boardAutomation: { rules: [RULE] } }) as never),
+        workflows: {
+          resolveColumn: async () => ({
+            kind: 'stage',
+            stage,
+            workflowId: 'wf-1',
+            workflowVersion: 1
+          })
+        } as never,
+        runCode: runCode as never
+      })
+    }
+
+    // Why never a member: routing deterministic work through a model is the most common waste the
+    // framework names, and it also makes the result non-reproducible.
+    it('runs the command and dispatches nobody', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 0,
+        durationMs: 5,
+        stdoutTail: 'formatted',
+        stderrTail: '',
+        timedOut: false
+      }))
+
+      const result = await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: true, ranCode: { stageKey: 'format', exitCode: 0 } })
+      expect(startWorkerForTask).not.toHaveBeenCalled()
+      expect(runCode).toHaveBeenCalledWith(
+        expect.objectContaining({ command: 'pnpm format', worktreePath: EVENT.worktreePath })
+      )
+    })
+
+    it('records the transition so the ceiling counts a code stage too', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 0,
+        durationMs: 1,
+        stdoutTail: '',
+        stderrTail: '',
+        timedOut: false
+      }))
+
+      await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      expect(db.listBoardTransitions('wt-1', 0)[0]).toMatchObject({
+        outcome: 'dispatched',
+        ruleId: 'format'
+      })
+    })
+
+    // Why surface the failure: a code stage is deterministic, so a non-zero exit is a real result
+    // the board should show rather than something to retry blindly.
+    it('reports a non-zero exit with the command output', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 2,
+        durationMs: 1,
+        stdoutTail: '',
+        stderrTail: 'prettier: 3 files changed',
+        timedOut: false
+      }))
+
+      const result = await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'code_failed' })
+      expect(result).toHaveProperty('detail', expect.stringContaining('prettier'))
+    })
+
+    // A code stage with nothing to run cannot complete; the contract rejects it, and the engine
+    // does not invent a command for it either.
+    it('does nothing for a code stage with no command', async () => {
+      const runCode = vi.fn()
+
+      const result = await withCodeStage(runCode, {
+        ...CODE_STAGE,
+        codeCommand: null
+      }).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'skipped' })
+      expect(runCode).not.toHaveBeenCalled()
+    })
+
+    it('still refuses a code stage when the board is killed', async () => {
+      db.setBoardAutomationDisabled('board:repo-1', 'nghia')
+      const runCode = vi.fn()
+
+      const result = await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'killed' })
+      expect(runCode).not.toHaveBeenCalled()
     })
   })
 })

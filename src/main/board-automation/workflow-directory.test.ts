@@ -18,6 +18,8 @@ const WORKFLOW = {
       ordinal: 0,
       memberId: 'member-1',
       columnId: 'in-review',
+      kind: 'worker' as const,
+      codeCommand: null,
       reversibility: 'contained' as const,
       inheritedCost: 'low' as const,
       requiredChecks: []
