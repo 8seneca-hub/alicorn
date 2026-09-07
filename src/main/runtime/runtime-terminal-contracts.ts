@@ -18,6 +18,16 @@ import type { RuntimePtyController } from './runtime-pty-controller-contract'
 import type { RuntimeAgentRowSnapshot } from './runtime-worktree-agent-rows'
 import type { WorkerTerminalHostScope } from './orchestration/worker-terminal-process-liveness'
 
+/**
+ * Tool and env restrictions merged into a resolved agent launch — for a role that must not have
+ * every tool, such as a Foreman lead. Not a caller-supplied launch: it combines with
+ * `startupAgent` rather than replacing the command the runtime builds for it.
+ */
+export type AgentLaunchRestrictions = {
+  disallowedTools?: readonly string[]
+  env?: Record<string, string>
+}
+
 export type TerminalCreateOptions = {
   command?: string
   claudeAgentTeamsSourceCommand?: string
@@ -30,6 +40,7 @@ export type TerminalCreateOptions = {
   launchAgent?: TuiAgent
   startupAgent?: TuiAgent
   launchPreferences?: AgentLaunchPreferences
+  launchRestrictions?: AgentLaunchRestrictions
   terminalColorQueryReplies?: TerminalOscColorQueryReplyColors
   viewMode?: 'terminal' | 'chat'
   startupCommandDelivery?: WorktreeStartupLaunch['startupCommandDelivery']

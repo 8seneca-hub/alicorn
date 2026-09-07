@@ -69,7 +69,7 @@ export async function startWorkerForTask({
 }: StartWorkerForTaskArgs) {
   const requestedWorktree = params.worktree ?? 'current'
   const createsWorktree = requestedWorktree === 'new-child' || requestedWorktree === 'new-top-level'
-  const { agent, launch, stampMember } = await prepareMemberAwareWorkerStart({
+  const { agent, launch, stampMember, leadLaunch } = await prepareMemberAwareWorkerStart({
     params,
     createsWorktree,
     runtime,
@@ -194,6 +194,7 @@ export async function startWorkerForTask({
         worktreeId: resolvedWorktree!.id,
         agent: agent as TuiAgent,
         launchPreferences: launch.preferences,
+        ...(leadLaunch ? { launchRestrictions: leadLaunch } : {}),
         taskId: task.id,
         effects
       })

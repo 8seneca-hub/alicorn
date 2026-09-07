@@ -49,7 +49,7 @@ describe('resolveWorkerMemberLaunch', () => {
         taskId: 't1',
         requestedAgent: 'claude'
       })
-    ).resolves.toEqual({ agent: 'claude', dispatchMember: null })
+    ).resolves.toEqual({ agent: 'claude', dispatchMember: null, leadLaunch: null })
   })
 
   it('rejects an unknown member', async () => {
@@ -79,7 +79,8 @@ describe('resolveWorkerMemberLaunch', () => {
         memberRole: 'developer',
         backend: 'codex',
         reviewBackendBypass: false
-      }
+      },
+      leadLaunch: null
     })
   })
 
@@ -204,5 +205,76 @@ describe('memberBackendToTuiAgent', () => {
     expect(memberBackendToTuiAgent('codex')).toBe('codex')
     expect(memberBackendToTuiAgent('grok')).toBe('grok')
     expect(memberBackendToTuiAgent('openclaude')).toBe('openclaude')
+  })
+})
+
+describe('lead dispatches', () => {
+  let db: OrchestrationDb
+
+  beforeEach(() => {
+    db = new OrchestrationDb(':memory:')
+  })
+
+  afterEach(() => {
+    db.close()
+  })
+
+  it('restricts a Claude-backed lead at launch', async () => {
+    const result = await resolveWorkerMemberLaunch({
+      db,
+      directory: directory(member('other', 'claude')),
+      taskId: 't1',
+      memberId: 'm1',
+      role: 'lead'
+    })
+    expect(result.leadLaunch?.disallowedTools).toContain('Write')
+    expect(result.leadLaunch?.env.ALICORN_ROLE).toBe('lead')
+  })
+
+  // Why refuse: a lead that can quietly write code makes a run look orchestrated while being
+  // nothing of the sort, and nothing downstream would notice.
+  it('refuses a backend that cannot restrict its tools', async () => {
+    await expect(
+      resolveWorkerMemberLaunch({
+        db,
+        directory: directory(member('other', 'codex')),
+        taskId: 't1',
+        memberId: 'm1',
+        role: 'lead'
+      })
+    ).rejects.toThrow(OrchestrationError)
+  })
+
+  it('names the refusing backend in the error code', async () => {
+    let caught: unknown
+    try {
+      await resolveWorkerMemberLaunch({
+        db,
+        directory: directory(member('other', 'codex')),
+        taskId: 't1',
+        memberId: 'm1',
+        role: 'lead'
+      })
+    } catch (error) {
+      caught = error
+    }
+    expect((caught as OrchestrationError).code).toBe('lead_backend_unsupported')
+  })
+
+  // A lead is a member, always: an anonymous lead has no backend to restrict.
+  it('requires a member for a lead dispatch', async () => {
+    await expect(
+      resolveWorkerMemberLaunch({ db, directory: directory(null), taskId: 't1', role: 'lead' })
+    ).rejects.toThrow('pass --member')
+  })
+
+  it('leaves an ordinary worker dispatch unrestricted', async () => {
+    const result = await resolveWorkerMemberLaunch({
+      db,
+      directory: directory(member('developer', 'codex')),
+      taskId: 't1',
+      memberId: 'm1'
+    })
+    expect(result.leadLaunch).toBeNull()
   })
 })

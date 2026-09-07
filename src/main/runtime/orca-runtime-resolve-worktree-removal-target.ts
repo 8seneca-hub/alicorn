@@ -19,6 +19,7 @@ import { isTuiAgentEnabled } from '../../shared/tui-agent-selection'
 import { resolveBareAgentLaunchCommand } from './runtime-agent-launch-resolution'
 import { buildAgentStartupPlan } from '../../shared/tui-agent-startup'
 import {
+  appendDisallowedToolsLaunchArgs,
   resolveTuiAgentLaunchArgs,
   resolveTuiAgentLaunchEnv
 } from '../../shared/tui-agent-launch-defaults'
@@ -154,6 +155,11 @@ export class OrcaRuntimeWithResolveWorktreeRemovalTarget extends OrcaRuntimeWith
       opts.launchAgent ||
       opts.startupCommandDelivery ||
       opts.claudeAgentTeamsSourceCommand
+    // Why refuse rather than launch: restrictions the runtime cannot apply would leave a role that
+    // must not have every tool holding all of them, and nothing downstream would notice.
+    if (opts.launchRestrictions && !opts.startupAgent) {
+      throw new Error('Launch restrictions require a startupAgent the runtime resolves itself.')
+    }
     const store = this.store
     if (opts.startupAgent) {
       // Why: falling through unresolved would spawn a bare shell that can only time
@@ -198,12 +204,19 @@ export class OrcaRuntimeWithResolveWorktreeRemovalTarget extends OrcaRuntimeWith
     }
 
     const sessionOptions = this.toAgentSessionOptions(opts.launchPreferences)
+    const restrictions = opts.launchRestrictions
     const startupPlan = buildAgentStartupPlan({
       agent,
       prompt: '',
       cmdOverrides: settings.agentCmdOverrides ?? {},
-      agentArgs: resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
-      agentEnv: resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),
+      agentArgs: appendDisallowedToolsLaunchArgs(
+        resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
+        restrictions?.disallowedTools
+      ),
+      agentEnv: {
+        ...resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),
+        ...restrictions?.env
+      },
       sessionOptions,
       sessionOptionsOverrideAgentArgs: Boolean(sessionOptions),
       platform,
