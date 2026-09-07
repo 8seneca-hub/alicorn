@@ -88,6 +88,38 @@ export function VoiceDictationSettingsSection({
 
       <Separator />
 
+      <div className="flex items-center justify-between gap-4 py-2">
+        <div className="space-y-0.5">
+          <Label>
+            {translate(
+              'auto.components.settings.VoicePane.confirmBeforeDestructive',
+              'Confirm before destructive instructions'
+            )}
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            {translate(
+              'auto.components.settings.VoicePane.confirmBeforeDestructiveHint',
+              'Show what was heard before sending an agent an instruction that cannot be undone.'
+            )}
+          </p>
+        </div>
+        <Switch
+          // Why `!== false`: absent in profiles written before this setting, and opting out of the
+          // confirmation has to be deliberate.
+          checked={voiceSettings.confirmBeforeDestructive !== false}
+          aria-label={translate(
+            'auto.components.settings.VoicePane.confirmBeforeDestructive',
+            'Confirm before destructive instructions'
+          )}
+          disabled={!voiceSettings.enabled}
+          onCheckedChange={(checked) =>
+            onUpdateVoiceSettings({ confirmBeforeDestructive: checked })
+          }
+        />
+      </div>
+
+      <Separator />
+
       <VoiceMicrophoneSetting
         voiceSettings={voiceSettings}
         onUpdateVoiceSettings={onUpdateVoiceSettings}

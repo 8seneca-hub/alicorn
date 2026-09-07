@@ -15,6 +15,9 @@ import { showDictationStartErrorToast } from './dictation-start-error-toast'
 import { useHoldDictationGesture } from './use-hold-dictation-gesture'
 import { DICTATION_CONTROL_EVENT, type DictationControlAction } from './dictation-control-events'
 import { publishDictationMeter } from './dictation-meter-store'
+import { ConfirmDestructiveDictationDialog } from './ConfirmDestructiveDictationDialog'
+import { useDictationAgentPrompt } from './use-dictation-agent-prompt'
+import { resolveDictationStartModel } from './dictation-start-preconditions'
 
 export function DictationController() {
   const dictationState = useAppStore((s) => s.dictationState)
@@ -44,6 +47,7 @@ export function DictationController() {
   const erroredSessionIdsRef = useRef(new Set<string>())
   const intentionalTargetCancellationRef = useRef(false)
   const insertedFinalTranscriptRef = useRef('')
+  const { actions: agentPrompt, pending: pendingDestructivePrompt } = useDictationAgentPrompt()
   // Why: push-to-talk restarts capture per utterance; toast once per preference,
   // not once per press, while the selected mic stays gone.
   const micFallbackNotifiedForRef = useRef<string | null>(null)
@@ -76,6 +80,7 @@ export function DictationController() {
           )
         )
       }
+      agentPrompt.deliver(sessionErrored)
       insertionTargetRef.current = null
       finalTranscriptReceivedRef.current = false
       insertedFinalTranscriptRef.current = ''
@@ -88,7 +93,7 @@ export function DictationController() {
       setDictationState('idle')
       setPartialTranscript('')
     },
-    [setDictationState, setPartialTranscript, stopCapture, getCapturedChunkCount]
+    [setDictationState, setPartialTranscript, stopCapture, getCapturedChunkCount, agentPrompt]
   )
 
   const startDictation = useCallback(async () => {
@@ -96,25 +101,8 @@ export function DictationController() {
       return
     }
 
-    const modelId = settings?.voice?.sttModel
+    const modelId = resolveDictationStartModel(settings?.voice)
     if (!modelId) {
-      toast('No speech model selected. Download one in Settings > Voice.', {
-        action: {
-          label: translate(
-            'auto.components.dictation.DictationController.bb7f599ee7',
-            'Open Settings'
-          ),
-          onClick: () => {
-            useAppStore.getState().openSettingsTarget({ pane: 'voice', repoId: null })
-            useAppStore.getState().openSettingsPage()
-          }
-        }
-      })
-      return
-    }
-
-    if (!settings?.voice?.enabled) {
-      toast('Voice dictation is disabled. Enable it in Settings > Voice.')
       return
     }
 
@@ -123,6 +111,7 @@ export function DictationController() {
     dictationRunRef.current = runId
     activeSessionIdRef.current = sessionId
     insertionTargetRef.current = captureInsertionTarget()
+    agentPrompt.beginSession(insertionTargetRef.current)
     stopRequestedDuringStartRef.current = false
     finalTranscriptReceivedRef.current = false
     erroredSessionIdsRef.current.clear()
@@ -251,7 +240,8 @@ export function DictationController() {
     finishDictationSession,
     drainStoppedSession,
     setPartialTranscript,
-    recordFeatureInteraction
+    recordFeatureInteraction,
+    agentPrompt
   ])
 
   const stopDictation = useCallback(async () => {
@@ -366,7 +356,10 @@ export function DictationController() {
       setPartialTranscript('')
       finalTranscriptReceivedRef.current = true
       const target = insertionTargetRef.current
-      if (target) {
+      // Accumulate only when routed to an agent — delivery happens once, in finishDictationSession.
+      if (target && agentPrompt.bufferSegment(data.text)) {
+        // buffered
+      } else if (target) {
         const textToInsert = formatFinalTranscriptSegment(
           data.text,
           insertedFinalTranscriptRef.current
@@ -426,7 +419,16 @@ export function DictationController() {
       cleanupStopped()
       cleanupError()
     }
-  }, [setPartialTranscript, setDictationState, stopCapture, discardBufferedAudio])
+  }, [setPartialTranscript, setDictationState, stopCapture, discardBufferedAudio, agentPrompt])
 
-  return <DictationIndicator />
+  return (
+    <>
+      <DictationIndicator />
+      <ConfirmDestructiveDictationDialog
+        pending={pendingDestructivePrompt}
+        onCancel={agentPrompt.cancel}
+        onConfirm={agentPrompt.confirm}
+      />
+    </>
+  )
 }
