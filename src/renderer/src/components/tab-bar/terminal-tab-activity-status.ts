@@ -116,7 +116,7 @@ function getOrCreateTerminalTabActivityFlags(
 // Why: mirror the sidebar summary's parse — live entries on restored/imported
 // sessions can still carry pre-UUID numeric pane keys. Keep the numeric pane id
 // so the title-heuristic dedup in resolveWorktreeStatus can still match them.
-function parseAgentStatusPaneKey(paneKey: string): { tabId: string; paneId: string } | null {
+export function parseAgentStatusPaneKey(paneKey: string): { tabId: string; paneId: string } | null {
   const parsed = parsePaneKey(paneKey)
   if (parsed) {
     return { tabId: parsed.tabId, paneId: parsed.leafId }

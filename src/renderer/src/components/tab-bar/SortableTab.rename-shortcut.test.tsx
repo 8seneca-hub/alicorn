@@ -45,6 +45,11 @@ vi.mock('react', async () => {
     useRef<T>(initial: T) {
       return { current: initial }
     },
+    // Why: this harness expands child components as plain functions, so an external-store
+    // subscriber (the tab's run-cost badge) resolves to its snapshot with no React runtime.
+    useSyncExternalStore<T>(_subscribe: unknown, getSnapshot: () => T) {
+      return getSnapshot()
+    },
     useState<T>(initial: T | (() => T)) {
       const stateIndex = reactHookRuntime.index++
       if (!(stateIndex in reactHookRuntime.states)) {

@@ -3522,6 +3522,9 @@
           "TabBarQuickCommandHostLoadStatus": {
             "82e294f3ca": "Host unavailable",
             "7c129b08ff": "Loading host…"
+          },
+          "TabRunCostBadge": {
+            "estimatedSpend": "Estimated spend for this tab (API-equivalent)"
           }
         }
       },
