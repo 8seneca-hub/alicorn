@@ -122,7 +122,7 @@ running cost are both on the tab already. What is left is the internal identity 
 session rather than worktree), which buys multi-repo sessions later. **Do not schedule it as part of
 this plan** — re-scope it as its own ticket, sized against the numbers above, and sequence it with the
 multi-repo feature workspace (MR1) that actually wants it.
-- [ ] Re-scope as its own ticket against the measurement above; not part of this plan.
+- [x] Re-scoped as **ALC-100 (UI5)** on 2026-09-07, carrying the measurement above; sequenced with MR1.
 
 ### Task 7 (UI3): Context Inspector
 `right-sidebar/context-inspector/ContextInspectorPanel.tsx` (+ test): for the active tab's run, list context captures (`GET /v1/ledger/provenance` → captures per dispatch: prompt, `contextSlice` metadata, `promptSha256`, truncated flag) with a "what the member saw" view; link to the provenance panel. IPC `alicorn:context:list` via `alicornFetch('ledger', …)`. Depends on D5 (captures) and PV1.
@@ -153,8 +153,19 @@ route has to buffer every segment and submit once when the session stops, which 
 this plan should answer first: what happens to a buffered prompt when dictation errors or is
 cancelled, and whether the indicator should show the buffer while it fills.
 - [x] Commit `feat(interface): classify a dictated transcript — agent prompt vs insert, destructive or not`.
-- [ ] Decide the buffer-and-submit lifecycle above, then wire `DictationController`,
-      `ConfirmDestructiveDictationDialog`, and the `voice.confirmBeforeDestructive` setting.
+**Decided and landed 2026-09-07.** Both open questions were answered conservatively:
+*an errored or cancelled session discards its buffer* (a truncated transcript is likely cut
+mid-sentence, and a half-heard instruction reaching an agent is worse than one that never arrives;
+aborting is not a request to send what had been said so far), and *no new indicator UI* — the dialog
+shows the transcript verbatim instead, because STT mishears and the point of the pause is to see what
+would actually be sent.
+
+One limit worth knowing: **routing only fires for a single-pane agent tab.** A split inside an agent
+tab can be a plain shell, and `DictationInsertionTarget` carries the DOM's numeric pane id rather
+than the pane key's leaf id, so the focused half of a split is not identifiable without new plumbing.
+Ambiguity falls back to typing, because sending `ls -la` to an agent as a prompt is worse than typing
+a sentence into a shell. Lifting this needs the target to carry a leaf id.
+- [x] Localise. Commit `feat(interface): voice routes to the agent as a prompt; destructive intent confirms`.
 
 ### Task 9: docs — as built
 `CLAUDE.md` *Interface decisions* carries both departures as built: the tab-bar half of "a tab is a
