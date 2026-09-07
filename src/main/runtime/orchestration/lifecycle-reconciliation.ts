@@ -1,32 +1,11 @@
+import { FOREMAN_REPORT_MAX_CHARS } from '../../../shared/alicorn/foreman-report'
 import type { OrchestrationDb } from './db'
 import type { MessageRow, WorkerReportOutcome } from './types'
-import { parsePaneKey } from '../../../shared/stable-pane-id'
+import {
+  buildLifecycleAuthorityRejectionReason,
+  hasLifecycleAuthority
+} from './lifecycle-authority'
 import { enqueueInterruptionsOnSettlement } from '../../alicorn/interruptions/interruption-capture'
-
-// Why: the tab half can change on pane break-out, while opaque legacy keys
-// have no safe equivalence beyond exact equality.
-function isSamePane(assigneePaneKey: string, senderPaneKey: string): boolean {
-  if (assigneePaneKey === senderPaneKey) {
-    return true
-  }
-  const assigneeLeaf = parsePaneKey(assigneePaneKey)?.leafId
-  const senderLeaf = parsePaneKey(senderPaneKey)?.leafId
-  return Boolean(assigneeLeaf && senderLeaf && assigneeLeaf === senderLeaf)
-}
-
-function hasLifecycleAuthority(
-  dispatch: { assignee_handle: string | null; assignee_pane_key: string | null },
-  msg: MessageRow
-): boolean {
-  if (dispatch.assignee_pane_key) {
-    return Boolean(
-      msg.sender_pane_key && isSamePane(dispatch.assignee_pane_key, msg.sender_pane_key)
-    )
-  }
-  // Why: rows created before pane identity existed can only use the exact
-  // handle recorded at dispatch; payload knowledge alone is not authority.
-  return dispatch.assignee_handle === msg.from_handle
-}
 
 export type LifecycleReconciliationResult =
   | { action: 'ignored' }
@@ -51,6 +30,7 @@ export type LifecycleRejectionCode =
   | 'task_dispatch_mismatch'
   | 'inactive_dispatch'
   | 'stale_dispatch'
+  | 'body_too_large'
 
 export type LifecycleRejectionResult = {
   action: 'rejected'
@@ -266,6 +246,24 @@ function reconcileWorkerDoneMessage(
     db.convertLifecycleMessageToRejection(msg.id, 'sender_not_assignee', reason)
     return { action: 'rejected', code: 'sender_not_assignee', reason }
   }
+  // Why re-check what the CLI already bounded: the CLI shrinks the body before it crosses the
+  // wire, but a worker can call this RPC directly. An orchestrated run's lead reads this report
+  // into its own context, so the ceiling is enforced where the report is actually accepted.
+  // Length first: the cheap check short-circuits the strategy read for the ordinary case.
+  const bodyLength = msg.body?.length ?? 0
+  if (
+    bodyLength > FOREMAN_REPORT_MAX_CHARS &&
+    db.getTaskExecutionStrategy(taskId).strategy === 'orchestrated'
+  ) {
+    return rejectLifecycleMessage(
+      db,
+      msg,
+      'body_too_large',
+      `worker_done body is ${bodyLength} characters; an orchestrated run accepts at most ${FOREMAN_REPORT_MAX_CHARS}. Write the detail to a file and reference it with --report-path.`,
+      onLog
+    )
+  }
+
   // Why: `orchestration.send` can release the DB lock before waking the
   // coordinator; the later coordinator read still needs to observe completion.
   const filesModified =
@@ -317,18 +315,6 @@ function rejectLifecycleMessage(
   onLog(`Warning: ${msg.type} rejected: ${reason}`)
   db.convertLifecycleMessageToRejection(msg.id, code, reason)
   return { action: 'rejected', code, reason }
-}
-
-function buildLifecycleAuthorityRejectionReason(
-  dispatchId: string,
-  dispatch: { assignee_handle: string | null; assignee_pane_key: string | null },
-  msg: MessageRow
-): string {
-  return (
-    `dispatch ${dispatchId} expected handle ${dispatch.assignee_handle ?? '<unknown>'}, ` +
-    `pane ${dispatch.assignee_pane_key ?? '<legacy>'}; received handle ${msg.from_handle}, ` +
-    `pane ${msg.sender_pane_key ?? '<missing>'}`
-  )
 }
 
 function suppressEarlierHeartbeats(

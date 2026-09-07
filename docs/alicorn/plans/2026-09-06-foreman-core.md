@@ -98,7 +98,17 @@ The pass-through preserves `body: undefined` rather than coercing to `''` — a 
 ### Task 2 (FM2): Server-side defence in depth
 
 **Files:** `lifecycle-reconciliation.ts` (+ test), `federation-worker-report-payload.ts`, `orchestration-schemas.ts` (`SendParams.body` `.max(FOREMAN_REPORT_MAX_CHARS * 4)` as an absolute sanity cap for all runs).
-- [ ] `worker_done` with body > cap on an orchestrated task → `{ action: 'rejected', code: 'body_too_large' }`; single runs unaffected below the absolute cap. Commit `feat(orchestration): reject oversized worker reports server-side`.
+- [x] `worker_done` with body > cap on an orchestrated task → `{ action: 'rejected', code: 'body_too_large' }`; single runs unaffected below the absolute cap. Commit `feat(orchestration): reject oversized worker reports server-side`.
+
+**As built.** The check sits after the lifecycle-authority check, so a sender who is not the
+assignee is still rejected as `sender_not_assignee` rather than being told its report is too large.
+Length is tested before the strategy read, so the ordinary case does not pay a DB lookup.
+`federation-worker-report-payload.ts` needed no change — it carries no body.
+
+The check pushed `lifecycle-reconciliation.ts` past the 300-line cap, so the lifecycle-authority
+helpers (`hasLifecycleAuthority`, `buildLifecycleAuthorityRejectionReason` and `isSamePane`) moved
+to `lifecycle-authority.ts` unchanged. That file is shared with the ledger module, so the split was
+chosen to be the part nobody else is editing.
 
 ---
 
