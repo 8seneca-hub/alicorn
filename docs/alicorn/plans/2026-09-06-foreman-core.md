@@ -122,7 +122,22 @@ export function renderJournal(j: Journal): string; export function parseJournal(
 export function journalPath(worktreePath: string, runId: string): string   // .foreman/<runId>/journal.md
 export async function readJournal(path): Promise<Journal | null>; export async function writeJournal(path, j): Promise<void>   // atomic write (tmp + rename)
 ```
-- [ ] Commit `feat(foreman): Feature Journal on disk — format, parse, atomic write`.
+- [x] Commit `feat(foreman): Feature Journal on disk — format, parse, atomic write`.
+
+**As built** — three deviations, all forced by making the template actually round-trip:
+- The template's plan table could not carry the type. Its header said `Owner` while its example put
+  a *title* there, and it had no column for `dispatchId`. The table is now
+  `Node | Title | Owner | Depends on | Status | Model | Dispatch`, and `foreman-templates.md` was
+  updated to match — a parity test parses the document's own template, so the two cannot drift.
+- The template's example used `running` as a *node* status, which is not in the node vocabulary.
+  Node statuses are `pending | dispatched | done | failed | blocked`; the example now uses them.
+- Run status is the union of both vocabularies — the template's `planning`/`blocked` and the plan
+  interface's `paused`/`failed` — because a hand-written journal must parse and a resumed run needs
+  to tell paused from failed.
+
+The template header now carries concrete values rather than `<placeholders>`: the block is parsed by
+a test, so it has to be a real example. Split across `journal-types.ts`, `journal-markdown.ts` and
+`journal.ts` for the line cap.
 
 ---
 
