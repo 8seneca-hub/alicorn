@@ -2,6 +2,8 @@ import { readFile as fsReadFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { runProcess as defaultRunProcess } from '../../../shared/child-process/run-process'
 import { gitExecFileAsync } from '../../git/command-runner/git-exec-file'
+import { runWslProcess as defaultRunWslProcess, type WslSpec } from '../../wsl/wsl-runner'
+import { toLinuxPath } from '../../../shared/wsl-paths'
 import type { DiffCoverageCheck } from '../../../shared/alicorn/members'
 import type { StepVerificationInput } from '../../../shared/alicorn/ledger-inputs'
 import { parseLcov } from './lcov-parser'
@@ -20,6 +22,7 @@ export type RunDiffCoverageCheckInput = {
   check: DiffCoverageCheck
   gitOptions?: { wslDistro?: string }
   runProcess?: typeof defaultRunProcess
+  runWsl?: typeof defaultRunWslProcess
   gitExec?: (argv: string[], options?: { signal?: AbortSignal }) => Promise<{ stdout: string }>
   readFile?: typeof fsReadFile
   /** Ties the command and the git diff to the worker's row-level timeout. */
@@ -31,12 +34,31 @@ export type RunDiffCoverageCheckResult = {
   detail: Record<string, unknown>
 }
 
+/** Same `/bin/sh -lc` command line as the POSIX host branch, run inside the WSL guest instead. */
+function wslSpecForCheck(
+  distro: string,
+  worktreePath: string,
+  command: string,
+  timeoutMs: number
+): WslSpec {
+  return {
+    program: '/bin/sh',
+    args: ['-lc', command],
+    distro,
+    loginPath: 'preferred',
+    cwd: toLinuxPath(worktreePath),
+    timeoutMs,
+    maxOutputBytes: 1_000_000
+  }
+}
+
 /** Runs a project's diff_coverage required check: optional command, then diff x lcov. */
 export async function runDiffCoverageCheck(
   input: RunDiffCoverageCheckInput
 ): Promise<RunDiffCoverageCheckResult> {
   const { worktreePath, baseRef, check } = input
   const runProcess = input.runProcess ?? defaultRunProcess
+  const runWsl = input.runWsl ?? defaultRunWslProcess
   const gitExec =
     input.gitExec ??
     ((argv: string[], options?: { signal?: AbortSignal }) =>
@@ -49,15 +71,18 @@ export async function runDiffCoverageCheck(
   const readFile = input.readFile ?? fsReadFile
 
   if (check.command) {
+    const distro = input.gitOptions?.wslDistro
     const isWindows = process.platform === 'win32'
-    const result = await runProcess({
-      program: isWindows ? (process.env.ComSpec ?? 'cmd.exe') : '/bin/sh',
-      args: isWindows ? ['/d', '/s', '/c', check.command] : ['-lc', check.command],
-      cwd: worktreePath,
-      timeoutMs: check.timeoutMs,
-      maxOutputBytes: 1_000_000,
-      signal: input.signal
-    })
+    const result = distro
+      ? await runWsl(wslSpecForCheck(distro, worktreePath, check.command, check.timeoutMs))
+      : await runProcess({
+          program: isWindows ? (process.env.ComSpec ?? 'cmd.exe') : '/bin/sh',
+          args: isWindows ? ['/d', '/s', '/c', check.command] : ['-lc', check.command],
+          cwd: worktreePath,
+          timeoutMs: check.timeoutMs,
+          maxOutputBytes: 1_000_000,
+          signal: input.signal
+        })
     if (result.code !== 0) {
       return {
         status: 'error',

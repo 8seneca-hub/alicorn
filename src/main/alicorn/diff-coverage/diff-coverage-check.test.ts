@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { runDiffCoverageCheck } from './diff-coverage-check'
 import { gitExecFileAsync } from '../../git/command-runner/git-exec-file'
+import { buildWslExecArgs } from '../../../shared/wsl-login-shell-command'
 import type { DiffCoverageCheck } from '../../../shared/alicorn/members'
 import type { ProcessResult } from '../../../shared/child-process/process-spec'
 import type { runProcess as RunProcessFn } from '../../../shared/child-process/run-process'
+import type { runWslProcess as RunWslFn, WslResult } from '../../wsl/wsl-runner'
 import type { readFile as ReadFileFn } from 'node:fs/promises'
 
 vi.mock('../../git/command-runner/git-exec-file', () => ({
@@ -61,6 +63,18 @@ function fakeRunProcess(result: Partial<ProcessResult> = {}): typeof RunProcessF
     ...result
   }
   return vi.fn(async () => full) as unknown as typeof RunProcessFn
+}
+
+function fakeRunWsl(result: Partial<WslResult> = {}): typeof RunWslFn {
+  const full: WslResult = {
+    environmentResolved: true,
+    code: 0,
+    stdout: '',
+    stderr: '',
+    timedOut: false,
+    ...result
+  }
+  return vi.fn(async () => full) as unknown as typeof RunWslFn
 }
 
 describe('runDiffCoverageCheck', () => {
@@ -130,6 +144,80 @@ describe('runDiffCoverageCheck', () => {
     } finally {
       Object.defineProperty(process, 'platform', { value: originalPlatform })
     }
+  })
+
+  it('routes the coverage command through WSL for a WSL-hosted worktree', async () => {
+    const runProcess = fakeRunProcess()
+    const runWsl = fakeRunWsl()
+
+    await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: { ...CHECK, command: 'pnpm test' },
+      gitOptions: { wslDistro: 'Ubuntu' },
+      runProcess,
+      runWsl,
+      gitExec: fakeGitExec(),
+      readFile: fakeReadFile()
+    })
+
+    expect(runProcess).not.toHaveBeenCalled()
+    expect(runWsl).toHaveBeenCalledTimes(1)
+    const spec = vi.mocked(runWsl).mock.calls[0][0]
+    expect(spec.distro).toBe('Ubuntu')
+    expect(spec.loginPath).toBe('preferred')
+    expect(spec.cwd).toBe('/repo')
+    expect(buildWslExecArgs(spec.distro, [spec.program as string, ...(spec.args ?? [])])).toContain(
+      '--exec'
+    )
+  })
+
+  it('produces the same command-stage error shape as the host path on a non-zero WSL exit', async () => {
+    const runWsl = fakeRunWsl({ code: 2, stderr: 'boom' })
+
+    const result = await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: { ...CHECK, command: 'pnpm test' },
+      gitOptions: { wslDistro: 'Ubuntu' },
+      runWsl,
+      gitExec: fakeGitExec(),
+      readFile: fakeReadFile()
+    })
+
+    expect(result).toEqual({
+      status: 'error',
+      detail: { stage: 'command', code: 2, stderrTail: 'boom' }
+    })
+  })
+
+  it('does not call runWsl when no wslDistro is set, and still forwards the signal to runProcess', async () => {
+    const runProcess = fakeRunProcess()
+    const runWsl = fakeRunWsl()
+    const controller = new AbortController()
+
+    await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: { ...CHECK, command: 'pnpm test' },
+      runProcess,
+      runWsl,
+      gitExec: fakeGitExec(),
+      readFile: fakeReadFile(),
+      signal: controller.signal
+    })
+
+    expect(runWsl).not.toHaveBeenCalled()
+    expect(runProcess).toHaveBeenCalledWith(
+      expect.objectContaining({
+        program: '/bin/sh',
+        args: ['-lc', 'pnpm test'],
+        cwd: '/repo',
+        timeoutMs: 30_000,
+        maxOutputBytes: 1_000_000,
+        signal: controller.signal
+      })
+    )
   })
 
   it('runs git diff with quotePath/ext-diff/prefix flags ahead of the ref range', async () => {
