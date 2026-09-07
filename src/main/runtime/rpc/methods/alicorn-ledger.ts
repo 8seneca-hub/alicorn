@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { defineMethod, type RpcMethod } from '../core'
-import { OptionalBoolean, OptionalFiniteNumber, OptionalString, requiredString } from '../schemas'
+import { OptionalBoolean, OptionalPositiveInt, OptionalString } from '../schemas'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
 import {
   alicornFetch,
@@ -8,7 +8,8 @@ import {
   ControlPlaneUnavailableError
 } from '../../../alicorn/control-plane-http'
 import type { InterruptionsReport } from '../../../../shared/alicorn/ledger-report'
-import type { LedgerOutboxRow } from '../../orchestration/db/alicorn/alicorn-rows'
+import type { OutboxListRow, OutboxListResult } from '../../../../shared/alicorn/ledger-outbox-view'
+import type { LedgerOutboxKind, LedgerOutboxRow } from '../../orchestration/db/alicorn/alicorn-rows'
 
 const LedgerReportParams = z.object({
   stageKey: OptionalString,
@@ -23,15 +24,26 @@ const QUERY_FIELDS = ['stageKey', 'projectId', 'memberId', 'since', 'until'] as 
 
 const OutboxListParams = z.object({
   dead: OptionalBoolean,
-  limit: OptionalFiniteNumber
+  limit: OptionalPositiveInt
 })
 
-const OutboxRequeueParams = z.object({
-  id: requiredString('Missing --id')
-})
+const OutboxRequeueParams = z
+  .object({
+    id: OptionalString,
+    all: OptionalBoolean,
+    kind: OptionalString
+  })
+  .superRefine((params, ctx) => {
+    if (Boolean(params.id) === Boolean(params.all)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Provide exactly one of --id or --all'
+      })
+    }
+  })
 
 // Why: the wire shape is camelCase; the DB row mirrors SQLite columns directly.
-function toOutboxListRow(row: LedgerOutboxRow) {
+function toOutboxListRow(row: LedgerOutboxRow): OutboxListRow {
   return {
     id: row.id,
     kind: row.kind,
@@ -83,7 +95,7 @@ export const ALICORN_LEDGER_METHODS: RpcMethod[] = [
   defineMethod({
     name: 'ledger.outboxList',
     params: OutboxListParams,
-    handler: (params, { runtime }) => {
+    handler: (params, { runtime }): OutboxListResult => {
       const db = runtime.getOrchestrationDb()
       const rows = params.dead
         ? db.listDeadLedgerOutbox(params.limit)
@@ -100,7 +112,12 @@ export const ALICORN_LEDGER_METHODS: RpcMethod[] = [
     params: OutboxRequeueParams,
     handler: (params, { runtime }) => {
       const db = runtime.getOrchestrationDb()
-      return { requeued: db.requeueLedgerOutbox(params.id) }
+      if (params.all) {
+        return {
+          requeuedCount: db.requeueAllDeadLedgerOutbox(params.kind as LedgerOutboxKind | undefined)
+        }
+      }
+      return { requeued: db.requeueLedgerOutbox(params.id as string) }
     }
   })
 ]

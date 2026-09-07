@@ -12,8 +12,10 @@ function backoffMs(attempts: number): number {
 export type RowOutcome = { kind: 'sent' } | { kind: 'failed'; error: unknown }
 
 /**
- * The single place a row is marked sent, failed or dead, so the drainer and the
- * worker (Task 4) can't drift apart on retry-vs-dead-letter policy.
+ * The single place a row is marked failed or dead, and sent for every kind except
+ * step_outcome — the drainer's handleStepOutcome marks that one sent inside its own
+ * transaction instead (LH-R2), because that transaction also enqueues the step's
+ * follow-up rows and both writes must commit or roll back together.
  */
 export function settleOutboxRow(
   db: OrchestrationDb,
@@ -22,7 +24,11 @@ export function settleOutboxRow(
   deps: {
     now: () => number
     warn: (message: string, detail: Record<string, unknown>) => void
-    throttledWarn: (message: string, detail: Record<string, unknown>) => void
+    throttledWarn: (
+      message: string,
+      detail: Record<string, unknown>,
+      options?: { force?: boolean }
+    ) => void
   }
 ): 'sent' | 'retry' | 'dead' | 'stop_pass' {
   if (outcome.kind === 'sent') {
@@ -37,12 +43,14 @@ export function settleOutboxRow(
       message,
       new Date(deps.now() + backoffMs(row.attempts)).toISOString()
     )
-    deps.throttledWarn('[ledger-outbox] row failed', {
-      id: row.id,
-      kind: row.kind,
-      attempts: row.attempts,
-      message
-    })
+    // Why force on the first failure: nothing has warned about this row yet, so the
+    // shared throttle window must not hide it (explicit, rather than the caller
+    // inferring "first" from an attempts field it happens to find in detail).
+    deps.throttledWarn(
+      '[ledger-outbox] row failed',
+      { id: row.id, kind: row.kind, attempts: row.attempts, message },
+      { force: row.attempts === 0 }
+    )
     return 'retry'
   }
   if (decision.action === 'dead') {
@@ -55,6 +63,6 @@ export function settleOutboxRow(
     })
     return 'dead'
   }
-  deps.throttledWarn(decision.reason, { id: row.id, kind: row.kind })
+  deps.throttledWarn(decision.message, { id: row.id, kind: row.kind })
   return 'stop_pass'
 }

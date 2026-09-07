@@ -156,6 +156,29 @@ describe('createVerificationRunner', () => {
     })
   })
 
+  it('does not post when the row timeout aborted the signal while the check ran', async () => {
+    const writer = makeWriter()
+    const controller = new AbortController()
+    // Simulates runDiffCoverageCheck still resolving after the worker gave up on the row
+    // and aborted: the abort happens mid-flight, before the (stale) result comes back.
+    const runCheck = vi.fn().mockImplementation(async () => {
+      controller.abort()
+      return { status: 'error', detail: { stage: 'command', code: null } }
+    })
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [CHECK],
+      runDiffCoverageCheck: runCheck,
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'local',
+      pathExists: async () => true
+    })
+
+    await runner(PAYLOAD, writer, { signal: controller.signal })
+
+    expect(runCheck).toHaveBeenCalled()
+    expect(writer.postStepVerification).not.toHaveBeenCalled()
+  })
+
   it('forwards the signal to runDiffCoverageCheck', async () => {
     const writer = makeWriter()
     const runCheck = vi.fn().mockResolvedValue({ status: 'passed', detail: {} })

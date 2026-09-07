@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { OrchestrationDb } from '../runtime/orchestration/db'
 import { startVerificationWorker, type VerificationWorker } from './verification-worker'
-import { ControlPlaneRequestError } from './control-plane-http'
+import { ControlPlaneRequestError, ControlPlaneUnavailableError } from './control-plane-http'
+import { UNAVAILABLE_LOG_INTERVAL_MS } from './ledger-outbox-drainer'
 import type { LedgerWriter } from './ledger/ledger-writer'
 
 const PAYLOAD = {
@@ -117,6 +118,35 @@ describe('startVerificationWorker', () => {
     expect(row.dead_at).toBeNull()
   })
 
+  it('clears the row-timeout timer even when the runner throws synchronously', async () => {
+    vi.useFakeTimers()
+    db = new OrchestrationDb(':memory:')
+    db.enqueueLedgerOutbox({
+      kind: 'step_verification',
+      dedupeKey: 'step_verification:dispatch_1:diff_coverage',
+      payload: PAYLOAD
+    })
+    const writer = fakeWriter()
+    const verificationRunner = vi.fn(() => {
+      throw new Error('boom')
+    })
+    worker = startVerificationWorker({
+      getDb: () => db,
+      writer,
+      verificationRunner,
+      intervalMs: 60_000,
+      rowTimeoutMs: 5_000
+    })
+    // Why stop() first: isolates the row-timeout timer under test from the worker's
+    // own recurring tick-schedule timer, which is unrelated to this leak.
+    worker.stop()
+
+    const result = await worker.tickOnce()
+
+    expect(result).toEqual({ processed: 1, result: 'retry' })
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
   it('processes two due rows one per tick', async () => {
     db = new OrchestrationDb(':memory:')
     db.enqueueLedgerOutbox({
@@ -175,6 +205,63 @@ describe('startVerificationWorker', () => {
 
     resolveRunner()
     expect(await first).toEqual({ processed: 1, result: 'sent' })
+  })
+
+  it('pauses after stop_pass: the runner is not called again until the interval elapses', async () => {
+    db = new OrchestrationDb(':memory:')
+    db.enqueueLedgerOutbox({
+      kind: 'step_verification',
+      dedupeKey: 'step_verification:dispatch_1:diff_coverage',
+      payload: PAYLOAD
+    })
+    const writer = fakeWriter()
+    const verificationRunner = vi.fn().mockRejectedValue(new ControlPlaneUnavailableError())
+    let currentNow = 0
+    worker = startVerificationWorker({
+      getDb: () => db,
+      writer,
+      verificationRunner,
+      intervalMs: 60_000,
+      now: () => currentNow
+    })
+
+    const first = await worker.tickOnce()
+    expect(first).toEqual({ processed: 1, result: 'stop_pass' })
+    expect(verificationRunner).toHaveBeenCalledTimes(1)
+
+    const second = await worker.tickOnce()
+    expect(second).toEqual({ processed: 0, result: 'idle' })
+    expect(verificationRunner).toHaveBeenCalledTimes(1)
+
+    currentNow += UNAVAILABLE_LOG_INTERVAL_MS
+    const third = await worker.tickOnce()
+    expect(third).toEqual({ processed: 1, result: 'stop_pass' })
+    expect(verificationRunner).toHaveBeenCalledTimes(2)
+  })
+
+  it('warns only once across a paused stretch, not once per tick', async () => {
+    db = new OrchestrationDb(':memory:')
+    db.enqueueLedgerOutbox({
+      kind: 'step_verification',
+      dedupeKey: 'step_verification:dispatch_1:diff_coverage',
+      payload: PAYLOAD
+    })
+    const writer = fakeWriter()
+    const verificationRunner = vi.fn().mockRejectedValue(new ControlPlaneUnavailableError())
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    worker = startVerificationWorker({
+      getDb: () => db,
+      writer,
+      verificationRunner,
+      intervalMs: 60_000
+    })
+
+    await worker.tickOnce()
+    await worker.tickOnce()
+    await worker.tickOnce()
+
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    warnSpy.mockRestore()
   })
 
   it('stop() clears the interval so tickOnce no longer runs on a schedule', () => {

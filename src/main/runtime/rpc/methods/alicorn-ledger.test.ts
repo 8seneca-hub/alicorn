@@ -161,6 +161,19 @@ describe('ledger outbox operator view', () => {
         }
       })
     })
+
+    it('falls back to the default limit for a negative --limit rather than an unbounded SQLite LIMIT -1', async () => {
+      for (let i = 0; i < 30; i++) {
+        db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: `due-${i}`, payload: {} })
+      }
+
+      const response = await dispatcher.dispatch(makeRequest('ledger.outboxList', { limit: -1 }))
+
+      expect(response.ok).toBe(true)
+      expect((response as { result: { rows: unknown[] } }).result.rows.length).toBeLessThanOrEqual(
+        25
+      )
+    })
   })
 
   describe('ledger.outboxRequeue', () => {
@@ -181,6 +194,62 @@ describe('ledger outbox operator view', () => {
       )
 
       expect(response).toMatchObject({ ok: true, result: { requeued: false } })
+    })
+
+    it('requeues all dead rows with --all and returns the count', async () => {
+      const one = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'dead-1', payload: {} })
+      const two = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'dead-2', payload: {} })
+      const three = db.enqueueLedgerOutbox({
+        kind: 'step_outcome',
+        dedupeKey: 'dead-3',
+        payload: {}
+      })
+      db.markLedgerOutboxDead(one.id, 'reason')
+      db.markLedgerOutboxDead(two.id, 'reason')
+      db.markLedgerOutboxDead(three.id, 'reason')
+
+      const response = await dispatcher.dispatch(makeRequest('ledger.outboxRequeue', { all: true }))
+
+      expect(response).toMatchObject({ ok: true, result: { requeuedCount: 3 } })
+      expect(db.countDeadLedgerOutbox()).toBe(0)
+    })
+
+    it('requeues only the given --kind with --all', async () => {
+      const outcome = db.enqueueLedgerOutbox({
+        kind: 'step_outcome',
+        dedupeKey: 'dead-outcome',
+        payload: {}
+      })
+      const interruption = db.enqueueLedgerOutbox({
+        kind: 'interruption',
+        dedupeKey: 'dead-interruption',
+        payload: {}
+      })
+      db.markLedgerOutboxDead(outcome.id, 'reason')
+      db.markLedgerOutboxDead(interruption.id, 'reason')
+
+      const response = await dispatcher.dispatch(
+        makeRequest('ledger.outboxRequeue', { all: true, kind: 'interruption' })
+      )
+
+      expect(response).toMatchObject({ ok: true, result: { requeuedCount: 1 } })
+      expect(db.countDeadLedgerOutbox()).toBe(1)
+    })
+
+    it('rejects when neither --id nor --all is given', async () => {
+      const response = await dispatcher.dispatch(makeRequest('ledger.outboxRequeue', {}))
+
+      expect(response).toMatchObject({ ok: false, error: { code: 'invalid_argument' } })
+    })
+
+    it('rejects when both --id and --all are given', async () => {
+      const { deadId } = seedDueAndDeadRows()
+
+      const response = await dispatcher.dispatch(
+        makeRequest('ledger.outboxRequeue', { id: deadId, all: true })
+      )
+
+      expect(response).toMatchObject({ ok: false, error: { code: 'invalid_argument' } })
     })
   })
 })

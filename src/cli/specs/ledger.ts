@@ -22,9 +22,9 @@ export const LEDGER_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['ledger', 'outbox-requeue'],
-    summary: 'Requeue a dead ledger outbox row',
-    usage: 'orca ledger outbox-requeue --id <id> [--json]',
-    allowedFlags: [...GLOBAL_FLAGS, 'id'],
-    examples: ['orca ledger outbox-requeue --id lob_abc123']
+    summary: 'Requeue a dead ledger outbox row, or all dead rows',
+    usage: 'orca ledger outbox-requeue (--id <id> | --all [--kind <kind>]) [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'id', 'all', 'kind'],
+    examples: ['orca ledger outbox-requeue --id lob_abc123', 'orca ledger outbox-requeue --all']
   }
 ]

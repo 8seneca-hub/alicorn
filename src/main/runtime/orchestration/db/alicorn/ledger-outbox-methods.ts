@@ -58,8 +58,13 @@ export function listDueLedgerOutbox(
     .all(...params) as LedgerOutboxRow[]
 }
 
+// Why AND dead_at IS NULL: unreachable in-process, but two processes sharing one
+// orchestration.db could otherwise deliver a row after it was already dead-lettered,
+// leaving both sent_at and dead_at set — delivered yet listed by --dead forever.
 export function markLedgerOutboxSent(this: OrchestrationDb, id: string): void {
-  this.db.prepare("UPDATE ledger_outbox SET sent_at = datetime('now') WHERE id = ?").run(id)
+  this.db
+    .prepare("UPDATE ledger_outbox SET sent_at = datetime('now') WHERE id = ? AND dead_at IS NULL")
+    .run(id)
 }
 
 export function markLedgerOutboxFailed(
@@ -119,6 +124,26 @@ export function requeueLedgerOutbox(this: OrchestrationDb, id: string): boolean 
   return result.changes === 1
 }
 
+// Why one bad env var otherwise dead-letters up to 25 rows per tick with no bulk fix: a
+// wrong ledgerApiUrl (or a proxy 404 for the whole service) is a non-retryable 404, and
+// the only recovery without this was `outbox-requeue --id` once per row.
+export function requeueAllDeadLedgerOutbox(this: OrchestrationDb, kind?: LedgerOutboxKind): number {
+  const conditions = ['dead_at IS NOT NULL']
+  const params: string[] = []
+  if (kind) {
+    conditions.push('kind = ?')
+    params.push(kind)
+  }
+  const result = this.db
+    .prepare(
+      `UPDATE ledger_outbox
+       SET dead_at = NULL, dead_reason = NULL, attempts = 0, not_before = NULL, last_error = NULL
+       WHERE ${conditions.join(' AND ')}`
+    )
+    .run(...params)
+  return Number(result.changes)
+}
+
 export type LedgerOutboxMethods = {
   enqueueLedgerOutbox: typeof enqueueLedgerOutbox
   listDueLedgerOutbox: typeof listDueLedgerOutbox
@@ -128,6 +153,7 @@ export type LedgerOutboxMethods = {
   listDeadLedgerOutbox: typeof listDeadLedgerOutbox
   countDeadLedgerOutbox: typeof countDeadLedgerOutbox
   requeueLedgerOutbox: typeof requeueLedgerOutbox
+  requeueAllDeadLedgerOutbox: typeof requeueAllDeadLedgerOutbox
 }
 
 export function attachLedgerOutboxMethods(ctor: { prototype: object }): void {
@@ -139,6 +165,7 @@ export function attachLedgerOutboxMethods(ctor: { prototype: object }): void {
     markLedgerOutboxDead,
     listDeadLedgerOutbox,
     countDeadLedgerOutbox,
-    requeueLedgerOutbox
+    requeueLedgerOutbox,
+    requeueAllDeadLedgerOutbox
   })
 }

@@ -75,6 +75,12 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
       check,
       signal: options?.signal
     })
+    // The worker already abandoned this row (row timeout) and moved on; posting a stale
+    // result here could overwrite the retry's real verdict (step_verifications upserts
+    // last-writer-wins on dispatch/kind/name).
+    if (options?.signal?.aborted) {
+      return
+    }
     return post(status, detail)
   }
 }

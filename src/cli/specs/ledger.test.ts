@@ -40,12 +40,16 @@ describe('ledger outbox command specs', () => {
     )
   })
 
-  it('accepts --id plus the global flags on ledger outbox-requeue', () => {
-    expect(effectiveAllowedFlags(requeue!)).toEqual(expect.arrayContaining([...GLOBAL_FLAGS, 'id']))
+  it('accepts --id, --all and --kind plus the global flags on ledger outbox-requeue', () => {
+    expect(effectiveAllowedFlags(requeue!)).toEqual(
+      expect.arrayContaining([...GLOBAL_FLAGS, 'id', 'all', 'kind'])
+    )
   })
 
   it('documents usage for both commands', () => {
     expect(outbox!.usage).toBe('orca ledger outbox [--dead] [--limit <n>] [--json]')
-    expect(requeue!.usage).toBe('orca ledger outbox-requeue --id <id> [--json]')
+    expect(requeue!.usage).toBe(
+      'orca ledger outbox-requeue (--id <id> | --all [--kind <kind>]) [--json]'
+    )
   })
 })

@@ -1,7 +1,7 @@
 import type { OrchestrationDb } from '../runtime/orchestration/db'
 import { settleOutboxRow } from './outbox-row-processing'
 import type { LedgerWriter } from './ledger/ledger-writer'
-import type { StepVerificationPayload } from './ledger-outbox-drainer'
+import { UNAVAILABLE_LOG_INTERVAL_MS, type StepVerificationPayload } from './ledger-outbox-drainer'
 
 // Why 20 minutes: a project's own coverage/test command is admin-authored and can be
 // slow; the row must eventually give up so a stuck project can't block the row forever.
@@ -50,16 +50,24 @@ function runWithRowTimeout(
       controller.abort()
       reject(new Error('verification_row_timeout'))
     }, rowTimeoutMs)
-    runner(payload, writer, { signal: controller.signal }).then(
-      (value) => {
-        clearTimeout(timer)
-        resolve(value)
-      },
-      (error: unknown) => {
-        clearTimeout(timer)
-        reject(error)
-      }
-    )
+    try {
+      runner(payload, writer, { signal: controller.signal }).then(
+        (value) => {
+          clearTimeout(timer)
+          resolve(value)
+        },
+        (error: unknown) => {
+          clearTimeout(timer)
+          reject(error)
+        }
+      )
+    } catch (error) {
+      // A synchronous throw (the only runner today is async, so unreachable in
+      // practice) would otherwise skip both clearTimeout calls above and leave
+      // this timer to abort a controller nobody is waiting on anymore.
+      clearTimeout(timer)
+      reject(error)
+    }
   })
 }
 
@@ -70,6 +78,9 @@ function runWithRowTimeout(
  */
 export function startVerificationWorker(deps: VerificationWorkerDeps): VerificationWorker {
   let running = false
+  // Set on 'stop_pass' (control plane unconfigured/unauthorized) so the row's own command
+  // doesn't re-run every tick while auth stays broken — see the drainer's same-shaped stall.
+  let pausedUntil = 0
   const now = deps.now ?? Date.now
   const rowTimeoutMs = deps.rowTimeoutMs ?? VERIFICATION_ROW_TIMEOUT_MS
   // Why no throttle window (unlike the drainer's throttledWarn): one row per tick, not
@@ -80,6 +91,9 @@ export function startVerificationWorker(deps: VerificationWorkerDeps): Verificat
 
   async function tickOnce(): Promise<VerificationWorkerTickResult> {
     if (running) {
+      return { processed: 0, result: 'idle' }
+    }
+    if (now() < pausedUntil) {
       return { processed: 0, result: 'idle' }
     }
     const db = deps.getDb()
@@ -103,6 +117,9 @@ export function startVerificationWorker(deps: VerificationWorkerDeps): Verificat
         return { processed: 1, result: 'sent' }
       } catch (error) {
         const result = settleOutboxRow(db, row, { kind: 'failed', error }, rowSettlementDeps)
+        if (result === 'stop_pass') {
+          pausedUntil = now() + UNAVAILABLE_LOG_INTERVAL_MS
+        }
         return { processed: 1, result }
       }
     } finally {

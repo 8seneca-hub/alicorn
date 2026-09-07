@@ -162,6 +162,26 @@ describe('ledger outbox methods', () => {
     expect(row.attempts).toBe(0)
   })
 
+  it('does not mark a dead row sent: guards a race between two processes on the same db', () => {
+    const { id } = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'step_outcome:dispatch-9',
+      payload: {}
+    })
+    db.markLedgerOutboxDead(id, 'permanent rejection: 422 unprocessable')
+
+    db.markLedgerOutboxSent(id)
+
+    const row = db.db
+      .prepare('SELECT sent_at, dead_at FROM ledger_outbox WHERE id = ?')
+      .get(id) as {
+      sent_at: string | null
+      dead_at: string | null
+    }
+    expect(row.sent_at).toBeNull()
+    expect(row.dead_at).not.toBeNull()
+  })
+
   it('requeue returns false for a row that is not dead', () => {
     const { id } = db.enqueueLedgerOutbox({
       kind: 'step_outcome',
@@ -170,6 +190,46 @@ describe('ledger outbox methods', () => {
     })
 
     expect(db.requeueLedgerOutbox(id)).toBe(false)
+  })
+
+  it('requeues all dead rows and returns how many changed', () => {
+    const a = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'dead-x', payload: {} })
+    const b = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'dead-y', payload: {} })
+    const alive = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'alive-z',
+      payload: {}
+    })
+    db.markLedgerOutboxDead(a.id, 'reason a')
+    db.markLedgerOutboxDead(b.id, 'reason b')
+
+    expect(db.requeueAllDeadLedgerOutbox()).toBe(2)
+    expect(db.countDeadLedgerOutbox()).toBe(0)
+    expect(
+      db
+        .listDueLedgerOutbox()
+        .map((r) => r.id)
+        .sort()
+    ).toEqual([a.id, alive.id, b.id].sort())
+  })
+
+  it('requeues only dead rows of the given kind', () => {
+    const outcome = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'dead-outcome',
+      payload: {}
+    })
+    const interruption = db.enqueueLedgerOutbox({
+      kind: 'interruption',
+      dedupeKey: 'dead-interruption',
+      payload: {}
+    })
+    db.markLedgerOutboxDead(outcome.id, 'reason')
+    db.markLedgerOutboxDead(interruption.id, 'reason')
+
+    expect(db.requeueAllDeadLedgerOutbox('interruption')).toBe(1)
+    expect(db.countDeadLedgerOutbox()).toBe(1)
+    expect(db.listDeadLedgerOutbox()[0].id).toBe(outcome.id)
   })
 
   it('lists dead rows and counts them', () => {

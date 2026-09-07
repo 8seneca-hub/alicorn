@@ -246,10 +246,16 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
   overwrite.
 - **Dead rows are kept.** A row the Ledger API rejects with a non-retryable error, or that fails 50
   times, is marked `dead_at`/`dead_reason`, listed by `orca ledger outbox --dead` and requeued by
-  hand; it is never deleted. A dead row keeps its `dedupe_key`, so requeueing cannot double-count.
+  hand with `orca ledger outbox-requeue --id <id>` (or `--all` to requeue every dead row, optionally
+  scoped with `--kind`); it is never deleted. A dead row keeps its `dedupe_key`, so requeueing cannot
+  double-count — while a row stays dead, a producer that re-enqueues the same step sees
+  `duplicate: true` and treats it as already recorded, not as a reason to enqueue a second time.
 - **Required checks do not block ledger delivery.** A `step_verification` row runs a project's own
   command, so it drains in its own worker with a row timeout; the ordinary writes never queue behind
   it. A timeout is retryable — a slow project is not a permanent failure.
+- **Single writer.** Neither the drainer nor the verification worker leases a row before processing
+  it, so correctness rests on exactly one process owning a given `orchestration.db` at a time; a
+  second process against the same userData is not supported today.
 
 ## 7. Autonomy policy
 

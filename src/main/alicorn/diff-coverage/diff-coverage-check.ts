@@ -34,7 +34,9 @@ export type RunDiffCoverageCheckResult = {
   detail: Record<string, unknown>
 }
 
-/** Same `/bin/sh -lc` command line as the POSIX host branch, run inside the WSL guest instead. */
+// Why `script`, not `program: '/bin/sh', args: ['-lc', command]`: runWslProcess already
+// resolves and injects the cached login PATH/HOME, so `-l` only re-enters ~/.profile —
+// the login-shell stall the runner exists to avoid (docs/reference/wsl-command-execution.md).
 function wslSpecForCheck(
   distro: string,
   worktreePath: string,
@@ -42,8 +44,8 @@ function wslSpecForCheck(
   timeoutMs: number
 ): WslSpec {
   return {
-    program: '/bin/sh',
-    args: ['-lc', command],
+    script: command,
+    shell: 'sh',
     distro,
     loginPath: 'preferred',
     cwd: toLinuxPath(worktreePath),

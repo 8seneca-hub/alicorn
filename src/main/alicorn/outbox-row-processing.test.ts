@@ -61,13 +61,31 @@ describe('settleOutboxRow', () => {
     expect(due.attempts).toBe(1)
     expect(due.last_error).toBe('500 server_error')
     expect(new Date(due.not_before!).getTime()).toBeGreaterThan(now)
-    expect(throttledWarn).toHaveBeenCalledWith('[ledger-outbox] row failed', {
-      id: row.id,
-      kind: 'step_outcome',
-      attempts: 0,
-      message: '500 server_error'
-    })
+    expect(throttledWarn).toHaveBeenCalledWith(
+      '[ledger-outbox] row failed',
+      { id: row.id, kind: 'step_outcome', attempts: 0, message: '500 server_error' },
+      { force: true }
+    )
     expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('does not force a warn on a later retry of the same row', () => {
+    const row = enqueue()
+    db.markLedgerOutboxFailed(row.id, 'network error', new Date(0).toISOString())
+    const retried = db.listDueLedgerOutbox()[0]
+
+    settleOutboxRow(
+      db,
+      retried,
+      { kind: 'failed', error: new ControlPlaneRequestError(500, 'server_error') },
+      deps()
+    )
+
+    expect(throttledWarn).toHaveBeenCalledWith(
+      '[ledger-outbox] row failed',
+      expect.objectContaining({ attempts: 1 }),
+      { force: false }
+    )
   })
 
   it('dead-letters a permanently rejected row with a single "row dead" warn', () => {
@@ -128,7 +146,10 @@ describe('settleOutboxRow', () => {
     expect(untouched.attempts).toBe(0)
     expect(untouched.last_error).toBeNull()
     expect(untouched.not_before).toBeNull()
-    expect(throttledWarn).toHaveBeenCalledWith('control_plane_unconfigured', expect.any(Object))
+    expect(throttledWarn).toHaveBeenCalledWith(
+      '[ledger-outbox] control plane unconfigured; row untouched',
+      expect.any(Object)
+    )
     expect(warn).not.toHaveBeenCalled()
   })
 
@@ -145,7 +166,10 @@ describe('settleOutboxRow', () => {
     expect(result).toBe('stop_pass')
     const untouched = db.listDueLedgerOutbox()[0]
     expect(untouched.attempts).toBe(0)
-    expect(throttledWarn).toHaveBeenCalledWith('control_plane_unauthorized', expect.any(Object))
+    expect(throttledWarn).toHaveBeenCalledWith(
+      '[ledger-outbox] control plane unauthorized; row untouched',
+      expect.any(Object)
+    )
     expect(warn).not.toHaveBeenCalled()
   })
 })

@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { runDiffCoverageCheck } from './diff-coverage-check'
 import { gitExecFileAsync } from '../../git/command-runner/git-exec-file'
-import { buildWslExecArgs } from '../../../shared/wsl-login-shell-command'
 import type { DiffCoverageCheck } from '../../../shared/alicorn/members'
 import type { ProcessResult } from '../../../shared/child-process/process-spec'
 import type { runProcess as RunProcessFn } from '../../../shared/child-process/run-process'
@@ -167,9 +166,11 @@ describe('runDiffCoverageCheck', () => {
     expect(spec.distro).toBe('Ubuntu')
     expect(spec.loginPath).toBe('preferred')
     expect(spec.cwd).toBe('/repo')
-    expect(buildWslExecArgs(spec.distro, [spec.program as string, ...(spec.args ?? [])])).toContain(
-      '--exec'
-    )
+    // Why script/shell, not program+'-lc': runWslProcess already injects the cached login
+    // PATH/HOME, so -lc would re-enter the login shell the runner exists to avoid.
+    expect(spec.script).toBe('pnpm test')
+    expect(spec.shell).toBe('sh')
+    expect(spec.program).toBeUndefined()
   })
 
   it('produces the same command-stage error shape as the host path on a non-zero WSL exit', async () => {

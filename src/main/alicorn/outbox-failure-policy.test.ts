@@ -6,21 +6,24 @@ describe('classifyOutboxFailure', () => {
   it('stops the pass when the control plane is unconfigured', () => {
     expect(classifyOutboxFailure(new ControlPlaneUnavailableError(), 1)).toEqual({
       action: 'stop_pass',
-      reason: 'control_plane_unconfigured'
+      reason: 'control_plane_unconfigured',
+      message: '[ledger-outbox] control plane unconfigured; row untouched'
     })
   })
 
   it('stops the pass on a 401, blaming auth rather than the row', () => {
     expect(classifyOutboxFailure(new ControlPlaneRequestError(401, 'unauthorized'), 1)).toEqual({
       action: 'stop_pass',
-      reason: 'control_plane_unauthorized'
+      reason: 'control_plane_unauthorized',
+      message: '[ledger-outbox] control plane unauthorized; row untouched'
     })
   })
 
   it('stops the pass on a 403, blaming auth rather than the row', () => {
     expect(classifyOutboxFailure(new ControlPlaneRequestError(403, 'forbidden'), 1)).toEqual({
       action: 'stop_pass',
-      reason: 'control_plane_unauthorized'
+      reason: 'control_plane_unauthorized',
+      message: '[ledger-outbox] control plane unauthorized; row untouched'
     })
   })
 

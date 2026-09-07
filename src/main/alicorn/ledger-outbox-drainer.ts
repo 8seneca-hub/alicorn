@@ -16,7 +16,9 @@ import type {
 
 // Why 60s: transcripts (spend usage) flush after the report lands, not before.
 const SPEND_ATTRIBUTION_DELAY_MS = 60_000
-const UNAVAILABLE_LOG_INTERVAL_MS = 5 * 60_000
+// Exported: the verification worker (LG2a) reuses this so its own pause-on-stop_pass
+// window can't drift from the drainer's throttle window.
+export const UNAVAILABLE_LOG_INTERVAL_MS = 5 * 60_000
 
 type StepOutcomePayload = {
   taskId: string
@@ -97,12 +99,17 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     console.warn(message, detail)
   }
 
-  // Why a row's first failure always logs: attempts === 0 means nothing has
-  // warned about it yet, so the shared 5-minute throttle must not hide it.
-  function throttledWarn(message: string, detail: Record<string, unknown>): void {
+  // Why `force` is passed in, not inferred: a row's first failure must always log even
+  // inside the throttle window, and the caller (settleOutboxRow) knows that directly —
+  // reading it back out of a `detail.attempts` field it happens to populate is an
+  // undeclared cross-file convention that breaks silently if that field is ever dropped.
+  function throttledWarn(
+    message: string,
+    detail: Record<string, unknown>,
+    options?: { force?: boolean }
+  ): void {
     const now = Date.now()
-    const alwaysWarn = detail.attempts === 0
-    if (!alwaysWarn && now - lastThrottledWarnAt < UNAVAILABLE_LOG_INTERVAL_MS) {
+    if (!options?.force && now - lastThrottledWarnAt < UNAVAILABLE_LOG_INTERVAL_MS) {
       return
     }
     lastThrottledWarnAt = now
