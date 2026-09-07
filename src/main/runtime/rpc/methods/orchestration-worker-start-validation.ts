@@ -180,6 +180,9 @@ export function buildWorkerStartOptions(args: {
 }): Record<string, unknown> {
   const { params, createsWorktree } = args
   return {
+    // Why persisted: the context-ceiling watcher reads settled dispatch rows, and a lead's
+    // ceiling is a different rule from a worker's. Absent means worker, as on the wire.
+    role: params.role ?? 'worker',
     worktree: args.requestedWorktree,
     resolvedWorktreeId: args.resolvedWorktreeId,
     name: params.name ?? null,
