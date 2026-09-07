@@ -22,3 +22,30 @@ describe('ledger command specs', () => {
     )
   })
 })
+
+describe('ledger outbox command specs', () => {
+  const outbox = LEDGER_COMMAND_SPECS.find((entry) => entry.path.join(' ') === 'ledger outbox')
+  const requeue = LEDGER_COMMAND_SPECS.find(
+    (entry) => entry.path.join(' ') === 'ledger outbox-requeue'
+  )
+
+  it('defines ledger outbox and ledger outbox-requeue', () => {
+    expect(outbox).toBeDefined()
+    expect(requeue).toBeDefined()
+  })
+
+  it('accepts --dead and --limit plus the global flags on ledger outbox', () => {
+    expect(effectiveAllowedFlags(outbox!)).toEqual(
+      expect.arrayContaining([...GLOBAL_FLAGS, 'dead', 'limit'])
+    )
+  })
+
+  it('accepts --id plus the global flags on ledger outbox-requeue', () => {
+    expect(effectiveAllowedFlags(requeue!)).toEqual(expect.arrayContaining([...GLOBAL_FLAGS, 'id']))
+  })
+
+  it('documents usage for both commands', () => {
+    expect(outbox!.usage).toBe('orca ledger outbox [--dead] [--limit <n>] [--json]')
+    expect(requeue!.usage).toBe('orca ledger outbox-requeue --id <id> [--json]')
+  })
+})

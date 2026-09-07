@@ -35,7 +35,7 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
   },
   {
     name: 'ledger',
-    keys: ['ledger report'],
+    keys: ['ledger report', 'ledger outbox', 'ledger outbox-requeue'],
     load: async () => (await import('./handlers/ledger.js')).LEDGER_HANDLERS
   },
   {

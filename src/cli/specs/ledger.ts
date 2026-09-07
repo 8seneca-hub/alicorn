@@ -12,5 +12,19 @@ export const LEDGER_COMMAND_SPECS: CommandSpec[] = [
       'orca ledger report --project proj_1 --json',
       'orca ledger report --stage build --since 2026-09-01T00:00:00.000Z'
     ]
+  },
+  {
+    path: ['ledger', 'outbox'],
+    summary: 'Show pending or dead ledger outbox rows',
+    usage: 'orca ledger outbox [--dead] [--limit <n>] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'dead', 'limit'],
+    examples: ['orca ledger outbox --dead --json']
+  },
+  {
+    path: ['ledger', 'outbox-requeue'],
+    summary: 'Requeue a dead ledger outbox row',
+    usage: 'orca ledger outbox-requeue --id <id> [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'id'],
+    examples: ['orca ledger outbox-requeue --id lob_abc123']
   }
 ]

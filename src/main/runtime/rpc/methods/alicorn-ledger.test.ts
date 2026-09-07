@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { RpcDispatcher } from '../dispatcher'
 import type { RpcRequest } from '../core'
-import type { OrcaRuntimeService } from '../../orca-runtime'
+import { OrcaRuntimeService } from '../../orca-runtime'
+import { OrchestrationDb } from '../../orchestration/db'
 import type { InterruptionsReport } from '../../../../shared/alicorn/ledger-report'
 
 vi.mock('../../../alicorn/control-plane-http', async () => {
@@ -19,8 +20,8 @@ import {
 } from '../../../alicorn/control-plane-http'
 import { ALICORN_LEDGER_METHODS } from './alicorn-ledger'
 
-function makeRequest(params?: unknown): RpcRequest {
-  return { id: 'req-1', authToken: 'tok', method: 'ledger.report', params }
+function makeRequest(method: string, params?: unknown): RpcRequest {
+  return { id: 'req-1', authToken: 'tok', method, params }
 }
 
 function makeDispatcher(): RpcDispatcher {
@@ -54,7 +55,7 @@ describe('ledger.report', () => {
     vi.mocked(alicornFetch).mockResolvedValue(jsonResponse(REPORT))
 
     const response = await makeDispatcher().dispatch(
-      makeRequest({
+      makeRequest('ledger.report', {
         stageKey: 'build',
         projectId: 'proj_1',
         memberId: 'mem_1',
@@ -73,7 +74,7 @@ describe('ledger.report', () => {
   it('omits filters that were not given', async () => {
     vi.mocked(alicornFetch).mockResolvedValue(jsonResponse(REPORT))
 
-    await makeDispatcher().dispatch(makeRequest())
+    await makeDispatcher().dispatch(makeRequest('ledger.report'))
 
     expect(alicornFetch).toHaveBeenCalledWith('ledger', '/v1/ledger/reports/interruptions')
   })
@@ -81,7 +82,7 @@ describe('ledger.report', () => {
   it('reports control_plane_unconfigured when the control plane is not configured', async () => {
     vi.mocked(alicornFetch).mockRejectedValue(new ControlPlaneUnavailableError())
 
-    const response = await makeDispatcher().dispatch(makeRequest())
+    const response = await makeDispatcher().dispatch(makeRequest('ledger.report'))
 
     expect(response).toMatchObject({
       ok: false,
@@ -92,7 +93,7 @@ describe('ledger.report', () => {
   it('reports a structured error carrying the status code on a request failure', async () => {
     vi.mocked(alicornFetch).mockRejectedValue(new ControlPlaneRequestError(500, 'internal_error'))
 
-    const response = await makeDispatcher().dispatch(makeRequest())
+    const response = await makeDispatcher().dispatch(makeRequest('ledger.report'))
 
     expect(response).toMatchObject({
       ok: false,
@@ -100,6 +101,86 @@ describe('ledger.report', () => {
         code: 'control_plane_request_failed',
         data: { status: 500, code: 'internal_error' }
       }
+    })
+  })
+})
+
+describe('ledger outbox operator view', () => {
+  let db: OrchestrationDb
+  let dispatcher: RpcDispatcher
+
+  beforeEach(() => {
+    db = new OrchestrationDb(':memory:')
+    const runtime = new OrcaRuntimeService()
+    runtime.setOrchestrationDb(db)
+    dispatcher = new RpcDispatcher({ runtime, methods: ALICORN_LEDGER_METHODS })
+  })
+
+  afterEach(() => {
+    db.close()
+  })
+
+  function seedDueAndDeadRows(): { dueId: string; deadId: string } {
+    const due = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'step_outcome:due-1',
+      payload: {}
+    })
+    const dead = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'step_outcome:dead-1',
+      payload: {}
+    })
+    db.markLedgerOutboxDead(dead.id, 'permanent rejection: 422 unprocessable')
+    return { dueId: due.id, deadId: dead.id }
+  }
+
+  describe('ledger.outboxList', () => {
+    it('defaults to the due rows and a dead count', async () => {
+      const { dueId } = seedDueAndDeadRows()
+
+      const response = await dispatcher.dispatch(makeRequest('ledger.outboxList'))
+
+      expect(response.ok).toBe(true)
+      expect(response).toMatchObject({
+        ok: true,
+        result: { rows: [{ id: dueId }], deadCount: 1 }
+      })
+    })
+
+    it('returns the dead rows when dead: true', async () => {
+      const { deadId } = seedDueAndDeadRows()
+
+      const response = await dispatcher.dispatch(makeRequest('ledger.outboxList', { dead: true }))
+
+      expect(response).toMatchObject({
+        ok: true,
+        result: {
+          rows: [{ id: deadId, deadReason: 'permanent rejection: 422 unprocessable' }],
+          deadCount: 1
+        }
+      })
+    })
+  })
+
+  describe('ledger.outboxRequeue', () => {
+    it('requeues a dead row so it becomes due again', async () => {
+      const { deadId } = seedDueAndDeadRows()
+
+      const response = await dispatcher.dispatch(
+        makeRequest('ledger.outboxRequeue', { id: deadId })
+      )
+
+      expect(response).toMatchObject({ ok: true, result: { requeued: true } })
+      expect(db.countDeadLedgerOutbox()).toBe(0)
+    })
+
+    it('returns requeued: false for an unknown id', async () => {
+      const response = await dispatcher.dispatch(
+        makeRequest('ledger.outboxRequeue', { id: 'lob_does_not_exist' })
+      )
+
+      expect(response).toMatchObject({ ok: true, result: { requeued: false } })
     })
   })
 })
