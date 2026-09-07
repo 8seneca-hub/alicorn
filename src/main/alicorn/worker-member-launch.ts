@@ -1,3 +1,8 @@
+import {
+  isLeadLaunchUnsupported,
+  leadLaunchOptions,
+  type LeadLaunchOptions
+} from './foreman/lead-launch-options'
 import { OrchestrationError } from '../runtime/orchestration/orchestration-error'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { MemberBackend } from '../../shared/alicorn/members'
@@ -16,12 +21,31 @@ export type DispatchMemberStamp = {
 export type WorkerMemberLaunch = {
   agent: string | undefined
   dispatchMember: DispatchMemberStamp | null
+  /** Set only for a lead dispatch; the launch path applies these to the spawned agent. */
+  leadLaunch: LeadLaunchOptions | null
 }
 
 // Every member backend is a TUI agent Orca can launch; the mapping is identity
 // today and exists so a rename on either side is caught here rather than at spawn.
 export function memberBackendToTuiAgent(backend: MemberBackend): TuiAgent {
   return backend
+}
+
+/**
+ * A lead is a member, always: an anonymous lead has no backend whose tools can be restricted.
+ * Shared with the request entry point so the refusal cannot depend on whether the control plane
+ * happens to be configured.
+ */
+export function assertLeadDispatchNamesMember(input: {
+  memberId?: string
+  role?: 'worker' | 'lead'
+}): void {
+  if (input.role === 'lead' && !input.memberId) {
+    throw new OrchestrationError(
+      'lead_member_required',
+      'A lead dispatch names the member that leads it: pass --member.'
+    )
+  }
 }
 
 /**
@@ -36,9 +60,11 @@ export async function resolveWorkerMemberLaunch(input: {
   memberId?: string
   requestedAgent?: string
   allowSameBackendReview?: boolean
+  role?: 'worker' | 'lead'
 }): Promise<WorkerMemberLaunch> {
+  assertLeadDispatchNamesMember(input)
   if (!input.memberId) {
-    return { agent: input.requestedAgent, dispatchMember: null }
+    return { agent: input.requestedAgent, dispatchMember: null, leadLaunch: null }
   }
 
   const member = await input.directory.getMember(input.memberId)
@@ -74,6 +100,17 @@ export async function resolveWorkerMemberLaunch(input: {
     reviewBackendBypass = verdict.bypassed
   }
 
+  // Why refuse rather than launch a lead anyway: a lead that can quietly write code makes a run
+  // look orchestrated while being nothing of the sort, and nothing downstream would notice.
+  let leadLaunch: LeadLaunchOptions | null = null
+  if (input.role === 'lead') {
+    const options = leadLaunchOptions(member.backend)
+    if (isLeadLaunchUnsupported(options)) {
+      throw new OrchestrationError('lead_backend_unsupported', options.reason)
+    }
+    leadLaunch = options
+  }
+
   return {
     agent,
     dispatchMember: {
@@ -81,6 +118,7 @@ export async function resolveWorkerMemberLaunch(input: {
       memberRole: member.role,
       backend: member.backend,
       reviewBackendBypass
-    }
+    },
+    leadLaunch
   }
 }

@@ -3,7 +3,13 @@ import {
   ALICORN_CONTEXT_CEILING_TOKENS,
   type EscalationOffer
 } from '../../shared/alicorn/context-ceiling'
-import { contextTokensFromTranscriptTail, readTranscriptTail } from './transcript-context-tail'
+import {
+  contextUsageFromTranscriptTail,
+  readTranscriptTail,
+  type TranscriptContextUsage
+} from './transcript-context-tail'
+import { buildLeadCompactionPrompt } from './foreman/lead-compaction-prompt'
+import { evaluateLeadContextCeiling } from './foreman/lead-context-ceiling'
 
 // Why: a session that has not written for a few minutes is not the one filling this dispatch's
 // window — matching on the worktree alone would read a neighbouring task's transcript.
@@ -22,6 +28,11 @@ export type ContextCeilingWatcherDeps = {
   getDb: () => OrchestrationDb | null
   claudeUsage: ClaudeUsageTranscriptSource | null
   publish: (offer: EscalationOffer) => void
+  /**
+   * Sends a lead its compaction prompt. Absent leaves the lead branch inert, which is how a
+   * headless runtime with no terminals behaves.
+   */
+  sendPrompt?: (terminalHandle: string, prompt: string) => Promise<unknown>
   ceilingTokens?: number
   intervalMs?: number
   readTail?: typeof readTranscriptTail
@@ -32,18 +43,40 @@ type RunningDispatchRow = {
   dispatch_id: string
   task_id: string
   worktree_id: string | null
+  agent_terminal_handle: string | null
   start_options: string
 }
 
 // Why: tier 1 measures the ceiling for Claude Code only. Another backend gets no offer rather than
 // a guess — an escalation we cannot substantiate is worse than none.
 function isClaudeBackend(startOptions: string): boolean {
+  return readStartOptions(startOptions)?.agent === 'claude'
+}
+
+type StartOptions = { agent?: unknown; role?: unknown; launch?: unknown }
+
+function readStartOptions(startOptions: string): StartOptions | null {
   try {
-    const parsed = JSON.parse(startOptions) as { agent?: unknown }
-    return parsed.agent === 'claude'
+    return JSON.parse(startOptions) as StartOptions
   } catch {
-    return false
+    return null
   }
+}
+
+function isLeadDispatch(startOptions: string): boolean {
+  return readStartOptions(startOptions)?.role === 'lead'
+}
+
+/**
+ * The model chosen at launch, which is the only place the 1M-window variants are spelled — the
+ * transcript records the API id, where `opus[1m]` and plain `opus` look the same.
+ */
+function launchModel(startOptions: string): string | null {
+  const launch = readStartOptions(startOptions)?.launch as
+    | { effective?: { model?: unknown }; requested?: { model?: unknown } }
+    | undefined
+  const model = launch?.effective?.model ?? launch?.requested?.model
+  return typeof model === 'string' && model.trim() ? model : null
 }
 
 export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
@@ -54,24 +87,55 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
   const readTail = deps.readTail ?? readTranscriptTail
   const now = deps.now ?? Date.now
   let stopped = false
+  // Why in memory and not a column: this is "have I already said this to *this* live pane", which
+  // dies with the pane. A dispatch re-armed by a restart simply gets told again, which is correct.
+  const promptedLeads = new Set<string>()
 
-  async function contextTokensFor(worktreeId: string): Promise<number | null> {
+  async function contextUsageFor(worktreeId: string): Promise<TranscriptContextUsage | null> {
     const transcripts = deps.claudeUsage!.getRecentSessionTranscriptsForWorktree(
       worktreeId,
       now() - SESSION_ACTIVE_WINDOW_MS
     )
-    let highest: number | null = null
+    let highest: TranscriptContextUsage | null = null
     for (const transcript of transcripts) {
       try {
-        const tokens = contextTokensFromTranscriptTail(await readTail(transcript.path))
-        if (tokens !== null && (highest === null || tokens > highest)) {
-          highest = tokens
+        const usage = contextUsageFromTranscriptTail(await readTail(transcript.path))
+        if (usage && (highest === null || usage.contextTokens > highest.contextTokens)) {
+          highest = usage
         }
       } catch {
         // Why: one unreadable transcript must not stop the watcher measuring every other task.
       }
     }
     return highest
+  }
+
+  /**
+   * A lead is told to compact once per generation: after prompting we stay silent until the
+   * measurement falls back under the ceiling, which is the evidence a compaction happened. A lead
+   * that ignores the prompt is not nagged, and one that compacts is told again next time.
+   */
+  async function tickLead(row: RunningDispatchRow, usage: TranscriptContextUsage): Promise<void> {
+    const verdict = evaluateLeadContextCeiling({
+      contextTokens: usage.contextTokens,
+      model: launchModel(row.start_options) ?? usage.model
+    })
+    if (!verdict?.atCeiling) {
+      if (verdict) {
+        promptedLeads.delete(row.dispatch_id)
+      }
+      return
+    }
+    if (promptedLeads.has(row.dispatch_id) || !row.agent_terminal_handle || !deps.sendPrompt) {
+      return
+    }
+    promptedLeads.add(row.dispatch_id)
+    try {
+      await deps.sendPrompt(row.agent_terminal_handle, buildLeadCompactionPrompt(verdict))
+    } catch {
+      // Why re-arm: an undelivered prompt is not a prompt, and the lead is still over its ceiling.
+      promptedLeads.delete(row.dispatch_id)
+    }
   }
 
   async function tickOnce(): Promise<EscalationOffer[]> {
@@ -81,7 +145,8 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
     }
     const rows = db.db
       .prepare(
-        `SELECT dc.id AS dispatch_id, dc.task_id, wd.worktree_id, wd.start_options
+        `SELECT dc.id AS dispatch_id, dc.task_id, wd.worktree_id,
+                wd.agent_terminal_handle, wd.start_options
          FROM dispatch_contexts dc
          JOIN worker_dispatches wd ON wd.dispatch_id = dc.id
          WHERE dc.status = 'dispatched'`
@@ -93,12 +158,21 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
       if (!row.worktree_id || !isClaudeBackend(row.start_options)) {
         continue
       }
+      // A lead is already orchestrated, so it is never offered escalation — its ceiling is a
+      // capacity limit answered by compaction, not a strategy change.
+      if (isLeadDispatch(row.start_options)) {
+        const leadUsage = await contextUsageFor(row.worktree_id)
+        if (leadUsage) {
+          await tickLead(row, leadUsage)
+        }
+        continue
+      }
       const strategy = db.getTaskExecutionStrategy(row.task_id)
       // Already orchestrated, or already asked once — the offer is a one-shot, not a nag.
       if (strategy.strategy !== 'single' || strategy.escalationOfferedAt !== null) {
         continue
       }
-      const contextTokens = await contextTokensFor(row.worktree_id)
+      const contextTokens = (await contextUsageFor(row.worktree_id))?.contextTokens ?? null
       if (contextTokens === null || contextTokens < ceiling) {
         continue
       }

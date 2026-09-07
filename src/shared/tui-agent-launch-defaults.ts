@@ -102,3 +102,22 @@ export function resolveTuiAgentLaunchEnv(
   }
   return getTuiAgentDefaultEnv(agent)
 }
+
+/**
+ * Appends `--disallowedTools` to a launch-args string. Tool names are bare identifiers, so
+ * nothing here needs quoting.
+ *
+ * Advisory on its own: Orca launches Claude with `--dangerously-skip-permissions`, which skips the
+ * permission checks this flag is one of. It is the belt; a `PreToolUse` deny hook — which runs
+ * whatever the permission mode — is the braces.
+ */
+export function appendDisallowedToolsLaunchArgs(
+  agentArgs: string | null | undefined,
+  disallowedTools: readonly string[] | undefined
+): string | null {
+  if (!disallowedTools?.length) {
+    return agentArgs ?? null
+  }
+  const flag = `--disallowedTools ${disallowedTools.join(' ')}`
+  return agentArgs?.trim() ? `${agentArgs.trim()} ${flag}` : flag
+}

@@ -17,6 +17,9 @@
     "../src/main/agent-hooks/posix-hook-command.ts",
     "../src/main/agent-hooks/runtime-home-hook-command.ts",
     "../src/main/agent-hooks/windows-powershell-hook-launcher.ts",
+    // Why: the CLI installs Claude's managed hooks, and the Foreman lead gate is one of them.
+    "../src/main/alicorn/foreman/lead-tool-gate-hook.ts",
+    "../src/main/alicorn/foreman/lead-tool-gate-script.ts",
     "../src/main/amp/agent-status-plugin-source.ts",
     "../src/main/amp/hook-service.ts",
     "../src/main/amp/managed-plugin-install-status.ts",
@@ -26,6 +29,7 @@
     "../src/main/antigravity/hooks-json-bundle.ts",
     "../src/main/claude/hook-settings.ts",
     "../src/main/claude/hook-service.ts",
+    "../src/main/claude/hook-script.ts",
     "../src/main/claude/statusline-script.ts",
     "../src/main/claude-accounts/keychain.ts",
     "../src/main/codex/codex-app-server-capability-cache.ts",

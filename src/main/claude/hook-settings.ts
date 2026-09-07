@@ -213,6 +213,47 @@ export function applyManagedHooks(
   return { ...config, hooks: nextHooks }
 }
 
+/**
+ * Adds a second definition to one event's bucket, sweeping any earlier copy of it first.
+ *
+ * Separate from `applyManagedHooks`, which owns exactly one definition per event: an add-on hook
+ * answering a different question must not displace the status hook, and Claude runs every matching
+ * definition in the bucket.
+ */
+export function applyAdditionalManagedHook(
+  config: HooksConfig,
+  eventName: string,
+  definition: HookDefinition,
+  isManagedCommand: (command: string | undefined) => boolean
+): HooksConfig {
+  const current = Array.isArray(config.hooks?.[eventName]) ? config.hooks[eventName] : []
+  const cleaned = removeManagedCommands(current, isManagedCommand)
+  return {
+    ...config,
+    hooks: { ...config.hooks, [eventName]: [...cleaned, definition] }
+  }
+}
+
+/** Removes an add-on hook from one event's bucket, leaving the bucket itself if others remain. */
+export function removeAdditionalManagedHook(
+  config: HooksConfig,
+  eventName: string,
+  isManagedCommand: (command: string | undefined) => boolean
+): { config: HooksConfig; changed: boolean } {
+  const current = Array.isArray(config.hooks?.[eventName]) ? config.hooks[eventName] : []
+  const cleaned = removeManagedCommands(current, isManagedCommand)
+  if (JSON.stringify(cleaned) === JSON.stringify(current)) {
+    return { config, changed: false }
+  }
+  const nextHooks = { ...config.hooks }
+  if (cleaned.length === 0) {
+    delete nextHooks[eventName]
+  } else {
+    nextHooks[eventName] = cleaned
+  }
+  return { config: { ...config, hooks: nextHooks }, changed: true }
+}
+
 export type StatusLineSlotState = 'managed' | 'user' | 'empty'
 
 // Why: install policy needs "user owns the slot" vs "slot is empty" vs "ours" — an empty slot

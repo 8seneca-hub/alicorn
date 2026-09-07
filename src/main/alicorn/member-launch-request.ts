@@ -1,7 +1,11 @@
 import { OrchestrationError } from '../runtime/orchestration/orchestration-error'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { MemberDirectory } from './member-directory'
-import { resolveWorkerMemberLaunch, type WorkerMemberLaunch } from './worker-member-launch'
+import {
+  assertLeadDispatchNamesMember,
+  resolveWorkerMemberLaunch,
+  type WorkerMemberLaunch
+} from './worker-member-launch'
 
 type DirectoryHost = { getAlicornMemberDirectory: () => MemberDirectory | null }
 
@@ -17,9 +21,11 @@ export async function resolveMemberLaunchForRequest(input: {
   memberId?: string
   requestedAgent?: string
   allowSameBackendReview?: boolean
+  role?: 'worker' | 'lead'
 }): Promise<WorkerMemberLaunch> {
+  assertLeadDispatchNamesMember(input)
   if (!input.memberId) {
-    return { agent: input.requestedAgent, dispatchMember: null }
+    return { agent: input.requestedAgent, dispatchMember: null, leadLaunch: null }
   }
   const directory = input.runtime.getAlicornMemberDirectory()
   // Why reject rather than launch anyway: a member launch that records no
@@ -38,6 +44,7 @@ export async function resolveMemberLaunchForRequest(input: {
     ...(input.requestedAgent ? { requestedAgent: input.requestedAgent } : {}),
     ...(input.allowSameBackendReview !== undefined
       ? { allowSameBackendReview: input.allowSameBackendReview }
-      : {})
+      : {}),
+    ...(input.role ? { role: input.role } : {})
   })
 }

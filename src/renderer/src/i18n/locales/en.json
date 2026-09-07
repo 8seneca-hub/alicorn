@@ -12974,6 +12974,15 @@
                   }
                 }
               }
+            },
+            "right": {
+              "sidebar": {
+                "activity": {
+                  "items": {
+                    "7f0215bd93": "Run"
+                  }
+                }
+              }
             }
           },
           "fileExplorerOperationOwner": {
@@ -13355,6 +13364,19 @@
             "90cabf6cfc": "Stack this PR above #{{value0}}",
             "ff81473a57": "Creates a GitHub Stack or extends the parent's existing stack.",
             "29732f2fb0": "new PR"
+          },
+          "run": {
+            "view": {
+              "RunView": {
+                "0f073d39b4": "Reading the journal…",
+                "ef8d79cafd": "No orchestrated run in this workspace. A task dispatched with a Foreman lead keeps its journal here.",
+                "94c2aaf9a8": "This run’s journal could not be read.",
+                "2ddfeaf3ad": "The lead has not planned yet.",
+                "812f26e81d": "A floor, not a total — some dispatches ran on a backend Orca does not price, or have not been measured yet.",
+                "7cf5a7f9b2": "Cost of this run so far.",
+                "0276527834": "after"
+              }
+            }
           }
         }
       },

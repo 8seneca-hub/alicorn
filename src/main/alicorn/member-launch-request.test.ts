@@ -48,7 +48,15 @@ describe('resolveMemberLaunchForRequest', () => {
 
     await expect(
       resolveMemberLaunchForRequest({ runtime, db, taskId: 't1', requestedAgent: 'claude' })
-    ).resolves.toEqual({ agent: 'claude', dispatchMember: null })
+    ).resolves.toEqual({ agent: 'claude', dispatchMember: null, leadLaunch: null })
+  })
+
+  // Why the ordering matters: `control_plane_unconfigured` would send the caller to configure a
+  // service, when what is actually missing is the member the lead runs as.
+  it('names the missing member for a lead, unconfigured control plane or not', async () => {
+    await expect(
+      resolveMemberLaunchForRequest({ runtime: host(null), db, taskId: 't1', role: 'lead' })
+    ).rejects.toMatchObject({ code: 'lead_member_required' })
   })
 
   it('rejects --member when the control plane is unconfigured', async () => {
@@ -81,7 +89,8 @@ describe('resolveMemberLaunchForRequest', () => {
         memberRole: 'developer',
         backend: 'codex',
         reviewBackendBypass: false
-      }
+      },
+      leadLaunch: null
     })
   })
 })

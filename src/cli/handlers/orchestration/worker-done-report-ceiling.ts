@@ -1,11 +1,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { ForemanReportSchema, fitReportBody } from '../../../shared/alicorn/foreman-report'
+import {
+  ALICORN_STRATEGY_ENV,
+  ForemanReportSchema,
+  fitReportBody
+} from '../../../shared/alicorn/foreman-report'
 import { RuntimeClientError } from '../../runtime-client'
 
-// Stamped into the worker environment when the run's strategy is orchestrated, so a worker that was
-// never told it is part of an orchestrated run is not held to the report schema.
-export const ALICORN_STRATEGY_ENV = 'ORCA_ALICORN_STRATEGY'
+export { ALICORN_STRATEGY_ENV }
 
 export function isOrchestratedWorker(
   flags: Map<string, string | boolean>,

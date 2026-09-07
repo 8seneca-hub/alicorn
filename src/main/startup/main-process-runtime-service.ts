@@ -211,7 +211,10 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
       if (state.mainWindow && !state.mainWindow.isDestroyed()) {
         state.mainWindow.webContents.send(ALICORN_EVENTS.escalationOffer, offer)
       }
-    }
+    },
+    // Why the runtime and not the window: a lead's compaction prompt goes to its own pane, which
+    // exists whether or not anyone is looking at it.
+    sendPrompt: (terminalHandle, prompt) => runtime.sendTerminalAgentPrompt(terminalHandle, prompt)
   })
   // Null when the control plane is unconfigured; --member is rejected then
   // rather than launching a worker with no member to record.

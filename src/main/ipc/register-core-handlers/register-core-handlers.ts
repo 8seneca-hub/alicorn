@@ -205,7 +205,16 @@ export function registerCoreHandlers(
   })
   registerAlicornHandlers({
     client: getControlPlaneClient(),
-    getOrchestrationDb: () => runtime.getOrchestrationDb()
+    getOrchestrationDb: () => runtime.getOrchestrationDb(),
+    // Why the runtime and not a path join: the journal lives in the workspace, which may be a
+    // folder workspace or on an SSH host, and only the runtime knows where that resolves to.
+    resolveWorktreePath: async (worktreeId) => {
+      try {
+        return (await runtime.showManagedTerminalWorkspace(`id:${worktreeId}`)).path ?? null
+      } catch {
+        return null
+      }
+    }
   })
   registerBoardAutomationHandlers({
     getOrchestrationDb: () => runtime.getOrchestrationDb(),

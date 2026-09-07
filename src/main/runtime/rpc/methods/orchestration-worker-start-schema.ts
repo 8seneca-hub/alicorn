@@ -28,7 +28,10 @@ export const WorkerStartParams = z.object({
   timeoutMs: OptionalFiniteNumber,
   devMode: z.boolean().optional(),
   member: OptionalString,
-  allowSameBackendReview: z.boolean().optional()
+  allowSameBackendReview: z.boolean().optional(),
+  // A lead plans and dispatches; it writes no code. Absent means worker, so nothing that does not
+  // ask for a lead can accidentally get one.
+  role: z.enum(['worker', 'lead']).optional()
 })
 
 export type WorkerStartInput = z.infer<typeof WorkerStartParams>

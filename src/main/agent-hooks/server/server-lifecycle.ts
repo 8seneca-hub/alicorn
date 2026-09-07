@@ -1,6 +1,9 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { randomUUID } from 'node:crypto'
 
+import { evaluateLeadToolGateRequest } from '../../alicorn/foreman/lead-tool-gate-request'
+import { ALICORN_LEAD_TOOL_GATE_PATHNAME } from '../../alicorn/foreman/lead-tool-gate-script'
+
 import {
   CLAUDE_STATUSLINE_PATHNAME,
   parseClaudeStatusLineBody
@@ -72,6 +75,20 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
       const pathname = new URL(req.url ?? '/', 'http://127.0.0.1').pathname
       try {
         const body = await readRequestBody(req)
+        // Why its own endpoint: `/hook/<source>` answers 204 with no body by design, and the
+        // managed status script discards the response anyway. The lead gate is the one hook whose
+        // answer *is* its stdout, so it gets a path where a body means something.
+        if (pathname === ALICORN_LEAD_TOOL_GATE_PATHNAME) {
+          const decision = evaluateLeadToolGateRequest(body, req.headers)
+          if (!decision) {
+            res.writeHead(204)
+            res.end()
+            return
+          }
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify(decision))
+          return
+        }
         if (pathname === CLAUDE_STATUSLINE_PATHNAME) {
           const statusLineEvent = parseClaudeStatusLineBody(body)
           if (statusLineEvent) {

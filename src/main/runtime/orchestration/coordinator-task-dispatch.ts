@@ -124,7 +124,12 @@ export async function dispatchTaskToWorker(params: {
       ? { cliCommand: runtime.getTerminalOrchestrationCliCommand(targetHandle) }
       : {}),
     // Why (§3.2): pass baseDrift unconditionally — the preamble builder itself gates the drift section on behind > 0.
-    ...(baseDrift ? { baseDrift } : {})
+    ...(baseDrift ? { baseDrift } : {}),
+    // Why read per task rather than per run: `execution_strategy` is a field on a task, so one
+    // orchestrated stage does not put every other worker in the run under the report schema.
+    ...(db.getTaskExecutionStrategy(task.id).strategy === 'orchestrated'
+      ? { foremanRole: 'orchestrated-worker' as const, runId: task.run_id }
+      : {})
   })
 
   // Why: surface a since-resolved decision gate's outcome to the worker via the preamble.

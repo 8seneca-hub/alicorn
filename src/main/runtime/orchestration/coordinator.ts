@@ -1,19 +1,16 @@
 import type { OrchestrationDb } from './db'
 import type { MessageRow, CoordinatorStatus } from './types'
-import { reconcileLifecycleMessage } from './lifecycle-reconciliation'
 import type { CoordinatorRuntime, WorktreeDrift } from './coordinator-runtime-contract'
-import { applyEscalationToDispatch } from './coordinator-escalation-triage'
 import { evaluateDagConvergence } from './coordinator-dag-convergence'
-import {
-  openDecisionGateFromMessage,
-  reblockTasksWithPendingGates
-} from './coordinator-decision-gates'
+import { reblockTasksWithPendingGates } from './coordinator-decision-gates'
+import { processCoordinatorMessages } from './coordinator-message-processing'
 import {
   dispatchTaskToWorker,
   listAvailableWorkerTerminals,
   warnStaleDispatches
 } from './coordinator-task-dispatch'
 import { NESTED_WORKER_MAX_DEPTH_DEFAULT } from '../../../shared/nested-worker-depth'
+import { CoordinatorForemanJournal } from './coordinator-foreman-journal'
 
 export type CoordinatorOptions = {
   spec: string
@@ -21,6 +18,14 @@ export type CoordinatorOptions = {
   pollIntervalMs?: number
   maxConcurrent?: number
   worktree?: string
+  /**
+   * Filesystem path of `worktree`, which is a selector the coordinator cannot resolve itself.
+   * Absent leaves the Feature Journal inert — a caller that cannot say where the run lives cannot
+   * have it journalled.
+   */
+  worktreePath?: string
+  /** Injected by tests; production builds one from `worktreePath`. */
+  journal?: CoordinatorForemanJournal
   onLog?: (msg: string) => void
 }
 
@@ -40,7 +45,13 @@ export class Coordinator {
   private runtime: CoordinatorRuntime
   private state: CoordinatorState
   private stopped = false
-  private opts: Required<Omit<CoordinatorOptions, 'onLog' | 'worktree'>> & {
+  // Inert unless a task in the run is orchestrated, so a `single` run writes no `.foreman/`.
+  private journal: CoordinatorForemanJournal
+  // `worktreePath` and `journal` are consumed by the constructor to build `this.journal`, so they
+  // are deliberately not carried on opts — one owner for the journal, not two.
+  private opts: Required<
+    Omit<CoordinatorOptions, 'onLog' | 'worktree' | 'worktreePath' | 'journal'>
+  > & {
     onLog: (msg: string) => void
     worktree?: string
   }
@@ -63,6 +74,13 @@ export class Coordinator {
       failedTasks: [],
       escalations: []
     }
+    this.journal =
+      options.journal ??
+      new CoordinatorForemanJournal({
+        db,
+        worktreePath: options.worktreePath ?? null,
+        onLog: this.opts.onLog
+      })
   }
 
   async run(): Promise<{
@@ -103,6 +121,8 @@ export class Coordinator {
 
     try {
       await this.decompose()
+      // After decompose: the DAG has to exist before the plan table can be seeded from it.
+      await this.journal.onRunStart(runId, this.opts.spec)
 
       while (!this.stopped) {
         const converged = await this.tick()
@@ -124,6 +144,7 @@ export class Coordinator {
       const finalStatus =
         this.stopped || failedTasks.length > 0 || !allDone ? 'failed' : 'completed'
       this.db.updateCoordinatorRun(runId, finalStatus)
+      await this.journal.onRunEnd(finalStatus)
       this.opts.onLog(`Coordinator run ${runId} ${finalStatus}`)
 
       return {
@@ -157,69 +178,20 @@ export class Coordinator {
   }
 
   private async tick(): Promise<boolean> {
-    this.processMessages()
+    await processCoordinatorMessages({
+      db: this.db,
+      coordinatorHandle: this.opts.coordinatorHandle,
+      journal: this.journal,
+      onLog: this.opts.onLog,
+      completedTasks: this.state.completedTasks,
+      failedTasks: this.state.failedTasks,
+      escalations: this.state.escalations
+    })
     this.processEscalations()
     reblockTasksWithPendingGates(this.db)
     warnStaleDispatches(this.db, this.opts.onLog)
     await this.dispatchReadyTasks()
     return this.checkConvergence()
-  }
-
-  private processMessages(): void {
-    const messages = this.db.getUnreadMessages(this.opts.coordinatorHandle)
-    if (messages.length === 0) {
-      return
-    }
-
-    for (const msg of messages) {
-      switch (msg.type) {
-        case 'worker_done':
-          this.handleLifecycleMessage(msg)
-          break
-        case 'escalation':
-          this.handleEscalation(msg)
-          break
-        case 'decision_gate':
-          openDecisionGateFromMessage(this.db, msg, this.opts.onLog)
-          break
-        case 'heartbeat':
-          this.handleLifecycleMessage(msg)
-          break
-        case 'status':
-          this.opts.onLog(`Status from ${msg.from_handle}: ${msg.subject}`)
-          break
-        case 'dispatch':
-        case 'handoff':
-        case 'merge_ready':
-        case 'question':
-          break
-      }
-    }
-
-    this.db.markAsRead(messages.map((m) => m.id))
-  }
-
-  private handleLifecycleMessage(msg: MessageRow): void {
-    const result = reconcileLifecycleMessage(this.db, msg, this.opts.onLog)
-    if (result.action === 'completed') {
-      if (!this.state.completedTasks.includes(result.taskId)) {
-        this.state.completedTasks.push(result.taskId)
-      }
-      return
-    }
-    if (result.action === 'failed' && !this.state.failedTasks.includes(result.taskId)) {
-      this.state.failedTasks.push(result.taskId)
-    }
-  }
-
-  private handleEscalation(msg: MessageRow): void {
-    this.opts.onLog(`Escalation from ${msg.from_handle}: ${msg.subject}`)
-    this.state.escalations.push(msg)
-
-    const circuitBrokenTaskId = applyEscalationToDispatch(this.db, msg, this.opts.onLog)
-    if (circuitBrokenTaskId) {
-      this.state.failedTasks.push(circuitBrokenTaskId)
-    }
   }
 
   private processEscalations(): void {
@@ -294,6 +266,11 @@ export class Coordinator {
           slotsAvailable++
         } else {
           this.state.phase = 'monitoring'
+          // getDispatchContext returns the newest row for the task, which is the one just created.
+          const dispatchId = this.db.getDispatchContext(task.id)?.id
+          if (dispatchId) {
+            await this.journal.onDispatch(task, dispatchId, targetHandle)
+          }
         }
       } catch (err) {
         this.opts.onLog(`Failed to dispatch task ${task.id}: ${String(err)}`)

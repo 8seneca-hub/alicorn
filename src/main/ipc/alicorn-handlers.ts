@@ -8,6 +8,8 @@ import {
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
+import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
+import { readForemanRunView } from '../alicorn/foreman/run-view-source'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -16,6 +18,8 @@ const UNCONFIGURED: AlicornFailure = { ok: false, error: 'control_plane_unconfig
 export type AlicornHandlerDeps = {
   client: ControlPlaneClient | null
   getOrchestrationDb: () => OrchestrationDb
+  /** Null for a workspace this host cannot resolve, which reads as "no run" rather than an error. */
+  resolveWorktreePath?: (worktreeId: string) => Promise<string | null>
 }
 
 // A control-plane failure is a result the renderer can render, not a rejected
@@ -139,6 +143,24 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
         .getOrchestrationDb()
         .setTaskExecutionStrategy(taskId, strategy as ExecutionStrategy, source)
       return { ok: true }
+    }
+  )
+
+  // Why a plain read and not a subscription: the journal changes at dispatch speed, not frame
+  // speed, so the view polls while it is open rather than the main process watching every
+  // workspace for a panel that is usually closed.
+  ipcMain.handle(
+    ALICORN_IPC.foremanJournal,
+    async (_event, args: { worktreeId?: unknown }): Promise<ForemanRunViewResult> => {
+      const worktreeId = asNonEmptyString(args?.worktreeId)
+      if (!worktreeId || !deps.resolveWorktreePath) {
+        return { state: 'none' }
+      }
+      const worktreePath = await deps.resolveWorktreePath(worktreeId)
+      if (!worktreePath) {
+        return { state: 'none' }
+      }
+      return readForemanRunView(worktreePath)
     }
   )
 }
