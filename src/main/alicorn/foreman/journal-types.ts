@@ -1,22 +1,18 @@
+import type {
+  ForemanNodeStatus,
+  ForemanPlanNode,
+  ForemanRunStatus
+} from '../../../shared/alicorn/foreman-run'
+
 // The Feature Journal is the source of truth for an orchestrated run; the lead's context is a cache
 // of it (docs/alicorn/foreman-templates.md §3). It lives on disk so a run survives the session that
 // started it — ARCHITECTURE's "state is on disk" for Foreman.
 
-export type JournalNodeStatus = 'pending' | 'dispatched' | 'done' | 'failed' | 'blocked'
-
-export type JournalNode = {
-  id: string
-  title: string
-  owner: string
-  dependsOn: string[]
-  status: JournalNodeStatus
-  model: string | null
-  dispatchId: string | null
-}
-
-// The template writes `planning`/`blocked` and the plan's interface writes `paused`/`failed`. Both
-// are kept: a hand-written journal must parse, and a resumed run needs to tell paused from failed.
-export type JournalStatus = 'planning' | 'running' | 'paused' | 'blocked' | 'done' | 'failed'
+// The run vocabulary lives in shared/alicorn/foreman-run.ts, because the renderer draws what this
+// file parses; these names are the journal's spelling of the same things.
+export type JournalNodeStatus = ForemanNodeStatus
+export type JournalNode = ForemanPlanNode
+export type JournalStatus = ForemanRunStatus
 
 export type JournalDecision = {
   n: number

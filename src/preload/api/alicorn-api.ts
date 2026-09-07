@@ -1,4 +1,5 @@
 import type { EscalationOffer } from '../../shared/alicorn/context-ceiling'
+import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
 
 export type AlicornFailure = { ok: false; error: string }
@@ -18,4 +19,6 @@ export type AlicornApi = {
     source: 'user' | 'escalation'
   }) => Promise<{ ok: boolean }>
   onEscalationOffer: (callback: (payload: EscalationOffer) => void) => () => void
+  /** The journal the given workspace's run is keeping, read from disk on every call. */
+  getForemanRun: (worktreeId: string) => Promise<ForemanRunViewResult>
 }
