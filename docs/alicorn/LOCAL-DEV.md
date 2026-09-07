@@ -79,6 +79,27 @@ pnpm test src/main/alicorn
 pnpm tc:node
 ```
 
+## Board automation — automated live check
+
+The manual checklist below is a one-off; this is the repeatable part. It runs the real rule engine
+against a real SQLite orchestration database and a real Control API over HTTP, with only
+`startWorkerForTask` stubbed (launching an agent needs an Electron runtime and real terminals).
+
+```bash
+cd cloud && pnpm alicorn:up && pnpm alicorn:seed
+cd .. && ALICORN_TEST_CONTROL_API_URL=http://127.0.0.1:8081 \
+  pnpm test src/main/board-automation/board-automation-live.integration.test.ts
+```
+
+It skips cleanly without `ALICORN_TEST_CONTROL_API_URL`, so CI is unaffected. Overridable:
+`ALICORN_TEST_CONTROL_API_TOKEN`, `ALICORN_TEST_CONTROL_API_TENANT`,
+`ALICORN_TEST_CONTROL_API_PROJECT`.
+
+It exists because every defect this feature shipped was at a boundary the unit tests mocked — a
+SQLite timestamp parsed as local time, a SQL comparison between two timestamp formats, and stage
+keys that share nothing with board column ids. All three passed a green unit suite. The check also
+proved itself on its first run, by failing on a branch whose base was missing the column binding.
+
 ## Smoke checklist (tier 1)
 
 Results are recorded in the PR description or the Plane issue (E1 / ALC-27) when the run is performed manually.
