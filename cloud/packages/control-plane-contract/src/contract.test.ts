@@ -50,6 +50,18 @@ describe('control-plane contract', () => {
     expect(parsed.filesModified).toEqual([])
   })
 
+  // A code stage runs a command instead of a model, so `code` is a legal outcome backend even
+  // though no member can be configured with it.
+  it('accepts the code backend on an outcome but not on a member', () => {
+    const parsed = StepOutcomeInputSchema.parse({
+      runId: 'run_1', taskId: 'task_1', dispatchId: 'code-task_1', outcome: 'succeeded', backend: 'code'
+    })
+    expect(parsed.backend).toBe('code')
+    expect(() =>
+      MemberInputSchema.parse({ name: 'x', role: 'developer', backend: 'code', workspaceKind: 'worktree', permissionMode: 'ask' })
+    ).toThrow()
+  })
+
   it('defaults usage to null for a spend patch with only spendCents', () => {
     const parsed = SpendPatchSchema.parse({ spendCents: 82 })
     expect(parsed.usage).toBeNull()

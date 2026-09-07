@@ -8,6 +8,7 @@ import { isBoardAutomationKilled } from './board-kill-switch'
 import { renderBoardPromptTemplate, type BoardRuleStore } from './board-rule-store'
 import type { WorkflowDirectory } from './workflow-directory'
 import { codeStageOutcome, runCodeStage } from '../alicorn/workflows/code-stage-runner'
+import { enqueueCodeStageOutcome } from '../alicorn/workflows/code-stage-outcome-enqueue'
 
 // Why its own budget: an automated start has nobody watching it, so it waits as long as a human
 // start does rather than an ad-hoc number.
@@ -246,11 +247,28 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
             detail: `${rule.stageName} runs a command, and this workspace is on a remote host.`
           }
         }
+        // The same Run and task-create path a dispatched member takes: a code stage is a step in
+        // the ledger like any other, and a step needs a run and a task to hang on.
+        const codeRun = ensureBoardRun(db, event.repoId)
+        const codeTask = createTaskInRun(deps.runtime, codeRun, {
+          spec: `${rule.stageName}: ${rule.command}`,
+          executionStrategy: 'single'
+        })
         const outcome = await (deps.runCode ?? runCodeStage)({
           worktreePath: event.worktreePath,
           command: rule.command
         })
-        record('dispatched', {})
+        const { dispatchId: codeDispatchId } = enqueueCodeStageOutcome(db, {
+          runId: codeRun.id,
+          taskId: codeTask.id,
+          stageKey: rule.ruleId,
+          // A board's repo is its project — the same fallback the worker path's worktree read makes.
+          projectId: event.repoId,
+          repoId: event.repoId,
+          worktreeId: event.worktreeId,
+          result: outcome
+        })
+        record('dispatched', { taskId: codeTask.id, dispatchId: codeDispatchId })
         return codeStageOutcome(outcome) === 'succeeded'
           ? { allow: true, ranCode: { stageKey: rule.ruleId, exitCode: outcome.exitCode } }
           : {

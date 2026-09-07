@@ -378,6 +378,59 @@ describe('board rule engine', () => {
       )
     })
 
+    // Every step is recorded, and a step that ran without a model is exactly the one worth being
+    // able to prove ran at all. It goes through the outbox, never a direct post.
+    it('records the outcome in the ledger outbox, with no member and the code backend', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 0,
+        durationMs: 3,
+        stdoutTail: 'formatted 2 files',
+        stderrTail: '',
+        timedOut: false
+      }))
+
+      await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      const rows = db.listDueLedgerOutbox(10)
+      expect(rows).toHaveLength(1)
+      expect(rows[0]).toMatchObject({ kind: 'step_outcome' })
+      expect(JSON.parse(rows[0]!.payload)).toMatchObject({
+        source: 'code',
+        outcome: {
+          backend: 'code',
+          stageKey: 'format',
+          outcome: 'succeeded',
+          worktreeId: 'wt-1',
+          repoId: 'repo-1',
+          reportSummary: 'formatted 2 files'
+        }
+      })
+    })
+
+    it('records a failed code stage in the ledger too', async () => {
+      const runCode = vi.fn(async () => ({
+        exitCode: 2,
+        durationMs: 3,
+        stdoutTail: '',
+        stderrTail: 'prettier: parse error',
+        timedOut: false
+      }))
+
+      await withCodeStage(runCode).onWorkspaceStatusChanged(EVENT)
+
+      expect(JSON.parse(db.listDueLedgerOutbox(10)[0]!.payload)).toMatchObject({
+        outcome: { outcome: 'failed', reportSummary: 'prettier: parse error' }
+      })
+    })
+
+    // A refusal never ran anything, so there is nothing to measure — recording one would inflate
+    // the very counts the autonomy policy reads.
+    it('records nothing in the ledger when it refuses a remote code stage', async () => {
+      await withCodeStage(vi.fn(), CODE_STAGE, async () => 'remote').onWorkspaceStatusChanged(EVENT)
+
+      expect(db.listDueLedgerOutbox(10)).toEqual([])
+    })
+
     it('records the transition so the ceiling counts a code stage too', async () => {
       const runCode = vi.fn(async () => ({
         exitCode: 0,
