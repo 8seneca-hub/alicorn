@@ -302,6 +302,10 @@ and the command itself says so.
 - Anything written to the Ledger goes through the outbox. Never `fetch` the Ledger API directly from
   a settlement path. A dead outbox row is an operator signal (`orca ledger outbox --dead`), not
   garbage: it is kept, never deleted, and a human requeues it once the cause is fixed.
+- A **code stage** runs its command through `runProcess` on the local machine and refuses an
+  SSH-hosted workspace — `worktree_path` belongs to the execution host. It records a `step_outcome`
+  with `backend: 'code'` and no member, and on a non-zero exit takes its correction edge or gates
+  with reason `unverified`. It never simply stops.
 - Gates, questions and escalation offers are recorded as ledger interruptions at settlement; the
   north-star metric is `orca ledger report`. Human corrections (follow-up commits, reverts, reopened
   tasks) reach the ledger through the corrections sweep — never write `human_verdict` any other way.
