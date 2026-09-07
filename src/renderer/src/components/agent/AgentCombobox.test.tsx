@@ -31,7 +31,7 @@ describe('AgentCombobox', () => {
     expect(onSetDefault).toHaveBeenCalledWith('codex')
   })
 
-  it('maps the closed Blank Terminal selection to the blank default preference', () => {
+  it('maps the closed Shell only selection to the blank default preference', () => {
     const onSetDefault = vi.fn()
     render(
       <AgentCombobox
@@ -174,7 +174,7 @@ describe('AgentCombobox', () => {
     )
 
     expect(markup).toContain('Select an Agent')
-    expect(markup).not.toContain('Blank Terminal')
+    expect(markup).not.toContain('Shell only')
   })
 
   it('uses the bundled OpenClaude favicon crop instead of Claude or GitHub artwork', () => {

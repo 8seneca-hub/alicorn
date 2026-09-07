@@ -1,3 +1,4 @@
+import { getAgentTabChatSearchEntry } from './agent-tab-chat-search-entry'
 import type { SettingsSearchEntry } from './settings-search'
 import { getGeneralEditorSearchEntries } from './general-editor-search'
 import { translate } from '@/i18n/i18n'
@@ -212,6 +213,10 @@ export const getGeneralUpdateSearchEntries = createLocalizedCatalog(() => [
   }
 ])
 
+export const getGeneralAgentTabSearchEntries = createLocalizedCatalog(() => [
+  getAgentTabChatSearchEntry()
+])
+
 type GeneralPaneSearchOptions = {
   includeProjectRuntime?: boolean
 }
@@ -222,6 +227,7 @@ export function getGeneralPaneSearchEntries(
   return [
     ...getGeneralWorkspaceSearchEntries(),
     ...getGeneralNavigationSearchEntries(),
+    ...getGeneralAgentTabSearchEntries(),
     ...(options.includeProjectRuntime === false ? [] : getGeneralProjectRuntimeSearchEntries()),
     ...getGeneralEditorSearchEntries(),
     ...getGeneralCliSearchEntries(),

@@ -433,3 +433,38 @@ describe('electron-builder config', () => {
     })
   })
 })
+
+describe('Alicorn product identity', () => {
+  it('ships as Alicorn with per-platform executable names', () => {
+    expect(electronBuilderConfig.productName).toBe('Alicorn')
+    expect(electronBuilderConfig.win.executableName).toBe('Alicorn')
+    expect(electronBuilderConfig.linux.executableName).toBe('alicorn-ide')
+    expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('alicorn')
+    expect(electronBuilderConfig.deb.packageName).toBe('alicorn-ide')
+    expect(electronBuilderConfig.rpm.packageName).toBe('alicorn-ide')
+  })
+
+  // A QR code or chat link minted before the rename must still open the app, so
+  // both schemes stay registered for one release. See src/shared/deep-link-scheme.ts.
+  it('registers the new scheme and keeps the pre-rename one', () => {
+    expect(electronBuilderConfig.protocols).toEqual([
+      { name: 'Alicorn', schemes: ['alicorn', 'orca'] }
+    ])
+  })
+
+  it('publishes from the Alicorn repo', () => {
+    expect(electronBuilderConfig.publish.owner).toBe('8seneca-hub')
+    expect(electronBuilderConfig.publish.repo).toBe('alicorn')
+  })
+
+  it('names Alicorn, not Orca, in the macOS permission prompts the user reads', () => {
+    const usageDescriptions = Object.entries(electronBuilderConfig.mac.extendInfo ?? {})
+      .filter(([key]) => key.endsWith('UsageDescription'))
+      .map(([, value]) => value)
+
+    expect(usageDescriptions.length).toBeGreaterThan(0)
+    for (const usage of usageDescriptions) {
+      expect(usage).not.toMatch(/\bOrca\b/)
+    }
+  })
+})

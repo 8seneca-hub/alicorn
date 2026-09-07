@@ -7090,7 +7090,8 @@
           "5cb5475664": "Confirm before closing pinned tabs",
           "36b2a5dc6d": "Show a confirmation dialog before a pinned tab is closed.",
           "projectRuntime": "Project Runtime",
-          "projectRuntimeDescription": "Default runtime for local Windows projects that do not override it."
+          "projectRuntimeDescription": "Default runtime for local Windows projects that do not override it.",
+          "424798c8af": "Agent tabs"
         },
         "GeneralSupportSection": {
           "af7d9f4396": "Thanks for the support!",
@@ -11858,6 +11859,23 @@
           "sectionTitle": "Board automation",
           "columnLabel": "Column",
           "memberLabel": "Member"
+        },
+        "AgentTabChatSetting": {
+          "909632a38c": "Agent tab chat",
+          "4920efcb62": "How supported agent tabs open: the chat surface, or the terminal.",
+          "f1046e8629": "Renders newly created supported local sessions as chat. Existing terminal sessions keep the terminal chat path."
+        },
+        "agent": {
+          "tab": {
+            "chat": {
+              "search": {
+                "entry": {
+                  "eff60c9b6f": "Agent tab chat",
+                  "bb35321ee6": "How supported agent tabs open: the chat surface, or the terminal."
+                }
+              }
+            }
+          }
         }
       },
       "right": {
@@ -16245,7 +16263,8 @@
           "579c768bde": "No agents match your search.",
           "48c6a5a9b4": "Search agents...",
           "9c6b59fe58": "Set as default",
-          "1b0d6965fa": "Current default"
+          "1b0d6965fa": "Current default",
+          "shellOnly": "Shell only"
         },
         "AgentSettingsDialog": {
           "50cdb57c03": "Manage AI agents, set a default, and customize commands.",

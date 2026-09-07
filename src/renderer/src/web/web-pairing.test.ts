@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { decideWebPairingStartup, parseWebPairingInput, type WebPairingOffer } from './web-pairing'
+import {
+  decideWebPairingStartup,
+  parseWebPairingInput,
+  readPairingInputFromLocation,
+  type WebPairingOffer
+} from './web-pairing'
 
 describe('web pairing input', () => {
   const offer: WebPairingOffer = {
@@ -93,5 +98,43 @@ describe('web pairing input', () => {
     ).toEqual({
       kind: 'use-stored-environment'
     })
+  })
+})
+
+function encodeTestPairingCode(): string {
+  const offer: WebPairingOffer = {
+    v: 2,
+    endpoint: 'ws://127.0.0.1:6768',
+    deviceToken: 'token',
+    publicKeyB64: 'public-key'
+  }
+  return Buffer.from(JSON.stringify(offer), 'utf-8')
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
+describe('deep link scheme compatibility', () => {
+  // The rebrand keeps `orca://` readable for a release: codes live in QR images,
+  // chat scrollback and installed mobile apps long after the rename.
+  it('accepts a pairing link under either scheme', () => {
+    const code = encodeTestPairingCode()
+    expect(parseWebPairingInput(`alicorn://pair?code=${code}`)).not.toBeNull()
+    expect(parseWebPairingInput(`orca://pair?code=${code}`)).not.toBeNull()
+  })
+
+  it('reads either scheme out of the location hash', () => {
+    const code = encodeTestPairingCode()
+    expect(
+      readPairingInputFromLocation({ search: '', hash: `#alicorn://pair?code=${code}` } as Location)
+    ).toBe(`alicorn://pair?code=${code}`)
+    expect(
+      readPairingInputFromLocation({ search: '', hash: `#orca://pair?code=${code}` } as Location)
+    ).toBe(`orca://pair?code=${code}`)
+  })
+
+  it('still refuses a scheme we do not own', () => {
+    expect(parseWebPairingInput(`https://pair?code=${encodeTestPairingCode()}`)).toBeNull()
   })
 })
