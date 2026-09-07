@@ -7,15 +7,16 @@ export const RuleProposalVerdictSchema = z.enum(RULE_PROPOSAL_VERDICTS)
 export const RuleProposalStatusSchema = z.enum(RULE_PROPOSAL_STATUSES)
 
 // Why: assembled upstream by the corrections watcher (sha, files, an excerpt bounded to 4 KB —
-// docs/alicorn/plans/2026-09-06-rulebook.md RB-R3). Kept loose so that producer can evolve
-// without a contract change; passthrough preserves fields this schema doesn't know about.
-export const RuleProposalContextSchema = z
-  .object({
-    sha: z.string().optional(),
-    files: z.array(z.string()).max(200).optional(),
-    excerpt: z.string().max(4096).optional()
-  })
-  .passthrough()
+// docs/alicorn/plans/2026-09-06-rulebook.md RB-R3).
+// Why unknown keys are stripped rather than passed through: every known field here is bounded,
+// but passthrough would let any authenticated caller store an arbitrarily large blob in a jsonb
+// column the Members pane reads back. A producer that grows a field adds it here first, which is
+// the same additive discipline every other wire change on this project follows.
+export const RuleProposalContextSchema = z.object({
+  sha: z.string().optional(),
+  files: z.array(z.string()).max(200).optional(),
+  excerpt: z.string().max(4096).optional()
+})
 
 export const RuleProposalInputSchema = z.object({
   memberId: z.string().min(1),

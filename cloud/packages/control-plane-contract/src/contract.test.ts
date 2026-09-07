@@ -103,12 +103,16 @@ describe('control-plane contract', () => {
 })
 
 describe('rule proposal contract', () => {
-  it('accepts a proposal input and keeps unknown context fields via passthrough', () => {
+  // Why stripped and not kept: every named field here is bounded, but passing unknown keys through
+  // would let any authenticated caller store an arbitrarily large blob in a jsonb column the
+  // Members pane reads back. Stripping rather than rejecting keeps an older service compatible
+  // with a newer producer — a grown field is added to this schema first.
+  it('accepts a proposal input and strips unknown context fields', () => {
     const parsed = RuleProposalInputSchema.parse({
       memberId: 'member_1', outcomeId: 'outcome_1', verdict: 'amended',
-      context: { sha: 'abc123', files: ['a.ts'], excerpt: 'diff', extra: 'kept' }
+      context: { sha: 'abc123', files: ['a.ts'], excerpt: 'diff', extra: 'dropped' }
     })
-    expect(parsed.context).toEqual({ sha: 'abc123', files: ['a.ts'], excerpt: 'diff', extra: 'kept' })
+    expect(parsed.context).toEqual({ sha: 'abc123', files: ['a.ts'], excerpt: 'diff' })
   })
 
   it('rejects a verdict outside amended/rejected', () => {
