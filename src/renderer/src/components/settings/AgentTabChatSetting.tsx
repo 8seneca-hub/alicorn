@@ -5,19 +5,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { NativeChatSupportedAgents } from './NativeChatSupportedAgents'
 import { SearchableSetting } from './SearchableSetting'
 import { SettingsSwitch } from './SettingsFormControls'
-import { getExperimentalSearchEntry } from './experimental-search'
+import { getAgentTabChatSearchEntry } from './agent-tab-chat-search-entry'
 
 type NativeChatDefaultView = 'terminal-chat' | 'native-chat'
 
-type NativeChatExperimentalSettingProps = {
+type AgentTabChatSettingProps = {
   settings: GlobalSettings
   updateSettings: (updates: Partial<GlobalSettings>) => void
 }
 
-export function NativeChatExperimentalSetting({
+export function AgentTabChatSetting({
   settings,
   updateSettings
-}: NativeChatExperimentalSettingProps): React.JSX.Element {
+}: AgentTabChatSettingProps): React.JSX.Element {
   const nativeChatEnabled = settings.experimentalNativeChat === true
   const structuredNativeChatEnabled = settings.experimentalStructuredNativeChat === true
   const defaultView: NativeChatDefaultView =
@@ -25,14 +25,14 @@ export function NativeChatExperimentalSetting({
 
   return (
     <SearchableSetting
-      title={translate('auto.components.settings.ExperimentalPane.nativeChat.title', 'Chat UI')}
+      title={translate('auto.components.settings.AgentTabChatSetting.909632a38c', 'Agent tab chat')}
       description={translate(
-        'auto.components.settings.ExperimentalPane.nativeChat.description',
-        'Preview the desktop chat surface for supported agent terminal sessions.'
+        'auto.components.settings.AgentTabChatSetting.4920efcb62',
+        'How supported agent tabs open: the chat surface, or the terminal.'
       )}
-      keywords={getExperimentalSearchEntry().nativeChat.keywords}
+      keywords={getAgentTabChatSearchEntry().keywords}
       className="space-y-3 py-2"
-      id="experimental-native-chat"
+      id="agent-tab-chat"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 shrink space-y-0.5">
@@ -41,8 +41,8 @@ export function NativeChatExperimentalSetting({
           </Label>
           <p className="text-xs text-muted-foreground">
             {translate(
-              'auto.components.settings.ExperimentalPane.nativeChat.copy',
-              'Enables the experimental Chat UI for newly created supported local sessions. Existing terminal sessions keep the terminal chat path while we tune transcript fidelity, streaming, and parity.'
+              'auto.components.settings.AgentTabChatSetting.f1046e8629',
+              'Renders newly created supported local sessions as chat. Existing terminal sessions keep the terminal chat path.'
             )}
           </p>
           <NativeChatSupportedAgents />

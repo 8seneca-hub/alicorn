@@ -2,18 +2,17 @@ import { translate } from '@/i18n/i18n'
 import type { SettingsSearchEntry } from './settings-search'
 import { translateSearchKeyword } from './settings-search-keywords'
 
-export function getNativeChatExperimentalSearchEntry(): SettingsSearchEntry {
+export function getAgentTabChatSearchEntry(): SettingsSearchEntry {
   return {
-    title: translate('auto.components.settings.experimental.search.nativeChat.title', 'Chat UI'),
+    title: translate(
+      'auto.components.settings.agent.tab.chat.search.entry.eff60c9b6f',
+      'Agent tab chat'
+    ),
     description: translate(
-      'auto.components.settings.experimental.search.nativeChat.description',
-      'Preview the desktop chat surface for supported agent terminal sessions.'
+      'auto.components.settings.agent.tab.chat.search.entry.bb35321ee6',
+      'How supported agent tabs open: the chat surface, or the terminal.'
     ),
     keywords: [
-      ...translateSearchKeyword(
-        'auto.components.settings.experimental.search.0d24759f14',
-        'experimental'
-      ),
       ...translateSearchKeyword(
         'auto.components.settings.experimental.search.nativeChat.native',
         'native'

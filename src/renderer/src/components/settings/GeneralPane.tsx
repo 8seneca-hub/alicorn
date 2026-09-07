@@ -3,11 +3,13 @@ import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import { useAppStore } from '../../store'
 import { Separator } from '../ui/separator'
 import { CliSection } from './CliSection'
+import { AgentTabChatSetting } from './AgentTabChatSetting'
 import { GeneralEditorSettingsSection } from './GeneralEditorSettingsSection'
 import { GeneralSupportSection } from './GeneralSupportSection'
 import { GeneralUpdateSettingsSection } from './GeneralUpdateSettingsSection'
 import { GeneralWorkspaceSettingsSection } from './GeneralWorkspaceSettingsSection'
 import {
+  getGeneralAgentTabSearchEntries,
   getGeneralCliSearchEntries,
   getGeneralEditorSearchEntries,
   getGeneralNavigationSearchEntries,
@@ -158,6 +160,14 @@ export function GeneralPane({
             }
           />
         </SearchableSetting>
+      </section>
+    ) : null,
+    matchesSettingsSearch(searchQuery, getGeneralAgentTabSearchEntries()) ? (
+      <section key="agent-tabs" className="space-y-4">
+        <SettingsSubsectionHeader
+          title={translate('auto.components.settings.GeneralPane.424798c8af', 'Agent tabs')}
+        />
+        <AgentTabChatSetting settings={settings} updateSettings={updateSettings} />
       </section>
     ) : null,
     matchesSettingsSearch(searchQuery, getGeneralWorkspaceSearchEntries()) ? (
