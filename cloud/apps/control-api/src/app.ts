@@ -4,6 +4,7 @@ import { requireTenant } from '@alicorn-cloud/control-plane-auth'
 import { registerMembersRoutes } from './members-routes.js'
 import { registerOrgPolicyRoutes } from './org-policy-routes.js'
 import { registerRequiredChecksRoutes } from './required-checks-routes.js'
+import { registerRuleProposalsRoutes } from './rule-proposals-routes.js'
 import { registerWorkflowsRoutes } from './workflows-routes.js'
 import { requestLog } from './request-log.js'
 import { ControlMetrics } from './control-metrics.js'
@@ -30,6 +31,7 @@ export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
   registerMembersRoutes(app, deps)
   registerOrgPolicyRoutes(app, deps)
   registerRequiredChecksRoutes(app, deps)
+  registerRuleProposalsRoutes(app, deps)
   registerWorkflowsRoutes(app, deps)
   return app
 }

@@ -7,6 +7,7 @@ import {
   InterruptionInputSchema,
   InterruptionsReportSchema,
   MemberInputSchema,
+  RuleProposalInputSchema,
   SpendPatchSchema,
   StepOutcomeInputSchema,
   WorkflowInputSchema,
@@ -99,6 +100,22 @@ describe('control-plane contract', () => {
     expect(parsed.excluded).toEqual(['permission_prompt'])
   })
 
+})
+
+describe('rule proposal contract', () => {
+  it('accepts a proposal input and keeps unknown context fields via passthrough', () => {
+    const parsed = RuleProposalInputSchema.parse({
+      memberId: 'member_1', outcomeId: 'outcome_1', verdict: 'amended',
+      context: { sha: 'abc123', files: ['a.ts'], excerpt: 'diff', extra: 'kept' }
+    })
+    expect(parsed.context).toEqual({ sha: 'abc123', files: ['a.ts'], excerpt: 'diff', extra: 'kept' })
+  })
+
+  it('rejects a verdict outside amended/rejected', () => {
+    expect(() => RuleProposalInputSchema.parse({
+      memberId: 'member_1', outcomeId: 'outcome_1', verdict: 'accepted', context: {}
+    })).toThrow()
+  })
 })
 
 describe('workflow contract', () => {

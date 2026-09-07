@@ -85,5 +85,10 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      to_stage TEXT NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
      trigger JSONB NOT NULL)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS transitions_workflow_edge ON transitions(workflow_id, from_stage, to_stage)`,
-  tenantRlsPolicySql('transitions')
+  tenantRlsPolicySql('transitions'),
+  // Rulebook (v1.5): a human-corrected step proposes a standing rule on the member that caused it.
+  `CREATE TABLE IF NOT EXISTS rule_proposals (id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text, tenant_id TEXT NOT NULL, member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+     outcome_id TEXT NOT NULL, verdict TEXT NOT NULL CHECK (verdict IN ('amended','rejected')), context JSONB NOT NULL, proposed_rule TEXT,
+     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted','rejected')), decided_by TEXT, decided_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE (tenant_id, outcome_id))`,
+  tenantRlsPolicySql('rule_proposals')
 ]
