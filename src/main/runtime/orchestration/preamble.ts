@@ -1,4 +1,5 @@
 import type { OrchestrationCliCommand } from './cli-command'
+import { buildForemanJournalSection, buildForemanReportSection } from './preamble-foreman-sections'
 
 export type PreambleParams = {
   taskId: string
@@ -33,6 +34,15 @@ export type PreambleParams = {
   workerKind?: 'prompt-returning-agent' | 'bare-shell'
   // Why gated: advertising a verb the depth cap will reject just burns a turn.
   canDispatchSubWorkers?: boolean
+  /**
+   * `orchestrated` adds the bounded-report section; `lead` adds the journal instructions instead.
+   *
+   * Absent means an ordinary single-agent dispatch, which gains neither — `single` is the default
+   * and the schema is a cost only the runs that need it pay.
+   */
+  foremanRole?: 'orchestrated-worker' | 'lead'
+  /** The run whose journal a lead keeps; required for the lead section to name a path. */
+  runId?: string
 }
 
 // Why: 5 minutes is frequent enough that the coordinator's stale-heartbeat
@@ -145,7 +155,15 @@ ${postDoneInstructions}`
 
   const subDispatch = params.canDispatchSubWorkers ? buildSubDispatchSection(cli) : ''
 
-  return `${header}${drift}${subDispatch}
+  // A lead reports nothing bounded — it receives reports. So the two sections are exclusive.
+  const foreman =
+    params.foremanRole === 'lead'
+      ? buildForemanJournalSection(params.runId ?? params.taskId)
+      : params.foremanRole === 'orchestrated-worker'
+        ? buildForemanReportSection(cli)
+        : ''
+
+  return `${header}${drift}${subDispatch}${foreman}
 
 === TASK ===
 ${params.taskSpec}`
