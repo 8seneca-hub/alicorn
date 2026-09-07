@@ -11855,7 +11855,9 @@
             "title": "Board automation"
           },
           "sectionDescription": "Dispatch a member when a workspace moves into a board column.",
-          "sectionTitle": "Board automation"
+          "sectionTitle": "Board automation",
+          "columnLabel": "Column",
+          "memberLabel": "Member"
         }
       },
       "right": {
