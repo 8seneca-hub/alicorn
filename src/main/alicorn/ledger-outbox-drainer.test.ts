@@ -68,13 +68,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(result).toEqual({ sent: 1, retried: 0, dead: 0 })
     expect(writer.postStepOutcome).toHaveBeenCalledTimes(1)
     expect(db.listDueLedgerOutbox()).toHaveLength(1) // step_verification, due now
     expect(db.listDueLedgerOutbox()[0].kind).toBe('step_verification')
@@ -108,7 +107,6 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
@@ -127,7 +125,6 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
@@ -156,13 +153,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(result).toEqual({ sent: 1, retried: 0, dead: 0 })
     expect(writer.patchHumanVerdict).toHaveBeenCalledWith('so_1', {
       humanVerdict: 'accepted',
       amendedAfterMs: null,
@@ -191,13 +187,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(result).toEqual({ sent: 1, retried: 0, dead: 0 })
     expect(db.listDueLedgerOutbox()).toHaveLength(0)
   })
 
@@ -225,13 +220,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(result).toEqual({ sent: 1, retried: 0, dead: 0 })
     expect(writer.postInterruption).toHaveBeenCalledWith(interruptionInput)
     expect(db.listDueLedgerOutbox()).toHaveLength(0)
   })
@@ -246,13 +240,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 0, failed: 1 })
+    expect(result).toEqual({ sent: 0, retried: 1, dead: 0 })
     const farFuture = new Date(Date.now() + 120_000).toISOString()
     const row = db.listDueLedgerOutbox(25, farFuture)[0]
     expect(row.kind).toBe('step_outcome')
@@ -298,13 +291,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 1 })
+    expect(result).toEqual({ sent: 1, retried: 1, dead: 0 })
     expect(postContextCapture).toHaveBeenCalledTimes(2)
     const farFuture = new Date(Date.now() + 120_000).toISOString()
     const stillDue = db.listDueLedgerOutbox(25, farFuture)
@@ -332,13 +324,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer: fakeWriter(),
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 0, failed: 1 })
+    expect(result).toEqual({ sent: 0, retried: 1, dead: 0 })
     const farFuture = new Date(Date.now() + 120_000).toISOString()
     const row = db.listDueLedgerOutbox(25, farFuture)[0]
     expect(row.attempts).toBe(1)
@@ -355,13 +346,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 0, failed: 0 })
+    expect(result).toEqual({ sent: 0, retried: 0, dead: 0 })
     const row = db.listDueLedgerOutbox()[0]
     expect(row.attempts).toBe(0)
     expect(row.last_error).toBeNull()
@@ -386,18 +376,17 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer: null,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const first = await drainer.drainOnce()
-    expect(first).toEqual({ sent: 0, failed: 0 })
+    expect(first).toEqual({ sent: 0, retried: 0, dead: 0 })
     expect(warnSpy).toHaveBeenCalledTimes(1)
 
     // Still inside the 5-minute window: the second call must not log again.
     vi.setSystemTime(new Date('2026-01-01T00:01:00.000Z'))
     const second = await drainer.drainOnce()
-    expect(second).toEqual({ sent: 0, failed: 0 })
+    expect(second).toEqual({ sent: 0, retried: 0, dead: 0 })
     expect(warnSpy).toHaveBeenCalledTimes(1)
 
     const row = db.listDueLedgerOutbox()[0]
@@ -422,7 +411,6 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
@@ -477,13 +465,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(result).toEqual({ sent: 1, retried: 0, dead: 0 })
     expect(writer.postContextCapture).toHaveBeenCalledTimes(1)
     const remaining = db.listDueLedgerOutbox()
     expect(remaining).toHaveLength(1)
@@ -491,7 +478,10 @@ describe('startLedgerOutboxDrainer', () => {
     expect(remaining[0].attempts).toBe(0)
   })
 
-  it('runs the verification runner for a step_verification row and marks it sent', async () => {
+  // step_verification is owned by the verification worker (LG2a); production wiring
+  // excludes it from this drainer's fetch, but a row is left untouched even if it
+  // does reach here, rather than being silently miscounted as sent.
+  it('leaves a step_verification row untouched even without excludeKinds', async () => {
     db = new OrchestrationDb(':memory:')
     const task = db.createTask({ spec: 'work' })
     const dispatch = createRootDispatch(db, task.id, 'term_worker')
@@ -509,24 +499,20 @@ describe('startLedgerOutboxDrainer', () => {
       }
     })
     const writer = fakeWriter()
-    const verificationRunner = vi.fn().mockResolvedValue(undefined)
     drainer = startLedgerOutboxDrainer({
       getDb: () => db,
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 0 })
-    expect(verificationRunner).toHaveBeenCalledWith(
-      expect.objectContaining({ dispatchId: dispatch.id, worktreeId: WORKTREE.id }),
-      writer
-    )
-    expect(db.listDueLedgerOutbox()).toHaveLength(0)
+    expect(result).toEqual({ sent: 0, retried: 0, dead: 0 })
+    const row = db.listDueLedgerOutbox()[0]
+    expect(row.kind).toBe('step_verification')
+    expect(row.attempts).toBe(0)
   })
 
   it('resolves a worktree through runtime.showManagedWorktree and tolerates it throwing', async () => {
@@ -538,14 +524,13 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
     expect(showManagedWorktree).toHaveBeenCalledWith(`id:${WORKTREE.id}`)
-    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(result).toEqual({ sent: 1, retried: 0, dead: 0 })
     // No worktree resolved → no step_verification row, only spend_attribution (not due yet).
     expect(db.listDueLedgerOutbox()).toHaveLength(0)
     const farFuture = new Date(Date.now() + 120_000).toISOString()
@@ -566,13 +551,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 0, failed: 1 })
+    expect(result).toEqual({ sent: 0, retried: 0, dead: 1 })
     expect(db.listDueLedgerOutbox()).toHaveLength(0)
     expect(db.countDeadLedgerOutbox()).toBe(1)
     expect(db.listDeadLedgerOutbox()[0].dead_reason).toBe('404 not_found')
@@ -596,13 +580,12 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 0, failed: 0 })
+    expect(result).toEqual({ sent: 0, retried: 0, dead: 0 })
     const row = db.listDueLedgerOutbox()[0]
     expect(row.attempts).toBe(0)
     expect(row.last_error).toBeNull()
@@ -643,22 +626,19 @@ describe('startLedgerOutboxDrainer', () => {
         occurredAt: '2026-09-06T00:00:00.000Z'
       }
     })
-    const verificationRunner = vi.fn().mockResolvedValue(undefined)
     const writer = fakeWriter()
     drainer = startLedgerOutboxDrainer({
       getDb: () => db,
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner,
       excludeKinds: ['step_verification'],
       intervalMs: 60_000
     })
 
     const result = await drainer.drainOnce()
 
-    expect(result).toEqual({ sent: 1, failed: 0 })
-    expect(verificationRunner).not.toHaveBeenCalled()
+    expect(result).toEqual({ sent: 1, retried: 0, dead: 0 })
     expect(writer.postInterruption).toHaveBeenCalledTimes(1)
     const stepVerificationRow = db
       .listDueLedgerOutbox()
@@ -677,7 +657,6 @@ describe('startLedgerOutboxDrainer', () => {
       runtime: { showManagedWorktree: vi.fn() },
       writer,
       spendAttributor: null,
-      verificationRunner: null,
       intervalMs: 1_000
     })
     drainer.stop()

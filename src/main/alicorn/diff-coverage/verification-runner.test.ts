@@ -155,4 +155,21 @@ describe('createVerificationRunner', () => {
       }
     })
   })
+
+  it('forwards the signal to runDiffCoverageCheck', async () => {
+    const writer = makeWriter()
+    const runCheck = vi.fn().mockResolvedValue({ status: 'passed', detail: {} })
+    const controller = new AbortController()
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [CHECK],
+      runDiffCoverageCheck: runCheck,
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'local',
+      pathExists: async () => true
+    })
+
+    await runner(PAYLOAD, writer, { signal: controller.signal })
+
+    expect(runCheck).toHaveBeenCalledWith(expect.objectContaining({ signal: controller.signal }))
+  })
 })

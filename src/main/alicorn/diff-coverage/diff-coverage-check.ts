@@ -20,8 +20,10 @@ export type RunDiffCoverageCheckInput = {
   check: DiffCoverageCheck
   gitOptions?: { wslDistro?: string }
   runProcess?: typeof defaultRunProcess
-  gitExec?: (argv: string[]) => Promise<{ stdout: string }>
+  gitExec?: (argv: string[], options?: { signal?: AbortSignal }) => Promise<{ stdout: string }>
   readFile?: typeof fsReadFile
+  /** Ties the command and the git diff to the worker's row-level timeout. */
+  signal?: AbortSignal
 }
 
 export type RunDiffCoverageCheckResult = {
@@ -37,11 +39,12 @@ export async function runDiffCoverageCheck(
   const runProcess = input.runProcess ?? defaultRunProcess
   const gitExec =
     input.gitExec ??
-    ((argv: string[]) =>
+    ((argv: string[], options?: { signal?: AbortSignal }) =>
       gitExecFileAsync(argv, {
         cwd: worktreePath,
         ...(input.gitOptions?.wslDistro ? { wslDistro: input.gitOptions.wslDistro } : {}),
-        admissionTier: 'interactive'
+        admissionTier: 'interactive',
+        signal: options?.signal
       }))
   const readFile = input.readFile ?? fsReadFile
 
@@ -52,7 +55,8 @@ export async function runDiffCoverageCheck(
       args: isWindows ? ['/d', '/s', '/c', check.command] : ['-lc', check.command],
       cwd: worktreePath,
       timeoutMs: check.timeoutMs,
-      maxOutputBytes: 1_000_000
+      maxOutputBytes: 1_000_000,
+      signal: input.signal
     })
     if (result.code !== 0) {
       return {
@@ -71,17 +75,20 @@ export async function runDiffCoverageCheck(
   try {
     // Why these flags: quotePath=false keeps non-ASCII paths unquoted, and the diff must
     // match unified-diff-added-lines' own assumptions (no external diff driver, a/ b/ prefixes).
-    const diff = await gitExec([
-      '-c',
-      'core.quotePath=false',
-      'diff',
-      '-U0',
-      '--no-color',
-      '--no-ext-diff',
-      '--src-prefix=a/',
-      '--dst-prefix=b/',
-      `${baseRef}...HEAD`
-    ])
+    const diff = await gitExec(
+      [
+        '-c',
+        'core.quotePath=false',
+        'diff',
+        '-U0',
+        '--no-color',
+        '--no-ext-diff',
+        '--src-prefix=a/',
+        '--dst-prefix=b/',
+        `${baseRef}...HEAD`
+      ],
+      { signal: input.signal }
+    )
     diffText = diff.stdout
   } catch (error) {
     return {

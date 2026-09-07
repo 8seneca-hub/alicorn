@@ -63,6 +63,7 @@ export const mainProcessState = {
   claudeRuntimeAuth: null as ClaudeRuntimeAuthService | null,
   runtime: null as OrcaRuntimeService | null,
   ledgerOutboxDrainer: null as LedgerOutboxDrainer | null,
+  verificationWorker: null as { stop: () => void } | null,
   correctionsSweep: null as { stop: () => void } | null,
   contextCeilingWatcher: null as { stop: () => void } | null,
   runCostPublisher: null as { stop: () => void } | null,

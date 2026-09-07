@@ -123,6 +123,7 @@ function installWillQuitHandler(): void {
     state.starNag?.stop()
     state.automations?.stop()
     state.ledgerOutboxDrainer?.stop()
+    state.verificationWorker?.stop()
     state.correctionsSweep?.stop()
     state.runCostPublisher?.stop()
     state.contextCeilingWatcher?.stop()

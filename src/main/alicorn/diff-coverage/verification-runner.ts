@@ -1,6 +1,6 @@
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
-import type { VerificationRunner } from '../ledger-outbox-drainer'
+import type { VerificationRunner } from '../verification-worker'
 import type { LedgerWriter } from '../ledger/ledger-writer'
 import type { StepVerificationInput } from '../../../shared/alicorn/ledger-inputs'
 import type { DiffCoverageCheck, RequiredCheck } from '../../../shared/alicorn/members'
@@ -41,7 +41,7 @@ function isDiffCoverageCheck(check: RequiredCheck): check is DiffCoverageCheck {
 export function createVerificationRunner(deps: VerificationRunnerDeps): VerificationRunner {
   const pathExists = deps.pathExists ?? defaultPathExists
 
-  return async (payload, writer) => {
+  return async (payload, writer, options) => {
     // A member cannot loosen its own criteria: checks come from the project's admin-authored list.
     const checks = await deps.fetchRequiredChecks(payload.projectId)
     const check = checks.find(isDiffCoverageCheck)
@@ -72,7 +72,8 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
       worktreePath: payload.worktreePath,
       baseRef,
       gitOptions,
-      check
+      check,
+      signal: options?.signal
     })
     return post(status, detail)
   }

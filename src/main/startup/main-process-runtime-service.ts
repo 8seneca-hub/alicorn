@@ -23,6 +23,7 @@ import { SkillCloudService } from '../skills/skill-cloud-service'
 import { isArtifactSharingEnabled } from '../../shared/artifact-sharing-gate'
 import { startCorrectionsSweep } from '../alicorn/corrections/corrections-sweep'
 import { startLedgerOutboxDrainer } from '../alicorn/ledger-outbox-drainer'
+import { startVerificationWorker } from '../alicorn/verification-worker'
 import { createLedgerWriter } from '../alicorn/ledger/ledger-writer'
 import { attributeDispatchUsage } from '../alicorn/run-usage-attribution'
 import { startContextCeilingWatcher } from '../alicorn/context-ceiling-watcher'
@@ -136,10 +137,27 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
   })
   state.runtime = runtime
   // Why: C3's own writer instance over B1's alicornFetch — never B2's control-plane client.
+  const ledgerWriter = createLedgerWriter()
+  const verificationRunner = createVerificationRunner({
+    fetchRequiredChecks,
+    runDiffCoverageCheck,
+    resolveBaseRef: createBaseRefResolver({
+      store,
+      showManagedWorktree: (selector) => runtime.showManagedWorktree(selector)
+    }),
+    resolveWorktreeHost: async (worktreeId) => {
+      try {
+        const worktree = await runtime.showManagedWorktree(`id:${worktreeId}`)
+        return !worktree.hostId || worktree.hostId === LOCAL_EXECUTION_HOST_ID ? 'local' : 'remote'
+      } catch {
+        return 'unknown'
+      }
+    }
+  })
   state.ledgerOutboxDrainer = startLedgerOutboxDrainer({
     getDb: () => runtime.getOrchestrationDb(),
     runtime,
-    writer: createLedgerWriter(),
+    writer: ledgerWriter,
     // Why lazy: usage stores are created after the drainer starts, so read state.* at call time.
     spendAttributor: (input) =>
       attributeDispatchUsage({
@@ -147,25 +165,18 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
         claudeUsage: state.claudeUsage,
         codexUsage: state.codexUsage
       }),
-    verificationRunner: createVerificationRunner({
-      fetchRequiredChecks,
-      runDiffCoverageCheck,
-      resolveBaseRef: createBaseRefResolver({
-        store,
-        showManagedWorktree: (selector) => runtime.showManagedWorktree(selector)
-      }),
-      resolveWorktreeHost: async (worktreeId) => {
-        try {
-          const worktree = await runtime.showManagedWorktree(`id:${worktreeId}`)
-          return !worktree.hostId || worktree.hostId === LOCAL_EXECUTION_HOST_ID
-            ? 'local'
-            : 'remote'
-        } catch {
-          return 'unknown'
-        }
-      }
-    }),
+    // Why excluded here: step_verification rows run a project's own coverage/test command,
+    // which can take minutes — the verification worker below gives them their own timer and
+    // row timeout so a slow project can't queue every other ledger write behind it (LG2a).
+    excludeKinds: ['step_verification'],
     intervalMs: LEDGER_OUTBOX_DRAIN_INTERVAL_MS
+  })
+  // Why after the drainer: same settled-state read, and it consumes the step_verification
+  // rows the drainer's step_outcome handling just enqueued.
+  state.verificationWorker = startVerificationWorker({
+    getDb: () => runtime.getOrchestrationDb(),
+    writer: ledgerWriter,
+    verificationRunner
   })
   // Why next to the drainer: same settled-state read, and corrections patch the
   // outcomes the drainer just posted.

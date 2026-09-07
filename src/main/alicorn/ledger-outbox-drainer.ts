@@ -34,7 +34,9 @@ type SpendAttributionPayload = {
   completedAt: string | null
 }
 
-type StepVerificationPayload = {
+// Exported: the verification worker (LG2a) parses the same shape off the rows this
+// drainer enqueues, without owning the step_verification handling itself.
+export type StepVerificationPayload = {
   dispatchId: string
   taskId: string
   runId: string
@@ -51,11 +53,6 @@ export type SpendAttributor = (input: {
   completedAt: string | null
 }) => Promise<SpendPatch>
 
-export type VerificationRunner = (
-  payload: StepVerificationPayload,
-  writer: LedgerWriter
-) => Promise<void>
-
 export type DrainerWorktree = {
   id: string
   path: string
@@ -68,16 +65,15 @@ export type LedgerOutboxDrainerDeps = {
   getDb: () => OrchestrationDb
   runtime: { showManagedWorktree: (selector: string) => Promise<DrainerWorktree> }
   writer: LedgerWriter | null
-  // Why null for now: C5 (attributeDispatchUsage) and D5 (runDiffCoverageCheck) aren't written yet.
+  // Why null for now: C5 (attributeDispatchUsage) isn't written yet.
   spendAttributor: SpendAttributor | null
-  verificationRunner: VerificationRunner | null
   intervalMs: number
   excludeKinds?: LedgerOutboxKind[]
 }
 
 export type LedgerOutboxDrainer = {
   stop(): void
-  drainOnce(): Promise<{ sent: number; failed: number }>
+  drainOnce(): Promise<{ sent: number; retried: number; dead: number }>
 }
 
 /** Marker thrown to short-circuit a pass without bumping attempts or logging as a failure. */
@@ -214,19 +210,6 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
-  async function handleStepVerification(
-    db: OrchestrationDb,
-    row: LedgerOutboxRow,
-    writer: LedgerWriter
-  ): Promise<void> {
-    if (!deps.verificationRunner) {
-      throw new RowUntouched()
-    }
-    const payload = JSON.parse(row.payload) as StepVerificationPayload
-    await deps.verificationRunner(payload, writer)
-    settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
-  }
-
   async function handleHumanVerdictPatch(
     db: OrchestrationDb,
     row: LedgerOutboxRow,
@@ -262,7 +245,9 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
       case 'spend_attribution':
         return handleSpendAttribution(db, row, writer)
       case 'step_verification':
-        return handleStepVerification(db, row, writer)
+        // Owned by the verification worker (LG2a); production wiring excludes this kind
+        // from this drainer's fetch. Reachable only if a caller omits excludeKinds.
+        throw new RowUntouched()
       case 'human_verdict_patch':
         return handleHumanVerdictPatch(db, row, writer)
       case 'interruption':
@@ -270,19 +255,20 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     }
   }
 
-  async function drainOnce(): Promise<{ sent: number; failed: number }> {
+  async function drainOnce(): Promise<{ sent: number; retried: number; dead: number }> {
     // Why a top-level check (not a per-row RowUntouched): a null writer is a global
     // condition like ControlPlaneUnavailableError, not a per-kind gap — it stops the
     // whole pass and logs, rather than being skipped row by row.
     if (!deps.writer) {
       logUnavailableOnce()
-      return { sent: 0, failed: 0 }
+      return { sent: 0, retried: 0, dead: 0 }
     }
     const writer = deps.writer
     const db = deps.getDb()
     const rows = db.listDueLedgerOutbox(25, undefined, { excludeKinds: deps.excludeKinds })
     let sent = 0
-    let failed = 0
+    let retried = 0
+    let dead = 0
     for (const row of rows) {
       try {
         await processRow(db, row, writer)
@@ -295,10 +281,14 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
         if (settled === 'stop_pass') {
           break
         }
-        failed += 1
+        if (settled === 'dead') {
+          dead += 1
+        } else {
+          retried += 1
+        }
       }
     }
-    return { sent, failed }
+    return { sent, retried, dead }
   }
 
   const timer = setInterval(() => {

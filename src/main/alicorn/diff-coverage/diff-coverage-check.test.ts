@@ -143,17 +143,53 @@ describe('runDiffCoverageCheck', () => {
       readFile: fakeReadFile()
     })
 
-    expect(gitExec).toHaveBeenCalledWith([
-      '-c',
-      'core.quotePath=false',
-      'diff',
-      '-U0',
-      '--no-color',
-      '--no-ext-diff',
-      '--src-prefix=a/',
-      '--dst-prefix=b/',
-      'origin/main...HEAD'
-    ])
+    expect(gitExec).toHaveBeenCalledWith(
+      [
+        '-c',
+        'core.quotePath=false',
+        'diff',
+        '-U0',
+        '--no-color',
+        '--no-ext-diff',
+        '--src-prefix=a/',
+        '--dst-prefix=b/',
+        'origin/main...HEAD'
+      ],
+      { signal: undefined }
+    )
+  })
+
+  it('forwards the signal to runProcess', async () => {
+    const runProcess = fakeRunProcess()
+    const controller = new AbortController()
+
+    await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: { ...CHECK, command: 'pnpm test' },
+      runProcess,
+      gitExec: fakeGitExec(),
+      readFile: fakeReadFile(),
+      signal: controller.signal
+    })
+
+    expect(runProcess).toHaveBeenCalledWith(expect.objectContaining({ signal: controller.signal }))
+  })
+
+  it('forwards the signal to gitExec', async () => {
+    const gitExec = fakeGitExec()
+    const controller = new AbortController()
+
+    await runDiffCoverageCheck({
+      worktreePath: '/repo',
+      baseRef: 'origin/main',
+      check: CHECK,
+      gitExec,
+      readFile: fakeReadFile(),
+      signal: controller.signal
+    })
+
+    expect(gitExec).toHaveBeenCalledWith(expect.any(Array), { signal: controller.signal })
   })
 
   it('threads the resolved wslDistro git option into the default gitExec', async () => {
