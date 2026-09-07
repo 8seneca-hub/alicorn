@@ -40,6 +40,18 @@
    dispatch ceiling of three per hour. The loop rule guards the *shape*, the ceiling guards the
    *budget*, and the ceiling is the real backstop. Revisit from the ledger if refusals cluster.
 
+10. **Stages are authoritative when a workflow exists; ad-hoc rules are the fallback** (WF3,
+    2026-09-07). A stage keyed `in-review` *is* the In review column — the binding is by key, which
+    is why WF1 made the wire address stages that way. A stage wins over a rule because it carries
+    `reversibility` and `inherited_cost`, which the autonomy policy reads and a rule cannot express;
+    the rule still supplies the brief, since WF1 stages carry none. Three cases are deliberately
+    distinct: **no workflow** falls back to rules (the degenerate one-stage shape); a workflow that
+    **does not stage a column** dispatches nothing, because authoring silence is a decision; and a
+    workflow that **cannot be read** refuses rather than falling back, because dispatching then
+    means guessing at `reversibility`, which ARCHITECTURE §7 says is authored and never inferred.
+    The cache serves a stale workflow only inside its TTL — past it an unreadable control plane
+    refuses, since last-known attributes may since have gained a hard stop.
+
 9. **The Plane issue list shipped inside PP1 after all** (recorded 2026-09-07, superseding the
    ALC-98 split made the same day). The list, the detail view and the start-work action that writes
    `linkedPlane*` landed in `3cc3d159e` and `fa0529bcc`; `PlaneStateBadge` is in the sidebar and the

@@ -2,6 +2,7 @@ import type { alicornFetch as AlicornFetch } from './control-plane-http'
 import { alicornFetch } from './control-plane-http'
 import type { ProvenanceReport, RunCost } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
+import type { Workflow, WorkflowSummary } from '../../shared/alicorn/workflows'
 
 export type ControlPlaneClient = {
   listMembers: () => Promise<Member[]>
@@ -12,6 +13,8 @@ export type ControlPlaneClient = {
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
   getProvenance: (repoId: string, branch: string) => Promise<ProvenanceReport>
   getRunCost: (runId: string) => Promise<RunCost>
+  listWorkflows: (projectId: string) => Promise<WorkflowSummary[]>
+  getWorkflow: (id: string) => Promise<Workflow>
 }
 
 /**
@@ -80,7 +83,24 @@ export function createControlPlaneClient(deps?: {
     },
 
     getRunCost: (runId) =>
-      readJson<RunCost>('ledger', `/v1/ledger/runs/${encodeURIComponent(runId)}/cost`)
+      readJson<RunCost>('ledger', `/v1/ledger/runs/${encodeURIComponent(runId)}/cost`),
+
+    listWorkflows: async (projectId) => {
+      const query = new URLSearchParams({ projectId })
+      const body = await readJson<{ workflows: WorkflowSummary[] }>(
+        'control',
+        `/v1/workflows?${query.toString()}`
+      )
+      return body.workflows ?? []
+    },
+
+    getWorkflow: async (id) => {
+      const body = await readJson<{ workflow: Workflow }>(
+        'control',
+        `/v1/workflows/${encodeURIComponent(id)}`
+      )
+      return body.workflow
+    }
   }
 }
 

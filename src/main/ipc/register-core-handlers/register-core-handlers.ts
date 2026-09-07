@@ -60,6 +60,7 @@ import { registerAlicornHandlers } from '../alicorn-handlers'
 import { registerBoardAutomationHandlers } from '../board-automation-handlers'
 import { createBoardRuleEngine } from '../../board-automation/board-rule-engine'
 import { createBoardRuleStore } from '../../board-automation/board-rule-store'
+import { createWorkflowDirectory } from '../../board-automation/workflow-directory'
 import { getControlPlaneClient } from '../../alicorn/control-plane-client-instance'
 import { registerCodexAccountHandlers } from '../codex-accounts'
 import { registerAgentHookHandlers } from '../agent-hooks'
@@ -215,7 +216,10 @@ export function registerCoreHandlers(
     engine: createBoardRuleEngine({
       runtime,
       getDb: () => runtime.getOrchestrationDb(),
-      rules: createBoardRuleStore(() => store.getSettings())
+      rules: createBoardRuleStore(() => store.getSettings()),
+      // Why the same client instance: workflow reads share the control-plane session and cache
+      // behaviour the rest of the desktop already uses.
+      workflows: createWorkflowDirectory(getControlPlaneClient())
     })
   })
   registerBrowserHandlers()
