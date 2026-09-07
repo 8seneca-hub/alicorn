@@ -85,4 +85,80 @@ describe('ledger outbox methods', () => {
     expect(row.last_error).toBe('network error')
     expect(row.not_before).toBe(retryAt)
   })
+
+  it('excludes a dead row from the due list', () => {
+    const { id } = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'step_outcome:dispatch-5',
+      payload: {}
+    })
+
+    db.markLedgerOutboxDead(id, 'permanent rejection: 422 unprocessable')
+
+    expect(db.listDueLedgerOutbox()).toHaveLength(0)
+  })
+
+  it('filters the due list to only the given kinds', () => {
+    db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'step_outcome:a', payload: {} })
+    db.enqueueLedgerOutbox({ kind: 'interruption', dedupeKey: 'interruption:b', payload: {} })
+
+    const due = db.listDueLedgerOutbox(25, undefined, { kinds: ['interruption'] })
+
+    expect(due).toHaveLength(1)
+    expect(due[0].kind).toBe('interruption')
+  })
+
+  it('filters the due list to exclude the given kinds', () => {
+    db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'step_outcome:c', payload: {} })
+    db.enqueueLedgerOutbox({ kind: 'interruption', dedupeKey: 'interruption:d', payload: {} })
+
+    const due = db.listDueLedgerOutbox(25, undefined, { excludeKinds: ['interruption'] })
+
+    expect(due).toHaveLength(1)
+    expect(due[0].kind).toBe('step_outcome')
+  })
+
+  it('requeues a dead row: due again with attempts and last_error reset', () => {
+    const { id } = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'step_outcome:dispatch-6',
+      payload: {}
+    })
+    db.markLedgerOutboxFailed(id, 'network error', new Date(Date.now() + 60_000).toISOString())
+    db.markLedgerOutboxDead(id, 'permanent rejection: 422 unprocessable')
+
+    expect(db.requeueLedgerOutbox(id)).toBe(true)
+
+    const due = db.listDueLedgerOutbox()
+    expect(due).toHaveLength(1)
+    expect(due[0].attempts).toBe(0)
+    expect(due[0].last_error).toBeNull()
+    expect(due[0].not_before).toBeNull()
+    expect(due[0].dead_at).toBeNull()
+    expect(due[0].dead_reason).toBeNull()
+  })
+
+  it('requeue returns false for a row that is not dead', () => {
+    const { id } = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'step_outcome:dispatch-7',
+      payload: {}
+    })
+
+    expect(db.requeueLedgerOutbox(id)).toBe(false)
+  })
+
+  it('lists dead rows and counts them', () => {
+    const a = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'dead-a', payload: {} })
+    const b = db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'dead-b', payload: {} })
+    db.enqueueLedgerOutbox({ kind: 'step_outcome', dedupeKey: 'alive-c', payload: {} })
+
+    db.markLedgerOutboxDead(a.id, 'reason a')
+    db.markLedgerOutboxDead(b.id, 'reason b')
+
+    expect(db.countDeadLedgerOutbox()).toBe(2)
+    const dead = db.listDeadLedgerOutbox()
+    expect(dead.map((r) => r.id).sort()).toEqual([a.id, b.id].sort())
+    expect(dead.every((r) => r.dead_at !== null)).toBe(true)
+  })
 })

@@ -17,6 +17,8 @@ export type LedgerOutboxRow = {
   last_error: string | null
   created_at: string
   sent_at: string | null
+  dead_at: string | null
+  dead_reason: string | null
 }
 
 export type TaskExecutionStrategy = 'single' | 'orchestrated'

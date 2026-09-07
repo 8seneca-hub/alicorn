@@ -12,7 +12,9 @@ CREATE TABLE IF NOT EXISTS ledger_outbox (
   not_before   TEXT,
   last_error   TEXT,
   created_at   TEXT NOT NULL DEFAULT (datetime('now')),
-  sent_at      TEXT
+  sent_at      TEXT,
+  dead_at      TEXT,
+  dead_reason  TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_ledger_outbox_due ON ledger_outbox(sent_at, not_before);
