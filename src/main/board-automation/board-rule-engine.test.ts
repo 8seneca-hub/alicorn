@@ -171,4 +171,134 @@ describe('board rule engine', () => {
 
     expect(result).toMatchObject({ allow: false, reason: 'skipped' })
   })
+
+  describe('stage binding (WF3)', () => {
+    const STAGE = {
+      key: 'in-review',
+      name: 'Review',
+      ordinal: 0,
+      memberId: 'member-from-stage',
+      reversibility: 'contained' as const,
+      inheritedCost: 'low' as const,
+      requiredChecks: []
+    }
+
+    function withWorkflows(resolveColumn: () => unknown, rules: BoardAutomationRule[] = [RULE]) {
+      return createBoardRuleEngine({
+        runtime: {} as never,
+        getDb: () => db,
+        rules: createBoardRuleStore(() => ({ boardAutomation: { rules } }) as never),
+        workflows: { resolveColumn: async () => resolveColumn() } as never
+      })
+    }
+
+    // Why the stage wins: it carries reversibility and inherited_cost, which the autonomy policy
+    // reads and an ad-hoc rule cannot express.
+    it('dispatches the stage member rather than the rule member', async () => {
+      const result = await withWorkflows(() => ({
+        kind: 'stage',
+        stage: STAGE,
+        workflowId: 'wf-1',
+        workflowVersion: 1
+      })).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: true })
+      expect(startWorkerForTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({ member: 'member-from-stage' })
+        })
+      )
+    })
+
+    it('records the transition against the stage key', async () => {
+      await withWorkflows(() => ({
+        kind: 'stage',
+        stage: STAGE,
+        workflowId: 'wf-1',
+        workflowVersion: 1
+      })).onWorkspaceStatusChanged(EVENT)
+
+      expect(db.listBoardTransitions('wt-1', 0)[0]).toMatchObject({ ruleId: 'in-review' })
+    })
+
+    // Why refuse: without the stage we would be guessing at reversibility, which ARCHITECTURE §7
+    // says is authored and never inferred.
+    it('refuses when the workflow cannot be read, rather than falling back to the rule', async () => {
+      const result = await withWorkflows(() => ({
+        kind: 'unavailable',
+        detail: 'offline'
+      })).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'workflow_unavailable' })
+      expect(startWorkerForTask).not.toHaveBeenCalled()
+    })
+
+    // Why: a project with no workflow is the pre-v1.5 shape the plan calls a degenerate one-stage
+    // workflow, and its rules are the legitimate model.
+    it('falls back to the ad-hoc rule when the project has no workflow', async () => {
+      const result = await withWorkflows(() => ({ kind: 'none' })).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: true })
+      expect(startWorkerForTask).toHaveBeenCalledWith(
+        expect.objectContaining({
+          params: expect.objectContaining({ member: 'member-reviewer' })
+        })
+      )
+    })
+
+    // Why not fall through: a workflow that deliberately does not stage a column means nothing
+    // happens there, and a rule that would dispatch anyway defeats the authored model.
+    it('dispatches nothing for a column the workflow leaves unstaged', async () => {
+      const result = await withWorkflows(() => ({
+        kind: 'no-stage',
+        workflowId: 'wf-1',
+        workflowVersion: 1
+      })).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'skipped' })
+      expect(startWorkerForTask).not.toHaveBeenCalled()
+    })
+
+    // Merge and Deploy in the shipped template are human steps: no member, so nobody is dispatched.
+    it('dispatches nobody for a stage with no member', async () => {
+      const result = await withWorkflows(() => ({
+        kind: 'stage',
+        stage: { ...STAGE, memberId: null },
+        workflowId: 'wf-1',
+        workflowVersion: 1
+      })).onWorkspaceStatusChanged(EVENT)
+
+      expect(result).toMatchObject({ allow: false, reason: 'skipped' })
+    })
+
+    // The stage says who runs; the column's rule still says what to say, because WF1 stages carry
+    // no brief of their own.
+    it('briefs the stage member with the column rule template when one exists', async () => {
+      await withWorkflows(() => ({
+        kind: 'stage',
+        stage: STAGE,
+        workflowId: 'wf-1',
+        workflowVersion: 1
+      })).onWorkspaceStatusChanged(EVENT)
+
+      expect(createTaskInRun).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({ spec: 'Review alc-49-board for ALC-49' })
+      )
+    })
+
+    it('falls back to a plain brief naming the stage when no rule exists', async () => {
+      await withWorkflows(
+        () => ({ kind: 'stage', stage: STAGE, workflowId: 'wf-1', workflowVersion: 1 }),
+        []
+      ).onWorkspaceStatusChanged(EVENT)
+
+      expect(createTaskInRun).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({ spec: 'Review alc-49-board.' })
+      )
+    })
+  })
 })

@@ -6,6 +6,7 @@ import { BOARD_LOOP_WINDOW_MS, evaluateBoardGuard, type GuardVerdict } from './b
 import { boardCoordinatorHandle, ensureBoardRun } from './board-system-run'
 import { isBoardAutomationKilled } from './board-kill-switch'
 import { renderBoardPromptTemplate, type BoardRuleStore } from './board-rule-store'
+import type { WorkflowDirectory } from './workflow-directory'
 
 // Why its own budget: an automated start has nobody watching it, so it waits as long as a human
 // start does rather than an ad-hoc number.
@@ -31,12 +32,26 @@ export type BoardDispatchResult =
   | { allow: true; dispatchId: string }
   | { allow: false; reason: 'skipped'; detail: string }
   | { allow: false; reason: 'start_failed'; detail: string }
+  | { allow: false; reason: 'workflow_unavailable'; detail: string }
   | Extract<GuardVerdict, { allow: false }>
+
+/**
+ * What the column resolved to, and who it dispatches.
+ *
+ * A stage wins over an ad-hoc rule: it carries `reversibility` and `inherited_cost`, which the
+ * autonomy policy reads and a rule cannot express. The rule stays the fallback for a project with
+ * no workflow — the pre-v1.5 shape the plan calls a degenerate one-stage workflow.
+ */
+type ColumnBinding =
+  | { source: 'stage'; memberId: string; promptTemplate: string; ruleId: string }
+  | { source: 'rule'; memberId: string; promptTemplate: string; ruleId: string }
 
 export type BoardRuleEngineDeps = {
   runtime: OrcaRuntimeService
   getDb: () => OrchestrationDb | null
   rules: BoardRuleStore
+  /** Absent before WF3 wiring; the engine then uses ad-hoc rules only. */
+  workflows?: WorkflowDirectory | null
   now?: () => number
 }
 
@@ -53,6 +68,70 @@ type WorkerStartOutcome = { dispatchId?: string; failedStage?: string; lastError
  * one, so an automated run carries exactly the same provenance as a human's — which is the reason
  * automation routes through orchestration instead of beside it.
  */
+type BindingOutcome =
+  | { kind: 'bound'; binding: ColumnBinding }
+  | { kind: 'none' }
+  | { kind: 'unavailable'; detail: string }
+
+// Why the stage's own key is the rule id: a transition recorded against a stage should point at the
+// stage that caused it, and the stage key is what `step_outcomes.stage_key` already carries.
+async function resolveColumnBinding(
+  deps: BoardRuleEngineDeps,
+  event: WorkspaceStatusChange
+): Promise<BindingOutcome> {
+  const fallback = (): BindingOutcome => {
+    const rule = deps.rules.findRule(event.repoId, event.toStatusId)
+    return rule
+      ? {
+          kind: 'bound',
+          binding: {
+            source: 'rule',
+            memberId: rule.memberId,
+            promptTemplate: rule.promptTemplate,
+            ruleId: rule.id
+          }
+        }
+      : { kind: 'none' }
+  }
+
+  if (!deps.workflows) {
+    return fallback()
+  }
+  const resolved = await deps.workflows.resolveColumn(event.repoId, event.toStatusId)
+  if (resolved.kind === 'unavailable') {
+    return { kind: 'unavailable', detail: resolved.detail }
+  }
+  // A workflow that exists but does not stage this column is a deliberate "nothing happens here",
+  // so it does not silently fall through to a rule that would.
+  if (resolved.kind === 'no-stage') {
+    return { kind: 'none' }
+  }
+  if (resolved.kind === 'none') {
+    return fallback()
+  }
+  const stage = resolved.stage
+  // A stage with no member is a human step — Merge and Deploy in the shipped template — so it
+  // dispatches nobody rather than falling back to a rule that would.
+  if (!stage.memberId) {
+    return { kind: 'none' }
+  }
+  // WF1 stages carry no brief: they hold the member and the attributes the autonomy policy reads.
+  // So the stage supplies who runs, and the column's rule still supplies what to say when one
+  // exists. Without it, a plain default names the stage rather than inventing instructions.
+  const template =
+    deps.rules.findRule(event.repoId, event.toStatusId)?.promptTemplate ??
+    `${stage.name} {{worktree}}.`
+  return {
+    kind: 'bound',
+    binding: {
+      source: 'stage',
+      memberId: stage.memberId,
+      promptTemplate: template,
+      ruleId: stage.key
+    }
+  }
+}
+
 export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngine {
   const now = deps.now ?? Date.now
 
@@ -62,10 +141,24 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
       if (!db) {
         return { allow: false, reason: 'skipped', detail: 'Orchestration is not available.' }
       }
-      const rule = deps.rules.findRule(event.repoId, event.toStatusId)
-      if (!rule) {
-        return { allow: false, reason: 'skipped', detail: 'No enabled rule for this column.' }
+      const binding = await resolveColumnBinding(deps, event)
+      if (binding.kind === 'unavailable') {
+        // Why refuse rather than fall back: without the stage we would be guessing at
+        // `reversibility`, which ARCHITECTURE §7 says is authored and never inferred.
+        return {
+          allow: false,
+          reason: 'workflow_unavailable',
+          detail: `The workflow for this project could not be read: ${binding.detail}`
+        }
       }
+      if (binding.kind === 'none') {
+        return {
+          allow: false,
+          reason: 'skipped',
+          detail: 'No stage or enabled rule for this column.'
+        }
+      }
+      const rule = binding.binding
 
       const killed = isBoardAutomationKilled(db, event.repoId)
 
@@ -86,7 +179,7 @@ export function createBoardRuleEngine(deps: BoardRuleEngineDeps): BoardRuleEngin
           worktreeId: event.worktreeId,
           fromStatusId: event.fromStatusId,
           toStatusId: event.toStatusId,
-          ruleId: rule.id,
+          ruleId: rule.ruleId,
           outcome,
           ...ids
         })
