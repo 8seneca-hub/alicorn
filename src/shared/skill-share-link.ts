@@ -1,3 +1,5 @@
+import { isAcceptedDeepLinkProtocol } from './deep-link-scheme'
+
 const SHARE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
 const PRODUCTION_HOSTS = new Set(['app.orca.dev', 'share.onorca.dev'])
 
@@ -12,7 +14,7 @@ export function parseSkillShareId(value: string): string | null {
   } catch {
     return null
   }
-  if (url.protocol === 'orca:') {
+  if (isAcceptedDeepLinkProtocol(url.protocol)) {
     const match = `${url.host}${url.pathname}`.match(/^skills\/share\/([A-Za-z0-9_-]{1,128})\/?$/)
     return match?.[1] ?? null
   }

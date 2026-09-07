@@ -83,17 +83,40 @@ export function compareAgainstBaseline(findings, baseline) // { newFindings, all
 ### Task 3 (R1): Product identity
 
 **Files:** Modify `config/electron-builder.config.cjs` (`appId 'com.8seneca.alicorn'`, `productName 'Alicorn'`, `protocols [{ name: 'Alicorn', schemes: ['alicorn'] }]`, `win.executableName 'Alicorn'`, `linux.executableName 'alicorn-ide'`, `StartupWMClass 'alicorn'`, deb/rpm `packageName 'alicorn-ide'`, `extendInfo` usage strings "Alicorn allows …", `publish.owner '8seneca-hub'`, `repo 'alicorn'` (dev channels `alicorn-hourly` etc.)); `resources/icon-source/**` + `bash resources/icon-source/generate.sh` → `resources/build/icon.{icns,ico,png}`; `resources/app-icons/` (replace); deep-link literals `orca://` → `alicorn://` in `src/renderer/src/web/web-pairing.ts`, `WebConnect.tsx`, `AddRemoteHostFields.tsx`, `RuntimeHostAccessForm.tsx`, `src/shared/skill-share-link.ts` + their ~15 tests (parse both schemes for one release: `alicorn://` primary, `orca://` accepted); Create `NOTICE`.
-- [ ] **Step 1:** grep for `setAsDefaultProtocolClient` in `src/**`, `config/**`, `*.cjs|*.mjs` and the Info.plist template — record the result in the commit body (research found none in `.ts`).
-- [ ] **Step 2:** failing tests: `web-pairing.test.ts` accepts `alicorn://pair?code=…` and still `orca://pair?…`; `skill-share-link.test.ts` same; a new `electron-builder-config.test.mjs` (node --test) that `require`s the config and asserts `appId`, `productName`, `protocols[0].schemes`, executable names.
-- [ ] **Step 3:** implement; regenerate icons; write `NOTICE`:
+**Icons are blocked, `appId` needs its own commit, and the pairing scheme cannot flip yet.** Three corrections found while executing:
+
+- **`appId` is a compat surface, not a string.** `com.stablyai.orca` is mirrored in
+  `src/shared/local-build-compatibility-contract.{json,ts}` (from which `ORCA_APP_ID` is derived and
+  local builds are validated), asserted three times in
+  `config/scripts/electron-builder-mac-channel-config.test.mjs`, prefixed by the helper ids in
+  `dev-electron-bundle-identity.mjs` / `build-computer-macos.mjs` / `build-notification-status-macos.mjs`,
+  matched as a macOS **preferences domain** in `src/main/macos-press-and-hold-default.ts`, and listed
+  as a **TCC bundle id** in `src/main/macos-tcc-prompt-watch.ts`. An upgrading user's preferences and
+  TCC grants live under the old id, so the rename has to keep recognising it. That is its own commit
+  with its own tests; the identity commit changes everything except `appId`.
+- **Icons need Alicorn artwork that does not exist.** `resources/icon-source/generate.sh` compiles
+  `icon.icon` (an Icon Composer project) with `xcrun actool`; re-running it today just re-emits the
+  Orca mark. `resources/app-icons/` holds `orca-blue.png` and `orca-watercolor.png`. Icons and
+  `resources/app-icons/` are therefore split out of this task and wait on design.
+- **`encodePairingOffer` must keep emitting `orca://`.** Decision 1 puts mobile out of scope for R1,
+  but `mobile/app.json` registers `"scheme": "orca"` and `mobile/src/transport/pairing.ts` parses
+  only that. Minting `alicorn://pair?code=…` would hand desktop users a QR code no installed phone
+  can open. Parsers take both schemes now; the emitter flips with **R6 (mobile rebrand)**, and
+  `pairing.test.ts` pins it so the flip is deliberate.
+
+- [x] **Step 1:** grep for `setAsDefaultProtocolClient` in `src/**`, `config/**`, `*.cjs|*.mjs` and the Info.plist template — **no matches anywhere in `src/` or `config/`**, confirming research: scheme registration is entirely declarative through electron-builder's `protocols` block. `config/nsis/orca-installer-hooks.nsh` registers file extensions only, not URL schemes, so it needs no change.
+- [x] **Step 2:** tests: `web-pairing.test.ts` and `pairing.test.ts` accept both schemes (and pin the legacy emitter); `skill-share-link.test.ts` created — there was none. `electron-builder-config.test.mjs` **already existed** (435 lines) — the identity assertions are appended to it, not a new file. It cannot execute on a machine without the Windows-only optional deps (`windows-native-registry`), which the config resolves at module load; that is pre-existing and unrelated to this change, so the new assertions were verified by lint/parse here and run in CI. Both schemes live in one place, `src/shared/deep-link-scheme.ts`, so the legacy one is deleted from a single file next release.
+- [x] **Step 3 (partial):** `productName`, executable names, `StartupWMClass`, deb/rpm package names, publish target + dev channels, macOS permission strings, protocol schemes and `NOTICE` done; **`appId` and icons deferred** (see above). `NOTICE` keeps the entity name as an explicit `LEGAL ENTITY NAME TO BE CONFIRMED` marker and the fork point as an `UPSTREAM_BASE` marker rather than inventing either:
   ```
   Alicorn — an agent development environment.
   Copyright (c) 2026 8seneca (entity name to be confirmed — see Plane R1).
   This product is a fork of Orca (https://github.com/stablyai/orca), licensed under the MIT License;
   the original copyright notice is retained in LICENSE. Forked at <UPSTREAM_BASE tag/SHA, filled by Task 13>.
   ```
-- [ ] **Step 4:** `pnpm run build:mac` (unsigned local) packages; `plutil -p dist/mac*/Alicorn.app/Contents/Info.plist | grep -E 'CFBundleIdentifier|CFBundleURLSchemes'` shows the new id and scheme. `pnpm test src/renderer/src/web src/shared/skill-share-link.test.ts`.
-- [ ] **Step 5: Commit** `feat(rebrand): Alicorn app identity, protocol scheme, icons, NOTICE`.
+- [ ] **Step 4:** `pnpm run build:mac` (unsigned local) packages; `plutil -p dist/mac*/Alicorn.app/Contents/Info.plist | grep -E 'CFBundleIdentifier|CFBundleURLSchemes'` shows the new id and both schemes. **Not run** — deferred with the icon work, since a package built on the Orca mark proves nothing about identity. Renderer/shared suites are green.
+- [x] **Step 5: Commit** `feat(rebrand): Alicorn product identity, dual protocol schemes, NOTICE`.
+- [ ] **Step 6 (new): `appId` cutover** — `com.stablyai.orca` → `com.8seneca.alicorn` across the contract JSON+TS, the mac channel test, the three helper bundle ids and the diagnostics predicate, keeping the old id recognised for preferences (`macos-press-and-hold-default.ts`) and TCC (`macos-tcc-prompt-watch.ts`). Commit `feat(rebrand): alicorn bundle identifier with legacy preference and TCC compat`.
+- [ ] **Step 7 (new): icons** — once Alicorn artwork exists: replace `resources/icon-source/icon.icon` and `resources/app-icons/*`, run `bash resources/icon-source/generate.sh`, then the deferred `build:mac` + `plutil` check from step 4.
 
 ---
 

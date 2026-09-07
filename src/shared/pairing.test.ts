@@ -136,3 +136,31 @@ describe('parsePairingCode', () => {
     expect(parsePairingCode(bogus)).toBeNull()
   })
 })
+
+describe('pairing deep link schemes', () => {
+  const offer: PairingOffer = {
+    v: 2,
+    endpoint: 'ws://192.168.1.10:6768',
+    deviceToken: 'abcdef1234567890abcdef1234567890abcdef1234567890',
+    publicKeyB64: 'dGVzdC1wdWJsaWMta2V5LWJhc2U2NC1lbmNvZGVk'
+  }
+
+  // Why the emitter is pinned: the mobile app registers `scheme: "orca"` and is out
+  // of scope for R1, so a code minted as `alicorn://` would open nothing on a phone.
+  it('still mints the legacy scheme until mobile is rebranded', () => {
+    expect(encodePairingOffer(offer)).toMatch(/^orca:\/\/pair\?code=/)
+  })
+
+  it('decodes a code under either scheme', () => {
+    const code = encodePairingOffer(offer).replace(/^orca:/, '')
+    expect(decodePairingOffer(`orca:${code}`)).toEqual(offer)
+    expect(decodePairingOffer(`alicorn:${code}`)).toEqual(offer)
+    expect(parsePairingCode(`alicorn:${code}`)).toEqual(offer)
+  })
+
+  it('keeps refusing a host other than pair, under both schemes', () => {
+    const code = encodePairingOffer(offer).replace(/^orca:\/\/pair/, '')
+    expect(parsePairingCode(`alicorn://pairing${code}`)).toBeNull()
+    expect(parsePairingCode(`orca://pairing${code}`)).toBeNull()
+  })
+})
