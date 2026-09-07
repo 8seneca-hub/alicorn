@@ -4,10 +4,10 @@ Notes taken while building the Plane provider (PP1–PP3). They record the parts
 REST API that shaped the implementation, so the next person changing `src/main/plane/**` does
 not rediscover them.
 
-> **Not verified against a live deployment.** Everything here is derived from Plane's published
-> API surface and from the shapes the client already parses. No request has yet been made to
-> `https://projects.8seneca.com` from this code. Treat the *behaviours* below as design
-> constraints we committed to, and re-check them the first time the provider runs for real.
+> **Verified read-only against `projects.8seneca.com` on 2026-09-07**, through the Plane MCP
+> server rather than through this client. Response envelopes, state groups, issue field shapes and
+> the bare-array member list are observed. Two things remain unobserved and are marked ⚠ below: the
+> comment body field on a **non-empty** comment list, and the 429 body. No write has been made.
 
 ## Authentication
 
@@ -64,11 +64,15 @@ page walk.
 ## Pagination and response shapes
 
 List endpoints are cursor-paginated with a `value:offset:is_prev` cursor
-(`plane-record-pages.ts`). Two shapes to watch:
+(`plane-record-pages.ts`) — observed as `1000:1:0` with `next_page_results: false` on a single-page
+read. The envelope carries `results`, `count`, `total_count`, `total_pages`, `total_results`,
+`next_cursor`, `prev_cursor`, `next_page_results`, `prev_page_results`, `grouped_by`,
+`sub_grouped_by` and `extra_stats`. Two shapes to watch:
 
 - **Some endpoints return a bare array rather than a paginated envelope.** Workspace members is
-  one. `fetchAllPages` returned empty against it until that was handled — a silent wrong answer,
-  not an error.
+  one — confirmed live: it answers with a plain JSON array, no `results` wrapper. `fetchAllPages`
+  returned empty against it until that was handled, which is a silent wrong answer, not an error.
+  Projects answer the same way.
 - **The same field is a bare uuid on detail reads and an object on list reads.** `state`,
   `project` and `parent` all do this, which is why relation ids go through one coercion
   (`toRelationId` in `plane-issue-queries.ts`). Priority does the same, arriving either as a
@@ -76,6 +80,38 @@ List endpoints are cursor-paginated with a `value:offset:is_prev` cursor
 
 `created_at` / `updated_at` are deliberately **not** defaulted to now when absent — reporting that
 read them would silently record the fetch time as the issue's timestamps.
+
+## What the live boards actually look like
+
+Worth stating plainly, because every test fixture we wrote before looking was tidier than reality.
+
+**8HUB** (the delivery workflow the team actually runs) has **three** `started` states and **two**
+`completed` states:
+
+| Name | Group |
+|---|---|
+| Backlog | `backlog` |
+| Todo | `unstarted` |
+| In Progress | `started` |
+| In Review | `started` |
+| Testing on Dev | `started` |
+| Ready for Prod | `completed` |
+| Done | `completed` |
+| Cancelled | `cancelled` |
+
+So the group alone decides almost nothing: *In progress* has to be separated from *Testing on Dev*,
+and *Done* from *Ready for Prod* — the latter matters, because "Ready for Prod" is the team's first
+closed state and "Done" is terminal. Confusing them would close a ticket that has not shipped. The
+within-group label match is what carries the mapping, not the group.
+
+**ALC** (this project's own board) is Plane's default set — Backlog, Todo, In Progress, Done,
+Cancelled — with **no review state at all**. The *In review* column therefore resolves to nothing
+and writes nothing, every time. That is the designed refusal working, not a bug, but it fires on our
+own board today, so expect to see it. Both boards are pinned as fixtures in
+`sync-plane-worktree-status.real-boards.test.ts`.
+
+States also carry `is_triage` and a `slug` that the provider does not model. `slug` is empty on a
+default board and populated on a customised one, so it is not a reliable identifier.
 
 ## States: the group is stable, the name is not
 
@@ -101,7 +137,11 @@ Only two, both partial updates:
 - **Comments**: `POST` to the issue's `comments/` with `comment_html`. Plane stores comment
   bodies as HTML. The CLI escapes and paragraph-wraps the body rather than half-converting
   markdown, which reads worse on a board than the source text, and strips tags on the way out
-  because the CLI has no DOM.
+  because the CLI has no DOM. ⚠ The comment *list* endpoint was observed returning the standard
+  paginated envelope, but only with `results: []` — the `comment_html` field name on a populated
+  comment is still taken from Plane's docs, not from a response we have seen.
+
+⚠ The 429 body is still unobserved — we have not hit the limit.
 
 Errors come back in DRF's shape — either `{ detail }` / `{ error }` / `{ message }`, or field
 errors as `{ field: ["msg", ...] }`. `readPlaneError` handles both; a write that reports success
@@ -109,6 +149,6 @@ on a rejected PATCH is the failure mode to avoid.
 
 ## Rate limit
 
-60 requests per minute per key. The provider spends it on: a project list, a project's issue
+60 requests per minute per key (⚠ documented, not measured — see above). The provider spends it on: a project list, a project's issue
 list, and a project's states. `orca plane issue ALC-11` costs a project list plus an issue list,
 because of the missing cross-project route above.
