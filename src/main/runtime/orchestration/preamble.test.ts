@@ -360,3 +360,35 @@ describe('sub-dispatch section', () => {
     expect(preamble.indexOf('=== SUB-DISPATCH ===')).toBeLessThan(preamble.indexOf('=== TASK ==='))
   })
 })
+
+// Why in the preamble at all: the worker is the only one who can keep its report short, and both
+// the CLI and the runtime reject an oversized one — so it has to be told before it writes.
+describe('orchestrated report instructions', () => {
+  it('says nothing about the schema on a single-agent run', () => {
+    const result = buildDispatchPreamble(baseParams({ executionStrategy: 'single' }))
+    expect(result).not.toContain('ORCHESTRATED RUN')
+    expect(result).not.toContain('--orchestrated')
+  })
+
+  it('says nothing when the strategy is unknown', () => {
+    expect(buildDispatchPreamble(baseParams())).not.toContain('ORCHESTRATED RUN')
+  })
+
+  it('states the schema, the ceiling and the spill path on an orchestrated run', () => {
+    const result = buildDispatchPreamble(baseParams({ executionStrategy: 'orchestrated' }))
+    expect(result).toContain('ORCHESTRATED RUN')
+    expect(result).toContain('interface_delta')
+    expect(result).toContain('6000 characters')
+    expect(result).toContain('.foreman/')
+  })
+
+  it('tells the worker to pass --orchestrated on worker_done', () => {
+    const result = buildDispatchPreamble(baseParams({ executionStrategy: 'orchestrated' }))
+    expect(result).toContain('--orchestrated')
+  })
+
+  it('keeps the task spec last, after the report section', () => {
+    const result = buildDispatchPreamble(baseParams({ executionStrategy: 'orchestrated' }))
+    expect(result.indexOf('ORCHESTRATED RUN')).toBeLessThan(result.indexOf('=== TASK ==='))
+  })
+})

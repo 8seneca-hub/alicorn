@@ -1,3 +1,4 @@
+import { FOREMAN_REPORT_MAX_CHARS } from '../../../shared/alicorn/foreman-report'
 import type { OrchestrationCliCommand } from './cli-command'
 
 export type PreambleParams = {
@@ -16,6 +17,10 @@ export type PreambleParams = {
   // Why: packaged WSL panes install the scoped launcher as `orca-ide`;
   // other execution hosts keep their existing bare `orca` bridge.
   cliCommand?: OrchestrationCliCommand
+  // Why the preamble carries it: an orchestrated worker reports to a lead that reads the report
+  // into its own context, so the report is a bounded schema rather than free prose. `single` is
+  // the default and gets the ordinary instructions.
+  executionStrategy?: 'single' | 'orchestrated'
   // Why: populated by the coordinator's dispatch pre-flight (§3.1) only
   // when the target worktree is behind its tracking remote. When absent
   // or when `behind === 0`, the preamble emits no drift section. Callers
@@ -46,6 +51,31 @@ const HEARTBEAT_INTERVAL_MIN = 5
 // no-AskUserQuestion) live as inline comments above the relevant CLI example,
 // not as a separate prose block — LLM readers anchor on examples and skim
 // trailing prose, so rules must land at the point of use.
+// The lead reads every subagent report into one context window, so an unbounded report is how an
+// orchestrated run runs out of window. Stated here because the worker is the only one who can keep
+// it short; the CLI and the runtime both reject an oversized one.
+function buildForemanReportSection(taskId: string): string {
+  return `
+  === ORCHESTRATED RUN: YOUR REPORT IS A SCHEMA, NOT PROSE ===
+
+  This task runs under a lead. Pass --orchestrated on worker_done and make --body
+  a JSON object with exactly these fields:
+
+    status           done | blocked | needs_decision | failed
+    summary          at most 3 sentences
+    changes          [{ path, kind: added|modified|deleted|renamed, why }]
+    interface_delta  [{ kind, name, shape, breaking }]
+    verification     { command, result: passed|failed|not_run, evidence }
+    open_questions   [string]
+    artifacts        [path]
+    cost             { tokens_in, tokens_out }
+
+  The body is capped at ${FOREMAN_REPORT_MAX_CHARS} characters. Over that it is written to
+  .foreman/<run>/${taskId}-report.md and replaced by a summary pointing at the file, so
+  put long detail in a file yourself rather than letting it spill.
+`
+}
+
 export function buildDispatchPreamble(params: PreambleParams): string {
   // Why: in dev mode, agents must use orca-dev to connect to the dev runtime's
   // socket. Without this, agents inside the dev Electron app would call the
@@ -58,6 +88,8 @@ export function buildDispatchPreamble(params: PreambleParams): string {
   const capabilityFlag = params.dispatchCapability
     ? ` --dispatch-capability ${params.dispatchCapability}`
     : ''
+  const orchestrated = params.executionStrategy === 'orchestrated'
+  const reportSection = orchestrated ? buildForemanReportSection(params.taskId) : ''
 
   // Why: fencing keeps shell comments executable to agents without turning them into Chat UI headings.
   const header = `You are working inside Orca, a multi-agent IDE. You are a dispatched worker.
@@ -88,7 +120,7 @@ Slack, GitHub comments, or any other channel to reach a human during the run.
     --body "<3-sentence summary: what you did, what you found, what's left>" \\
     --task-id ${params.taskId} --dispatch-id ${params.dispatchId} --outcome succeeded \\
     --files-modified "path/a,path/b" \\
-    --report-path "<optional: path to the full artifact>"
+    --report-path "<optional: path to the full artifact>"${orchestrated ? ' \\\n    --orchestrated' : ''}
 
   # BEHAVIOR RULE: send a heartbeat every ${HEARTBEAT_INTERVAL_MIN} minutes
   # while actively working on the task. The coordinator uses this to
@@ -145,7 +177,7 @@ ${postDoneInstructions}`
 
   const subDispatch = params.canDispatchSubWorkers ? buildSubDispatchSection(cli) : ''
 
-  return `${header}${drift}${subDispatch}
+  return `${header}${drift}${subDispatch}${reportSection}
 
 === TASK ===
 ${params.taskSpec}`

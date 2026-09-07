@@ -134,7 +134,23 @@ a test, so it has to be a real example. Split across `journal-types.ts`, `journa
 ### Task 4 (FM1): Coordinator writes the journal for orchestrated runs
 
 **Files:** `src/main/alicorn/foreman/journal-writer.ts`, `src/main/runtime/orchestration/coordinator-foreman-journal.ts` (sibling in the existing `coordinator-*.ts` decomposition), `coordinator.ts` (three call sites: run start, dispatch, worker_done/escalation), `preamble.ts` (orchestrated dispatch preamble gains a *Report* section stating the schema, ceiling and spill path, and the lead's preamble gains *Journal* instructions + `ORCA_ALICORN_STRATEGY=orchestrated` in the worker env).
-- [ ] Tests: orchestrated task → journal created at run start, node dispatched/done logged, decisions preserved across a simulated restart (`Coordinator` re-created reads the journal); single task → no `.foreman/`. Commit `feat(foreman): coordinator journals orchestrated runs; resumable from disk`.
+- [x] Tests: orchestrated task → journal created at run start, node dispatched/done logged, decisions preserved across a simulated restart (`Coordinator` re-created reads the journal); single task → no `.foreman/`. Commit `feat(foreman): coordinator journals orchestrated runs; resumable from disk`.
+
+**As built.**
+- The recorder decides per event whether the run is orchestrated, rather than once at run start:
+  `decompose()` creates the tasks *after* the run begins, so a run's strategy is not knowable at
+  the moment the plan says to create the journal. A run with no orchestrated task writes no
+  `.foreman/` at all.
+- Writes are fire-and-forget through one serialised chain. The coordinator loop must not wait on a
+  file write, and two events in the same tick must not interleave two read-modify-writes of the same
+  file. A write failure is logged and dropped — losing the record of a run is bad, killing the run
+  to protect the record is worse.
+- The plan table is rebuilt from the tasks on every write rather than patched, so it cannot drift
+  from the run it describes. Decisions, assumptions and the contract registry belong to the lead and
+  are never rewritten by the coordinator.
+- `ORCA_ALICORN_STRATEGY` is **not** stamped in the worker env. The preamble instructs the worker to
+  pass `--orchestrated` instead, which is the path the CLI already honours and which is testable
+  without a terminal. The env remains a second detection route in the CLI for whoever adds it.
 
 ---
 

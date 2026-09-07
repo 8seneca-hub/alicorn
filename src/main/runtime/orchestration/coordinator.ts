@@ -1,3 +1,7 @@
+import {
+  createForemanJournalRecorder,
+  type ForemanJournalRecorder
+} from './coordinator-foreman-journal'
 import type { OrchestrationDb } from './db'
 import type { MessageRow, CoordinatorStatus } from './types'
 import { reconcileLifecycleMessage } from './lifecycle-reconciliation'
@@ -36,6 +40,7 @@ const DEFAULT_POLL_MS = 2000
 const MAX_CONCURRENT_DEFAULT = 4
 
 export class Coordinator {
+  private journal: ForemanJournalRecorder | null = null
   private db: OrchestrationDb
   private runtime: CoordinatorRuntime
   private state: CoordinatorState
@@ -100,9 +105,17 @@ export class Coordinator {
   }> {
     this.state.runId = runId
     this.opts.onLog(`Coordinator run ${runId} started`)
+    this.journal = createForemanJournalRecorder({
+      db: this.db,
+      runId,
+      spec: this.opts.spec,
+      worktree: this.opts.worktree,
+      onLog: this.opts.onLog
+    })
 
     try {
       await this.decompose()
+      this.journal?.runStarted()
 
       while (!this.stopped) {
         const converged = await this.tick()
@@ -124,6 +137,7 @@ export class Coordinator {
       const finalStatus =
         this.stopped || failedTasks.length > 0 || !allDone ? 'failed' : 'completed'
       this.db.updateCoordinatorRun(runId, finalStatus)
+      this.journal?.runFinished(finalStatus === 'completed' ? 'done' : 'failed')
       this.opts.onLog(`Coordinator run ${runId} ${finalStatus}`)
 
       return {
@@ -201,6 +215,9 @@ export class Coordinator {
 
   private handleLifecycleMessage(msg: MessageRow): void {
     const result = reconcileLifecycleMessage(this.db, msg, this.opts.onLog)
+    if (result.action === 'completed' || result.action === 'failed') {
+      this.journal?.nodeSettled(result.taskId, result.action)
+    }
     if (result.action === 'completed') {
       if (!this.state.completedTasks.includes(result.taskId)) {
         this.state.completedTasks.push(result.taskId)
@@ -215,6 +232,7 @@ export class Coordinator {
   private handleEscalation(msg: MessageRow): void {
     this.opts.onLog(`Escalation from ${msg.from_handle}: ${msg.subject}`)
     this.state.escalations.push(msg)
+    this.journal?.escalated(msg.from_handle, msg.subject)
 
     const circuitBrokenTaskId = applyEscalationToDispatch(this.db, msg, this.opts.onLog)
     if (circuitBrokenTaskId) {
@@ -294,6 +312,7 @@ export class Coordinator {
           slotsAvailable++
         } else {
           this.state.phase = 'monitoring'
+          this.journal?.nodeDispatched(task.id, targetHandle)
         }
       } catch (err) {
         this.opts.onLog(`Failed to dispatch task ${task.id}: ${String(err)}`)

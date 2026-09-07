@@ -261,7 +261,8 @@ export async function startWorkerForTask({
       workerHandle: terminalHandle,
       dispatchCapability: capability,
       devMode: params.devMode,
-      cliCommand: runtime.getTerminalOrchestrationCliCommand(terminalHandle)
+      cliCommand: runtime.getTerminalOrchestrationCliCommand(terminalHandle),
+      executionStrategy: db.getTaskExecutionStrategy(task.id).strategy
     })
     captureWorkerStartContext(db, runtime, params, task, started.dispatch, {
       runId: run.id,
