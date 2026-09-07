@@ -13000,7 +13000,8 @@
               "sidebar": {
                 "activity": {
                   "items": {
-                    "7f0215bd93": "Run"
+                    "7f0215bd93": "Run",
+                    "terminal": "Terminal"
                   }
                 }
               }
@@ -13396,6 +13397,13 @@
                 "812f26e81d": "A floor, not a total — some dispatches ran on a backend Orca does not price, or have not been measured yet.",
                 "7cf5a7f9b2": "Cost of this run so far.",
                 "0276527834": "after"
+              }
+            }
+          },
+          "terminal": {
+            "panel": {
+              "TerminalPanel": {
+                "noWorkspace": "Open a workspace to use the terminal."
               }
             }
           }

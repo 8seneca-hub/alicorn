@@ -12,6 +12,7 @@ const FolderWorkspaceWorktreesPanel = lazy(() => import('./FolderWorkspaceWorktr
 const FolderWorkspacePrChecksPanel = lazy(() => import('./FolderWorkspacePrChecksPanel'))
 const PluginPanel = lazy(() => import('./PluginPanel'))
 const RunView = lazy(() => import('./run-view/RunView').then((m) => ({ default: m.RunView })))
+const TerminalPanel = lazy(() => import('./terminal-panel/TerminalPanel'))
 
 type RightSidebarPanelContentProps = {
   effectiveTab: ActiveRightSidebarTab
@@ -39,6 +40,11 @@ export function RightSidebarPanelContent({
             that may live on an SSH host. */}
         {effectiveTab === 'run' && (
           <RunView isVisible={rightSidebarOpen && effectiveTab === 'run'} />
+        )}
+        {/* isVisible gates the pane's suspend/resume: a hidden terminal must not hold a live
+            renderer, and the session itself is created on first open, not on mount. */}
+        {effectiveTab === 'terminal' && (
+          <TerminalPanel isVisible={rightSidebarOpen && effectiveTab === 'terminal'} />
         )}
         {effectiveTab === 'workspaces' && <FolderWorkspaceWorktreesPanel />}
         {effectiveTab === 'pr-checks' && (

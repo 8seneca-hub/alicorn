@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Plug, Files, GitBranch, ListChecks, Network, Workflow } from 'lucide-react'
+import { Plug, Files, GitBranch, ListChecks, Network, SquareTerminal, Workflow } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { useRepoById } from '@/store/selectors'
 import { isFolderRepo } from '../../../../shared/repo-kind'
@@ -34,6 +34,7 @@ export function useRightSidebarActivityItems({
   const sourceControlShortcut = useShortcutLabel('sidebar.sourceControl.toggle')
   const checksShortcut = useShortcutLabel('sidebar.checks.toggle')
   const portsShortcut = useShortcutLabel('sidebar.ports.toggle')
+  const terminalShortcut = useShortcutLabel('sidebar.terminal.toggle')
   const activeWorktreeId = useAppStore((s) => (rightSidebarOpen ? s.activeWorktreeId : null))
   // Why: source control and checks are meaningless for non-git folders.
   // Hide those tabs so the activity bar only shows relevant actions.
@@ -122,6 +123,17 @@ export function useRightSidebarActivityItems({
         ),
         shortcut: ''
       },
+      {
+        id: 'terminal',
+        icon: SquareTerminal,
+        // Why here and not the main area: an ADE opens an agent by default, so the shell lives
+        // one keystroke away rather than in the tab you were going to brief someone in.
+        title: translate(
+          'auto.components.right.sidebar.use.right.sidebar.activity.items.terminal',
+          'Terminal'
+        ),
+        shortcut: terminalShortcut === 'Unassigned' ? '' : terminalShortcut
+      },
       // Why: plugin panels append after the built-in tabs so core navigation
       // keeps stable positions regardless of which plugins are installed.
       ...getPluginPanelActivityItems(visiblePluginPanels, pluginPanelErrors)
@@ -132,6 +144,7 @@ export function useRightSidebarActivityItems({
       pluginPanelErrors,
       visiblePluginPanels,
       portsShortcut,
+      terminalShortcut,
       sourceControlShortcut
     ]
   )
