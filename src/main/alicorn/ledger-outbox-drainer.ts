@@ -1,7 +1,10 @@
 import type { OrchestrationDb } from '../runtime/orchestration/db'
-import type { LedgerOutboxRow } from '../runtime/orchestration/db/alicorn/alicorn-rows'
+import type {
+  LedgerOutboxKind,
+  LedgerOutboxRow
+} from '../runtime/orchestration/db/alicorn/alicorn-rows'
 import { buildStepOutcomeInput } from './step-outcome-builder'
-import { ControlPlaneUnavailableError } from './control-plane-http'
+import { settleOutboxRow } from './outbox-row-processing'
 import type { LedgerWriter } from './ledger/ledger-writer'
 import type {
   ContextCaptureInput,
@@ -10,15 +13,9 @@ import type {
   SpendPatch
 } from '../../shared/alicorn/ledger-inputs'
 
-const BASE_BACKOFF_MS = 5_000
-const MAX_BACKOFF_MS = 5 * 60_000
 // Why 60s: transcripts (spend usage) flush after the report lands, not before.
 const SPEND_ATTRIBUTION_DELAY_MS = 60_000
 const UNAVAILABLE_LOG_INTERVAL_MS = 5 * 60_000
-
-function backoffMs(attempts: number): number {
-  return Math.min(MAX_BACKOFF_MS, BASE_BACKOFF_MS * 2 ** attempts)
-}
 
 type StepOutcomePayload = {
   taskId: string
@@ -75,6 +72,7 @@ export type LedgerOutboxDrainerDeps = {
   spendAttributor: SpendAttributor | null
   verificationRunner: VerificationRunner | null
   intervalMs: number
+  excludeKinds?: LedgerOutboxKind[]
 }
 
 export type LedgerOutboxDrainer = {
@@ -87,7 +85,7 @@ class RowUntouched extends Error {}
 
 export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerOutboxDrainer {
   let lastUnavailableLogAt = 0
-  let lastRowFailureLogAt = 0
+  let lastThrottledWarnAt = 0
   let running = false
 
   function logUnavailableOnce(): void {
@@ -98,21 +96,23 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     }
   }
 
+  function warn(message: string, detail: Record<string, unknown>): void {
+    console.warn(message, detail)
+  }
+
   // Why a row's first failure always logs: attempts === 0 means nothing has
   // warned about it yet, so the shared 5-minute throttle must not hide it.
-  function logRowFailure(row: LedgerOutboxRow, message: string): void {
+  function throttledWarn(message: string, detail: Record<string, unknown>): void {
     const now = Date.now()
-    if (row.attempts > 0 && now - lastRowFailureLogAt < UNAVAILABLE_LOG_INTERVAL_MS) {
+    const alwaysWarn = detail.attempts === 0
+    if (!alwaysWarn && now - lastThrottledWarnAt < UNAVAILABLE_LOG_INTERVAL_MS) {
       return
     }
-    lastRowFailureLogAt = now
-    console.warn('[ledger-outbox] row failed', {
-      id: row.id,
-      kind: row.kind,
-      attempts: row.attempts,
-      message
-    })
+    lastThrottledWarnAt = now
+    console.warn(message, detail)
   }
+
+  const rowSettlementDeps = { now: () => Date.now(), warn, throttledWarn }
 
   async function resolveWorktree(
     db: OrchestrationDb,
@@ -192,7 +192,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
   ): Promise<void> {
     const payload = JSON.parse(row.payload) as ContextCaptureInput
     await writer.postContextCapture(payload)
-    db.markLedgerOutboxSent(row.id)
+    settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
   async function handleSpendAttribution(
@@ -211,7 +211,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
       completedAt: payload.completedAt
     })
     await writer.patchStepOutcomeSpend(payload.outcomeId, patch)
-    db.markLedgerOutboxSent(row.id)
+    settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
   async function handleStepVerification(
@@ -224,7 +224,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     }
     const payload = JSON.parse(row.payload) as StepVerificationPayload
     await deps.verificationRunner(payload, writer)
-    db.markLedgerOutboxSent(row.id)
+    settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
   async function handleHumanVerdictPatch(
@@ -236,7 +236,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
       outcomeId: string
     } & HumanVerdictPatch
     await writer.patchHumanVerdict(outcomeId, patch)
-    db.markLedgerOutboxSent(row.id)
+    settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
   async function handleInterruption(
@@ -246,7 +246,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
   ): Promise<void> {
     const payload = JSON.parse(row.payload) as InterruptionInput
     await writer.postInterruption(payload)
-    db.markLedgerOutboxSent(row.id)
+    settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
   async function processRow(
@@ -280,7 +280,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     }
     const writer = deps.writer
     const db = deps.getDb()
-    const rows = db.listDueLedgerOutbox(25)
+    const rows = db.listDueLedgerOutbox(25, undefined, { excludeKinds: deps.excludeKinds })
     let sent = 0
     let failed = 0
     for (const row of rows) {
@@ -291,17 +291,10 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
         if (error instanceof RowUntouched) {
           continue
         }
-        if (error instanceof ControlPlaneUnavailableError) {
-          logUnavailableOnce()
+        const settled = settleOutboxRow(db, row, { kind: 'failed', error }, rowSettlementDeps)
+        if (settled === 'stop_pass') {
           break
         }
-        const message = error instanceof Error ? error.message : String(error)
-        logRowFailure(row, message)
-        db.markLedgerOutboxFailed(
-          row.id,
-          message,
-          new Date(Date.now() + backoffMs(row.attempts)).toISOString()
-        )
         failed += 1
       }
     }

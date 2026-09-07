@@ -122,7 +122,7 @@ describe('ledger outbox methods', () => {
     const { id } = db.enqueueLedgerOutbox({
       kind: 'step_outcome',
       dedupeKey: 'step_outcome:dispatch-6',
-      payload: {}
+      payload: { foo: 'bar' }
     })
     db.markLedgerOutboxFailed(id, 'network error', new Date(Date.now() + 60_000).toISOString())
     db.markLedgerOutboxDead(id, 'permanent rejection: 422 unprocessable')
@@ -136,6 +136,30 @@ describe('ledger outbox methods', () => {
     expect(due[0].not_before).toBeNull()
     expect(due[0].dead_at).toBeNull()
     expect(due[0].dead_reason).toBeNull()
+    // Identity must survive a requeue: same dedupe key, same payload.
+    expect(due[0].dedupe_key).toBe('step_outcome:dispatch-6')
+    expect(JSON.parse(due[0].payload)).toEqual({ foo: 'bar' })
+  })
+
+  it('leaves an already-sent row untouched: markLedgerOutboxDead is a silent no-op', () => {
+    const { id } = db.enqueueLedgerOutbox({
+      kind: 'step_outcome',
+      dedupeKey: 'step_outcome:dispatch-8',
+      payload: {}
+    })
+    db.markLedgerOutboxSent(id)
+
+    db.markLedgerOutboxDead(id, 'permanent rejection: 422 unprocessable')
+
+    expect(db.countDeadLedgerOutbox()).toBe(0)
+    const row = db.db.prepare('SELECT * FROM ledger_outbox WHERE id = ?').get(id) as {
+      sent_at: string | null
+      dead_at: string | null
+      attempts: number
+    }
+    expect(row.sent_at).not.toBeNull()
+    expect(row.dead_at).toBeNull()
+    expect(row.attempts).toBe(0)
   })
 
   it('requeue returns false for a row that is not dead', () => {

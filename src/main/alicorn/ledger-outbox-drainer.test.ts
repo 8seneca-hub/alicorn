@@ -555,6 +555,118 @@ describe('startLedgerOutboxDrainer', () => {
     void dispatchId
   })
 
+  it('dead-letters a row on a 404, with a single "row dead" warn', async () => {
+    settleSucceededWithWorktree()
+    const writer = fakeWriter({
+      postStepOutcome: vi.fn().mockRejectedValue(new ControlPlaneRequestError(404, 'not_found'))
+    })
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    const result = await drainer.drainOnce()
+
+    expect(result).toEqual({ sent: 0, failed: 1 })
+    expect(db.listDueLedgerOutbox()).toHaveLength(0)
+    expect(db.countDeadLedgerOutbox()).toBe(1)
+    expect(db.listDeadLedgerOutbox()[0].dead_reason).toBe('404 not_found')
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[ledger-outbox] row dead',
+      expect.objectContaining({ kind: 'step_outcome', reason: '404 not_found' })
+    )
+
+    warnSpy.mockRestore()
+  })
+
+  it('stops the pass on a 403, leaving rows untouched, with a throttled warn mentioning unauthorized', async () => {
+    settleSucceededWithWorktree()
+    const writer = fakeWriter({
+      postStepOutcome: vi.fn().mockRejectedValue(new ControlPlaneRequestError(403, 'forbidden'))
+    })
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
+      writer,
+      spendAttributor: null,
+      verificationRunner: null,
+      intervalMs: 60_000
+    })
+
+    const result = await drainer.drainOnce()
+
+    expect(result).toEqual({ sent: 0, failed: 0 })
+    const row = db.listDueLedgerOutbox()[0]
+    expect(row.attempts).toBe(0)
+    expect(row.last_error).toBeNull()
+    expect(row.sent_at).toBeNull()
+    expect(warnSpy).toHaveBeenCalledTimes(1)
+    expect(warnSpy.mock.calls[0][0]).toContain('unauthorized')
+
+    warnSpy.mockRestore()
+  })
+
+  it('excludes kinds via excludeKinds so they are never fetched', async () => {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    db.enqueueLedgerOutbox({
+      kind: 'step_verification',
+      dedupeKey: `step_verification:${dispatch.id}:diff_coverage`,
+      payload: {
+        dispatchId: dispatch.id,
+        taskId: task.id,
+        runId: task.run_id,
+        worktreeId: WORKTREE.id,
+        worktreePath: WORKTREE.path,
+        branch: WORKTREE.branch,
+        projectId: WORKTREE.projectId
+      }
+    })
+    db.enqueueLedgerOutbox({
+      kind: 'interruption',
+      dedupeKey: 'interruption:gate:gate_1',
+      payload: {
+        runId: task.run_id,
+        taskId: task.id,
+        dispatchId: dispatch.id,
+        kind: 'gate' as const,
+        sourceId: 'gate_1',
+        resolvedBy: null,
+        occurredAt: '2026-09-06T00:00:00.000Z'
+      }
+    })
+    const verificationRunner = vi.fn().mockResolvedValue(undefined)
+    const writer = fakeWriter()
+    drainer = startLedgerOutboxDrainer({
+      getDb: () => db,
+      runtime: { showManagedWorktree: vi.fn() },
+      writer,
+      spendAttributor: null,
+      verificationRunner,
+      excludeKinds: ['step_verification'],
+      intervalMs: 60_000
+    })
+
+    const result = await drainer.drainOnce()
+
+    expect(result).toEqual({ sent: 1, failed: 0 })
+    expect(verificationRunner).not.toHaveBeenCalled()
+    expect(writer.postInterruption).toHaveBeenCalledTimes(1)
+    const stepVerificationRow = db
+      .listDueLedgerOutbox()
+      .find((row) => row.kind === 'step_verification')
+    expect(stepVerificationRow).toBeDefined()
+    expect(stepVerificationRow!.attempts).toBe(0)
+  })
+
   it('stop() clears the interval so drainOnce no longer runs on a schedule', () => {
     db = new OrchestrationDb(':memory:')
     vi.useFakeTimers()
