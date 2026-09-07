@@ -68,4 +68,38 @@ describe('worker report settlement enqueues the ledger outbox', () => {
     expect(settlement).toMatchObject({ action: 'rejected', code: 'unknown_task' })
     expect(db.listDueLedgerOutbox()).toHaveLength(0)
   })
+
+  it('enqueues interruptions alongside the step_outcome row, in the same settlement', () => {
+    const { taskId, dispatchId } = dispatchedTask('escalate then land')
+    db.markEscalationOffered(taskId)
+
+    db.settleWorkerReport({ taskId, dispatchId, outcome: 'succeeded', result: 'done' })
+
+    const interruptions = db.listDueLedgerOutbox().filter((row) => row.kind === 'interruption')
+    expect(interruptions).toHaveLength(1)
+    expect(interruptions[0].dedupe_key).toBe(`interruption:escalation:${taskId}`)
+  })
+
+  it('a duplicate worker_done replay self-heals interruption rows lost before the drainer sent them', () => {
+    const { taskId, dispatchId } = dispatchedTask('resume after crash')
+    db.markEscalationOffered(taskId)
+    db.settleWorkerReport({ taskId, dispatchId, outcome: 'succeeded', result: 'done' })
+    expect(db.listDueLedgerOutbox().filter((row) => row.kind === 'interruption')).toHaveLength(1)
+
+    // Simulate the crash window item 2 closes: the interruption row never reached the drainer.
+    db.db.prepare("DELETE FROM ledger_outbox WHERE kind = 'interruption'").run()
+    expect(db.listDueLedgerOutbox().filter((row) => row.kind === 'interruption')).toHaveLength(0)
+
+    const replay = db.settleWorkerReport({
+      taskId,
+      dispatchId,
+      outcome: 'succeeded',
+      result: 'done'
+    })
+
+    expect(replay).toEqual({ action: 'settled', outcome: 'succeeded', duplicate: true })
+    const interruptions = db.listDueLedgerOutbox().filter((row) => row.kind === 'interruption')
+    expect(interruptions).toHaveLength(1)
+    expect(interruptions[0].dedupe_key).toBe(`interruption:escalation:${taskId}`)
+  })
 })

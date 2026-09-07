@@ -5,7 +5,6 @@ import {
   buildLifecycleAuthorityRejectionReason,
   hasLifecycleAuthority
 } from './lifecycle-authority'
-import { enqueueInterruptionsOnSettlement } from '../../alicorn/interruptions/interruption-capture'
 
 export type LifecycleReconciliationResult =
   | { action: 'ignored' }
@@ -294,7 +293,6 @@ function reconcileWorkerDoneMessage(
   if (settlement.action === 'rejected') {
     return rejectLifecycleMessage(db, msg, settlement.code, settlement.reason, onLog)
   }
-  enqueueInterruptionsOnSettlement(db, settlement, { runId: task.run_id, taskId, dispatchId })
   suppressEarlierHeartbeats(db, msg, dispatchId)
 
   if (outcome === 'failed') {

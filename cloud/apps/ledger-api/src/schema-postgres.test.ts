@@ -28,4 +28,20 @@ describePostgres('ledger schema', () => {
       await pool.end()
     }
   })
+  it('indexes the (tenant_id, task_id, dispatch_id) join the interruptions report uses', async () => {
+    const pool = await openControlPlanePool({ databaseUrl: appUrl, schema, applicationName: 't' })
+    try {
+      await applySchema(pool, LEDGER_SCHEMA_STATEMENTS)
+      const { rows } = await pool.query(
+        `SELECT indexname FROM pg_indexes WHERE schemaname = $1 AND indexname IN
+          ('step_outcomes_tenant_task_dispatch', 'step_interruptions_tenant_task_dispatch')`,
+        [schema]
+      )
+      expect(rows.map((r) => r.indexname).sort()).toEqual([
+        'step_interruptions_tenant_task_dispatch', 'step_outcomes_tenant_task_dispatch'
+      ])
+    } finally {
+      await pool.end()
+    }
+  })
 })

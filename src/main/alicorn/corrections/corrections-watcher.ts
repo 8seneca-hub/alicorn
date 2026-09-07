@@ -24,7 +24,7 @@ export type Correction = {
 
 export const CORRECTION_WINDOW_MS = 72 * 3_600_000
 
-const REVERT_SUBJECT_RE = /^This reverts commit ([0-9a-f]{7,40})/m
+const REVERT_BODY_RE = /^This reverts commit ([0-9a-f]{7,40})/m
 
 function touchesReportedFiles(paths: string[], filesModified: string[]): boolean {
   const modified = new Set(filesModified)
@@ -49,7 +49,7 @@ function isCoveredByDispatch(spans: DispatchSpan[], taskId: string, atTime: numb
 function classifyQualifyingCommit(commit: CommitSummary, step: SettledStep): Correction {
   // decision 2: a revert only rejects the step when it covers every file the step touched.
   const isRevert =
-    REVERT_SUBJECT_RE.test(commit.body) && coversAllReportedFiles(commit.paths, step.filesModified)
+    REVERT_BODY_RE.test(commit.body) && coversAllReportedFiles(commit.paths, step.filesModified)
   return {
     outcomeId: step.outcomeId,
     verdict: isRevert ? 'rejected' : 'amended',

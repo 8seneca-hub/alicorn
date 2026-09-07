@@ -2,10 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { OrchestrationDb } from '../../runtime/orchestration/db'
 import { createRootDispatch } from '../../runtime/orchestration/db/root-dispatch-test-fixture'
 import { reconcileLifecycleMessage } from '../../runtime/orchestration/lifecycle-reconciliation'
-import {
-  enqueueInterruptionsForDispatch,
-  enqueueInterruptionsOnSettlement
-} from './interruption-capture'
+import { enqueueInterruptionsForDispatch } from './interruption-capture'
 
 describe('enqueueInterruptionsForDispatch', () => {
   let db: OrchestrationDb
@@ -73,6 +70,7 @@ describe('enqueueInterruptionsForDispatch', () => {
       question: 'which approach?'
     })
     db.markEscalationOffered(task.id)
+    // settleWorkerReport now captures interruptions itself (item 1) — no manual call needed.
     db.settleWorkerReport({
       taskId: task.id,
       dispatchId: dispatch2.id,
@@ -80,10 +78,6 @@ describe('enqueueInterruptionsForDispatch', () => {
       result: 'done'
     })
 
-    const ids = { runId: task.run_id, taskId: task.id, dispatchId: dispatch2.id }
-    const count = enqueueInterruptionsForDispatch(db, ids)
-
-    expect(count).toBe(4)
     const rows = interruptionRows()
     expect(rows).toHaveLength(4)
     expect(rows.map((r) => r.kind).sort()).toEqual(['ask', 'escalation', 'gate', 'gate'])
@@ -138,6 +132,7 @@ describe('enqueueInterruptionsForDispatch', () => {
          VALUES (?, ?, ?, ?, ?)`
       )
       .run('msg_late_ask', task.run_id, dispatch1.id, 'term_worker_1', gate.created_at)
+    // settleWorkerReport now captures interruptions itself (item 1) — no manual call needed.
     db.settleWorkerReport({
       taskId: task.id,
       dispatchId: dispatch2.id,
@@ -145,13 +140,7 @@ describe('enqueueInterruptionsForDispatch', () => {
       result: 'done'
     })
 
-    const count = enqueueInterruptionsForDispatch(db, {
-      runId: task.run_id,
-      taskId: task.id,
-      dispatchId: dispatch2.id
-    })
-
-    expect(count).toBe(2) // the gate plus the cross-dispatch ask
+    expect(interruptionRows()).toHaveLength(2) // the gate plus the cross-dispatch ask
     const ask = interruptionRows().find((r) => r.kind === 'ask')!
     expect(ask.sourceId).toBe('msg_late_ask')
   })
@@ -208,6 +197,7 @@ describe('enqueueInterruptionsForDispatch', () => {
     const dispatch = createRootDispatch(db, task.id, 'term_worker')
     // Raw insert: this test is about outbox dedupe, not gate provenance.
     insertGate('gate_1', task.id, task.run_id)
+    // settleWorkerReport already captures it (item 1); re-running manually finds nothing new.
     db.settleWorkerReport({
       taskId: task.id,
       dispatchId: dispatch.id,
@@ -215,8 +205,9 @@ describe('enqueueInterruptionsForDispatch', () => {
       result: 'done'
     })
     const ids = { runId: task.run_id, taskId: task.id, dispatchId: dispatch.id }
+    expect(interruptionRows()).toHaveLength(1)
 
-    expect(enqueueInterruptionsForDispatch(db, ids)).toBe(1)
+    expect(enqueueInterruptionsForDispatch(db, ids)).toBe(0)
     expect(enqueueInterruptionsForDispatch(db, ids)).toBe(0)
     expect(interruptionRows()).toHaveLength(1)
   })
@@ -243,6 +234,67 @@ describe('enqueueInterruptionsForDispatch', () => {
 
     expect(count).toBe(0)
     expect(interruptionRows()).toHaveLength(0)
+  })
+
+  it('skips a gate whose timestamp cannot be parsed, without throwing or enqueueing it', () => {
+    const task = db.createTask({ spec: 'work' })
+    const dispatch = createRootDispatch(db, task.id, 'term_worker')
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch.id,
+      outcome: 'succeeded',
+      result: 'done'
+    })
+    // Widen the window so this unambiguously string-sorts inside it, isolating the parse
+    // failure (item 11) from the windowing logic covered by the other tests in this file.
+    db.db
+      .prepare(`UPDATE dispatch_contexts SET completed_at = ? WHERE id = ?`)
+      .run('2099-01-01 00:00:00', dispatch.id)
+    insertGate('gate_bad', task.id, task.run_id, '2050-06-15 12:00:00.500')
+
+    const count = enqueueInterruptionsForDispatch(db, {
+      runId: task.run_id,
+      taskId: task.id,
+      dispatchId: dispatch.id
+    })
+
+    expect(count).toBe(0)
+    expect(interruptionRows()).toHaveLength(0)
+  })
+
+  it("bounds the window-start lookup to this dispatch's own completed_at", () => {
+    // Raw insert throughout: reproduces windowStart picking a sibling that settled LATER than
+    // this dispatch (only reachable via item 1's self-heal replay, or an out-of-order federation
+    // import) without needing that full call chain (item 12).
+    const task = db.createTask({ spec: 'work' })
+    const dispatch1 = createRootDispatch(db, task.id, 'term_worker_1')
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch1.id,
+      outcome: 'succeeded',
+      result: 'phase 1 done'
+    })
+    const settledDispatch1 = db.getDispatchContextById(dispatch1.id)!
+    // Lands exactly on dispatch1's own completed_at -- inside its window only if windowStart
+    // falls back to task.created_at, not a sibling's completed_at.
+    insertGate('gate_1', task.id, task.run_id, settledDispatch1.completed_at!)
+
+    // A sibling dispatch that settles LATER than dispatch1 -- must never become dispatch1's
+    // window start, or start > end and the gate above silently stops matching.
+    db.updateTaskStatus(task.id, 'ready') // only dispatch1 settled it to 'completed'
+    const dispatch2 = createRootDispatch(db, task.id, 'term_worker_2')
+    db.db
+      .prepare(`UPDATE dispatch_contexts SET completed_at = ? WHERE id = ?`)
+      .run('2099-01-01 00:00:00', dispatch2.id)
+
+    const count = enqueueInterruptionsForDispatch(db, {
+      runId: task.run_id,
+      taskId: task.id,
+      dispatchId: dispatch1.id
+    })
+
+    expect(count).toBe(1)
+    expect(interruptionRows()[0].sourceId).toBe('gate_1')
   })
 
   it('returns 0 when the dispatch has not settled (no completed_at yet)', () => {
@@ -335,48 +387,6 @@ describe('enqueueInterruptionsForDispatch', () => {
       })
       expect(reconcileLifecycleMessage(db, replay).action).toBe('completed')
       expect(interruptionRows()).toHaveLength(1)
-    })
-  })
-
-  describe('enqueueInterruptionsOnSettlement', () => {
-    it('captures on a settled, non-duplicate settlement', () => {
-      const task = db.createTask({ spec: 'work' })
-      const dispatch = createRootDispatch(db, task.id, 'term_worker')
-      db.markEscalationOffered(task.id)
-      db.settleWorkerReport({
-        taskId: task.id,
-        dispatchId: dispatch.id,
-        outcome: 'succeeded',
-        result: 'done'
-      })
-
-      const count = enqueueInterruptionsOnSettlement(
-        db,
-        { action: 'settled', outcome: 'succeeded', duplicate: false },
-        { runId: task.run_id, taskId: task.id, dispatchId: dispatch.id }
-      )
-
-      expect(count).toBe(1)
-    })
-
-    it('skips a duplicate settlement', () => {
-      expect(
-        enqueueInterruptionsOnSettlement(
-          db,
-          { action: 'settled', outcome: 'succeeded', duplicate: true },
-          { runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1' }
-        )
-      ).toBe(0)
-    })
-
-    it('skips a rejected settlement', () => {
-      expect(
-        enqueueInterruptionsOnSettlement(
-          db,
-          { action: 'rejected', code: 'unknown_task', reason: 'gone' },
-          { runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1' }
-        )
-      ).toBe(0)
     })
   })
 })

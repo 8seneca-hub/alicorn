@@ -15,8 +15,11 @@ export function createGitHistoryReader(exec: (argv: string[]) => Promise<{ stdou
 } {
   return {
     async commitsSince(sinceIso: string): Promise<CommitSummary[]> {
-      // --since bounds the scan (AGENTS.md git scan safety: never --all).
+      // --since bounds the scan (AGENTS.md git scan safety: never --all). core.quotepath=false so
+      // a non-ASCII path in --name-only comes back raw, not quoted/octal-escaped.
       const { stdout } = await exec([
+        '-c',
+        'core.quotepath=false',
         'log',
         `--since=${sinceIso}`,
         '--date=iso-strict',

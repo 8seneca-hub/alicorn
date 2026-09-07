@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createLedgerApiApp } from './app.js'
 import { loadLedgerApiConfig } from './config.js'
+import { _resetAmendedWithinWindowCacheForTests } from './ledger-metrics.js'
 export function testDeps(overrides: Partial<Parameters<typeof createLedgerApiApp>[0]> = {}) {
   return {
     config: loadLedgerApiConfig({ ALICORN_DATABASE_URL: 'postgres://x', ALICORN_LOCAL_API_TOKEN: 'local-dev-token-0123456789' }),
@@ -9,6 +10,8 @@ export function testDeps(overrides: Partial<Parameters<typeof createLedgerApiApp
   }
 }
 describe('ledger-api app', () => {
+  afterEach(() => _resetAmendedWithinWindowCacheForTests())
+
   it('answers healthz', async () => {
     const res = await createLedgerApiApp(testDeps()).request('/healthz')
     expect(res.status).toBe(200)

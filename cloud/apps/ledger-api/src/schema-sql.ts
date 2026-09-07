@@ -25,6 +25,8 @@ export const LEDGER_SCHEMA_STATEMENTS: readonly string[] = [
   `CREATE INDEX IF NOT EXISTS step_outcomes_track_record ON step_outcomes (tenant_id, member_id, stage_key, created_at DESC)`,
   `CREATE INDEX IF NOT EXISTS step_outcomes_branch ON step_outcomes (tenant_id, repo_id, branch, created_at DESC)`,
   `CREATE INDEX IF NOT EXISTS step_outcomes_run ON step_outcomes (tenant_id, run_id)`,
+  `CREATE INDEX IF NOT EXISTS step_outcomes_human_verdict_created_at ON step_outcomes (human_verdict, created_at) WHERE human_verdict IS NOT NULL`,
+  `CREATE INDEX IF NOT EXISTS step_outcomes_tenant_task_dispatch ON step_outcomes (tenant_id, task_id, dispatch_id)`,
   tenantRlsPolicySql('step_outcomes'),
   `CREATE TABLE IF NOT EXISTS step_verifications (
      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -50,6 +52,7 @@ export const LEDGER_SCHEMA_STATEMENTS: readonly string[] = [
      source_id TEXT NOT NULL,             -- gate id / question id / dispatch id (escalation)
      resolved_by TEXT, occurred_at TIMESTAMPTZ NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      UNIQUE (tenant_id, kind, source_id))`,  // exactly-once
+  `CREATE INDEX IF NOT EXISTS step_interruptions_tenant_task_dispatch ON step_interruptions (tenant_id, task_id, dispatch_id)`,
   tenantRlsPolicySql('step_interruptions'),
   `CREATE TABLE IF NOT EXISTS member_stage_stats (   -- derived; rebuildable from step_outcomes
      tenant_id TEXT NOT NULL, member_id TEXT NOT NULL, stage_key TEXT NOT NULL, project_id TEXT NOT NULL DEFAULT '',

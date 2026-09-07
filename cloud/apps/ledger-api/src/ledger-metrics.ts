@@ -16,6 +16,36 @@ export async function countAmendedWithinWindow(pool: pg.Pool, tenantId: string):
   return Number(rows[0]?.count ?? 0)
 }
 
+const AMENDED_WITHIN_WINDOW_CACHE_MS = 30_000
+let lastAmendedRefreshAt = 0
+
+// Why cached and swallowed: /metrics is scraped far more often than this gauge needs to move,
+// and a pool error here must not take the whole endpoint down -- it keeps the last known value.
+export async function refreshAmendedWithinWindow(
+  metrics: LedgerMetrics,
+  pool: pg.Pool,
+  tenantId: string,
+  now: () => number = Date.now
+): Promise<void> {
+  const nowMs = now()
+  if (nowMs - lastAmendedRefreshAt < AMENDED_WITHIN_WINDOW_CACHE_MS) {
+    return
+  }
+  lastAmendedRefreshAt = nowMs
+  try {
+    metrics.setAmendedWithinWindow(await countAmendedWithinWindow(pool, tenantId))
+  } catch (error) {
+    console.warn(
+      '[alicorn-ledger-api] amended_within_window refresh failed, keeping last value',
+      error instanceof Error ? error.message : String(error)
+    )
+  }
+}
+
+export function _resetAmendedWithinWindowCacheForTests(): void {
+  lastAmendedRefreshAt = 0
+}
+
 // Why: plain in-memory Prometheus counters — no prom-client dependency (tier-1 binding rule).
 export class LedgerMetrics {
   private ledgerWriteDuplicates = 0

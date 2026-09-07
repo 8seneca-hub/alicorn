@@ -21,6 +21,9 @@
 - **Blast-radius budgets are per run**: files/spend sum across all dispatches of the run.
 - **Missing evidence fails safe**: unreachable Control/Ledger API, unknown files (SSH unreachable/folder workspace), or unknown spend → the corresponding gate reason (`unverified`, `history`, `blast:reach` cannot be evaluated → `unverified`), never `auto`.
 - Additive wire changes; `tenant_id` + forced RLS on new tables; i18n by tooling; no AI attribution in commits.
+- **`member_stage_stats.accept_rate` remains machine-derived** — it counts the outcome the agent
+  reported. Demotion is evaluated from `step_outcomes.human_verdict` (written by the corrections
+  sweep), never from `accept_rate`.
 
 ## Decisions made in this plan
 

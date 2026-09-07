@@ -1,6 +1,7 @@
 import type { WorkerReportOutcome, WorkerReportSettlement } from '../../types'
 import type { OrchestrationDb } from '../orchestration-db'
 import { AGENT_PROMPT_STALLED_ERROR } from '../../../agent-prompt-submission-verification'
+import { enqueueInterruptionsForDispatch } from '../../../../alicorn/interruptions/interruption-capture'
 import { settleActiveDispatchesForTask } from './dispatch-completion'
 import { getActiveDispatchForTask } from './task-dispatch-reconciliation'
 
@@ -53,6 +54,14 @@ export function settleWorkerReportInTransaction(
     }
   }
 
+  // Why here: every settlement path (lifecycle reconciliation, federation import, legacy
+  // compatibility) funnels through this function, so this is the one place interruption capture
+  // can cover all of them (item 1 of the final fix wave).
+  const interruptionIds = {
+    runId: task.run_id,
+    taskId: params.taskId,
+    dispatchId: params.dispatchId
+  }
   const expectedDispatchStatus = params.outcome === 'succeeded' ? 'completed' : 'failed'
   const expectedTaskStatus = params.outcome === 'succeeded' ? 'completed' : 'failed'
   // Why (#16095): worker-start records a stalled prompt as failed, but the preamble was written
@@ -69,6 +78,9 @@ export function settleWorkerReportInTransaction(
     dispatch.status === expectedDispatchStatus &&
     task.status === expectedTaskStatus
   ) {
+    // Why: a replayed worker_done must self-heal a capture that was lost between an earlier
+    // commit and its capture (item 2) — never throws, so it cannot turn this into a rejection.
+    enqueueInterruptionsForDispatch(this, interruptionIds)
     return { action: 'settled', outcome: params.outcome, duplicate: true }
   }
   const previous = settledByUnobservedPrompt
@@ -182,6 +194,7 @@ export function settleWorkerReportInTransaction(
       result: params.result
     }
   })
+  enqueueInterruptionsForDispatch(this, interruptionIds)
   this.db.exec('RELEASE settle_worker_report')
   return { action: 'settled', outcome: params.outcome, duplicate: false }
 }

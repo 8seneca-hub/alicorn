@@ -26,19 +26,28 @@ describe('v33 migration: outbox kinds for human verdicts and interruptions', () 
     }
   })
 
-  it('rebuilds ledger_outbox for a database migrating up from v32: preserves rows, accepts the new kinds, adds the new tables', () => {
+  it('rebuilds ledger_outbox for a database migrating up from v32: preserves rows, widens the CHECK', () => {
     tempDir = mkdtempSync(join(tmpdir(), 'orca-outbox-v33-migration-'))
     const dbPath = join(tempDir, 'orchestration.db')
     db = new OrchestrationDb(dbPath)
-    db.enqueueLedgerOutbox({
-      kind: 'step_outcome',
-      dedupeKey: 'step_outcome:dispatch-1',
-      payload: { foo: 'bar' }
-    })
     db.close()
     db = undefined
 
+    // Why rebuilt here, not stamped on the current-schema table: the fresh-create path already
+    // has the widened CHECK, so pinning user_version alone never exercises the widening (#review).
     const oldDb = new Database(dbPath)
+    oldDb.exec(`
+      DROP TABLE ledger_outbox;
+      CREATE TABLE ledger_outbox (
+        id TEXT PRIMARY KEY,
+        kind TEXT NOT NULL CHECK (kind IN ('step_outcome', 'context_capture', 'spend_attribution', 'step_verification')),
+        dedupe_key TEXT NOT NULL UNIQUE, payload TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0,
+        not_before TEXT, last_error TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now')), sent_at TEXT
+      );
+    `)
+    oldDb
+      .prepare(`INSERT INTO ledger_outbox (id, kind, dedupe_key, payload) VALUES (?, ?, ?, ?)`)
+      .run('lob_1', 'step_outcome', 'step_outcome:dispatch-1', '{"foo":"bar"}')
     oldDb.pragma('user_version = 32')
     oldDb.close()
 
@@ -60,9 +69,6 @@ describe('v33 migration: outbox kinds for human verdicts and interruptions', () 
     })
     expect(duplicate).toBe(false)
     expect(db.listDueLedgerOutbox()).toHaveLength(2)
-
-    expect(hasTable(sqlite, 'alicorn_correction_scans')).toBe(true)
-    expect(hasTable(sqlite, 'alicorn_dispatch_ledger')).toBe(true)
   })
 
   it('accepts every new kind and has both new tables on a freshly created database', () => {

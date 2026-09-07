@@ -14,6 +14,7 @@ import { createLedgerApiApp } from './app.js'
 import { loadLedgerApiConfig } from './config.js'
 import type { LedgerApiEnv } from './app-env.js'
 import { LEDGER_SCHEMA_STATEMENTS } from './schema-sql.js'
+import { _resetAmendedWithinWindowCacheForTests } from './ledger-metrics.js'
 import { patchStepOutcomeHumanVerdict } from './step-outcomes-repository.js'
 
 const databaseUrl = process.env.ALICORN_TEST_POSTGRES_URL
@@ -356,6 +357,34 @@ describePostgres('ledger routes (postgres)', () => {
     expect(await malformed.json()).toEqual({ error: 'invalid_query' })
   })
 
+  it('does not inflate interruptions when one dispatch spans two step_outcomes rows', async () => {
+    // Why two rows: v1.5 stages can let one dispatch span two step_outcomes rows (same
+    // task_id/dispatch_id, different stage_key -- the unique key already permits this today).
+    // One interruption then joins both, and COUNT(*) over the join would double-count it (item 14).
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_9', taskId: 'task_9', dispatchId: 'ctx_16', outcome: 'succeeded',
+      projectId: 'p11', memberId: 'mC', stageKey: 'build'
+    })
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_9', taskId: 'task_9', dispatchId: 'ctx_16', outcome: 'succeeded',
+      projectId: 'p11', memberId: 'mC', stageKey: 'review'
+    })
+    await post('/v1/ledger/interruptions', {
+      runId: 'run_9', taskId: 'task_9', dispatchId: 'ctx_16',
+      kind: 'gate', sourceId: 'gate_9', occurredAt: '2026-09-06T02:00:00.000Z'
+    })
+
+    const res = await app.request('/v1/ledger/reports/interruptions?projectId=p11', { headers: authHeaders })
+    const report = (await res.json()) as InterruptionsReport
+    expect(report.completedTasks).toBe(1)
+    expect(report.interruptions).toBe(1)
+    expect(report.byKind).toEqual({ gate: 1 })
+    expect(report.byStage).toEqual([
+      { stageKey: 'build', completedTasks: 1, interruptions: 1, perCompletedTask: 1 },
+      { stageKey: 'review', completedTasks: 1, interruptions: 1, perCompletedTask: 1 }
+    ])
+  })
+
   it('keeps step_interruptions invisible outside the tenant transaction', async () => {
     const bare = await pool.query('SELECT count(*)::int AS n FROM step_interruptions')
     expect(bare.rows[0].n).toBe(0)
@@ -442,6 +471,9 @@ describePostgres('ledger metrics (postgres)', () => {
     })
     expect(patch.status).toBe(200)
 
+    // Why: /metrics now caches the gauge for 30s (item 6) -- force a fresh query here since this
+    // test is about the query reflecting the new verdict, not about the cache window.
+    _resetAmendedWithinWindowCacheForTests()
     const afterVerdict = await app.request('/metrics')
     const afterVerdictText = await afterVerdict.text()
     expect(afterVerdictText).toContain('amended_within_window 1')

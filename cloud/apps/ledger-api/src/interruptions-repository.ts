@@ -56,14 +56,17 @@ export function getInterruptionsReport(
     )
     const completedTasks = completedRows[0]?.n ?? 0
 
+    // Why DISTINCT i.id, not COUNT(*): today's join can't fan out, but v1.5 stages make a task
+    // carry more than one dispatch plausible, and a fanned-out COUNT(*) would silently inflate
+    // the north-star metric (item 14).
     const { rows: totalRows } = await client.query<{ n: number }>(
-      `SELECT COUNT(*)::int AS n ${INTERRUPTIONS_JOIN} ${clause}`,
+      `SELECT COUNT(DISTINCT i.id)::int AS n ${INTERRUPTIONS_JOIN} ${clause}`,
       params
     )
     const interruptions = totalRows[0]?.n ?? 0
 
     const { rows: kindRows } = await client.query<{ kind: string; n: number }>(
-      `SELECT i.kind, COUNT(*)::int AS n ${INTERRUPTIONS_JOIN} ${clause} GROUP BY i.kind`,
+      `SELECT i.kind, COUNT(DISTINCT i.id)::int AS n ${INTERRUPTIONS_JOIN} ${clause} GROUP BY i.kind`,
       params
     )
     const byKind: Record<string, number> = {}
@@ -74,7 +77,7 @@ export function getInterruptionsReport(
       params
     )
     const { rows: stageInterruptionRows } = await client.query<{ stage_key: string; n: number }>(
-      `SELECT o.stage_key, COUNT(*)::int AS n ${INTERRUPTIONS_JOIN} ${clause} GROUP BY o.stage_key`,
+      `SELECT o.stage_key, COUNT(DISTINCT i.id)::int AS n ${INTERRUPTIONS_JOIN} ${clause} GROUP BY o.stage_key`,
       params
     )
     const completedByStage = new Map(stageCompletedRows.map((r) => [r.stage_key, r.n]))

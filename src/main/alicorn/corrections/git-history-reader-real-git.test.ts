@@ -81,4 +81,34 @@ describe('git history reader real Git contract', () => {
       paths: ['a.txt']
     })
   })
+
+  it('does not quote/escape a non-ASCII path (item 15)', async () => {
+    const repoPath = mkdtempSync(join(tmpdir(), 'alicorn-corrections-quotepath-'))
+    tempPaths.push(repoPath)
+    const git = (...args: string[]): string =>
+      execFileSync('git', args, { cwd: repoPath, encoding: 'utf8' })
+    git('init', '--quiet')
+    git('config', 'user.name', 'Alicorn Test')
+    git('config', 'user.email', 'alicorn@example.test')
+    git('config', 'commit.gpgSign', 'false')
+    git('config', 'core.hooksPath', '.git/no-hooks')
+
+    const fileName = 'café.txt'
+    writeFileSync(join(repoPath, fileName), 'x\n')
+    git('add', fileName)
+    execFileSync('git', ['commit', '--quiet', '-m', 'add non-ascii file'], {
+      cwd: repoPath,
+      env: {
+        ...process.env,
+        GIT_AUTHOR_DATE: '2024-06-01T00:00:00+00:00',
+        GIT_COMMITTER_DATE: '2024-06-01T00:00:00+00:00'
+      }
+    })
+
+    const reader = createGitHistoryReader((argv) => gitExecFileAsync(argv, { cwd: repoPath }))
+    const commits = await reader.commitsSince('2024-05-01T00:00:00+00:00')
+
+    expect(commits).toHaveLength(1)
+    expect(commits[0].paths).toEqual([fileName])
+  })
 })

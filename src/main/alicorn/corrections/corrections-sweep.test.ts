@@ -3,12 +3,55 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Store } from '../../persistence'
+import type { Project } from '../../../shared/project-types'
+import type { Repo } from '../../../shared/repo-types'
 import { OrchestrationDb } from '../../runtime/orchestration/db'
+import { _resetWslCachesForTests, _setWslCachesForTests } from '../../wsl'
+import { parseSqliteUtc } from '../run-usage-attribution'
 import {
   startCorrectionsSweep,
   type CorrectionsSweep,
   type CorrectionsSweepWorktree
 } from './corrections-sweep'
+
+// Why async-aware: withPlatform in project-runtime-git-options.test.ts restores the platform
+// synchronously, which would fire before an awaited tickOnce() reaches the throwing call.
+async function withPlatform<T>(platform: NodeJS.Platform, run: () => Promise<T>): Promise<T> {
+  const originalPlatform = process.platform
+  Object.defineProperty(process, 'platform', { configurable: true, value: platform })
+  try {
+    return await run()
+  } finally {
+    Object.defineProperty(process, 'platform', { configurable: true, value: originalPlatform })
+  }
+}
+
+// A repo whose local project runtime is 'repair-required' (item 3): Windows-only, WSL
+// preference pinned to a distro the cached probe does not report.
+function makeRepairRequiredStore(repoId: string): Store {
+  const repo: Repo = {
+    id: repoId,
+    displayName: 'Repo',
+    path: String.raw`C:\repo`,
+    badgeColor: '#000000',
+    addedAt: 0
+  }
+  const project: Project = {
+    id: 'project_repair',
+    displayName: 'Project',
+    badgeColor: '#000000',
+    sourceRepoIds: [repoId],
+    createdAt: 0,
+    updatedAt: 0,
+    localWindowsRuntimePreference: { kind: 'wsl', distro: 'Ubuntu' }
+  }
+  return {
+    getRepos: () => [repo],
+    getProjects: () => [project],
+    getSettings: () => ({ localWindowsRuntimeDefault: { kind: 'windows-host' } })
+  } as unknown as Store
+}
 
 describe('startCorrectionsSweep', () => {
   let db: OrchestrationDb
@@ -17,6 +60,7 @@ describe('startCorrectionsSweep', () => {
 
   beforeEach(() => {
     db = new OrchestrationDb(':memory:')
+    _setWslCachesForTests({ available: true, distros: ['Debian'] })
   })
 
   afterEach(() => {
@@ -27,6 +71,7 @@ describe('startCorrectionsSweep', () => {
       rmSync(path, { recursive: true, force: true })
     }
     vi.useRealTimers()
+    _resetWslCachesForTests()
   })
 
   function settleSucceeded(
@@ -82,6 +127,14 @@ describe('startCorrectionsSweep', () => {
       cwd: repoPath,
       env: { ...process.env, GIT_AUTHOR_DATE: isoDate, GIT_COMMITTER_DATE: isoDate }
     })
+  }
+
+  // completed_at is stamped by SQLite's own datetime('now'), not the injected `now()` deps hook.
+  function completedAtMs(dispatchId: string): number {
+    const row = db.db
+      .prepare('SELECT completed_at FROM dispatch_contexts WHERE id = ?')
+      .get(dispatchId) as { completed_at: string }
+    return parseSqliteUtc(row.completed_at)!
   }
 
   it('local worktree with a qualifying commit: one outbox row, scan stamped', async () => {
@@ -232,6 +285,142 @@ describe('startCorrectionsSweep', () => {
     expect(rows[0].dedupe_key).toBe('human_verdict_patch:so_good')
 
     warnSpy.mockRestore()
+  })
+
+  it('logs a scan failure for every failing worktree, not just the first (throttle keyed per worktree)', async () => {
+    const brokenA = mkdtempSync(join(tmpdir(), 'alicorn-corrections-sweep-brokenA-'))
+    tempPaths.push(brokenA)
+    mkdirSync(join(brokenA, '.git'))
+    const brokenB = mkdtempSync(join(tmpdir(), 'alicorn-corrections-sweep-brokenB-'))
+    tempPaths.push(brokenB)
+    mkdirSync(join(brokenB, '.git'))
+
+    const a = settleSucceeded('wt_brokenA', ['a.txt'])
+    db.setDispatchLedgerOutcome(a.dispatchId, 'so_brokenA', ['a.txt'])
+    const b = settleSucceeded('wt_brokenB', ['b.txt'])
+    db.setDispatchLedgerOutcome(b.dispatchId, 'so_brokenB', ['b.txt'])
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    sweep = startCorrectionsSweep({
+      getDb: () => db,
+      runtime: {
+        showManagedWorktree: vi
+          .fn()
+          .mockImplementation(async (selector: string) =>
+            selector === 'id:wt_brokenA'
+              ? { id: 'wt_brokenA', path: brokenA, repoId: 'repo_brokenA' }
+              : { id: 'wt_brokenB', path: brokenB, repoId: 'repo_brokenB' }
+          )
+      },
+      store: null
+    })
+
+    const result = await sweep.tickOnce()
+
+    expect(result.skipped.map((s) => s.worktreeId).sort()).toEqual(['wt_brokenA', 'wt_brokenB'])
+    // Both fail well inside the 5-minute throttle window of the very same tick -- a shared
+    // timestamp would silence the second worktree's log entirely.
+    const loggedWorktreeIds = warnSpy.mock.calls.map(
+      (call) => (call[1] as { worktreeId: string }).worktreeId
+    )
+    expect(loggedWorktreeIds.sort()).toEqual(['wt_brokenA', 'wt_brokenB'])
+
+    warnSpy.mockRestore()
+  })
+
+  it('a repo whose git-options lookup throws: that worktree is scan_failed, others still scan', async () => {
+    const goodRepo = initGitRepo()
+    const badDir = mkdtempSync(join(tmpdir(), 'alicorn-corrections-sweep-badopts-'))
+    tempPaths.push(badDir)
+    // Looks like a git worktree (passes the .git existence check); never reached anyway.
+    mkdirSync(join(badDir, '.git'))
+
+    const good = settleSucceeded('wt_good3', ['a.txt'])
+    db.setDispatchLedgerOutcome(good.dispatchId, 'so_good3', ['a.txt'])
+    const bad = settleSucceeded('wt_badopts', ['b.txt'])
+    db.setDispatchLedgerOutcome(bad.dispatchId, 'so_badopts', ['b.txt'])
+
+    const now = Date.now()
+    commitFileAt(goodRepo, 'a.txt', new Date(now + 5_000).toISOString(), 'fix it')
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const activeSweep = startCorrectionsSweep({
+      getDb: () => db,
+      runtime: {
+        showManagedWorktree: vi.fn().mockImplementation(async (selector: string) => {
+          if (selector === 'id:wt_good3') {
+            return { id: 'wt_good3', path: goodRepo, repoId: 'repo_good3' }
+          }
+          return { id: 'wt_badopts', path: badDir, repoId: 'repo_badopts' }
+        })
+      },
+      // repo_good3 is absent from this store's repos, so its lookup returns {} and never throws.
+      store: makeRepairRequiredStore('repo_badopts'),
+      now: () => now + 10_000
+    })
+    sweep = activeSweep
+
+    const result = await withPlatform('win32', () => activeSweep.tickOnce())
+
+    expect(result.scanned).toBe(1)
+    expect(result.corrections).toBe(1)
+    expect(result.skipped).toEqual([
+      { worktreeId: 'wt_badopts', reason: 'scan_failed', message: expect.any(String) }
+    ])
+    expect(warnSpy).toHaveBeenCalled()
+    const rows = humanVerdictPatchRows()
+    expect(rows).toHaveLength(1)
+    expect(rows[0].dedupe_key).toBe('human_verdict_patch:so_good3')
+
+    warnSpy.mockRestore()
+  })
+
+  it('bounds the second scan to the stored scan stamp, not the correction floor', async () => {
+    const repoPath = initGitRepo()
+    // git log --since fails outright with no commits at all; keep this well outside both windows.
+    commitFileAt(repoPath, 'initial.txt', new Date(0).toISOString(), 'initial commit')
+    const { dispatchId } = settleSucceeded('wt_bounded', ['a.txt'])
+    db.setDispatchLedgerOutcome(dispatchId, 'so_bounded', ['a.txt'])
+    const completedAt = completedAtMs(dispatchId)
+
+    const showManagedWorktree = vi
+      .fn()
+      .mockResolvedValue({ id: 'wt_bounded', path: repoPath, repoId: 'repo_bounded' })
+
+    sweep = startCorrectionsSweep({
+      getDb: () => db,
+      runtime: { showManagedWorktree },
+      store: null,
+      now: () => completedAt + 10_000
+    })
+
+    const first = await sweep.tickOnce()
+    expect(first).toEqual({ scanned: 1, corrections: 0, skipped: [] })
+    const scanAfterFirst = db.getCorrectionScan('wt_bounded')
+    expect(scanAfterFirst).not.toBeNull()
+    expect(scanAfterFirst!.lastCommit).toBeNull()
+
+    // Backdated: inside the old floor (completedAt - 60s) but before the new bound derived
+    // from the first tick's scan stamp (completedAt + 10s - 60s = completedAt - 50s). Only the
+    // fix's --since bound excludes it.
+    commitFileAt(
+      repoPath,
+      'b.txt',
+      new Date(completedAt - 55_000).toISOString(),
+      'sneaks in under the old floor'
+    )
+    sweep.stop()
+    sweep = startCorrectionsSweep({
+      getDb: () => db,
+      runtime: { showManagedWorktree },
+      store: null,
+      now: () => completedAt + 20_000
+    })
+
+    const second = await sweep.tickOnce()
+
+    expect(second).toEqual({ scanned: 1, corrections: 0, skipped: [] })
+    expect(db.getCorrectionScan('wt_bounded')!.lastCommit).toBeNull()
   })
 
   it('does not run a second tick via the timer while the previous tick has not finished', async () => {

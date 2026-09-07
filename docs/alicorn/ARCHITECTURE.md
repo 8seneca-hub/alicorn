@@ -267,6 +267,10 @@ guesses which step is irreversible guesses wrong once, and that once is a produc
 immediately and requires the full entry condition again. Windows are the last 50 runs, not lifetime —
 a member with 400 good runs must not average its way out of 12 recent bad ones.
 
+`member_stage_stats.accept_rate` remains machine-derived — it counts the outcome the agent reported.
+Demotion is evaluated from `step_outcomes.human_verdict` (written by the corrections sweep), never
+from `accept_rate`.
+
 **The corrections watcher is load-bearing.** `human_verdict` must also be written from post-hoc
 corrections — a follow-up commit touching the same files inside a window, a revert, a reopened task.
 Without it, accept rate drifts up while quality drifts down. Until it ships, run advisory-only.

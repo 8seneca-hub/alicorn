@@ -71,10 +71,14 @@ async function pathExists(path: string): Promise<boolean> {
 }
 
 // Why the duplicated two-line lookup (LC-R6): reuses D5's exact WSL resolution
-// (base-ref-resolver.ts:27-45) without editing that file.
+// (base-ref-resolver.ts:27-45) without editing that file. Same connectionId guard as there:
+// a repo routed to another host must not lend this (local-routed) worktree its WSL distro.
 function localGitOptionsForRepo(store: Store | null, repoId: string): { wslDistro?: string } {
   const repo = store?.getRepos().find((candidate: Repo) => candidate.id === repoId)
-  return repo ? getLocalProjectWorktreeGitOptions(store as Store, repo) : {}
+  if (!repo || repo.connectionId) {
+    return {}
+  }
+  return getLocalProjectWorktreeGitOptions(store as Store, repo)
 }
 
 type DispatchSpanRow = {
@@ -105,16 +109,17 @@ function dispatchSpansForTasks(db: OrchestrationDb, taskIds: string[]): Dispatch
 /** Periodic sweep (CW1): git corrections across worktrees, plus reopened-task detection (CW2). */
 export function startCorrectionsSweep(deps: CorrectionsSweepDeps): CorrectionsSweep {
   let running = false
-  let lastWorktreeErrorLogAt = 0
+  const lastWorktreeErrorLogAt = new Map<string, number>()
 
-  // Why throttled: one bad worktree (a dropped SSH host, a corrupted repo) must not spam
-  // the log every tick, and must never stop the other worktrees in the same sweep.
+  // Why throttled per worktree: one bad worktree (a dropped SSH host, a corrupted repo) must not
+  // spam the log every tick, and must never silence or stop the other worktrees in the same sweep.
   function logWorktreeErrorThrottled(worktreeId: string, error: unknown): void {
     const now = Date.now()
-    if (now - lastWorktreeErrorLogAt < WORKTREE_ERROR_LOG_INTERVAL_MS) {
+    const lastForWorktree = lastWorktreeErrorLogAt.get(worktreeId) ?? 0
+    if (now - lastForWorktree < WORKTREE_ERROR_LOG_INTERVAL_MS) {
       return
     }
-    lastWorktreeErrorLogAt = now
+    lastWorktreeErrorLogAt.set(worktreeId, now)
     console.warn('[corrections-sweep] worktree scan failed', {
       worktreeId,
       message: error instanceof Error ? error.message : String(error)
@@ -173,12 +178,10 @@ export function startCorrectionsSweep(deps: CorrectionsSweepDeps): CorrectionsSw
         continue
       }
 
-      const localGitOptions = localGitOptionsForRepo(deps.store, worktree.repoId)
       let route: ReturnType<typeof runtimeGitRouteForTarget>
       try {
         route = runtimeGitRouteForTarget({
-          executionHostId: worktree.hostId ?? LOCAL_EXECUTION_HOST_ID,
-          localGitOptions
+          executionHostId: worktree.hostId ?? LOCAL_EXECUTION_HOST_ID
         } as RuntimeGitTarget)
       } catch (error) {
         logWorktreeErrorThrottled(worktreeId, error)
@@ -201,16 +204,38 @@ export function startCorrectionsSweep(deps: CorrectionsSweepDeps): CorrectionsSw
           result.skipped.push({ worktreeId, reason: 'not_a_git_worktree' })
           continue
         }
+        // Why only here, in a try/catch of its own: a project runtime in repair-required throws
+        // (item 3), and this call is only meaningful -- and only safe -- on the local route.
+        let localGitOptions: { wslDistro?: string }
+        try {
+          localGitOptions = localGitOptionsForRepo(deps.store, worktree.repoId)
+        } catch (error) {
+          logWorktreeErrorThrottled(worktreeId, error)
+          const message = error instanceof Error ? error.message : String(error)
+          result.skipped.push({ worktreeId, reason: 'scan_failed', message })
+          continue
+        }
         exec = (argv) =>
           gitExecFileAsync(argv, {
             cwd: worktree.path,
-            admissionTier: 'interactive',
+            // Why background: a 10-minute scan across every worktree must not compete with the
+            // user's foreground Git (item 4).
+            admissionTier: 'background',
             ...localGitOptions
           })
       }
 
+      // Why max, not the floor alone: a commit at or before the last scan was already classified
+      // against every step present then (classifyCorrections ignores commits at/before a step's
+      // completedAt), so re-scanning back to the floor every tick is wasted work -- item 5.
       const earliestCompletedAt = Math.min(...resolvedSteps.map((step) => step.completedAt))
-      const sinceForWorktree = new Date(earliestCompletedAt - 60_000).toISOString()
+      const priorScan = db.getCorrectionScan(worktreeId)
+      const priorScannedAtMs = priorScan ? parseSqliteUtc(priorScan.lastScannedAt) : null
+      const sinceMs = Math.max(
+        earliestCompletedAt - 60_000,
+        priorScannedAtMs !== null ? priorScannedAtMs - 60_000 : -Infinity
+      )
+      const sinceForWorktree = new Date(sinceMs).toISOString()
 
       let commits: CommitSummary[]
       try {

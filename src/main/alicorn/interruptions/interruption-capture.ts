@@ -1,13 +1,15 @@
 import type { OrchestrationDb } from '../../runtime/orchestration/db'
-import type { WorkerReportSettlement } from '../../runtime/orchestration/types'
 import { parseSqliteUtc } from '../run-usage-attribution'
 
 const ERROR_LOG_THROTTLE_MS = 5 * 60_000
 let lastErrorLogAt = 0
 
 // Why: SQLite's datetime('now') has no zone marker; the outbox wire payload needs true ISO.
-function toIso(sqliteUtc: string): string {
-  return new Date(parseSqliteUtc(sqliteUtc) ?? 0).toISOString()
+// Why null, not epoch, on failure: falsifying a timestamp in an append-only ledger is worse
+// than skipping the row — the caller logs and drops it instead of writing bad data.
+function toIso(sqliteUtc: string): string | null {
+  const ms = parseSqliteUtc(sqliteUtc)
+  return ms === null ? null : new Date(ms).toISOString()
 }
 
 export type DispatchInterruptionIds = { runId: string; taskId: string; dispatchId: string }
@@ -25,6 +27,14 @@ function enqueueOne(
   sourceId: string,
   occurredAtSqliteUtc: string
 ): number {
+  const occurredAt = toIso(occurredAtSqliteUtc)
+  if (occurredAt === null) {
+    logCaptureErrorThrottled(
+      ids.dispatchId,
+      new Error(`unparseable occurredAt for ${kind}:${sourceId}: ${occurredAtSqliteUtc}`)
+    )
+    return 0
+  }
   const { duplicate } = db.enqueueLedgerOutbox({
     kind: 'interruption',
     dedupeKey: `interruption:${kind}:${sourceId}`,
@@ -35,7 +45,7 @@ function enqueueOne(
       kind,
       sourceId,
       resolvedBy: null,
-      occurredAt: toIso(occurredAtSqliteUtc)
+      occurredAt
     }
   })
   return duplicate ? 0 : 1
@@ -46,14 +56,20 @@ function enqueueOne(
 // span. The metric is per completed task, not per dispatch — which dispatch carries the row only
 // decides the stage attribution — so everything since the task's last settled dispatch (or its
 // creation, if this is the first) up to this dispatch's completion is attributed here.
-function windowStart(db: OrchestrationDb, ids: DispatchInterruptionIds): string | null {
+function windowStart(
+  db: OrchestrationDb,
+  ids: DispatchInterruptionIds,
+  end: string
+): string | null {
+  // Why completed_at <= end: without this bound, a sibling dispatch settling later (after this
+  // one) would make this window's start > end and silently match nothing.
   const prev = db.db
     .prepare(
       `SELECT completed_at FROM dispatch_contexts
-       WHERE task_id = ? AND id != ? AND completed_at IS NOT NULL
+       WHERE task_id = ? AND id != ? AND completed_at IS NOT NULL AND completed_at <= ?
        ORDER BY completed_at DESC LIMIT 1`
     )
-    .get(ids.taskId, ids.dispatchId) as { completed_at: string } | undefined
+    .get(ids.taskId, ids.dispatchId, end) as { completed_at: string } | undefined
   return prev?.completed_at ?? db.getTask(ids.taskId)?.created_at ?? null
 }
 
@@ -62,11 +78,11 @@ function enqueueInterruptions(db: OrchestrationDb, ids: DispatchInterruptionIds)
   if (!dispatch?.completed_at) {
     return 0
   }
-  const start = windowStart(db, ids)
+  const end = dispatch.completed_at
+  const start = windowStart(db, ids, end)
   if (start === null) {
     return 0
   }
-  const end = dispatch.completed_at
   let enqueued = 0
 
   // Why inclusive at both ends, not the open-below (prevCompletedAt, end] of the ruling: SQLite
@@ -141,16 +157,4 @@ export function enqueueInterruptionsForDispatch(
     logCaptureErrorThrottled(ids.dispatchId, error)
     return 0
   }
-}
-
-// Why here, not at the call site: keeps the settlement hook in lifecycle-reconciliation.ts to
-// one line — a replayed or rejected report must not re-derive interruptions already enqueued.
-export function enqueueInterruptionsOnSettlement(
-  db: OrchestrationDb,
-  settlement: WorkerReportSettlement,
-  ids: DispatchInterruptionIds
-): number {
-  return settlement.action === 'settled' && !settlement.duplicate
-    ? enqueueInterruptionsForDispatch(db, ids)
-    : 0
 }
