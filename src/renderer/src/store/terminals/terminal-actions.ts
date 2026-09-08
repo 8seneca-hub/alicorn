@@ -60,7 +60,8 @@ export type TerminalActions = {
     scrollback: string
     cwd: string
   } | null
-  /** Atomically publishes runtime and unified tab ownership, layout, ordering, and focus. */
+  /** Atomically publishes runtime and unified tab ownership, layout, ordering, and focus —
+   *  everything but the runtime tab is skipped for a surface-owned terminal. */
   createTab: (
     worktreeId: string,
     targetGroupId?: string,
@@ -82,6 +83,9 @@ export type TerminalActions = {
       viewMode?: Tab['viewMode']
       startupCwd?: string
       forceHostRuntime?: boolean
+      /** Hands the terminal to a surface outside the main tab area. Such a tab gets no unified
+       *  `Tab`, group or layout leaf — see `isSurfaceOwnedTerminalTab`. */
+      surface?: TerminalTab['surface']
     }
   ) => TerminalTab
   openNewTerminalTabInActiveWorkspace: (groupId: string) => Promise<void>

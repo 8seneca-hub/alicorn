@@ -78,6 +78,17 @@ and identical on every platform.
   — sidebar-owned `TabGroup.surface`; `Mod+Backquote`; `createTab` layout-seed guard;
   `normalizeRightSidebarRoute` and `STATIC_RIGHT_SIDEBAR_TABS` both needed the new tab.
 
+**Corrected 2026-09-08 (ALC-104) — the session host is `TerminalTab.surface`, not `TabGroup.surface`.**
+The amendment above shipped alongside a second, contradictory model of the same idea, merged 51
+minutes earlier: a `TerminalTab` marked `surface: 'sidebar'` that deliberately has *no* unified `Tab`.
+Both were green because they touched disjoint files. `TabGroup.surface` is retired and the panel now
+drives the tab-level model. The reason is the amendment's own argument turned around:
+`layoutSpanningGroups` having one caller made the filter cheap *today*, but a hidden group needs a
+filter at every layout reader (it already needed a second, `selectHydratedActiveGroupId`), whereas a
+terminal with no unified tab is invisible to all of them by construction. `createTab` takes a
+`surface` option and returns after the runtime-tab patch; the layout-seed guard is gone with the
+group it protected.
+
 ### Task 5 (UI1a): tab status rollup and cost badge
 `src/renderer/src/lib/tab-status-rollup.ts` (pure, Decision 2: `rollupTabStatus(entries: AgentStatusEntry[]) → TabStatus`), `tab-cost.ts` (`tabCostCents(runCosts, tabRunIds) → { cents: number | null; partial: boolean }` from D7's store), tab bar: status dot (`--status-live/attention/critical`) + cost text ("$0.42", "≥ $0.42" partial, "—" unknown). Tests: rollup priority; cost partial/unknown; component renders badges.
 **Amended 2026-09-07 — both halves land, and neither needed Task 6.** The prior amendment above was

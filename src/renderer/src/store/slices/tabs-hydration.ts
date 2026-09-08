@@ -1,6 +1,7 @@
 import type { Tab, TabGroup, TabGroupLayoutNode } from '../../../../shared/tab-types'
 import type { WorkspaceSessionState } from '../../../../shared/workspace-session-state-types'
 import { isValidTerminalTabId } from '../../../../shared/terminal-tab-id'
+import { isSurfaceOwnedTerminalTab } from '../../../../shared/terminal-tab-types'
 import { createBrowserUuid } from '@/lib/browser-uuid'
 import {
   adoptGrouplessTabs,
@@ -242,8 +243,10 @@ function hydrateLegacyFormat(
   const layoutByWorktree: Record<string, TabGroupLayoutNode> = {}
 
   for (const worktreeId of validWorktreeIds) {
-    const terminalTabs = (session.tabsByWorktree[worktreeId] ?? []).filter((tab) =>
-      isValidTerminalTabId(tab.id)
+    const terminalTabs = (session.tabsByWorktree[worktreeId] ?? []).filter(
+      // Why the surface test: this path mints a unified tab per persisted terminal, which is the
+      // one thing a surface-owned terminal must never get.
+      (tab) => isValidTerminalTabId(tab.id) && !isSurfaceOwnedTerminalTab(tab)
     )
     const editorFiles = session.openFilesByWorktree?.[worktreeId] ?? []
 

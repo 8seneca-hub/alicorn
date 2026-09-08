@@ -9,11 +9,7 @@ export function createTabsGroupActions(
   get: TabsSliceGet
 ): Pick<
   TabsSlice,
-  | 'ensureWorktreeRootGroup'
-  | 'focusGroup'
-  | 'closeEmptyGroup'
-  | 'createEmptySplitGroup'
-  | 'ensureSidebarTerminalGroup'
+  'ensureWorktreeRootGroup' | 'focusGroup' | 'closeEmptyGroup' | 'createEmptySplitGroup'
 > {
   return {
     ensureWorktreeRootGroup: (worktreeId) => {
@@ -155,39 +151,6 @@ export function createTabsGroupActions(
         }
       })
       return true
-    },
-
-    ensureSidebarTerminalGroup: (worktreeId) => {
-      const existing = (get().groupsByWorktree[worktreeId] ?? []).find(
-        (group) => group.surface === 'sidebar'
-      )
-      if (existing) {
-        return existing.id
-      }
-      const groupId = createBrowserUuid()
-      set((state) => {
-        // Why re-read inside set: two panels mounting in the same tick would otherwise both pass
-        // the check above and append a second sidebar group for one worktree.
-        const groups = state.groupsByWorktree[worktreeId] ?? []
-        const raced = groups.find((group) => group.surface === 'sidebar')
-        if (raced) {
-          return {}
-        }
-        const group: TabGroup = {
-          id: groupId,
-          worktreeId,
-          activeTabId: null,
-          tabOrder: [],
-          surface: 'sidebar'
-        }
-        // Why no layout or activeGroupId write: this group is hosted by the right sidebar, so
-        // touching either would pull the main view onto a group it never renders.
-        return { groupsByWorktree: { ...state.groupsByWorktree, [worktreeId]: [...groups, group] } }
-      })
-      return (
-        (get().groupsByWorktree[worktreeId] ?? []).find((group) => group.surface === 'sidebar')
-          ?.id ?? groupId
-      )
     },
 
     createEmptySplitGroup: (worktreeId, sourceGroupId, direction, opts) => {

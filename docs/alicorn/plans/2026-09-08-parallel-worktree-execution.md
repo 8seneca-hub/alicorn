@@ -18,7 +18,7 @@ is not the test.**
 We already have the counter-example in the repo. PR #41 and PR #42 merged 51 minutes apart. They
 touched *entirely disjoint files*, both were green on their own, and GitHub's mergeability check saw
 nothing. They still shipped two contradictory models of "a terminal outside the main tab area" —
-`TerminalTab.surface` and `TabGroup.surface` — and that is now `ALC-104` (UI6), unresolved on main.
+`TerminalTab.surface` and `TabGroup.surface` — which took `ALC-104` (UI6) to unpick after the fact.
 
 So the partition below is by **owned concept**, not by file list. Where two tickets share a concept
 they are serialized even when their diffs would merge cleanly.

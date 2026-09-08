@@ -13,7 +13,7 @@ import { useSidebarTerminalSession } from './use-sidebar-terminal-session'
  */
 export function TerminalPanel({ isVisible }: { isVisible: boolean }): React.JSX.Element {
   const worktreeId = useAppStore((s) => s.activeWorktreeId)
-  const session = useSidebarTerminalSession(worktreeId, isVisible)
+  const tabId = useSidebarTerminalSession(worktreeId, isVisible)
 
   if (!worktreeId) {
     return (
@@ -26,14 +26,14 @@ export function TerminalPanel({ isVisible }: { isVisible: boolean }): React.JSX.
     )
   }
 
-  if (!session) {
+  if (!tabId) {
     return <div className="p-3 text-xs text-muted-foreground" />
   }
 
   return (
     <div className="relative min-h-0 flex-1">
       <TerminalPane
-        tabId={session.tabId}
+        tabId={tabId}
         worktreeId={worktreeId}
         isActive
         // Why gate on isVisible: a closed panel is CSS-hidden, so this routes the pane through
@@ -43,16 +43,16 @@ export function TerminalPanel({ isVisible }: { isVisible: boolean }): React.JSX.
         showSplitButton={false}
         onPtyExit={(ptyId, exitCode) => {
           if (exitCode !== undefined && !isProvenProcessExit(exitCode)) {
-            useAppStore.getState().markUnverifiedPtyLoss(session.tabId)
+            useAppStore.getState().markUnverifiedPtyLoss(tabId)
             return
           }
-          if (shouldDeferParkedPtyExitTabClose(session.tabId, ptyId)) {
+          if (shouldDeferParkedPtyExitTabClose(tabId, ptyId)) {
             return
           }
-          closeTerminalTab(session.tabId, { reason: 'pty-exit', lifecyclePtyId: ptyId })
+          closeTerminalTab(tabId, { reason: 'pty-exit', lifecyclePtyId: ptyId })
         }}
         onCloseTab={() => {
-          closeTerminalTab(session.tabId, { reason: 'user' })
+          closeTerminalTab(tabId, { reason: 'user' })
         }}
       />
     </div>

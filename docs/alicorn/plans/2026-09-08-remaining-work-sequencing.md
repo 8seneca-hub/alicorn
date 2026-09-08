@@ -166,6 +166,11 @@ today, but `tabs-reconciliation.ts` now carries a comment asserting an invariant
 terminal we ship. Resolve it before UI5 rewrites that area. The full tab/store suites have never run
 against the combined tree — each PR was green alone.
 
+**Resolved 2026-09-08.** `TabGroup.surface` is retired; the sidebar panel drives `TerminalTab.surface`
+and its terminal has no unified `Tab`. A hidden group needs a filter at every layout reader (it had
+already grown a second, `selectHydratedActiveGroupId`); an absent unified tab needs none. The combined
+tab/store suites now run green together.
+
 UI5's estimate is measured, not guessed: `unifiedTabsByWorktree` appears in 174 non-test files,
 `tabsByWorktree` in 962 references. It is a persisted-schema migration, and it should land with MR1,
 which is the feature that actually wants session-keyed tabs.

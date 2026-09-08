@@ -176,11 +176,8 @@ export function selectHydratedActiveGroupId(
   groups: TabGroup[],
   persistedActiveGroupId?: string
 ): string | undefined {
-  // Why: a sidebar-owned group is hosted outside the main layout (layoutSpanningGroups), so
-  // focusing it would leave the main area pointing at a group it never renders.
-  const mainGroups = groups.filter((group) => group.surface !== 'sidebar')
-  const preferredGroups = mainGroups.filter((group) => group.tabOrder.length > 0)
-  const candidates = preferredGroups.length > 0 ? preferredGroups : mainGroups
+  const preferredGroups = groups.filter((group) => group.tabOrder.length > 0)
+  const candidates = preferredGroups.length > 0 ? preferredGroups : groups
   if (persistedActiveGroupId && candidates.some((group) => group.id === persistedActiveGroupId)) {
     return persistedActiveGroupId
   }

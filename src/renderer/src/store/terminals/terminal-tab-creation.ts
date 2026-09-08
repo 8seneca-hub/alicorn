@@ -129,8 +129,44 @@ export function createTerminalTabCreationActions(
           ...(startupCwd && startupCwd.length > 0 ? { startupCwd } : {}),
           ...(options?.forceHostRuntime ? { forceHostRuntime: true } : {}),
           ...(options?.launchAgent ? { launchAgent: options.launchAgent } : {}),
+          ...(options?.surface ? { surface: options.surface } : {}),
           // Why: mark click-caused (not work-caused) spawns so updateTabPtyId skips the activity/sortEpoch bump that would reorder Recent/Smart on click.
           ...(options?.pendingActivationSpawn ? { pendingActivationSpawn: true } : {})
+        }
+        const runtimeTabPatch = {
+          ...orphanCleanupPatch,
+          tabsByWorktree: {
+            ...orphanCleanupPatch.tabsByWorktree,
+            [worktreeId]: [...existing, tab]
+          },
+          ptyIdsByTabId: {
+            ...orphanCleanupPatch.ptyIdsByTabId,
+            [tab.id]: options?.initialPtyId ? [options.initialPtyId] : []
+          },
+          pendingStartupByTabId: options?.pendingStartup
+            ? {
+                ...orphanCleanupPatch.pendingStartupByTabId,
+                [tab.id]: normalizeTabStartupCommand(options.pendingStartup)
+              }
+            : orphanCleanupPatch.pendingStartupByTabId,
+          automaticAgentResumeClaimsByTabId: options?.automaticResumeClaim
+            ? {
+                ...orphanCleanupPatch.automaticAgentResumeClaimsByTabId,
+                [tab.id]: options.automaticResumeClaim
+              }
+            : orphanCleanupPatch.automaticAgentResumeClaimsByTabId,
+          terminalLayoutsByTabId: {
+            ...orphanCleanupPatch.terminalLayoutsByTabId,
+            [tab.id]: initialLeafId
+              ? singlePaneLayoutSnapshot(initialLeafId, options?.initialPtyId)
+              : emptyLayoutSnapshot()
+          }
+        }
+        if (options?.surface) {
+          // A surface-owned terminal stops here: no unified tab, so no group, no layout leaf and
+          // no focus write. That single absence is what keeps the right sidebar's terminal out of
+          // the tab strip and the split layout — see isSurfaceOwnedTerminalTab.
+          return runtimeTabPatch
         }
         const validTargetGroupId =
           targetGroupId &&
@@ -214,11 +250,7 @@ export function createTerminalTabCreationActions(
           ? tab.id
           : (cleanedActiveTabIdForWorktree ?? cleanedGroupActiveTabId ?? tab.id)
         return {
-          ...orphanCleanupPatch,
-          tabsByWorktree: {
-            ...orphanCleanupPatch.tabsByWorktree,
-            [worktreeId]: [...existing, tab]
-          },
+          ...runtimeTabPatch,
           // Why: publish the unified tab atomically with the runtime tab so a transient legacy mount can't race the split host.
           unifiedTabsByWorktree: {
             ...s.unifiedTabsByWorktree,
@@ -238,45 +270,14 @@ export function createTerminalTabCreationActions(
             })
           },
           activeGroupIdByWorktree: nextActiveGroupIdByWorktree,
-          // Why the surface guard: a sidebar-owned group is hosted by the right sidebar, so it must
-          // never become the main layout's root — seeding it there is how a worktree with no main
-          // tabs yet would render its sidebar terminal in the main view.
-          layoutByWorktree:
-            group.surface === 'sidebar' && !s.layoutByWorktree[worktreeId]
-              ? s.layoutByWorktree
-              : {
-                  ...s.layoutByWorktree,
-                  [worktreeId]: s.layoutByWorktree[worktreeId] ?? {
-                    type: 'leaf',
-                    groupId: group.id
-                  }
-                },
+          layoutByWorktree: {
+            ...s.layoutByWorktree,
+            [worktreeId]: s.layoutByWorktree[worktreeId] ?? { type: 'leaf', groupId: group.id }
+          },
           activeTabId: shouldActivate ? tab.id : orphanCleanupPatch.activeTabId,
           activeTabIdByWorktree: {
             ...orphanCleanupPatch.activeTabIdByWorktree,
             [worktreeId]: nextActiveTabIdForWorktree
-          },
-          ptyIdsByTabId: {
-            ...orphanCleanupPatch.ptyIdsByTabId,
-            [tab.id]: options?.initialPtyId ? [options.initialPtyId] : []
-          },
-          pendingStartupByTabId: options?.pendingStartup
-            ? {
-                ...orphanCleanupPatch.pendingStartupByTabId,
-                [tab.id]: normalizeTabStartupCommand(options.pendingStartup)
-              }
-            : orphanCleanupPatch.pendingStartupByTabId,
-          automaticAgentResumeClaimsByTabId: options?.automaticResumeClaim
-            ? {
-                ...orphanCleanupPatch.automaticAgentResumeClaimsByTabId,
-                [tab.id]: options.automaticResumeClaim
-              }
-            : orphanCleanupPatch.automaticAgentResumeClaimsByTabId,
-          terminalLayoutsByTabId: {
-            ...orphanCleanupPatch.terminalLayoutsByTabId,
-            [tab.id]: initialLeafId
-              ? singlePaneLayoutSnapshot(initialLeafId, options?.initialPtyId)
-              : emptyLayoutSnapshot()
           }
         }
       })

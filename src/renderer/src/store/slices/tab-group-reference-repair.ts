@@ -14,17 +14,10 @@ export function layoutSpanningGroups(
   groups: readonly TabGroup[],
   existing?: TabGroupLayoutNode | null
 ): TabGroupLayoutNode {
-  // Why: a sidebar-owned group is hosted by the right sidebar's terminal panel, not the main
-  // view. Excluded here — the one place that decides what the layout spans — so the panel can
-  // keep a session on the real worktree without it reappearing as a split.
-  const mainGroups = groups.filter((group) => group.surface !== 'sidebar')
-  // Degrade rather than throw when every main group is gone (last main tab closed while the
-  // sidebar terminal lives): keep the existing tree, else seed from whatever survives.
-  const seedGroups = mainGroups.length > 0 ? mainGroups : groups
-  const first = existing ?? { type: 'leaf', groupId: seedGroups[0].id }
+  const first = existing ?? { type: 'leaf', groupId: groups[0].id }
   const laidOutGroupIds = new Set<string>()
   collectLayoutGroupIds(first, laidOutGroupIds)
-  return mainGroups
+  return groups
     .filter((group) => !laidOutGroupIds.has(group.id))
     .reduce<TabGroupLayoutNode>(
       (first, group) => ({

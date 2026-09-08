@@ -152,14 +152,24 @@ document them where a merge conflict will send someone looking.
   The terminal moves to the right sidebar, one keystroke away. Reuse the existing `native-chat`,
   `right-sidebar` and `new-workspace` surfaces — this is a change of default, not new machinery.
 
-  **As built (2026-09-07).** The sidebar terminal is `RightSidebarTab 'terminal'`
+  **As built (2026-09-07, corrected 2026-09-08).** The sidebar terminal is `RightSidebarTab 'terminal'`
   (`components/right-sidebar/terminal-panel/`), toggled with **`Mod+Backquote`** — not the `Cmd+J`
   the plan named, which is the worktree jump palette. It hosts the same `TerminalPane` the main area
-  does, on a group marked `TabGroup.surface = 'sidebar'`: the group carries the real `worktreeId`, so
-  SSH hosts and folder workspaces resolve identically to the main view, and two places skip it so it
-  never surfaces there — `layoutSpanningGroups` and `selectHydratedActiveGroupId`. Keying it to
+  does, on a `TerminalTab` marked `surface: 'sidebar'` (`shared/terminal-tab-types.ts`): the tab
+  carries the real `worktreeId`, so SSH hosts and folder workspaces resolve identically to the main
+  view, and it deliberately has **no unified `Tab`** — no group, no layout leaf, no focus write —
+  which is what keeps it out of the tab strip and the split layout. Keying it to
   `FLOATING_TERMINAL_WORKTREE_ID` was rejected: that id resolves to a null connection by design and
-  could never reach an SSH host. **Adding a right-sidebar tab means four edits, not one** — the union
+  could never reach an SSH host.
+
+  **`TabGroup.surface` was the other half of a collision, and is retired (ALC-104).** Two PRs merged
+  51 minutes apart shipped contradictory models of "a terminal outside the main tab area": a
+  surface-owned `TerminalTab` with no unified tab, and a hidden `TabGroup` filtered out at
+  `layoutSpanningGroups` and `selectHydratedActiveGroupId`. The group model lost because it needs a
+  filter at *every* layout reader — a third one would need a third filter — while an absent unified
+  tab needs none. One predicate decides membership everywhere: `isSurfaceOwnedTerminalTab`.
+
+  **Adding a right-sidebar tab means four edits, not one** — the union
   in `shared/ui-chrome-types.ts`, the guard in `store/right-sidebar-route.ts` (which silently
   rewrites an unknown tab to `explorer`), the activity-bar entry, and
   `STATIC_RIGHT_SIDEBAR_TABS` in `main/runtime/rpc/methods/client-ui-schemas.ts`, whose value-domain
