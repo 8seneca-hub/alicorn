@@ -1,6 +1,11 @@
 import type { alicornFetch as AlicornFetch } from './control-plane-http'
 import { alicornFetch } from './control-plane-http'
-import type { ProvenanceReport, RunCost } from '../../shared/alicorn/ledger'
+import type {
+  ContextCaptureList,
+  ContextCaptureRead,
+  ProvenanceReport,
+  RunCost
+} from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type {
   AutonomyPolicy,
@@ -35,6 +40,10 @@ export type ControlPlaneClient = {
   }) => Promise<TrackRecord>
   getProvenance: (repoId: string, branch: string) => Promise<ProvenanceReport>
   getRunCost: (runId: string) => Promise<RunCost>
+  /** Capped and flagged by the Ledger API — see `ContextCaptureList.truncated`. */
+  listRunContextCaptures: (runId: string) => Promise<ContextCaptureList>
+  /** One dispatch's captured body. Throws `not_found` rather than returning an empty capture. */
+  getRunContextCapture: (runId: string, dispatchId: string) => Promise<ContextCaptureRead>
   listWorkflows: (projectId: string) => Promise<WorkflowSummary[]>
   getWorkflow: (id: string) => Promise<Workflow>
 }
@@ -146,8 +155,16 @@ export function createControlPlaneClient(deps?: {
       return readJson<ProvenanceReport>('ledger', `/v1/ledger/provenance?${query.toString()}`)
     },
 
-    getRunCost: (runId) =>
-      readJson<RunCost>('ledger', `/v1/ledger/runs/${encodeURIComponent(runId)}/cost`),
+    getRunCost: (runId) => readJson<RunCost>('ledger', `${runPath(runId)}/cost`),
+
+    listRunContextCaptures: (runId) =>
+      readJson<ContextCaptureList>('ledger', `${runPath(runId)}/context-captures`),
+
+    getRunContextCapture: (runId, dispatchId) =>
+      readJson<ContextCaptureRead>(
+        'ledger',
+        `${runPath(runId)}/context-captures/${encodeURIComponent(dispatchId)}`
+      ),
 
     listWorkflows: async (projectId) => {
       const query = new URLSearchParams({ projectId })
@@ -170,6 +187,10 @@ export function createControlPlaneClient(deps?: {
 
 function projectPath(projectId: string): string {
   return `/v1/projects/${encodeURIComponent(projectId)}`
+}
+
+function runPath(runId: string): string {
+  return `/v1/ledger/runs/${encodeURIComponent(runId)}`
 }
 
 function memberPath(id: string): string {

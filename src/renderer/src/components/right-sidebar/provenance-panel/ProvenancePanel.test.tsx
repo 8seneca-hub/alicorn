@@ -16,6 +16,8 @@ const getProvenance = vi.fn<() => Promise<ProvenanceViewResult>>()
 function step(overrides: Partial<ProvenanceStepView> & { id: string }): ProvenanceStepView {
   return {
     dispatchId: `d_${overrides.id}`,
+    runId: 'run_1',
+    taskId: 'task_1',
     stageKey: 'build',
     member: 'Developer',
     backend: 'claude',

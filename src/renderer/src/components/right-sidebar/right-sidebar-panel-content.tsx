@@ -16,6 +16,11 @@ const TerminalPanel = lazy(() => import('./terminal-panel/TerminalPanel'))
 const ProvenancePanel = lazy(() =>
   import('./provenance-panel/ProvenancePanel').then((m) => ({ default: m.ProvenancePanel }))
 )
+const ContextInspectorPanel = lazy(() =>
+  import('./context-inspector-panel/ContextInspectorPanel').then((m) => ({
+    default: m.ContextInspectorPanel
+  }))
+)
 
 type RightSidebarPanelContentProps = {
   effectiveTab: ActiveRightSidebarTab
@@ -53,6 +58,11 @@ export function RightSidebarPanelContent({
             for a record nobody is reading. */}
         {effectiveTab === 'provenance' && (
           <ProvenancePanel isVisible={rightSidebarOpen && effectiveTab === 'provenance'} />
+        )}
+        {/* isVisible gates the ledger poll, as Provenance does; the capture bodies themselves are
+            fetched one at a time, only while a dispatch is expanded. */}
+        {effectiveTab === 'context' && (
+          <ContextInspectorPanel isVisible={rightSidebarOpen && effectiveTab === 'context'} />
         )}
         {effectiveTab === 'workspaces' && <FolderWorkspaceWorktreesPanel />}
         {effectiveTab === 'pr-checks' && (

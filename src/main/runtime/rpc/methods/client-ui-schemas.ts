@@ -42,7 +42,8 @@ const STATIC_RIGHT_SIDEBAR_TABS = [
   'ports',
   'run',
   'terminal',
-  'provenance'
+  'provenance',
+  'context'
 ] as const
 // Plugin panels are open-ended `plugin:<publisher>.<id>/<panel>` keys, so the
 // schema validates their shape rather than enumerating them.

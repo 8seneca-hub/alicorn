@@ -172,6 +172,26 @@ describe('ledger reads', () => {
     expect(lastCall()[0]).toBe('ledger')
     expect(lastCall()[1]).toBe('/v1/ledger/runs/run_1/cost')
   })
+
+  it('lists a run\'s context captures, keeping the ledger\'s truncation flag', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ captures: [], truncated: true }))
+
+    await expect(client.listRunContextCaptures('run/1')).resolves.toEqual({
+      captures: [],
+      truncated: true
+    })
+    // Encoded, not interpolated: a run id with a slash must not invent a path segment.
+    expect(lastCall()[1]).toBe('/v1/ledger/runs/run%2F1/context-captures')
+  })
+
+  it('reads one capture by dispatch rather than filtering the list', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ dispatchId: 'd 1', prompt: 'hi' }))
+
+    await client.getRunContextCapture('run_1', 'd 1')
+
+    expect(lastCall()[0]).toBe('ledger')
+    expect(lastCall()[1]).toBe('/v1/ledger/runs/run_1/context-captures/d%201')
+  })
 })
 
 describe('errors', () => {

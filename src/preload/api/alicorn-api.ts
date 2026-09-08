@@ -2,6 +2,10 @@ import type { EscalationOffer } from '../../shared/alicorn/context-ceiling'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
+import type {
+  ContextCaptureDetailResult,
+  RunInspectorViewResult
+} from '../../shared/alicorn/run-inspector-view'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -24,4 +28,16 @@ export type AlicornApi = {
   getForemanRun: (worktreeId: string) => Promise<ForemanRunViewResult>
   /** Everything the ledger recorded for a branch, already projected for display. */
   getProvenance: (args: { repoId: string; branch: string }) => Promise<ProvenanceViewResult>
+  /** One run of a branch: its dispatches, where each prompt lives, and what the run cost.
+   *  Carries no prompt text — `getContextCapture` fetches a body for one dispatch. */
+  getRunInspector: (args: {
+    repoId: string
+    branch: string
+    runId?: string | null
+  }) => Promise<RunInspectorViewResult>
+  /** The exact prompt and context slice one dispatch was given. */
+  getContextCapture: (args: {
+    runId: string
+    dispatchId: string
+  }) => Promise<ContextCaptureDetailResult>
 }

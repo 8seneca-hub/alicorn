@@ -8,7 +8,7 @@ import {
   withTenant
 } from '@alicorn-cloud/control-plane-postgres'
 import type { Hono } from 'hono'
-import { CONTEXT_CAPTURE_LIST_LIMIT, ContextCaptureListSchema, InterruptionsReportSchema, ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
+import { CONTEXT_CAPTURE_LIST_LIMIT, ContextCaptureListSchema, ContextCaptureReadSchema, InterruptionsReportSchema, ProvenanceReportSchema, RunCostSchema } from '@alicorn-cloud/control-plane-contract'
 import type { ContextCaptureRead, InterruptionsReport, ProvenanceReport, RunCost } from '@alicorn-cloud/control-plane-contract'
 import { createLedgerApiApp } from './app.js'
 import { loadLedgerApiConfig } from './config.js'
@@ -168,6 +168,28 @@ describePostgres('ledger routes (postgres)', () => {
     const res = await app.request('/v1/ledger/runs/run_does_not_exist/context-captures', { headers: authHeaders })
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ captures: [], truncated: false })
+  })
+
+  it('reads one capture by dispatch, keeping a spilled prompt distinguishable and hiding other tenants', async () => {
+    const res = await app.request('/v1/ledger/runs/run_ctx_read/context-captures/zz_inline_capture', { headers: authHeaders })
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as ContextCaptureRead
+    expect(ContextCaptureReadSchema.parse(body)).toEqual(body)
+    expect(body).toMatchObject({ prompt: 'the exact prompt a member saw', promptPath: null })
+
+    // The half a reader must never see as an empty prompt: no body, a path instead.
+    const spilled = await app.request('/v1/ledger/runs/run_ctx_read/context-captures/aa_spilled_capture', { headers: authHeaders })
+    const spilledBody = (await spilled.json()) as ContextCaptureRead
+    expect(spilledBody).toMatchObject({ prompt: null, promptPath: '/var/alicorn/prompts/task_ctx_read.txt' })
+
+    // Planted under another tenant by the list test above; RLS must make it a 404, not a leak.
+    const otherTenant = await app.request('/v1/ledger/runs/run_ctx_read/context-captures/ctx_other_tenant', { headers: authHeaders })
+    expect(otherTenant.status).toBe(404)
+
+    // A real capture asked for under the wrong run is a 404, not someone else's prompt.
+    const wrongRun = await app.request('/v1/ledger/runs/run_1/context-captures/zz_inline_capture', { headers: authHeaders })
+    expect(wrongRun.status).toBe(404)
+    expect(await wrongRun.json()).toEqual({ error: 'not_found' })
   })
 
   // Why: this is the only route returning capture content, and pg buffers the whole result set --

@@ -8,7 +8,9 @@ export const ALICORN_IPC = {
   orgPolicyGet: 'alicorn:orgPolicy:get',
   tasksSetExecutionStrategy: 'alicorn:tasks:setExecutionStrategy',
   foremanJournal: 'alicorn:foreman:journal',
-  provenanceGet: 'alicorn:provenance:get'
+  provenanceGet: 'alicorn:provenance:get',
+  runInspectorGet: 'alicorn:runInspector:get',
+  contextCaptureGet: 'alicorn:contextCapture:get'
 } as const
 
 export const ALICORN_EVENTS = {

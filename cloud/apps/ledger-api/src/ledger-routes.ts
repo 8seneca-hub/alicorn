@@ -13,7 +13,11 @@ import {
 import type { LedgerApiDeps, LedgerApiEnv } from './app-env.js'
 import { insertStepOutcome, patchStepOutcomeHumanVerdict, patchStepOutcomeSpend } from './step-outcomes-repository.js'
 import { insertStepVerification } from './step-verifications-repository.js'
-import { insertContextCapture, listContextCapturesForRun } from './context-captures-repository.js'
+import {
+  getContextCaptureForDispatch,
+  insertContextCapture,
+  listContextCapturesForRun
+} from './context-captures-repository.js'
 import { getProvenance, getRunCost } from './provenance-repository.js'
 import { getInterruptionsReport, insertInterruption } from './interruptions-repository.js'
 import { getTrackRecord } from './track-record-repository.js'
@@ -106,6 +110,21 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
   app.get('/v1/ledger/runs/:runId/context-captures', async (c) => {
     const auth = c.get('auth')
     return c.json(await listContextCapturesForRun(deps.pool, auth.tenantId, c.req.param('runId')))
+  })
+
+  // Why not the list route filtered client-side: the inspector's list read keeps metadata only, so
+  // opening one prompt must not re-read every capture in the run — and a capture past the list cap
+  // is still reachable by id.
+  app.get('/v1/ledger/runs/:runId/context-captures/:dispatchId', async (c) => {
+    const auth = c.get('auth')
+    const capture = await getContextCaptureForDispatch(
+      deps.pool,
+      auth.tenantId,
+      c.req.param('runId'),
+      c.req.param('dispatchId')
+    )
+    if (!capture) return c.json({ error: 'not_found' }, 404)
+    return c.json(capture)
   })
 
   app.get('/v1/ledger/runs/:runId/cost', async (c) => {

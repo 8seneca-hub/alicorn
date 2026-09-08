@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useAppStore } from '@/store'
-import { branchName } from '@/lib/git-utils'
 import type { ProvenanceViewResult } from '../../../../../shared/alicorn/provenance-view'
+import { useLedgerBranchTarget, type LedgerBranchTarget } from '../use-ledger-branch-target'
 
 /**
  * Slow on purpose, and slower than the run journal's: each poll is three reads against the control
@@ -9,7 +8,7 @@ import type { ProvenanceViewResult } from '../../../../../shared/alicorn/provena
  */
 export const PROVENANCE_POLL_MS = 15_000
 
-export type ProvenanceTarget = { repoId: string; branch: string }
+export type ProvenanceTarget = LedgerBranchTarget
 
 export type ProvenancePanelState = {
   /** Null while the first read of the current target is still in flight. */
@@ -19,35 +18,13 @@ export type ProvenancePanelState = {
   refresh: () => void
 }
 
-function activeTarget(
-  repoId: string | undefined,
-  branch: string | undefined
-): ProvenanceTarget | null {
-  const resolved = branch ? branchName(branch).trim() : ''
-  // A detached HEAD and a folder workspace both land here: the ledger keys a run by repo *and*
-  // branch, so with no branch there is nothing to ask for — which is not the same as no record.
-  return repoId && resolved ? { repoId, branch: resolved } : null
-}
-
-function activeWorktree(state: ReturnType<typeof useAppStore.getState>) {
-  return state.activeWorktreeId
-    ? (state.getKnownWorktreeById(
-        state.activeWorktreeId,
-        state.activeWorkspaceExecutionHostId ?? undefined
-      ) ?? null)
-    : null
-}
-
 export function useProvenancePanelState({
   isVisible
 }: {
   isVisible: boolean
 }): ProvenancePanelState {
-  // Two primitive selectors rather than one worktree selector: the store hands back a fresh
-  // object on some paths, and subscribing to it re-renders this panel on every unrelated bump.
-  const repoId = useAppStore((s) => activeWorktree(s)?.repoId ?? null)
-  const branchRef = useAppStore((s) => activeWorktree(s)?.branch ?? null)
-  const target = activeTarget(repoId ?? undefined, branchRef ?? undefined)
+  const target = useLedgerBranchTarget()
+  const repoId = target?.repoId ?? null
   const branch = target?.branch ?? null
 
   const [result, setResult] = useState<ProvenanceViewResult | null>(null)

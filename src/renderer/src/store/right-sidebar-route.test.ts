@@ -66,4 +66,11 @@ describe('normalizeRightSidebarRoute', () => {
       rightSidebarExplorerView: 'files'
     })
   })
+
+  it('keeps the context inspector tab', () => {
+    expect(normalizeRightSidebarRoute('context')).toEqual({
+      rightSidebarTab: 'context',
+      rightSidebarExplorerView: 'files'
+    })
+  })
 })

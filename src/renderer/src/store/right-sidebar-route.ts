@@ -49,7 +49,8 @@ export function normalizeRightSidebarRoute(
     tab === 'ports' ||
     tab === 'run' ||
     tab === 'terminal' ||
-    tab === 'provenance'
+    tab === 'provenance' ||
+    tab === 'context'
   ) {
     return {
       rightSidebarTab: tab,

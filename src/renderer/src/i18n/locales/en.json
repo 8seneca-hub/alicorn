@@ -13004,7 +13004,8 @@
                   "items": {
                     "7f0215bd93": "Run",
                     "terminal": "Terminal",
-                    "provenance": "Provenance"
+                    "provenance": "Provenance",
+                    "context": "Context"
                   }
                 }
               }
@@ -13491,6 +13492,60 @@
                   },
                   "regression": "A recent regression on this stage put the member back behind the gate."
                 }
+              }
+            }
+          },
+          "context": {
+            "inspector": {
+              "panel": {
+                "capture": {
+                  "loading": "Reading the capture…",
+                  "unavailable": "The capture could not be read. Nothing is claimed about what this dispatch was given."
+                },
+                "prompt": {
+                  "show": {
+                    "all": "Show the remaining {{value0}} characters"
+                  },
+                  "on": {
+                    "disk": "Prompt on disk"
+                  },
+                  "none": {
+                    "body": "No context capture was recorded for this dispatch, so there is no way to tell an underinformed member from a wrong one here."
+                  },
+                  "file": {
+                    "body": "This prompt was over the 64 KiB the ledger holds inline, so it was written to a file on the machine that ran the dispatch. The ledger stores the path, not the text — and not its length either, so no size is shown."
+                  }
+                },
+                "slice": {
+                  "empty": "No context slice was recorded alongside the prompt.",
+                  "title": "Context slice"
+                },
+                "files": "files",
+                "no": {
+                  "branch": "This workspace has no branch, so there is nothing to look a run up by. The ledger keys a run by repository and branch."
+                },
+                "loading": "Reading the ledger…",
+                "unavailable": "The ledger could not be read for this branch. Nothing is claimed about it either way.",
+                "empty": "No dispatch has settled on this branch yet. Captures appear here as members are briefed.",
+                "refresh": "Re-read the ledger",
+                "run": {
+                  "label": "Run"
+                },
+                "totals": {
+                  "dispatches": "dispatches",
+                  "captured": "captured"
+                },
+                "section": {
+                  "gaps": "Not in this record"
+                },
+                "gaps": {
+                  "truncated": "This run holds more captures than the ledger returns in one read, so some dispatches below show as not captured when they were.",
+                  "outside": "The run also has {{value0}} dispatches outside this branch, so the list above is a slice of it. The cost is the whole run.",
+                  "body": "A capture is what the member was given, not what it did with it. The ledger records no reply, no tool calls, and no reading order; verifications cover diff coverage only, and an interruption records when it was raised but not when it was answered."
+                },
+                "retry": "Try again",
+                "bytes": "{{value0}} bytes",
+                "kib": "{{value0}} KiB"
               }
             }
           }

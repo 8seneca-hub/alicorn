@@ -4,6 +4,7 @@ import {
   Files,
   GitBranch,
   ListChecks,
+  Microscope,
   Network,
   ScrollText,
   SquareTerminal,
@@ -143,6 +144,20 @@ export function useRightSidebarActivityItems({
         title: translate(
           'auto.components.right.sidebar.use.right.sidebar.activity.items.provenance',
           'Provenance'
+        ),
+        shortcut: ''
+      },
+      {
+        id: 'context',
+        // Why gitOnly: same reason as Provenance — the ledger keys a run by repo and branch, and a
+        // folder workspace has neither, so an empty panel there would read as "nothing captured".
+        gitOnly: true,
+        icon: Microscope,
+        // Why no shortcut: you open this when a member's answer surprises you, not on the way
+        // through, so it does not earn a chord ahead of Explorer or Source Control.
+        title: translate(
+          'auto.components.right.sidebar.use.right.sidebar.activity.items.context',
+          'Context'
         ),
         shortcut: ''
       },

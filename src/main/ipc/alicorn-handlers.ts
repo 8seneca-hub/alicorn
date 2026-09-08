@@ -12,6 +12,11 @@ import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import { readForemanRunView } from '../alicorn/foreman/run-view-source'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 import { readProvenanceView } from '../alicorn/provenance-source'
+import type {
+  ContextCaptureDetailResult,
+  RunInspectorViewResult
+} from '../../shared/alicorn/run-inspector-view'
+import { readRunInspectorView } from '../alicorn/run-inspector-source'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -185,6 +190,48 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
           ? { ok: true as const, view }
           : { ok: false as const, error: 'provenance_unavailable' }
       })
+    }
+  )
+
+  // UI3's read. One invoke rather than three so the branch's provenance, the run's captures and
+  // the run's cost are resolved together and cannot describe different runs.
+  ipcMain.handle(
+    ALICORN_IPC.runInspectorGet,
+    async (
+      _event,
+      args: { repoId?: unknown; branch?: unknown; runId?: unknown }
+    ): Promise<RunInspectorViewResult> => {
+      const repoId = asNonEmptyString(args?.repoId)
+      const branch = asNonEmptyString(args?.branch)
+      if (!repoId || !branch) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => {
+        const view = await readRunInspectorView(client, repoId, branch, asNonEmptyString(args?.runId))
+        return view
+          ? { ok: true as const, view }
+          : { ok: false as const, error: 'provenance_unavailable' }
+      })
+    }
+  )
+
+  // Separate from the run read on purpose: a prompt reaches 64 KiB, so exactly one crosses IPC and
+  // only because a reader asked for it. A missing capture surfaces as this client's `not_found`.
+  ipcMain.handle(
+    ALICORN_IPC.contextCaptureGet,
+    async (
+      _event,
+      args: { runId?: unknown; dispatchId?: unknown }
+    ): Promise<ContextCaptureDetailResult> => {
+      const runId = asNonEmptyString(args?.runId)
+      const dispatchId = asNonEmptyString(args?.dispatchId)
+      if (!runId || !dispatchId) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => ({
+        ok: true as const,
+        capture: await client.getRunContextCapture(runId, dispatchId)
+      }))
     }
   )
 }

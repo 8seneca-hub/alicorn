@@ -27,6 +27,9 @@ export type ProvenanceGateView = {
 export type ProvenanceStepView = {
   id: string
   dispatchId: string
+  /** UI3 groups a branch's steps by run; the ledger keys captures and cost by it. */
+  runId: string
+  taskId: string
   stageKey: string
   /** The member's name when the directory knows it, else its id, else `null` for no member. */
   member: string | null
@@ -42,6 +45,8 @@ export type ProvenanceStepView = {
 }
 
 export type ProvenanceCheckView = {
+  /** Which dispatch was verified — a branch-level list cannot say who earned the check. */
+  dispatchId: string
   kind: StepVerificationRecord['kind']
   name: string
   required: boolean
@@ -139,6 +144,8 @@ export function buildProvenanceView(
   const steps = report.outcomes.map<ProvenanceStepView>((outcome) => ({
     id: outcome.id,
     dispatchId: outcome.dispatchId,
+    runId: outcome.runId,
+    taskId: outcome.taskId,
     stageKey: outcome.stageKey,
     member: memberLabel(outcome, opts.memberName),
     backend: outcome.backend,
@@ -164,6 +171,7 @@ export function buildProvenanceView(
     },
     steps,
     checks: report.verifications.map<ProvenanceCheckView>((verification) => ({
+      dispatchId: verification.dispatchId,
       kind: verification.kind,
       name: verification.name,
       required: verification.required,

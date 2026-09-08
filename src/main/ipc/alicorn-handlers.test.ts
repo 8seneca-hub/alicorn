@@ -51,6 +51,8 @@ function fakeClient(overrides: Partial<ControlPlaneClient> = {}): ControlPlaneCl
     getRequiredChecks: vi.fn().mockResolvedValue([]),
     getProvenance: vi.fn(),
     getRunCost: vi.fn(),
+    listRunContextCaptures: vi.fn(),
+    getRunContextCapture: vi.fn(),
     ...overrides
   } as unknown as ControlPlaneClient
 }
@@ -74,6 +76,38 @@ function invoke(channel: string, args?: unknown): unknown {
 beforeEach(() => {
   setTaskExecutionStrategy.mockReset()
 })
+
+const REPORT = {
+  repoId: 'repo',
+  branch: 'feature/x',
+  outcomes: [
+    {
+      id: 'o1',
+      tenantId: 'local',
+      runId: 'run_1',
+      taskId: 't1',
+      dispatchId: 'd1',
+      memberId: 'm1',
+      backend: 'claude',
+      stageKey: 'merge',
+      executionStrategy: 'single',
+      outcome: 'succeeded',
+      filesModified: ['a.ts'],
+      reviewBackendBypass: false,
+      escalationOffered: false,
+      escalationAccepted: null,
+      spendCents: 61,
+      usage: null,
+      gateDecision: 'gate',
+      gateReason: 'irreversible',
+      createdAt: '2026-09-07T00:00:00.000Z'
+    }
+  ],
+  verifications: [],
+  contextCaptures: [],
+  totals: { spendCents: 61, tasks: 1, dispatches: 1 },
+  reviewBackend: { enforced: true, bypassed: false }
+}
 
 describe('members reads and writes', () => {
   it('returns the member list', async () => {
@@ -201,38 +235,6 @@ describe('execution strategy', () => {
 })
 
 describe('provenance', () => {
-  const REPORT = {
-    repoId: 'repo',
-    branch: 'feature/x',
-    outcomes: [
-      {
-        id: 'o1',
-        tenantId: 'local',
-        runId: 'run_1',
-        taskId: 't1',
-        dispatchId: 'd1',
-        memberId: 'm1',
-        backend: 'claude',
-        stageKey: 'merge',
-        executionStrategy: 'single',
-        outcome: 'succeeded',
-        filesModified: ['a.ts'],
-        reviewBackendBypass: false,
-        escalationOffered: false,
-        escalationAccepted: null,
-        spendCents: 61,
-        usage: null,
-        gateDecision: 'gate',
-        gateReason: 'irreversible',
-        createdAt: '2026-09-07T00:00:00.000Z'
-      }
-    ],
-    verifications: [],
-    contextCaptures: [],
-    totals: { spendCents: 61, tasks: 1, dispatches: 1 },
-    reviewBackend: { enforced: true, bypassed: false }
-  }
-
   it('returns the projection the panel renders, with the member named', async () => {
     const getProvenance = vi.fn().mockResolvedValue(REPORT)
     register(fakeClient({ getProvenance }))
@@ -292,5 +294,169 @@ describe('provenance', () => {
     await expect(
       invoke(ALICORN_IPC.provenanceGet, { repoId: 'repo', branch: 'feature/x' })
     ).resolves.toEqual({ ok: false, error: 'control_plane_unconfigured' })
+  })
+})
+
+describe('run inspector', () => {
+  const CAPTURES = {
+    captures: [
+      {
+        dispatchId: 'd1',
+        createdAt: '2026-09-07T00:00:01.000Z',
+        promptBytes: 0,
+        prompt: null,
+        promptPath: '/var/alicorn/prompts/d1.md',
+        contextSlice: { taskSpec: 'x' }
+      }
+    ],
+    truncated: false
+  }
+  const COST = {
+    runId: 'run_1',
+    totalSpendCents: 61,
+    byDispatch: [{ dispatchId: 'd1', taskId: 't1', backend: 'claude', spendCents: 61 }]
+  }
+
+  it('resolves the branch, its newest run, its captures and its cost in one invoke', async () => {
+    const listRunContextCaptures = vi.fn().mockResolvedValue(CAPTURES)
+    const getRunCost = vi.fn().mockResolvedValue(COST)
+    register(
+      fakeClient({
+        getProvenance: vi.fn().mockResolvedValue(REPORT),
+        listRunContextCaptures,
+        getRunCost
+      })
+    )
+
+    const result = (await invoke(ALICORN_IPC.runInspectorGet, {
+      repoId: 'repo',
+      branch: 'feature/x'
+    })) as { ok: true; view: { runId: string; dispatches: { prompt: unknown }[] } }
+
+    expect(listRunContextCaptures).toHaveBeenCalledWith('run_1')
+    expect(getRunCost).toHaveBeenCalledWith('run_1')
+    expect(result.view.runId).toBe('run_1')
+    expect(result.view.dispatches[0]?.prompt).toEqual({
+      kind: 'file',
+      path: '/var/alicorn/prompts/d1.md'
+    })
+  })
+
+  it('sends no prompt text across the wire, however large the capture was', async () => {
+    register(
+      fakeClient({
+        getProvenance: vi.fn().mockResolvedValue(REPORT),
+        listRunContextCaptures: vi.fn().mockResolvedValue({
+          captures: [{ ...CAPTURES.captures[0], prompt: 'the exact prompt', promptPath: null }],
+          truncated: false
+        }),
+        getRunCost: vi.fn().mockResolvedValue(COST)
+      })
+    )
+
+    const result = await invoke(ALICORN_IPC.runInspectorGet, {
+      repoId: 'repo',
+      branch: 'feature/x'
+    })
+    expect(JSON.stringify(result)).not.toContain('the exact prompt')
+  })
+
+  it('still shows the run when the captures or the cost cannot be read', async () => {
+    register(
+      fakeClient({
+        getProvenance: vi.fn().mockResolvedValue(REPORT),
+        listRunContextCaptures: vi.fn().mockRejectedValue(new Error('down')),
+        getRunCost: vi.fn().mockRejectedValue(new Error('down'))
+      })
+    )
+
+    const result = (await invoke(ALICORN_IPC.runInspectorGet, {
+      repoId: 'repo',
+      branch: 'feature/x'
+    })) as { ok: true; view: { dispatches: { prompt: unknown }[]; cost: unknown } }
+
+    expect(result.view.dispatches[0]?.prompt).toEqual({ kind: 'none' })
+    expect(result.view.cost).toEqual({ costUsd: null, partial: false })
+  })
+
+  it('reads no captures at all for a branch with no settled step', async () => {
+    const listRunContextCaptures = vi.fn()
+    register(
+      fakeClient({
+        getProvenance: vi.fn().mockResolvedValue({ ...REPORT, outcomes: [] }),
+        listRunContextCaptures
+      })
+    )
+
+    const result = (await invoke(ALICORN_IPC.runInspectorGet, {
+      repoId: 'repo',
+      branch: 'feature/x'
+    })) as { ok: true; view: { runs: unknown[]; runId: string } }
+
+    expect(result.view.runs).toEqual([])
+    expect(result.view.runId).toBe('')
+    expect(listRunContextCaptures).not.toHaveBeenCalled()
+  })
+
+  it('refuses a request with no repo or branch without calling the ledger', async () => {
+    const getProvenance = vi.fn()
+    register(fakeClient({ getProvenance }))
+
+    for (const args of [{ repoId: 'repo' }, { branch: 'feature/x' }, {}]) {
+      await expect(invoke(ALICORN_IPC.runInspectorGet, args)).resolves.toEqual({
+        ok: false,
+        error: 'invalid_body'
+      })
+    }
+    expect(getProvenance).not.toHaveBeenCalled()
+  })
+})
+
+describe('context capture', () => {
+  it('reads one dispatch body by id rather than re-reading the run', async () => {
+    const capture = {
+      dispatchId: 'd1',
+      createdAt: '2026-09-07T00:00:01.000Z',
+      promptBytes: 5,
+      prompt: 'hello',
+      promptPath: null,
+      contextSlice: {}
+    }
+    const getRunContextCapture = vi.fn().mockResolvedValue(capture)
+    const listRunContextCaptures = vi.fn()
+    register(fakeClient({ getRunContextCapture, listRunContextCaptures }))
+
+    await expect(
+      invoke(ALICORN_IPC.contextCaptureGet, { runId: 'run_1', dispatchId: 'd1' })
+    ).resolves.toEqual({ ok: true, capture })
+    expect(getRunContextCapture).toHaveBeenCalledWith('run_1', 'd1')
+    expect(listRunContextCaptures).not.toHaveBeenCalled()
+  })
+
+  it('surfaces a missing capture as the ledger\'s own code, not as an empty prompt', async () => {
+    register(
+      fakeClient({
+        getRunContextCapture: vi
+          .fn()
+          .mockRejectedValue(new ControlPlaneRequestError(404, 'not_found'))
+      })
+    )
+
+    await expect(
+      invoke(ALICORN_IPC.contextCaptureGet, { runId: 'run_1', dispatchId: 'nope' })
+    ).resolves.toEqual({ ok: false, error: 'not_found' })
+  })
+
+  it('refuses a request with no run or dispatch without calling the ledger', async () => {
+    const getRunContextCapture = vi.fn()
+    register(fakeClient({ getRunContextCapture }))
+
+    for (const args of [{ runId: 'run_1' }, { dispatchId: 'd1' }, {}]) {
+      await expect(invoke(ALICORN_IPC.contextCaptureGet, args)).resolves.toEqual({
+        ok: false,
+        error: 'invalid_body'
+      })
+    }
+    expect(getRunContextCapture).not.toHaveBeenCalled()
   })
 })

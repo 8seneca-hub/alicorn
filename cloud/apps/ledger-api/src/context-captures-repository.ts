@@ -74,3 +74,33 @@ export function listContextCapturesForRun(
     }
   })
 }
+
+// One capture by id. Two reasons it is not the list filtered down: the inspector's list read
+// discards prompt bodies, so opening one would otherwise re-read every prompt in the run, and a
+// capture beyond CONTEXT_CAPTURE_LIST_LIMIT never appears in the list at all.
+// Keyed by run *and* dispatch even though dispatch_id is unique per tenant: the caller holds both,
+// and matching the list route's scope keeps a mistyped run id a 404 rather than a foreign capture.
+export function getContextCaptureForDispatch(
+  pool: pg.Pool,
+  tenantId: string,
+  runId: string,
+  dispatchId: string
+): Promise<ContextCaptureRead | null> {
+  return withTenant(pool, tenantId, async (client) => {
+    const { rows } = await client.query<ContextCaptureRow>(
+      `SELECT dispatch_id, created_at, prompt_bytes, prompt, prompt_path, context_slice
+       FROM context_captures WHERE run_id = $1 AND dispatch_id = $2`,
+      [runId, dispatchId]
+    )
+    const row = rows[0]
+    if (!row) return null
+    return {
+      dispatchId: row.dispatch_id,
+      createdAt: row.created_at.toISOString(),
+      promptBytes: row.prompt_bytes,
+      prompt: row.prompt,
+      promptPath: row.prompt_path,
+      contextSlice: row.context_slice
+    }
+  })
+}

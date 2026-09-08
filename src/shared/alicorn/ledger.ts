@@ -72,3 +72,22 @@ export type RunCost = {
     spendCents: number | null
   }[]
 }
+
+// Mirrors ContextCaptureReadSchema in the wire contract. Distinct from the write shape on purpose:
+// a reader must be able to tell a prompt spilled to a file from one held inline, never collapse
+// the two into one field.
+export type ContextCaptureRead = {
+  dispatchId: string
+  createdAt: string
+  /** The *inline* prompt's size. Zero for a spilled capture — the write side never measures the file. */
+  promptBytes: number
+  prompt: string | null
+  promptPath: string | null
+  contextSlice: unknown
+}
+
+export type ContextCaptureList = {
+  captures: ContextCaptureRead[]
+  /** The run held more captures than the Ledger API returns; the list below is a prefix. */
+  truncated: boolean
+}

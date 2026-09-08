@@ -1,31 +1,8 @@
 import React from 'react'
-import { CircleCheck, CircleDashed, CircleX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
-import type {
-  ProvenanceCheckView,
-  ProvenanceView
-} from '../../../../../shared/alicorn/provenance-view'
-
-const CHECK_ICON: Record<
-  ProvenanceCheckView['status'],
-  React.ComponentType<{ className?: string }>
-> = {
-  passed: CircleCheck,
-  failed: CircleX,
-  error: CircleX,
-  skipped: CircleDashed
-}
-
-// A check that errored and a check that failed read the same: neither is evidence of a pass.
-const CHECK_FAILED = 'text-rose-500'
-
-const CHECK_COLOR: Record<ProvenanceCheckView['status'], string> = {
-  passed: 'text-emerald-500',
-  failed: CHECK_FAILED,
-  error: CHECK_FAILED,
-  skipped: 'text-muted-foreground'
-}
+import type { ProvenanceView } from '../../../../../shared/alicorn/provenance-view'
+import { CHECK_COLOR, CHECK_ICON } from './provenance-check-copy'
 
 export function ProvenanceSection({
   title,
