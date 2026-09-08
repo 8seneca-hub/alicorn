@@ -248,7 +248,14 @@ describe('provenance', () => {
     expect(getProvenance).toHaveBeenCalledWith('repo', 'feature/x')
     expect(result.ok).toBe(true)
     expect(result.view.steps[0]?.member).toBe('Reviewer')
-    expect(result.view.steps[0]?.gate).toEqual({ decision: 'gate', reason: 'irreversible' })
+    expect(result.view.steps[0]?.gate).toEqual({
+      decision: 'gate',
+      reason: 'irreversible',
+      // PV2 and GP3 widened the gate view: the id the decision belongs to, and whether the
+      // human agreed with the policy. This fixture's step never opened a gate.
+      gateId: null,
+      agreement: { recorded: false }
+    })
   })
 
   it('fails closed on the reviewer rule when the policy cannot be read', async () => {
