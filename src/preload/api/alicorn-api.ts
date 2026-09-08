@@ -1,4 +1,4 @@
-import type { EscalationOffer } from '../../shared/alicorn/context-ceiling'
+import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'

@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { ALICORN_EVENTS, ALICORN_IPC } from '../../shared/alicorn/ipc-channels'
-import type { EscalationOffer } from '../../shared/alicorn/context-ceiling'
+import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { AlicornApi } from './alicorn-api'
 
 export const alicornApi: AlicornApi = {

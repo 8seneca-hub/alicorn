@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { OrchestrationDb } from '../runtime/orchestration/db'
-import type { EscalationOffer } from '../../shared/alicorn/context-ceiling'
+import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import { startContextCeilingWatcher } from './context-ceiling-watcher'
 
 const NOW = Date.parse('2026-09-06T10:00:00.000Z')
@@ -103,7 +103,16 @@ describe('context ceiling watcher', () => {
     const offers = await w.tickOnce()
     w.stop()
 
-    expect(offers).toEqual([{ taskId, dispatchId, paneKey: null, contextTokens: 311_000 }])
+    expect(offers).toEqual([
+      {
+        taskId,
+        dispatchId,
+        paneKey: null,
+        signal: 'context_ceiling',
+        contextTokens: 311_000,
+        repoCount: null
+      }
+    ])
     expect(published).toHaveLength(1)
     expect(db.getTaskExecutionStrategy(taskId).escalationOfferedAt).not.toBeNull()
   })
@@ -200,6 +209,120 @@ describe('context ceiling watcher', () => {
     w.stop()
     await new Promise((resolve) => setTimeout(resolve, 10))
     expect(tick).not.toHaveBeenCalled()
+  })
+
+  // MR2 — the second signal into D4's offer. Read from the repos *declared* in the task's feature
+  // workspace, so it is true before a token is spent and needs no transcript.
+  describe('multi-repo signal', () => {
+    function underCeiling(overrides: Record<string, unknown> = {}) {
+      return watcher({ readTail: async () => transcriptAt(1_000), ...overrides })
+    }
+
+    it('offers when the task spans two repos, well under the ceiling', async () => {
+      const { taskId, dispatchId } = seedDispatchedWorker()
+      db.setTaskWorktrees(taskId, [
+        { repoId: 'repo_api', worktreeId: 'wt1', primary: true },
+        { repoId: 'repo_web', worktreeId: 'wt2' }
+      ])
+      const w = underCeiling()
+
+      const offers = await w.tickOnce()
+      w.stop()
+
+      expect(offers).toEqual([
+        {
+          taskId,
+          dispatchId,
+          paneKey: null,
+          signal: 'multi_repo',
+          contextTokens: null,
+          repoCount: 2
+        }
+      ])
+      expect(db.getTaskExecutionStrategy(taskId).escalationOfferedAt).not.toBeNull()
+      // Offered, never applied.
+      expect(db.getTaskExecutionStrategy(taskId).strategy).toBe('single')
+    })
+
+    // The negative that matters: ~90% of daily work is one repo and must never see this toast.
+    it('stays silent for a single-repo feature workspace', async () => {
+      const { taskId } = seedDispatchedWorker()
+      db.setTaskWorktrees(taskId, [{ repoId: 'repo_api', worktreeId: 'wt1', primary: true }])
+      const w = underCeiling()
+
+      expect(await w.tickOnce()).toEqual([])
+      w.stop()
+      expect(db.getTaskExecutionStrategy(taskId).escalationOfferedAt).toBeNull()
+    })
+
+    it('stays silent for a task that binds no feature workspace at all', async () => {
+      seedDispatchedWorker()
+      const w = underCeiling()
+
+      expect(await w.tickOnce()).toEqual([])
+      w.stop()
+    })
+
+    // Two branches of one repository are one repo — a lead would buy nothing.
+    it('counts repos, not worktrees', async () => {
+      const { taskId } = seedDispatchedWorker()
+      db.setTaskWorktrees(taskId, [
+        { repoId: 'repo_api', worktreeId: 'wt1', branch: 'main', primary: true },
+        { repoId: 'repo_api', worktreeId: 'wt2', branch: 'spike' }
+      ])
+      const w = underCeiling()
+
+      expect(await w.tickOnce()).toEqual([])
+      w.stop()
+    })
+
+    // Why: a repo count needs no transcript, so this signal is not behind D4's Claude-only measure.
+    it('offers on a backend whose context we cannot measure', async () => {
+      const { taskId } = seedDispatchedWorker('codex')
+      db.setTaskWorktrees(taskId, [
+        { repoId: 'repo_api', worktreeId: 'wt1', primary: true },
+        { repoId: 'repo_web', worktreeId: 'wt2' }
+      ])
+      const w = underCeiling({ claudeUsage: null })
+
+      const offers = await w.tickOnce()
+      w.stop()
+
+      expect(offers).toHaveLength(1)
+      expect(offers[0]!.signal).toBe('multi_repo')
+    })
+
+    // One offer per task, whichever signal raised it: a task already told about its ceiling is not
+    // told again when its second repo is bound.
+    it('does not offer again after the ceiling already offered', async () => {
+      const { taskId } = seedDispatchedWorker()
+      const first = watcher()
+      expect(await first.tickOnce()).toHaveLength(1)
+      first.stop()
+
+      db.setTaskWorktrees(taskId, [
+        { repoId: 'repo_api', worktreeId: 'wt1', primary: true },
+        { repoId: 'repo_web', worktreeId: 'wt2' }
+      ])
+      const second = underCeiling()
+
+      expect(await second.tickOnce()).toEqual([])
+      second.stop()
+      expect(published).toHaveLength(1)
+    })
+
+    it('skips a multi-repo task already running orchestrated', async () => {
+      const { taskId } = seedDispatchedWorker()
+      db.setTaskWorktrees(taskId, [
+        { repoId: 'repo_api', worktreeId: 'wt1', primary: true },
+        { repoId: 'repo_web', worktreeId: 'wt2' }
+      ])
+      db.setTaskExecutionStrategy(taskId, 'orchestrated', 'user')
+      const w = underCeiling()
+
+      expect(await w.tickOnce()).toEqual([])
+      w.stop()
+    })
   })
 
   describe('lead dispatches', () => {

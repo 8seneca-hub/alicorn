@@ -13005,7 +13005,8 @@
                     "7f0215bd93": "Run",
                     "terminal": "Terminal",
                     "provenance": "Provenance",
-                    "context": "Context"
+                    "context": "Context",
+                    "gates": "Gates"
                   }
                 }
               }
@@ -13546,6 +13547,37 @@
                 "retry": "Try again",
                 "bytes": "{{value0}} bytes",
                 "kib": "{{value0}} KiB"
+              }
+            }
+          },
+          "gate": {
+            "panel": {
+              "unavailable": "Pending gates could not be read.",
+              "loading": "Reading gates…",
+              "empty": "No gate is waiting on you. A step that needs a decision will appear here.",
+              "waiting": "waiting on you",
+              "refresh": "Re-read gates",
+              "advisory": "Advisory",
+              "resolution": {
+                "placeholder": "Your answer, sent back to the member",
+                "label": "Resolution"
+              },
+              "your": {
+                "call": "Did this step need you?"
+              },
+              "resolve": "Resolve",
+              "recorded": "Your call is recorded beside the policy’s, so gates can be judged on evidence.",
+              "withheld": "The policy recorded a decision for this step, but this member has not run this stage often enough for it to be shown yet.",
+              "retry": "Try again",
+              "policy": {
+                "would": {
+                  "auto": "The policy would have let this step proceed without asking you.",
+                  "gate": "The policy would have stopped here and asked you, which is what happened."
+                }
+              },
+              "verdict": {
+                "auto": "Could have proceeded",
+                "gate": "Needed me"
               }
             }
           }
@@ -17099,7 +17131,9 @@
       "alicorn": {
         "escalationOffer": {
           "message": "This task is at {{tokens}} tokens of context. Switch it to orchestrated?",
-          "switch": "Switch to orchestrated"
+          "switch": "Switch to orchestrated",
+          "multiRepoMessage": "This task spans {{repos}} repositories. Switch it to orchestrated?",
+          "cost": "A lead plus its subagents costs roughly ten times the tokens."
         }
       }
     },

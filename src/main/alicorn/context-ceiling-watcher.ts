@@ -1,8 +1,19 @@
+/**
+ * The escalation watcher: D4's context ceiling, plus MR2's "this task touches more than one repo".
+ *
+ * MR2 reads the repos **declared** in the task's feature workspace (MR1's `alicorn_task_worktrees`,
+ * via `countTaskRepos`), not repo roots inferred from a worker's `filesModified`. That report is
+ * self-declared by the member, only exists once a step has settled, and carries no repo root —
+ * recovering one would mean a `git rev-parse` per path, which a folder workspace has no answer to.
+ * The tuple set is registry-backed, is true before the first token is spent, and is the one notion
+ * of "which repos" MR1 landed; a second one would disagree with it eventually.
+ */
 import type { OrchestrationDb } from '../runtime/orchestration/db'
+import { ALICORN_CONTEXT_CEILING_TOKENS } from '../../shared/alicorn/context-ceiling'
 import {
-  ALICORN_CONTEXT_CEILING_TOKENS,
+  evaluateEscalationSignal,
   type EscalationOffer
-} from '../../shared/alicorn/context-ceiling'
+} from '../../shared/alicorn/escalation-offer'
 import {
   contextUsageFromTranscriptTail,
   readTranscriptTail,
@@ -47,8 +58,9 @@ type RunningDispatchRow = {
   start_options: string
 }
 
-// Why: tier 1 measures the ceiling for Claude Code only. Another backend gets no offer rather than
-// a guess — an escalation we cannot substantiate is worse than none.
+// Why: tier 1 measures the ceiling for Claude Code only. Another backend is not measured rather
+// than guessed at — an escalation we cannot substantiate is worse than none. MR2's repo-span
+// signal is backend-independent, so it is not behind this check.
 function isClaudeBackend(startOptions: string): boolean {
   return readStartOptions(startOptions)?.agent === 'claude'
 }
@@ -92,7 +104,10 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
   const promptedLeads = new Set<string>()
 
   async function contextUsageFor(worktreeId: string): Promise<TranscriptContextUsage | null> {
-    const transcripts = deps.claudeUsage!.getRecentSessionTranscriptsForWorktree(
+    if (!deps.claudeUsage) {
+      return null
+    }
+    const transcripts = deps.claudeUsage.getRecentSessionTranscriptsForWorktree(
       worktreeId,
       now() - SESSION_ACTIVE_WINDOW_MS
     )
@@ -140,7 +155,9 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
 
   async function tickOnce(): Promise<EscalationOffer[]> {
     const db = deps.getDb()
-    if (!db || !deps.claudeUsage) {
+    // No claudeUsage guard here: MR2's repo-span signal is a COUNT over rows the desktop already
+    // owns, so it works on a runtime that has never scanned a transcript.
+    if (!db) {
       return []
     }
     const rows = db.db
@@ -155,25 +172,32 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
 
     const offers: EscalationOffer[] = []
     for (const row of rows) {
-      if (!row.worktree_id || !isClaudeBackend(row.start_options)) {
-        continue
-      }
       // A lead is already orchestrated, so it is never offered escalation — its ceiling is a
       // capacity limit answered by compaction, not a strategy change.
       if (isLeadDispatch(row.start_options)) {
-        const leadUsage = await contextUsageFor(row.worktree_id)
-        if (leadUsage) {
-          await tickLead(row, leadUsage)
+        if (row.worktree_id && isClaudeBackend(row.start_options)) {
+          const leadUsage = await contextUsageFor(row.worktree_id)
+          if (leadUsage) {
+            await tickLead(row, leadUsage)
+          }
         }
         continue
       }
       const strategy = db.getTaskExecutionStrategy(row.task_id)
-      // Already orchestrated, or already asked once — the offer is a one-shot, not a nag.
+      // Already orchestrated, or already asked once — the offer is a one-shot, not a nag, and it
+      // is one offer per *task*, so MR2's signal cannot raise a second toast after D4's.
       if (strategy.strategy !== 'single' || strategy.escalationOfferedAt !== null) {
         continue
       }
-      const contextTokens = (await contextUsageFor(row.worktree_id))?.contextTokens ?? null
-      if (contextTokens === null || contextTokens < ceiling) {
+      const repoCount = db.countTaskRepos(row.task_id)
+      // The ceiling costs a transcript read and only Claude Code can be measured, so it is only
+      // reached when the free signal has not already decided — same precedence as the evaluator's.
+      const contextTokens =
+        repoCount > 1 || !row.worktree_id || !isClaudeBackend(row.start_options)
+          ? null
+          : ((await contextUsageFor(row.worktree_id))?.contextTokens ?? null)
+      const decision = evaluateEscalationSignal({ repoCount, contextTokens, ceilingTokens: ceiling })
+      if (!decision) {
         continue
       }
       // Why: markEscalationOffered is the guard, not a flag we set afterwards — it returns false if
@@ -185,7 +209,7 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
         taskId: row.task_id,
         dispatchId: row.dispatch_id,
         paneKey: null,
-        contextTokens
+        ...decision
       }
       offers.push(offer)
       deps.publish(offer)

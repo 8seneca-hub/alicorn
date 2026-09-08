@@ -182,6 +182,23 @@ export function leadLaunchOptions(backend: MemberBackend): { disallowedTools: st
 
 ### Task 9 (MR2, v2.0): multi-repo escalation signal — **depends on MR1 (interface & multi-repo plan)**; adds `repoCount > 1 → offer` to D4's watcher from the run's worktree tuples. One test. Commit `feat(foreman): offer orchestrated execution when a run spans repositories`.
 
+**As built (2026-09-08).** `repoCount` is read from the repos **declared** in the task's feature
+workspace — MR1's `countTaskRepos` over `alicorn_task_worktrees` — not from repo roots inferred from
+a settled step's `filesModified`, which the Plane ticket's scope line suggested. That report is
+declared by the member being judged (the same reason BR1's blast radius measures git instead — see
+`gates/worktree-changed-files.ts`), only exists once a step has settled, and names no repo root:
+recovering one means a `git rev-parse` per path, which a folder workspace cannot answer. The tuple
+set is registry-backed, true before the first token is spent, and is the single notion of "which
+repos" MR1 landed.
+
+The two signals share one offer. `EscalationOffer` moved to
+`src/shared/alicorn/escalation-offer.ts` and gained `signal: 'context_ceiling' | 'multi_repo'`, with
+`contextTokens` and `repoCount` nullable; `evaluateEscalationSignal` holds the precedence — multi-
+repo wins a tie, being free and true from the start — and `markEscalationOffered` is still the
+one-offer-per-*task* guard, so MR2 cannot raise a second toast after D4's. The repo signal is not
+behind D4's Claude-only check: a COUNT needs no transcript, so a Codex multi-repo task is offered
+too. The toast now carries the price of orchestrated on both signals.
+
 ### Task 10 (SM1): Success measurement protocol
 
 **Protocol written 2026-09-08 — [`docs/alicorn/MEASUREMENT.md`](../MEASUREMENT.md)**, as a standing document rather than a section, because it is signed off before the run and cited after it. Read it before touching this task; the remaining work below is what it depends on and does not itself build.
