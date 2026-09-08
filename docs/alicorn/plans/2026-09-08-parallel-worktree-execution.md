@@ -63,8 +63,23 @@ apps/ledger-api/src/schema-postgres.test.ts:6:  const schema = 'ledger_schema_te
 ```
 
 Two worktrees running `pnpm -r test` against the same database will `createTestSchema` /
-`dropTestSchema` on the *same* schema concurrently. The result is intermittent failures that look like
-real product bugs and are not reproducible alone. This will burn a day if you meet it without knowing.
+`dropTestSchema` on the *same* schema concurrently.
+
+**Reproduced on 2026-09-08**, primary worktree and the GP1 worktree both running the `ledger-api`
+suite against `alicorn_test`, three rounds:
+
+| Round | Result |
+|---|---|
+| 1 | both sides **33 passed** |
+| 2 | both sides FAIL — `ledger routes (postgres)`, `ledger metrics (postgres)`, `schema > applies twice … forces RLS` |
+| 3 | both sides FAIL |
+
+Round 1 passing is the dangerous part: try it once, see green, conclude sharing is fine, then spend a
+day chasing "flaky RLS tests" that are neither flaky nor about RLS. The database recovers on its own —
+a solo run straight afterwards was 33/33 — so there is no lasting damage and no signal either.
+
+The same two worktrees on separate slots (`alicorn_test` and `alicorn_test_c1`), run concurrently,
+were 33/33 on both sides.
 
 **One database per worktree slot, one shared container:**
 
