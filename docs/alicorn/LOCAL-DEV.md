@@ -6,7 +6,18 @@ Ledger API from [`cloud/dev/compose/alicorn-local.yml`](../../cloud/dev/compose/
 ## Prerequisites
 
 - **Node 24** — `nvm install 24 && nvm use 24` (the repo pins it in `.node-version`).
-- **pnpm** — `corepack enable && corepack prepare pnpm@latest --activate`.
+- **pnpm** — `cloud/` pins `pnpm@10.24.0` and enforces `engines.pnpm >= 10`, while the desktop root
+  pins a different version. Do not install one pnpm globally and hope; let Corepack resolve the pin per
+  directory. If a global `pnpm -v` reports below 10, `cd cloud && corepack pnpm install` still works,
+  but any script that shells out to a bare `pnpm` (notably every `pretest`) will use the global one and
+  fail with `ERR_PNPM_UNSUPPORTED_ENGINE`. Put a Corepack shim first on `PATH` for cloud work:
+
+  ```sh
+  corepack enable --install-directory cloud/.pnpm-shim pnpm   # once; .pnpm-shim is gitignored
+  export PATH="$PWD/cloud/.pnpm-shim:$PATH"                   # per shell, while working in cloud/
+  ```
+
+  This leaves the global `pnpm` — and the desktop build — untouched.
 - **Docker** with Compose, running.
 
 ## 1. Bring the stack up
@@ -74,10 +85,36 @@ Identity is deferred: when Keycloak lands (I4), only the body of `readAlicornBea
 
 ## Verify
 
+Desktop side:
+
 ```sh
 pnpm test src/main/alicorn
 pnpm tc:node
 ```
+
+Cloud side — **the Postgres suites skip without a database, and a skip is not a pass.** Check the run
+count, not the colour: with no `ALICORN_TEST_POSTGRES_URL`, `control-api` reports 12 passed and
+51 *skipped*, and `ledger-api` 12 passed and 21 *skipped*, while still exiting 0.
+
+The URL must be a **superuser** — the suites create their own non-superuser roles and schemas to prove
+forced RLS — and it should point at a throwaway database, not the dev stack's `alicorn` on 5432, since
+the tests create and drop roles.
+
+```sh
+docker run -d --name alicorn-test-pg -p 5433:5432 \
+  -e POSTGRES_PASSWORD=postgres postgres:16-alpine       # once
+docker exec alicorn-test-pg psql -U postgres -c 'create database alicorn_test'
+
+cd cloud
+export PATH="$PWD/.pnpm-shim:$PATH"
+export ALICORN_TEST_POSTGRES_URL="postgres://postgres:postgres@127.0.0.1:5433/alicorn_test"
+pnpm -r build          # apps import the packages' dist, so build before typecheck or test
+pnpm -r typecheck
+pnpm -r test
+```
+
+Fully wired, the four Alicorn cloud suites are 96 tests with nothing skipped: `control-api` 63,
+`ledger-api` 33, plus `control-plane-auth` 10 and `control-plane-contract` 29.
 
 ## Board automation — automated live check
 
