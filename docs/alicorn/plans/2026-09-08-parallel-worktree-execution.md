@@ -94,6 +94,32 @@ export ALICORN_TEST_POSTGRES_URL="postgres://postgres:postgres@127.0.0.1:5433/al
 Cheap and sufficient — the container is shared, only the database differs. Randomising the schema
 names in the suites would be the real fix and is worth a small follow-up ticket.
 
+### 1b-bis. A worktree is not durable storage — commit within the hour
+
+**Lost four tickets' work this way on 2026-09-08.** Six agents were mid-flight when the session hit
+its rate limit; ten minutes later Orca's own remove-worktree flow moved all six checkouts into
+`.orca-worktree-trash/` and the async recursive delete ran. That flow deletes the branch as well as
+the directory (`src/main/git/worktree-removal.ts` → `src/main/worktree-trash.ts`).
+
+What survived is exactly what had been committed:
+
+| | State when the limit hit | Outcome |
+|---|---|---|
+| LG6, LG5 | had committed | branch survived — `git branch -d` refuses an unmerged branch |
+| UI7, GP2, PV1, QA1 | uncommitted | branch deleted, work unrecoverable |
+
+Nothing was recoverable from the trash: it held only `node_modules` remnants, and `git fsck` found no
+dangling commits for the four. The startup sweep (`sweepStaleWorktreeTrash`) only drains the trash and
+does not choose victims, so it was the removal flow, not a background sweep.
+
+Two rules follow:
+
+- **Commit before you are finished.** A `WIP(...): UNVERIFIED` checkpoint costs nothing and is the only
+  thing that makes a branch survive. Brief every agent to checkpoint early rather than commit once at
+  the end — the end may not arrive.
+- **Do not point Orca's worktree UI at the parallel worktrees**, and treat a checkout as scratch space.
+  The durable artefact is the commit, not the directory.
+
 ### 1c. Local stack ports — one stack, not one per worktree
 
 `cloud/dev/compose/alicorn-local.yml` binds `127.0.0.1` on 5432 / 8081 / 8082 / 8080. Only one
