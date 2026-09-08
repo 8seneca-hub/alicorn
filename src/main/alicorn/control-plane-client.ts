@@ -2,6 +2,7 @@ import type { alicornFetch as AlicornFetch } from './control-plane-http'
 import { alicornFetch } from './control-plane-http'
 import type { ProvenanceReport, RunCost } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
+import type { AutonomyPolicy, StageConfig } from '../../shared/alicorn/gate-policy'
 import type { Workflow, WorkflowSummary } from '../../shared/alicorn/workflows'
 
 export type ControlPlaneClient = {
@@ -11,6 +12,13 @@ export type ControlPlaneClient = {
   deleteMember: (id: string) => Promise<void>
   getOrgPolicy: () => Promise<OrgPolicy>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  /** Null when the project has authored no policy — distinct from the control plane being down. */
+  getAutonomyPolicy: (key: {
+    projectId: string
+    stageKey: string
+    memberId: string | null
+  }) => Promise<AutonomyPolicy | null>
+  getStageConfig: (projectId: string, stageKey: string) => Promise<StageConfig>
   getProvenance: (repoId: string, branch: string) => Promise<ProvenanceReport>
   getRunCost: (runId: string) => Promise<RunCost>
   listWorkflows: (projectId: string) => Promise<WorkflowSummary[]>
@@ -72,9 +80,29 @@ export function createControlPlaneClient(deps?: {
     getRequiredChecks: async (projectId) => {
       const body = await readJson<{ checks: RequiredCheck[] }>(
         'control',
-        `/v1/projects/${encodeURIComponent(projectId)}/required-checks`
+        `${projectPath(projectId)}/required-checks`
       )
       return body.checks ?? []
+    },
+
+    getAutonomyPolicy: async ({ projectId, stageKey, memberId }) => {
+      const query = new URLSearchParams({ stageKey })
+      if (memberId) {
+        query.set('memberId', memberId)
+      }
+      const body = await readJson<{ policy: AutonomyPolicy | null }>(
+        'control',
+        `${projectPath(projectId)}/autonomy-policy?${query.toString()}`
+      )
+      return body.policy ?? null
+    },
+
+    getStageConfig: async (projectId, stageKey) => {
+      const body = await readJson<{ config: StageConfig }>(
+        'control',
+        `${projectPath(projectId)}/stage-config/${encodeURIComponent(stageKey)}`
+      )
+      return body.config
     },
 
     getProvenance: (repoId, branch) => {
@@ -102,6 +130,10 @@ export function createControlPlaneClient(deps?: {
       return body.workflow
     }
   }
+}
+
+function projectPath(projectId: string): string {
+  return `/v1/projects/${encodeURIComponent(projectId)}`
 }
 
 function memberPath(id: string): string {

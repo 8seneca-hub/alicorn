@@ -1,0 +1,95 @@
+import type {
+  AutonomyPolicy,
+  GateDecision,
+  GateDecisionReason,
+  GateEvidence,
+  GateStep
+} from '../../../shared/alicorn/gate-policy'
+
+/**
+ * ARCHITECTURE §7's autonomy policy, as a pure function.
+ *
+ * The order is the contract, not an implementation detail: hard stops are checked before anything
+ * a track record could influence, so accumulated evidence can never retire a gate protecting
+ * something irreversible. `never_gate` sits *after* the two hard stops for the same reason — a
+ * standing exception buys a project out of the evidence checks, never out of a production deploy.
+ *
+ * Unknown evidence is not permission. Every `null` below resolves to a gate, because the three
+ * ways a field goes null in practice — an SSH host out of contact, a folder workspace with no
+ * diff, a control plane that is down — are exactly the situations where guessing is worst.
+ */
+export function evaluateGate(
+  step: GateStep,
+  policy: AutonomyPolicy,
+  evidence: GateEvidence,
+  options?: { now?: () => number }
+): GateDecision {
+  const now = options?.now ?? Date.now
+
+  if (policy.mode === 'always_gate') {
+    return gate('policy')
+  }
+
+  // Hard stops. Authored on the stage, never inferred, and never retired by evidence.
+  if (step.reversibility === 'irreversible') {
+    return gate('irreversible')
+  }
+  if (step.inheritedCost === 'high') {
+    return gate('inherited')
+  }
+
+  // An exception that has lapsed is not an exception; the policy falls back to `evidence`.
+  if (policy.mode === 'never_gate' && !hasExpired(policy.expiresAt, now())) {
+    return { decision: 'auto', reason: 'never_gate' }
+  }
+
+  if (evidence.allRequiredChecksPassed !== true) {
+    return gate('unverified')
+  }
+
+  if (policy.maxFiles !== null) {
+    if (evidence.filesChanged === null || evidence.filesChanged > policy.maxFiles) {
+      return gate('blast:files')
+    }
+  }
+  if (policy.maxSpendCents !== null) {
+    if (evidence.spendCents === null || evidence.spendCents > policy.maxSpendCents) {
+      return gate('blast:spend')
+    }
+  }
+  // Unknown reach reads as `unverified`, not `blast:reach`: nothing was found to have been
+  // touched, we simply could not look, and the reason should say which of the two happened.
+  if (evidence.touchedProtectedPath === null) {
+    return gate('unverified')
+  }
+  if (evidence.touchedProtectedPath) {
+    return gate('blast:reach')
+  }
+
+  const stats = evidence.stats
+  if (stats === null || stats.runs < policy.minRuns) {
+    return gate('history')
+  }
+  if (stats.acceptRate < policy.minAcceptRate) {
+    return gate('accept-rate')
+  }
+  if (stats.recentRegression) {
+    return gate('regression')
+  }
+
+  return { decision: 'auto', reason: 'auto' }
+}
+
+function gate(reason: GateDecisionReason): GateDecision {
+  return { decision: 'gate', reason }
+}
+
+function hasExpired(expiresAt: string | null, nowMs: number): boolean {
+  if (expiresAt === null) {
+    return true
+  }
+  const at = Date.parse(expiresAt)
+  // An unparseable expiry is treated as lapsed — the schema and the DB CHECK both require a real
+  // one, so a value that got here malformed is corruption, and corruption must not grant autonomy.
+  return Number.isNaN(at) || at <= nowMs
+}

@@ -307,12 +307,15 @@ Low-level `worktree create`, `terminal create`, and `dispatch --inject` remain v
 ## Gates And Legacy Inspection
 
 ```bash
-orca orchestration gate-create --task <task_id> --question <text> [--options <json_array>] [--json]
+orca orchestration gate-create --task <task_id> --question <text> [--options <json_array>] [--evaluate] [--stage-key <key>] [--json]
 orca orchestration gate-resolve --id <gate_id> --resolution <text> [--json]
 orca orchestration gate-list [--task <task_id>] [--status <status>] [--json]
+orca orchestration verify-record --task <task_id> --name <text> --status <passed|failed|skipped|error> [--kind <kind>] [--optional] [--detail <json_object>] [--json]
 ```
 
 Use `ask` for worker-to-coordinator questions; it creates a `question` message that the coordinator answers with `reply`. Use `gate-create` only for coordinator-managed task DAG decisions, not for answering a worker's `ask`.
+
+`gate-create --evaluate` runs the project's autonomy policy and records the decision it would have made on the gate; the gate still blocks, so there is no way to ask the policy and act on the answer yourself. `verify-record` stores a named check result the policy reads — a check the project requires and nobody recorded reads as unverified, never as passed.
 
 `coordinator-start`, `coordinator-stop`, `run`, and `run-stop` are retired scheduler commands. They perform no effects and return the current-skill recovery action. They are not aliases for lightweight Run creation or binding.
 

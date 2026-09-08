@@ -72,6 +72,29 @@ function runWithRowTimeout(
 }
 
 /**
+ * Mirrors each result to the client's own store on the way to the Ledger API, and *before* it —
+ * a gate has to decide from disk, and the ledger is authoritative but eventual, so a control
+ * plane that is down must not also cost the gate its evidence (GP1).
+ */
+function mirrorToDisk(db: OrchestrationDb, writer: LedgerWriter): LedgerWriter {
+  return {
+    ...writer,
+    postStepVerification: async (input) => {
+      db.recordDispatchVerification({
+        dispatchId: input.dispatchId,
+        taskId: input.taskId,
+        kind: input.kind,
+        name: input.name,
+        required: input.required,
+        status: input.status,
+        detail: input.detail
+      })
+      return writer.postStepVerification(input)
+    }
+  }
+}
+
+/**
  * Runs `step_verification` outbox rows one at a time, own timer and row-level timeout —
  * out of the drain loop so a slow project's coverage command can't queue every other
  * ledger write behind it (LG2a).
@@ -112,7 +135,7 @@ export function startVerificationWorker(deps: VerificationWorkerDeps): Verificat
       }
       const payload = JSON.parse(row.payload) as StepVerificationPayload
       try {
-        await runWithRowTimeout(verificationRunner, payload, writer, rowTimeoutMs)
+        await runWithRowTimeout(verificationRunner, payload, mirrorToDisk(db, writer), rowTimeoutMs)
         settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
         return { processed: 1, result: 'sent' }
       } catch (error) {

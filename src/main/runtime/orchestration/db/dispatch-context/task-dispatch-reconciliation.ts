@@ -12,6 +12,16 @@ export function getActiveDispatchForTask(
     .get(taskId) as DispatchContextRow | undefined
 }
 
+/** Newest dispatch whatever its status — a gate is usually opened after its dispatch settled. */
+export function getLatestDispatchForTask(
+  db: OrchestrationDb,
+  taskId: string
+): DispatchContextRow | undefined {
+  return db.db
+    .prepare('SELECT * FROM dispatch_contexts WHERE task_id = ? ORDER BY rowid DESC LIMIT 1')
+    .get(taskId) as DispatchContextRow | undefined
+}
+
 export function reconcileTaskAfterDispatchInterruption(
   db: OrchestrationDb,
   taskId: string,

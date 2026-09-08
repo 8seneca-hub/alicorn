@@ -29,7 +29,9 @@ function directory(found: Member): MemberDirectory {
   return {
     getMember: vi.fn().mockResolvedValue(found),
     getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
-    getRequiredChecks: vi.fn().mockResolvedValue([])
+    getRequiredChecks: vi.fn().mockResolvedValue([]),
+    getAutonomyPolicy: vi.fn().mockResolvedValue(null),
+    getStageConfig: vi.fn().mockResolvedValue({ reversibility: 'contained', inheritedCost: 'low' })
   }
 }
 

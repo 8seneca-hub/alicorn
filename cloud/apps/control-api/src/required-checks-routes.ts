@@ -4,13 +4,9 @@ import { RequiredChecksSchema } from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import { getRequiredChecks, putRequiredChecks } from './required-checks-repository.js'
 import { readJsonBody } from './read-json-body.js'
+import { isValidProjectId } from './project-id-param.js'
 
 const PutRequiredChecksBodySchema = z.object({ checks: RequiredChecksSchema })
-
-// Why: projectId is Orca's opaque project/repo id — accept any non-empty string within a sane bound.
-function isValidProjectId(projectId: string): boolean {
-  return projectId.length >= 1 && projectId.length <= 200
-}
 
 export function registerRequiredChecksRoutes(app: Hono<ControlApiEnv>, deps: ControlApiDeps): void {
   app.get('/v1/projects/:projectId/required-checks', async (c) => {

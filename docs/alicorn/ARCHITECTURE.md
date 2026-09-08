@@ -280,6 +280,19 @@ evaluateGate(step, policy, evidence):
 `reversibility` and `inherited_cost` are **authored on the stage**, never inferred. A system that
 guesses which step is irreversible guesses wrong once, and that once is a production deploy.
 
+**As built (GP1, 2026-09-08).** `evaluateGate` is a pure function
+(`src/main/alicorn/gates/evaluate-gate.ts`) in exactly this order, with two clarifications the
+pseudo-code left open. An unexpired `never_gate` returns `auto` *after* the two hard stops and
+before the evidence checks, so a standing exception buys a project out of its track record but
+never out of an irreversible step; a lapsed or unparseable expiry falls back to `evidence`. Every
+`null` in the evidence is a gate, not a pass — unknown required checks and unknown protected-path
+reach both read `unverified`, an unknown file count or spend reads as the budget it could not be
+checked against, and an absent track record reads `history`.
+
+Tier 1 has no stages, so the two authored attributes live in `project_stage_config`
+(project + stage key, Control API), defaulting to `irreversible`/`high` for `merge` and `deploy`
+and `contained`/`low` for everything else. They become `stages.*` once a workflow is attached.
+
 ### Levels
 
 | Level | Entry | Behaviour |
@@ -309,7 +322,7 @@ Additive over Orca's existing orchestration RPC. No protocol version bump.
 
 | Method | Purpose |
 |---|---|
-| `orchestration.gateCreate` | Existing. Gains optional `evaluate: boolean`. When set, the server runs the policy and may return an already-resolved gate with `resolution: 'auto:<reason>'`. |
+| `orchestration.gateCreate` | Existing. Gains optional `evaluate: boolean` and `stageKey`. When set, the server runs the policy and records the decision it would have made on the gate row (`recommended_decision`, `recommended_reason`). |
 | `orchestration.gateResolve` | Existing. |
 | `orchestration.verifyRecord` | Record named check results for a task. |
 | `orchestration.policySet` / `policyGet` | Read and write autonomy policy; `policySet` records `created_by` and a mandatory expiry for `never_gate`. |
@@ -317,6 +330,19 @@ Additive over Orca's existing orchestration RPC. No protocol version bump.
 
 Evaluation lives inside `gateCreate` rather than a separate "should I gate?" call, so a caller cannot
 ask the policy and then ignore the answer. The ledger stays authoritative.
+
+**As built (GP1, 2026-09-08).** `gateCreate { evaluate }` returns `{ gate, recommendation }` and the
+gate is always pending: **nothing auto-resolves**. Level 0 records the decision it would have made,
+which is how a level is ever earned — autonomy is unlocked by evidence, and evidence only
+accumulates by running gated. Retiring a gate on an `auto` recommendation is SK1's, once the Ledger
+API serves the windowed track record (GP2).
+
+`verifyRecord` writes to the client's own store (`alicorn_dispatch_verifications`), which is what
+the policy reads: the Ledger API is authoritative but eventual, and a gate has to decide now. D5's
+verification worker mirrors its own results to the same table on the way out, so an automated
+diff-coverage result and a hand-recorded one reach the policy through one path. A manually recorded
+check does **not** reach the ledger in GP1 — that needs a new outbox kind, and the outbox is the
+only path a ledger write may take.
 
 ## 9. Security
 

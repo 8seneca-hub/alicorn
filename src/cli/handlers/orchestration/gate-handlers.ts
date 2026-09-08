@@ -8,18 +8,47 @@ export const ORCHESTRATION_GATE_HANDLERS: Record<string, CommandHandler> = {
   'orchestration gate-create': async ({ flags, client, cwd, json }) => {
     const result = await callOrchestrationMutation<{
       gate: { id: string; task_id: string; status: string }
+      recommendation?: { decision: string; reason: string }
     }>(client, flags, 'orchestration.gateCreate', {
       task: getRequiredStringFlag(flags, 'task'),
       question: getRequiredStringFlag(flags, 'question'),
       options: getOptionalJsonFlag(flags, 'options'),
+      evaluate: flags.has('evaluate') ? true : undefined,
+      stageKey: getOptionalStringFlag(flags, 'stage-key'),
       // Why: gates are Run-scoped, so the coordinator handle is the authorized caller identity.
+      from: await resolveCoordinatorTerminalHandle(flags, cwd, client)
+    })
+    printResult(result, json, (value) => {
+      const created = `Gate ${value.gate.id} created for task ${value.gate.task_id} [${value.gate.status}]`
+      if (!value.recommendation) {
+        return created
+      }
+      return `${created}\nPolicy would ${value.recommendation.decision} (${value.recommendation.reason})`
+    })
+  },
+
+  'orchestration verify-record': async ({ flags, client, cwd, json }) => {
+    const result = await callOrchestrationMutation<{
+      taskId: string
+      dispatchId: string
+      verifications: { name: string; status: string }[]
+    }>(client, flags, 'orchestration.verifyRecord', {
+      task: getRequiredStringFlag(flags, 'task'),
+      name: getRequiredStringFlag(flags, 'name'),
+      status: getRequiredStringFlag(flags, 'status'),
+      kind: getOptionalStringFlag(flags, 'kind'),
+      dispatch: getOptionalStringFlag(flags, 'dispatch'),
+      // Why an --optional opt-out rather than a --required opt-in: a check nobody classified is
+      // one the gate must see.
+      required: flags.has('optional') ? false : undefined,
+      detail: getOptionalJsonFlag(flags, 'detail'),
       from: await resolveCoordinatorTerminalHandle(flags, cwd, client)
     })
     printResult(
       result,
       json,
       (value) =>
-        `Gate ${value.gate.id} created for task ${value.gate.task_id} [${value.gate.status}]`
+        `Recorded ${value.verifications.length} check(s) for task ${value.taskId} on dispatch ${value.dispatchId}`
     )
   },
 

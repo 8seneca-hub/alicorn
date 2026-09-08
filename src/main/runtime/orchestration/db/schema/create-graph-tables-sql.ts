@@ -158,7 +158,11 @@ CREATE TABLE IF NOT EXISTS decision_gates (
     CHECK(status IN ('pending', 'resolved', 'timeout')),
   resolution    TEXT,
   created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  resolved_at   TEXT
+  resolved_at   TEXT,
+  -- What the autonomy policy would have decided (GP1). Recorded on every evaluated gate,
+  -- including at level 0 where it changes nothing — that record is how a level is ever earned.
+  recommended_decision TEXT CHECK(recommended_decision IN ('gate', 'auto')),
+  recommended_reason   TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_gates_task ON decision_gates(task_id);

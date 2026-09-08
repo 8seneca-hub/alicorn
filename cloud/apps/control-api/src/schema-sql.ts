@@ -90,5 +90,42 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
   `CREATE TABLE IF NOT EXISTS rule_proposals (id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text, tenant_id TEXT NOT NULL, member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
      outcome_id TEXT NOT NULL, verdict TEXT NOT NULL CHECK (verdict IN ('amended','rejected')), context JSONB NOT NULL, proposed_rule TEXT,
      status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','accepted','rejected')), decided_by TEXT, decided_at TIMESTAMPTZ, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE (tenant_id, outcome_id))`,
-  tenantRlsPolicySql('rule_proposals')
+  tenantRlsPolicySql('rule_proposals'),
+  // Autonomy policy (GP1). Admin-authored per project; `member_id` NULL means "every member on
+  // this stage". A never_gate exception must lapse — §9 — so the CHECK is here as well as in zod.
+  `CREATE TABLE IF NOT EXISTS autonomy_policies (
+     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+     tenant_id TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     stage_key TEXT NOT NULL DEFAULT 'build',
+     member_id TEXT,
+     mode TEXT NOT NULL CHECK (mode IN ('always_gate', 'evidence', 'never_gate')),
+     min_runs INTEGER NOT NULL DEFAULT 10,
+     min_accept_rate NUMERIC(5,4) NOT NULL DEFAULT 0.9,
+     max_files INTEGER,
+     max_spend_cents INTEGER,
+     created_by TEXT NOT NULL,
+     expires_at TIMESTAMPTZ,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     CHECK (mode <> 'never_gate' OR expires_at IS NOT NULL))`,
+  // Why a partial index pair rather than UNIQUE(...): NULL member_id is the wildcard row, and
+  // Postgres treats NULLs as distinct in a unique constraint, so the wildcard would duplicate.
+  `CREATE UNIQUE INDEX IF NOT EXISTS autonomy_policies_scope
+     ON autonomy_policies(tenant_id, project_id, stage_key, member_id) WHERE member_id IS NOT NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS autonomy_policies_stage_wildcard
+     ON autonomy_policies(tenant_id, project_id, stage_key) WHERE member_id IS NULL`,
+  tenantRlsPolicySql('autonomy_policies'),
+  // ARCHITECTURE §7: reversibility and inherited_cost are authored, never inferred. Tier 1 has no
+  // stages, so they are authored per project + stage key; this becomes `stages.*` once a workflow
+  // is attached to the task being gated.
+  `CREATE TABLE IF NOT EXISTS project_stage_config (
+     tenant_id TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     stage_key TEXT NOT NULL,
+     reversibility TEXT NOT NULL CHECK (reversibility IN ('free', 'contained', 'irreversible')),
+     inherited_cost TEXT NOT NULL CHECK (inherited_cost IN ('low', 'high')),
+     updated_by TEXT,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, project_id, stage_key))`,
+  tenantRlsPolicySql('project_stage_config')
 ]

@@ -43,6 +43,24 @@ CREATE TABLE IF NOT EXISTS alicorn_correction_scans (
   last_commit     TEXT
 );
 
+-- Local mirror of the named check results a dispatch produced (GP1). The Ledger API is the
+-- authority on verifications, but it is eventual and remote; a gate has to decide now, from disk.
+-- Same key the ledger upserts on, so a re-run's verdict replaces the one it re-ran.
+CREATE TABLE IF NOT EXISTS alicorn_dispatch_verifications (
+  dispatch_id TEXT NOT NULL,
+  task_id     TEXT NOT NULL,
+  kind        TEXT NOT NULL,
+  name        TEXT NOT NULL,
+  required    INTEGER NOT NULL DEFAULT 1,
+  status      TEXT NOT NULL CHECK (status IN ('passed', 'failed', 'skipped', 'error')),
+  detail      TEXT,
+  recorded_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (dispatch_id, kind, name)
+);
+
+CREATE INDEX IF NOT EXISTS idx_dispatch_verifications_task
+  ON alicorn_dispatch_verifications(task_id);
+
 CREATE TABLE IF NOT EXISTS alicorn_dispatch_ledger (
   dispatch_id    TEXT PRIMARY KEY,
   outcome_id     TEXT NOT NULL,

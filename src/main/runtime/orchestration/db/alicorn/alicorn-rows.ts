@@ -39,6 +39,20 @@ export type DispatchMemberRow = {
   reviewBackendBypass: boolean
 }
 
+export type VerificationStatus = 'passed' | 'failed' | 'skipped' | 'error'
+
+/** Local mirror of a named check result, read by the autonomy policy at gate time (GP1). */
+export type DispatchVerificationRow = {
+  dispatchId: string
+  taskId: string
+  kind: string
+  name: string
+  required: boolean
+  status: VerificationStatus
+  detail: string | null
+  recordedAt: string
+}
+
 // Why: a dispatch's alicorn_dispatch_members row is only written once a Member is
 // assigned; an unassigned worker still needs cost attribution from its start_options.
 export type ActiveOrRecentDispatchRow = {

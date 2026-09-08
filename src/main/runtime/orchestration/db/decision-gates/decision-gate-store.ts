@@ -117,6 +117,24 @@ export function resolveGate(
   }
 }
 
+/**
+ * Records what the autonomy policy would have decided. Separate from `resolveGate` on purpose:
+ * a recommendation never resolves anything, so nothing here touches the gate's status or the
+ * task's — that is what "level 0 always gates" means in code.
+ */
+export function setGateRecommendation(
+  this: OrchestrationDb,
+  gateId: string,
+  recommendation: { decision: 'gate' | 'auto'; reason: string }
+): DecisionGateRow | undefined {
+  this.db
+    .prepare(
+      'UPDATE decision_gates SET recommended_decision = ?, recommended_reason = ? WHERE id = ?'
+    )
+    .run(recommendation.decision, recommendation.reason, gateId)
+  return this.getGate(gateId)
+}
+
 export function timeoutGate(this: OrchestrationDb, gateId: string): DecisionGateRow | undefined {
   this.db
     .prepare(
@@ -162,6 +180,7 @@ export function getGate(this: OrchestrationDb, id: string): DecisionGateRow | un
 export type DecisionGateStoreMethods = {
   createGate: typeof createGate
   resolveGate: typeof resolveGate
+  setGateRecommendation: typeof setGateRecommendation
   timeoutGate: typeof timeoutGate
   listGates: typeof listGates
   getGate: typeof getGate
@@ -171,6 +190,7 @@ export function attachDecisionGateStore(ctor: { prototype: object }): void {
   Object.assign(ctor.prototype, {
     createGate,
     resolveGate,
+    setGateRecommendation,
     timeoutGate,
     listGates,
     getGate

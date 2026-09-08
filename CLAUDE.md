@@ -339,6 +339,11 @@ and the command itself says so.
   SSH-hosted workspace — `worktree_path` belongs to the execution host. It records a `step_outcome`
   with `backend: 'code'` and no member, and on a non-zero exit takes its correction edge or gates
   with reason `unverified`. It never simply stops.
+- **Gate policy is evaluated only inside `gateCreate { evaluate }`** — there is deliberately no
+  "should I gate?" RPC, so a caller cannot ask the policy and then ignore the answer. Policies,
+  per-stage `reversibility`/`inherited_cost` and required checks are admin-authored per project in
+  the Control API, never by the member being judged. Nothing auto-resolves a gate yet: GP1 records
+  the decision it would have made and still blocks.
 - Gates, questions and escalation offers are recorded as ledger interruptions at settlement; the
   north-star metric is `orca ledger report`. Human corrections (follow-up commits, reverts, reopened
   tasks) reach the ledger through the corrections sweep — never write `human_verdict` any other way.

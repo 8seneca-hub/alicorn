@@ -119,6 +119,7 @@ export const ROOT_HELP_TEXT_PRIMARY = [
   '  orchestration gate-create Create a decision gate blocking a task',
   '  orchestration gate-resolve Resolve a pending decision gate',
   '  orchestration gate-list   List decision gates',
+  '  orchestration verify-record Record a named check result for a task',
   '  orchestration reset       Reset orchestration state',
   '',
   'Computer Use:',

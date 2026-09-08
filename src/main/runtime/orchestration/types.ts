@@ -298,6 +298,9 @@ export type DecisionGateRow = {
   resolution: string | null
   created_at: string
   resolved_at: string | null
+  /** Null on a gate opened without `evaluate` — the policy was never asked. */
+  recommended_decision: 'gate' | 'auto' | null
+  recommended_reason: string | null
 }
 
 export type CoordinatorRun = {

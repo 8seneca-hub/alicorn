@@ -57,10 +57,50 @@ describe('startVerificationWorker', () => {
     expect(result).toEqual({ processed: 1, result: 'sent' })
     expect(verificationRunner).toHaveBeenCalledWith(
       expect.objectContaining({ dispatchId: 'dispatch_1' }),
-      writer,
+      // The runner is handed a writer that mirrors to disk first; the ledger post is unchanged.
+      expect.objectContaining({ postStepVerification: expect.any(Function) }),
       { signal: expect.any(AbortSignal) }
     )
     expect(db.listDueLedgerOutbox()).toHaveLength(0)
+  })
+
+  it('mirrors each result to the local store before posting it to the ledger', async () => {
+    db = new OrchestrationDb(':memory:')
+    db.enqueueLedgerOutbox({
+      kind: 'step_verification',
+      dedupeKey: 'step_verification:dispatch_1:diff_coverage',
+      payload: PAYLOAD
+    })
+    const writer = fakeWriter()
+    // A gate must still see the result when the ledger post fails — the mirror runs first.
+    vi.mocked(writer.postStepVerification).mockRejectedValue(
+      new ControlPlaneUnavailableError('down')
+    )
+    worker = startVerificationWorker({
+      getDb: () => db,
+      writer,
+      verificationRunner: async (payload, handedWriter) => {
+        await handedWriter
+          .postStepVerification({
+            runId: payload.runId,
+            taskId: payload.taskId,
+            dispatchId: payload.dispatchId,
+            kind: 'diff_coverage',
+            name: 'Diff coverage ≥ 80%',
+            required: true,
+            status: 'passed',
+            detail: { covered: 0.93 }
+          })
+          .catch(() => undefined)
+      },
+      intervalMs: 60_000
+    })
+
+    await worker.tickOnce()
+
+    const rows = db.listTaskVerifications('task_1')
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ kind: 'diff_coverage', status: 'passed', required: true })
   })
 
   it('dead-letters the row when the runner throws a non-retryable 404', async () => {

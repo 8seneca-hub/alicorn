@@ -1,0 +1,288 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { RpcContext } from '../core'
+import { createOrchestrationRpcHarness } from './orchestration-rpc-test-harness'
+import type { OrchestrationDb } from '../../orchestration/db'
+import type { OrcaRuntimeService } from '../../orca-runtime'
+import type { MemberDirectory } from '../../../alicorn/member-directory'
+import type { DecisionGateRow } from '../../orchestration/types'
+import type { DispatchVerificationRow } from '../../orchestration/db/alicorn/alicorn-rows'
+
+function directory(overrides: Partial<MemberDirectory> = {}): MemberDirectory {
+  return {
+    getMember: vi.fn().mockResolvedValue(null),
+    getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
+    getRequiredChecks: vi.fn().mockResolvedValue([]),
+    getAutonomyPolicy: vi.fn().mockResolvedValue(null),
+    getStageConfig: vi.fn().mockResolvedValue({ reversibility: 'contained', inheritedCost: 'low' }),
+    ...overrides
+  }
+}
+
+describe('gate policy RPCs', () => {
+  const h = createOrchestrationRpcHarness()
+  let db: OrchestrationDb
+  let runtime: OrcaRuntimeService
+  let ctx: RpcContext
+
+  function setup(): void {
+    ;({ db, runtime, ctx } = h.setup())
+  }
+
+  afterEach(() => {
+    h.cleanup()
+  })
+
+  async function call(name: string, params: Record<string, unknown>) {
+    return h.call(name, params, ctx)
+  }
+
+  function dispatchedTask(worktreeId = 'worktree-1'): { taskId: string; dispatchId: string } {
+    const task = db.createTask({ spec: 'ship it' })
+    const dispatch = db.createDispatchContext({
+      taskId: task.id,
+      assigneeHandle: 'term_worker',
+      creator: { kind: 'system' },
+      maxDepth: 3
+    })
+    db.db
+      .prepare(
+        `INSERT INTO worker_dispatches (dispatch_id, state, worktree_id) VALUES (?, 'succeeded', ?)`
+      )
+      .run(dispatch.id, worktreeId)
+    vi.spyOn(runtime, 'showManagedWorktree').mockResolvedValue({
+      id: worktreeId,
+      repoId: 'repo-1'
+    } as Awaited<ReturnType<OrcaRuntimeService['showManagedWorktree']>>)
+    return { taskId: task.id, dispatchId: dispatch.id }
+  }
+
+  describe('orchestration.gateCreate { evaluate }', () => {
+    it('leaves the gate untouched when evaluate is absent', async () => {
+      setup()
+      const task = db.createTask({ spec: 'needs approval' })
+      const result = (await call('orchestration.gateCreate', {
+        task: task.id,
+        question: 'Proceed?'
+      })) as { gate: DecisionGateRow; recommendation?: unknown }
+
+      expect(result.recommendation).toBeUndefined()
+      expect(result.gate.recommended_decision).toBeNull()
+      expect(result.gate.recommended_reason).toBeNull()
+    })
+
+    it('records the decision it would have made and still gates', async () => {
+      setup()
+      runtime.setAlicornMemberDirectory(directory())
+      const { taskId } = dispatchedTask()
+
+      const result = (await call('orchestration.gateCreate', {
+        task: taskId,
+        question: 'Proceed?',
+        evaluate: true
+      })) as { gate: DecisionGateRow; recommendation: { decision: string; reason: string } }
+
+      // No track record exists yet, so the default `evidence` policy recommends a gate on history.
+      expect(result.recommendation).toEqual({ decision: 'gate', reason: 'history' })
+      expect(result.gate.status).toBe('pending')
+      expect(result.gate.recommended_decision).toBe('gate')
+      expect(result.gate.recommended_reason).toBe('history')
+      expect(db.getTask(taskId)?.status).toBe('blocked')
+    })
+
+    it('never auto-resolves, even when the policy would allow it', async () => {
+      setup()
+      const expiresAt = new Date(Date.now() + 86_400_000).toISOString()
+      runtime.setAlicornMemberDirectory(
+        directory({
+          getAutonomyPolicy: vi.fn().mockResolvedValue({
+            projectId: 'repo-1',
+            stageKey: 'build',
+            memberId: null,
+            mode: 'never_gate',
+            minRuns: 10,
+            minAcceptRate: 0.9,
+            maxFiles: null,
+            maxSpendCents: null,
+            createdBy: 'admin',
+            createdAt: '2026-09-01T00:00:00.000Z',
+            expiresAt
+          })
+        })
+      )
+      const { taskId } = dispatchedTask()
+
+      const result = (await call('orchestration.gateCreate', {
+        task: taskId,
+        question: 'Proceed?',
+        evaluate: true
+      })) as { gate: DecisionGateRow; recommendation: { decision: string; reason: string } }
+
+      expect(result.recommendation).toEqual({ decision: 'auto', reason: 'never_gate' })
+      // Level 0/1 is the ceiling: the recommendation is recorded, the gate still blocks.
+      expect(result.gate.status).toBe('pending')
+      expect(result.gate.resolution).toBeNull()
+      expect(db.getTask(taskId)?.status).toBe('blocked')
+    })
+
+    it('gates as unverified when the control plane is unconfigured', async () => {
+      setup()
+      runtime.setAlicornMemberDirectory(null)
+      const { taskId } = dispatchedTask()
+
+      const result = (await call('orchestration.gateCreate', {
+        task: taskId,
+        question: 'Proceed?',
+        evaluate: true
+      })) as { recommendation: { decision: string; reason: string } }
+
+      expect(result.recommendation).toEqual({ decision: 'gate', reason: 'unverified' })
+    })
+
+    it('evaluates the stage the caller names, on that stage authored attributes', async () => {
+      setup()
+      const getStageConfig = vi
+        .fn()
+        .mockResolvedValue({ reversibility: 'irreversible', inheritedCost: 'high' })
+      runtime.setAlicornMemberDirectory(directory({ getStageConfig }))
+      const { taskId } = dispatchedTask()
+
+      const result = (await call('orchestration.gateCreate', {
+        task: taskId,
+        question: 'Merge?',
+        evaluate: true,
+        stageKey: 'merge'
+      })) as { recommendation: { decision: string; reason: string } }
+
+      expect(getStageConfig).toHaveBeenCalledWith('repo-1', 'merge')
+      expect(result.recommendation).toEqual({ decision: 'gate', reason: 'irreversible' })
+    })
+
+    it('sees a check recorded through verifyRecord', async () => {
+      setup()
+      const coverage = {
+        kind: 'diff_coverage',
+        threshold: 0.8,
+        lcovPath: 'coverage/lcov.info',
+        timeoutMs: 600_000
+      }
+      runtime.setAlicornMemberDirectory(
+        directory({ getRequiredChecks: vi.fn().mockResolvedValue([coverage]) })
+      )
+      const { taskId } = dispatchedTask()
+
+      const unverified = (await call('orchestration.gateCreate', {
+        task: taskId,
+        question: 'Proceed?',
+        evaluate: true
+      })) as { recommendation: { reason: string } }
+      expect(unverified.recommendation.reason).toBe('unverified')
+
+      const second = dispatchedTask()
+      await call('orchestration.verifyRecord', {
+        task: second.taskId,
+        kind: 'diff_coverage',
+        name: 'Diff coverage ≥ 80%',
+        status: 'passed',
+        from: 'term_coord'
+      })
+      const verified = (await call('orchestration.gateCreate', {
+        task: second.taskId,
+        question: 'Proceed?',
+        evaluate: true
+      })) as { recommendation: { reason: string } }
+      // The check now passes, so the policy moves on to the next reason in the order.
+      expect(verified.recommendation.reason).toBe('history')
+    })
+  })
+
+  describe('orchestration.verifyRecord', () => {
+    it('records a named result against the task latest dispatch', async () => {
+      setup()
+      const { taskId, dispatchId } = dispatchedTask()
+
+      const result = (await call('orchestration.verifyRecord', {
+        task: taskId,
+        name: 'Typecheck',
+        status: 'passed',
+        from: 'term_coord'
+      })) as { dispatchId: string; verifications: DispatchVerificationRow[] }
+
+      expect(result.dispatchId).toBe(dispatchId)
+      expect(result.verifications).toHaveLength(1)
+      expect(result.verifications[0]).toMatchObject({
+        kind: 'manual',
+        name: 'Typecheck',
+        required: true,
+        status: 'passed'
+      })
+    })
+
+    it('replaces an earlier result for the same check rather than appending', async () => {
+      setup()
+      const { taskId } = dispatchedTask()
+      await call('orchestration.verifyRecord', {
+        task: taskId,
+        name: 'Typecheck',
+        status: 'failed',
+        from: 'term_coord'
+      })
+      const result = (await call('orchestration.verifyRecord', {
+        task: taskId,
+        name: 'Typecheck',
+        status: 'passed',
+        from: 'term_coord'
+      })) as { verifications: DispatchVerificationRow[] }
+
+      expect(result.verifications).toHaveLength(1)
+      expect(result.verifications[0].status).toBe('passed')
+    })
+
+    it('stores an optional detail object and rejects anything else', async () => {
+      setup()
+      const { taskId } = dispatchedTask()
+      const result = (await call('orchestration.verifyRecord', {
+        task: taskId,
+        name: 'Coverage',
+        status: 'failed',
+        detail: JSON.stringify({ covered: 0.4 }),
+        from: 'term_coord'
+      })) as { verifications: DispatchVerificationRow[] }
+      expect(result.verifications[0].detail).toBe('{"covered":0.4}')
+
+      await expect(
+        call('orchestration.verifyRecord', {
+          task: taskId,
+          name: 'Coverage',
+          status: 'failed',
+          detail: '[1,2]',
+          from: 'term_coord'
+        })
+      ).rejects.toThrow('Invalid --detail')
+    })
+
+    it('rejects an unknown task', async () => {
+      setup()
+      await expect(
+        call('orchestration.verifyRecord', {
+          task: 'task_missing',
+          name: 'Typecheck',
+          status: 'passed',
+          from: 'term_coord'
+        })
+      ).rejects.toThrow('Task not found')
+    })
+
+    it('rejects a task that never dispatched', async () => {
+      setup()
+      const task = db.createTask({ spec: 'nothing ran' })
+      await expect(
+        call('orchestration.verifyRecord', {
+          task: task.id,
+          name: 'Typecheck',
+          status: 'passed',
+          from: 'term_coord'
+        })
+      ).rejects.toThrow('no dispatch')
+    })
+  })
+})
