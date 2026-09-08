@@ -75,7 +75,7 @@ describe('foreman preamble sections', () => {
     // stop filling the rest.
     it('says which plan columns Orca writes and which belong to the lead', () => {
       expect(text).toContain('Status and Dispatch columns')
-      expect(text).toContain('Title, Owner, Depends on and Model are yours')
+      expect(text).toContain('Title, Owner, Depends on, Model and Files are yours')
     })
 
     it('restates the restriction that makes it a lead', () => {
@@ -83,6 +83,20 @@ describe('foreman preamble sections', () => {
     })
 
     // A lead receives bounded reports; it does not send one.
+    // Context collapse is the failure this exists to prevent: N bounded reports in one window is
+    // not bounded, so the lead is pointed at the reduced table and told not to read the reports.
+    it('points the lead at the reduced wave table rather than the reports', () => {
+      expect(text).toContain('.foreman/run_alc42/wave-<n>.md')
+      expect(text).toContain('Read that table, not')
+      expect(text).toContain('the reports.')
+    })
+
+    it('tells the lead that declared files are what gets an overlap caught before dispatch', () => {
+      expect(text).toContain('=== WAVES ===')
+      expect(text).toContain('serialises them into')
+      expect(text).toContain('successive waves')
+    })
+
     it('does not also hand the lead the worker report schema', () => {
       expect(text).not.toContain('REPORT (ORCHESTRATED RUN)')
     })

@@ -47,7 +47,17 @@ function toRunView(journal: Journal): ForemanRunView {
     status: journal.status,
     startedAt: journal.startedAt,
     budgetCents: journal.budgetCents,
-    plan: journal.plan
+    // `files` is dropped rather than carried: the panel polls, and the declared footprint is a
+    // scheduling input the view never draws.
+    plan: journal.plan.map((node) => ({
+      id: node.id,
+      title: node.title,
+      owner: node.owner,
+      dependsOn: node.dependsOn,
+      status: node.status,
+      model: node.model,
+      dispatchId: node.dispatchId
+    }))
   }
 }
 

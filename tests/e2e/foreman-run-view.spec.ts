@@ -41,7 +41,8 @@ const JOURNAL = renderJournal({
       dependsOn: [],
       status: 'done',
       model: 'haiku',
-      dispatchId: 'ctx_1'
+      dispatchId: 'ctx_1',
+      files: []
     },
     {
       id: '2',
@@ -50,7 +51,8 @@ const JOURNAL = renderJournal({
       dependsOn: ['1'],
       status: 'dispatched',
       model: 'opus',
-      dispatchId: 'ctx_2'
+      dispatchId: 'ctx_2',
+      files: ['src/api/refunds.ts']
     },
     {
       id: '3',
@@ -59,7 +61,8 @@ const JOURNAL = renderJournal({
       dependsOn: ['1'],
       status: 'dispatched',
       model: 'opus',
-      dispatchId: 'ctx_3'
+      dispatchId: 'ctx_3',
+      files: ['src/ui/refund-form.tsx']
     },
     {
       id: '4',
@@ -68,9 +71,11 @@ const JOURNAL = renderJournal({
       dependsOn: ['2', '3'],
       status: 'pending',
       model: 'codex/sonnet',
-      dispatchId: null
+      dispatchId: null,
+      files: []
     }
   ],
+  waves: [],
   contractRegistry: 'POST /refunds/partial',
   log: [{ at: '2026-09-07T00:01:00.000Z', line: 'dispatched node 2' }],
   notDone: ['nothing yet']

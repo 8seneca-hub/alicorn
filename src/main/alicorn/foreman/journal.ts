@@ -10,6 +10,24 @@ export function journalPath(worktreePath: string, runId: string): string {
   return join(worktreePath, '.foreman', runId, 'journal.md')
 }
 
+/** Worktree-relative, because it is what the journal records and a lead pastes into a read. */
+export function relativeWavePath(runId: string, waveNumber: number): string {
+  return `.foreman/${runId}/wave-${waveNumber}.md`
+}
+
+export function wavePath(worktreePath: string, runId: string, waveNumber: number): string {
+  return join(worktreePath, '.foreman', runId, `wave-${waveNumber}.md`)
+}
+
+/**
+ * Not atomic, unlike the journal: the wave table is derived from reports the journal already
+ * accounts for, so a half-written one is regenerated rather than mourned.
+ */
+export async function writeWaveTable(path: string, markdown: string): Promise<void> {
+  await mkdir(dirname(path), { recursive: true })
+  await writeFile(path, markdown, 'utf8')
+}
+
 /** Absent journal reads as null: a run that has not started one is not an error. */
 export async function readJournal(path: string): Promise<Journal | null> {
   let markdown: string

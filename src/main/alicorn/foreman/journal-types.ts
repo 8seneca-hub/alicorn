@@ -11,8 +11,26 @@ import type {
 // The run vocabulary lives in shared/alicorn/foreman-run.ts, because the renderer draws what this
 // file parses; these names are the journal's spelling of the same things.
 export type JournalNodeStatus = ForemanNodeStatus
-export type JournalNode = ForemanPlanNode
 export type JournalStatus = ForemanRunStatus
+
+/**
+ * `files` is the node's *declared* footprint — the paths the lead intends this node to touch.
+ *
+ * Journal-side only, and deliberately not on `ForemanPlanNode`: the run view does not draw it, and
+ * two nodes declaring the same path is a scheduling fact rather than something a panel renders.
+ */
+export type JournalNode = ForemanPlanNode & { files: string[] }
+
+/** A path two or more nodes of one wave declared: false independence, caught before dispatch. */
+export type JournalWaveOverlap = { path: string; nodeIds: string[] }
+
+export type JournalWave = {
+  n: number
+  nodeIds: string[]
+  /** Worktree-relative path of the reduced table, or null until the whole wave has settled. */
+  reducedPath: string | null
+  overlaps: JournalWaveOverlap[]
+}
 
 export type JournalDecision = {
   n: number
@@ -41,6 +59,8 @@ export type Journal = {
   decisions: JournalDecision[]
   assumptions: JournalAssumption[]
   plan: JournalNode[]
+  /** Derived from the plan, not authored: `planWaves` recomputes it on every journal write. */
+  waves: JournalWave[]
   contractRegistry: string
   log: JournalLogEntry[]
   notDone: string[]

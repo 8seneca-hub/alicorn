@@ -25,9 +25,11 @@ function journal(overrides: Partial<Journal> = {}): Journal {
         dependsOn: [],
         status: 'done',
         model: 'haiku',
-        dispatchId: 'ctx_1'
+        dispatchId: 'ctx_1',
+        files: ['src/api/refunds.ts']
       }
     ],
+    waves: [],
     contractRegistry: '',
     log: [],
     notDone: [],
@@ -116,5 +118,18 @@ describe('readForemanRunView', () => {
     mkdirSync(join(worktree, '.foreman', 'run_empty'), { recursive: true })
 
     await expect(readForemanRunView(worktree)).resolves.toEqual({ state: 'none' })
+  })
+
+  // The view is a poll; the declared footprint is a scheduling input, so it does not ride along.
+  it("does not carry a node's declared files into the view", async () => {
+    writeJournalAt('run_1', renderJournal(journal()))
+
+    const result = await readForemanRunView(worktree)
+
+    expect(result.state).toBe('ready')
+    if (result.state !== 'ready') {
+      return
+    }
+    expect(result.run.plan[0]).not.toHaveProperty('files')
   })
 })

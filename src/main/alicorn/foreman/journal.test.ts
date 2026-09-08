@@ -45,7 +45,8 @@ function journal(overrides: Partial<Journal> = {}): Journal {
         dependsOn: [],
         status: 'done',
         model: 'haiku',
-        dispatchId: 'ctx_1'
+        dispatchId: 'ctx_1',
+        files: []
       },
       {
         id: '2',
@@ -54,7 +55,17 @@ function journal(overrides: Partial<Journal> = {}): Journal {
         dependsOn: ['1'],
         status: 'dispatched',
         model: 'opus',
-        dispatchId: null
+        dispatchId: null,
+        files: ['src/api/refunds.ts']
+      }
+    ],
+    waves: [
+      { n: 1, nodeIds: ['1'], reducedPath: '.foreman/run_alc42/wave-1.md', overlaps: [] },
+      {
+        n: 2,
+        nodeIds: ['2'],
+        reducedPath: null,
+        overlaps: [{ path: 'src/api/refunds.ts', nodeIds: ['1', '2'] }]
       }
     ],
     contractRegistry: 'POST /refunds/partial { amount: cents }',
@@ -91,7 +102,8 @@ describe('renderJournal / parseJournal', () => {
       plan: [],
       contractRegistry: '',
       log: [],
-      notDone: []
+      notDone: [],
+      waves: []
     })
     expect(parseJournal(renderJournal(empty))).toEqual(empty)
   })
@@ -107,7 +119,8 @@ describe('renderJournal / parseJournal', () => {
           dependsOn: [],
           status: 'pending',
           model: null,
-          dispatchId: null
+          dispatchId: null,
+          files: ['src/a|b.ts']
         }
       ]
     })
@@ -124,7 +137,8 @@ describe('renderJournal / parseJournal', () => {
         dependsOn: [],
         status,
         model: null,
-        dispatchId: null
+        dispatchId: null,
+        files: []
       }))
     })
     expect(parseJournal(renderJournal(all)).plan.map((n) => n.status)).toEqual([...statuses])
@@ -161,6 +175,34 @@ describe('renderJournal / parseJournal', () => {
   })
 
   // A lead writes this file by hand; `# <id> — <title>` is what the template shows.
+  // Files and Waves post-date the first journals, and a lead writes this file by hand. A journal
+  // from before them has to keep loading — the waves are recomputed on the next write anyway.
+  it('reads a journal written before Files and Waves existed', () => {
+    const older = renderJournal(journal())
+      .replace(/\n## Waves\n[\s\S]*?\n\n## Contract registry/, '\n\n## Contract registry')
+      .replace(/ \| src\/api\/refunds\.ts \|$/m, ' |')
+    const parsed = parseJournal(older)
+    expect(parsed.waves).toEqual([])
+    expect(parsed.plan[1]?.files).toEqual([])
+  })
+
+  it('round-trips a wave whose overlap names several nodes', () => {
+    const many = journal({
+      waves: [
+        {
+          n: 1,
+          nodeIds: ['1', '2', '3'],
+          reducedPath: null,
+          overlaps: [
+            { path: 'src/a.ts', nodeIds: ['1', '2'] },
+            { path: 'src/b.ts', nodeIds: ['2', '3'] }
+          ]
+        }
+      ]
+    })
+    expect(parseJournal(renderJournal(many)).waves).toEqual(many.waves)
+  })
+
   it('accepts the template heading with a title after the run id', () => {
     const titled = renderJournal(journal()).replace('# run_alc42', '# run_alc42 — partial refunds')
     expect(parseJournal(titled).runId).toBe('run_alc42')

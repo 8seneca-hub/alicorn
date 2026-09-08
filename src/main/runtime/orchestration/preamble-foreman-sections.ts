@@ -75,8 +75,20 @@ context is a cache of it. Keep it current as you go — not at the end:
   # Not done — anything you decided to skip, so it is not mistaken for finished.
 
 Orca writes the plan table's Status and Dispatch columns for you as nodes dispatch and settle.
-Title, Owner, Depends on and Model are yours: fill them when you plan a node, and Orca will not
-overwrite them.
+Title, Owner, Depends on, Model and Files are yours: fill them when you plan a node, and Orca will
+not overwrite them.
+
+=== WAVES ===
+Declare each node's **Files** — the paths you intend it to touch. Two nodes with no edge between
+them look parallel, but if they declare the same file they never were: Orca serialises them into
+successive waves, journals the overlap in the Waves section, and holds the later node until the
+earlier one settles. An undeclared overlap is found at the merge instead.
+
+When every node of a wave has settled, a code step folds their reports into one table at
+\`.foreman/${runId}/wave-<n>.md\` and records the path in the Waves section. **Read that table, not
+the reports.** Each report is bounded; N of them in your window is not, and reading the wave one
+row per node is what keeps this run inside its context. Open a single report only when the table
+sends you to one.
 
 If your context reaches its ceiling you will be told to bring the journal up to date and compact.
 After compacting, work from the journal alone — if something was not worth writing down, it was not

@@ -205,6 +205,14 @@ export class Coordinator {
       return
     }
 
+    // Two ready nodes declaring the same file are not independent, whatever the DAG says. Identity
+    // on a `single` run: the journal is inert, so the default path is scheduled exactly as before.
+    const admitted = new Set(await this.journal.admitReadyTasks(readyTasks.map((task) => task.id)))
+    const dispatchable = readyTasks.filter((task) => admitted.has(task.id))
+    if (dispatchable.length === 0) {
+      return
+    }
+
     const dispatched = this.db.listTasks({ status: 'dispatched' })
     let slotsAvailable = this.opts.maxConcurrent - dispatched.length
     if (slotsAvailable <= 0) {
@@ -221,7 +229,7 @@ export class Coordinator {
       // Why: create at most one terminal per tick to avoid spawning many at once.
       try {
         const created = await this.runtime.createTerminal(this.opts.worktree, {
-          title: `Worker: ${readyTasks[0].spec.slice(0, 40)}`
+          title: `Worker: ${dispatchable[0]!.spec.slice(0, 40)}`
         })
         terminals.push(created.handle)
         this.opts.onLog(`Created worker terminal ${created.handle}`)
@@ -239,7 +247,7 @@ export class Coordinator {
         })
       : null
 
-    for (const task of readyTasks) {
+    for (const task of dispatchable) {
       if (slotsAvailable <= 0 || terminals.length === 0) {
         break
       }

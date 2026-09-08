@@ -1,5 +1,13 @@
-import type { ForemanPlanNode } from '../../../shared/alicorn/foreman-run'
-import { journalPath, readJournal, writeJournal, type Journal, type JournalStatus } from './journal'
+import {
+  journalPath,
+  readJournal,
+  writeJournal,
+  type Journal,
+  type JournalNode,
+  type JournalStatus,
+  type JournalWaveOverlap
+} from './journal'
+import { planWaves } from './wave-dependency-check'
 
 export { journalPath }
 
@@ -48,6 +56,7 @@ export async function openRunJournal(
     decisions: [],
     assumptions: [],
     plan: [],
+    waves: [],
     contractRegistry: '',
     log: [],
     notDone: []
@@ -64,7 +73,7 @@ export async function openRunJournal(
  */
 export function upsertPlanNode(
   journal: Journal,
-  node: Partial<ForemanPlanNode> & { id: string }
+  node: Partial<JournalNode> & { id: string }
 ): void {
   const index = journal.plan.findIndex((existing) => existing.id === node.id)
   if (index === -1) {
@@ -75,6 +84,7 @@ export function upsertPlanNode(
       status: 'pending',
       model: null,
       dispatchId: null,
+      files: [],
       ...node
     })
     return
@@ -89,4 +99,37 @@ export function appendJournalLog(journal: Journal, at: string, line: string): vo
 
 export function setJournalStatus(journal: Journal, status: JournalStatus): void {
   journal.status = status
+}
+
+function overlapKey(overlap: JournalWaveOverlap): string {
+  return `${overlap.path}::${[...overlap.nodeIds].sort().join(',')}`
+}
+
+/**
+ * Recomputes the wave plan from the nodes, and reports the overlaps that were not there before.
+ *
+ * Derived, never authored: the lead owns `dependsOn` and `files`, and the waves are what those two
+ * columns imply. Recomputing on every write is what makes an overlap surface the moment the lead
+ * declares the second node's files, rather than at the merge.
+ *
+ * `reducedPath` is carried across by wave number — it is the one thing on a wave that is a fact
+ * about a run rather than a derivation, and recomputing must not throw it away.
+ */
+export function recordWaves(journal: Journal): JournalWaveOverlap[] {
+  const known = new Set(journal.waves.flatMap((wave) => wave.overlaps.map(overlapKey)))
+  const reducedByWave = new Map(journal.waves.map((wave) => [wave.n, wave.reducedPath]))
+
+  journal.waves = planWaves(journal.plan).map((wave) => ({
+    ...wave,
+    reducedPath: reducedByWave.get(wave.n) ?? null
+  }))
+
+  const fresh = new Map<string, JournalWaveOverlap>()
+  for (const overlap of journal.waves.flatMap((wave) => wave.overlaps)) {
+    const key = overlapKey(overlap)
+    if (!known.has(key) && !fresh.has(key)) {
+      fresh.set(key, overlap)
+    }
+  }
+  return [...fresh.values()]
 }

@@ -124,17 +124,35 @@ One paragraph, from the user.
 | 1 | Idempotency keys scoped per merchant | contained | 3, 4 |
 
 ## Plan
-| Node | Title | Owner | Depends on | Status | Model | Dispatch |
-|---|---|---|---|---|---|---|
-| 1 | orient — map the area | scout | — | done | haiku | ctx_1 |
-| 2 | backend endpoint | builder | 1 | dispatched | opus | ctx_2 |
-| 3 | frontend, against contract | builder | 1 | dispatched | opus | ctx_3 |
-| 4 | review | reviewer — not the author | 2, 3 | pending | codex/sonnet | — |
+| Node | Title | Owner | Depends on | Status | Model | Dispatch | Files |
+|---|---|---|---|---|---|---|---|
+| 1 | orient — map the area | scout | — | done | haiku | ctx_1 | — |
+| 2 | backend endpoint | builder | 1 | dispatched | opus | ctx_2 | src/api/refunds.ts |
+| 3 | frontend, against contract | builder | 1 | dispatched | opus | ctx_3 | src/ui/refund-form.tsx |
+| 4 | review | reviewer — not the author | 2, 3 | pending | codex/sonnet | — | — |
 
 Run status is one of `planning`, `running`, `paused`, `blocked`, `done`, `failed`; node status is
 one of `pending`, `dispatched`, `done`, `failed`, `blocked`. Budget and spend are money or `—`. Empty cells are `—`, and
 a literal `|` inside a cell is escaped `\|` — `src/main/alicorn/foreman/journal-markdown.ts` reads
 this file back, so a hand-written journal has to round-trip.
+
+**Files** is the node's declared footprint: the paths you intend it to touch. It is what the
+hidden-dependency check reads, so a node with no Files declared is a node the check cannot protect.
+
+## Waves
+> Derived from Plan, not authored — Orca recomputes this from `Depends on` and `Files` on every
+> write. Two nodes declaring the same file are not independent, whatever the edges say, so they are
+> split into successive waves and the overlap is recorded here.
+
+| Wave | Nodes | Reduced | Overlapping files |
+|---|---|---|---|
+| 1 | 1 | .foreman/run_alc42/wave-1.md | — |
+| 2 | 2, 3 | — | — |
+| 3 | 4 | — | — |
+
+`Reduced` is the wave's table: when every node in the wave has settled, a code step folds their
+bounded reports into one row per node at `.foreman/<run-id>/wave-<n>.md`. **Read that, not the
+reports** — one bounded report is affordable, N of them in a lead's window is context collapse.
 
 ## Contract registry
 <Accumulated interface deltas from reports. This is what subagents build against.

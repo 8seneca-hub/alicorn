@@ -6,8 +6,11 @@ import {
   type JournalLogEntry,
   type JournalNode,
   type JournalNodeStatus,
-  type JournalStatus
+  type JournalStatus,
+  type JournalWave,
+  type JournalWaveOverlap
 } from './journal-types'
+import { cell, list, renderTable, tableRows, uncell, unlist } from './markdown-table'
 
 const NODE_STATUSES: JournalNodeStatus[] = ['pending', 'dispatched', 'done', 'failed', 'blocked']
 const JOURNAL_STATUSES: JournalStatus[] = [
@@ -18,30 +21,6 @@ const JOURNAL_STATUSES: JournalStatus[] = [
   'done',
   'failed'
 ]
-
-// A cell that contained a pipe would silently split the row on the way back in.
-function cell(value: string): string {
-  return value.replace(/\|/g, '\\|').replace(/\n/g, ' ').trim() || '—'
-}
-
-function uncell(value: string): string {
-  const trimmed = value.replace(/\\\|/g, '|').trim()
-  return trimmed === '—' ? '' : trimmed
-}
-
-function list(values: readonly string[]): string {
-  return values.length > 0 ? cell(values.join(', ')) : '—'
-}
-
-function unlist(value: string): string[] {
-  const raw = uncell(value)
-  return raw
-    ? raw
-        .split(',')
-        .map((item) => item.trim())
-        .filter(Boolean)
-    : []
-}
 
 function money(cents: number | null): string {
   return cents === null ? '—' : `$${(cents / 100).toFixed(2)}`
@@ -59,12 +38,28 @@ function unmoney(value: string, section: string): number | null {
   return Math.round(parsed * 100)
 }
 
-function table(header: readonly string[], rows: readonly string[][]): string {
-  return [
-    `| ${header.join(' | ')} |`,
-    `|${header.map(() => '---').join('|')}|`,
-    ...rows.map((row) => `| ${row.join(' | ')} |`)
-  ].join('\n')
+// `path → a, b`, joined with `; `. A path cannot contain an arrow, which is what makes the pair
+// separable again; pipes are already escaped by `cell`.
+function renderOverlaps(overlaps: readonly JournalWaveOverlap[]): string {
+  return overlaps.length > 0
+    ? cell(overlaps.map((o) => `${o.path} → ${o.nodeIds.join(', ')}`).join('; '))
+    : '—'
+}
+
+function parseOverlaps(value: string): JournalWaveOverlap[] {
+  const raw = uncell(value)
+  if (!raw) {
+    return []
+  }
+  return raw
+    .split(';')
+    .map((entry) => entry.split('→'))
+    .filter((parts) => parts.length === 2)
+    .map(([path, nodeIds]) => ({
+      path: path!.trim(),
+      nodeIds: unlist(nodeIds!)
+    }))
+    .filter((overlap) => overlap.path !== '')
 }
 
 export function renderJournal(journal: Journal): string {
@@ -79,7 +74,7 @@ export function renderJournal(journal: Journal): string {
     journal.objective || '—',
     '',
     '## Decisions',
-    table(
+    renderTable(
       ['#', 'Decision', 'Chosen', 'Why', 'Reversible?'],
       journal.decisions.map((d) => [
         String(d.n),
@@ -91,7 +86,7 @@ export function renderJournal(journal: Journal): string {
     ),
     '',
     '## Assumptions made without asking',
-    table(
+    renderTable(
       ['#', 'Assumption', 'Blast radius', 'Nodes depending on it'],
       journal.assumptions.map((a) => [
         String(a.n),
@@ -102,8 +97,8 @@ export function renderJournal(journal: Journal): string {
     ),
     '',
     '## Plan',
-    table(
-      ['Node', 'Title', 'Owner', 'Depends on', 'Status', 'Model', 'Dispatch'],
+    renderTable(
+      ['Node', 'Title', 'Owner', 'Depends on', 'Status', 'Model', 'Dispatch', 'Files'],
       journal.plan.map((n) => [
         cell(n.id),
         cell(n.title),
@@ -111,7 +106,19 @@ export function renderJournal(journal: Journal): string {
         list(n.dependsOn),
         n.status,
         n.model === null ? '—' : cell(n.model),
-        n.dispatchId === null ? '—' : cell(n.dispatchId)
+        n.dispatchId === null ? '—' : cell(n.dispatchId),
+        list(n.files)
+      ])
+    ),
+    '',
+    '## Waves',
+    renderTable(
+      ['Wave', 'Nodes', 'Reduced', 'Overlapping files'],
+      journal.waves.map((w) => [
+        String(w.n),
+        list(w.nodeIds),
+        w.reducedPath === null ? '—' : cell(w.reducedPath),
+        renderOverlaps(w.overlaps)
       ])
     ),
     '',
@@ -146,33 +153,6 @@ function requireSection(markdown: string, heading: string): string {
     throw new JournalParseError(heading, 'section is missing')
   }
   return body
-}
-
-// Splits on unescaped pipes only, so an escaped pipe inside a cell survives.
-function tableRows(body: string, section: string): string[][] {
-  const lines = body
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.startsWith('|'))
-  if (lines.length === 0) {
-    return []
-  }
-  return lines
-    .slice(2)
-    .map((line) =>
-      line
-        .replace(/^\|/, '')
-        .replace(/\|$/, '')
-        .split(/(?<!\\)\|/)
-        .map((value) => value)
-    )
-    .filter((row) => row.length > 1 || uncell(row[0] ?? '') !== '')
-    .map((row) => {
-      if (row.length < 2) {
-        throw new JournalParseError(section, `row has too few columns: ${row.join('|')}`)
-      }
-      return row
-    })
 }
 
 function bulletList(body: string): string[] {
@@ -230,7 +210,25 @@ function parsePlan(markdown: string): JournalNode[] {
     dependsOn: unlist(row[3] ?? ''),
     status: requireEnum(uncell(row[4] ?? ''), NODE_STATUSES, section),
     model: uncell(row[5] ?? '') || null,
-    dispatchId: uncell(row[6] ?? '') || null
+    dispatchId: uncell(row[6] ?? '') || null,
+    files: unlist(row[7] ?? '')
+  }))
+}
+
+// Optional on the way in, unlike every other section: `Waves` is derived from the plan and post-dates
+// the first journals, so a run started before it — or a lead writing from the older template — must
+// still load. It is rewritten from `planWaves` on the next journal write anyway.
+function parseWaves(markdown: string): JournalWave[] {
+  const section = 'Waves'
+  const body = sectionBody(markdown, section)
+  if (body === null) {
+    return []
+  }
+  return tableRows(body, section).map((row) => ({
+    n: Number(uncell(row[0] ?? '')),
+    nodeIds: unlist(row[1] ?? ''),
+    reducedPath: uncell(row[2] ?? '') || null,
+    overlaps: parseOverlaps(row[3] ?? '')
   }))
 }
 
@@ -258,6 +256,7 @@ export function parseJournal(markdown: string): Journal {
     decisions: parseDecisions(markdown),
     assumptions: parseAssumptions(markdown),
     plan: parsePlan(markdown),
+    waves: parseWaves(markdown),
     contractRegistry: registry === '—' ? '' : registry,
     log: parseLog(markdown),
     notDone: bulletList(requireSection(markdown, 'Not done, and why'))

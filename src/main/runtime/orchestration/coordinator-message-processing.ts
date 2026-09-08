@@ -60,14 +60,14 @@ async function handleLifecycleMessage(inbox: CoordinatorInbox, msg: MessageRow):
     if (!inbox.completedTasks.includes(result.taskId)) {
       inbox.completedTasks.push(result.taskId)
     }
-    await inbox.journal.onTaskSettled(result.taskId, 'completed')
+    await inbox.journal.onTaskSettled(result.taskId, 'completed', msg.body)
     return
   }
   if (result.action === 'failed') {
     if (!inbox.failedTasks.includes(result.taskId)) {
       inbox.failedTasks.push(result.taskId)
     }
-    await inbox.journal.onTaskSettled(result.taskId, 'failed')
+    await inbox.journal.onTaskSettled(result.taskId, 'failed', msg.body)
   }
 }
 

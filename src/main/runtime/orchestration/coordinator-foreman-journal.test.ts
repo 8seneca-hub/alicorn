@@ -1,19 +1,31 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { existsSync, mkdtempSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { OrchestrationDb } from './db'
 import { Coordinator } from './coordinator'
 import { CoordinatorForemanJournal } from './coordinator-foreman-journal'
 import type { CoordinatorRuntime } from './coordinator-runtime-contract'
-import { journalPath, readJournal, writeJournal } from '../../alicorn/foreman/journal'
+import {
+  journalPath,
+  readJournal,
+  wavePath,
+  writeJournal,
+  type Journal
+} from '../../alicorn/foreman/journal'
+import type { ForemanReport } from '../../../shared/alicorn/foreman-report'
 import { readForemanRunView } from '../../alicorn/foreman/run-view-source'
 
 let worktree = ''
 let db: OrchestrationDb
 
-function runtimeStub(): CoordinatorRuntime {
-  const terminals = [{ handle: 'term_a', worktreeId: 'wt1', connected: true, writable: true }]
+function runtimeStub(handles: string[] = ['term_a']): CoordinatorRuntime {
+  const terminals = handles.map((handle) => ({
+    handle,
+    worktreeId: 'wt1',
+    connected: true,
+    writable: true
+  }))
   return {
     async sendTerminalAgentPrompt(handle) {
       return { handle, accepted: true, bytesWritten: 0 }
@@ -56,8 +68,22 @@ function coordinatorFor(options: { orchestrated: boolean; taskSpecs?: string[] }
   }
 }
 
+function reportBody(overrides: Partial<ForemanReport> = {}): string {
+  return JSON.stringify({
+    status: 'done',
+    summary: 'Did the thing.',
+    changes: [{ path: 'src/api/refunds.ts', kind: 'modified', why: 'the endpoint' }],
+    interface_delta: [],
+    verification: { command: 'pnpm test', result: 'passed', evidence: '12 passed' },
+    open_questions: [],
+    artifacts: [],
+    cost: { tokens_in: 1000, tokens_out: 200 },
+    ...overrides
+  })
+}
+
 /** worker_done only reconciles against a dispatch that exists, so this runs after dispatch. */
-function settle(taskId: string, outcome: 'succeeded' | 'failed'): void {
+function settle(taskId: string, outcome: 'succeeded' | 'failed', body?: string): void {
   const dispatch = db.getDispatchContext(taskId)
   if (!dispatch) {
     throw new Error(`No dispatch for task ${taskId}`)
@@ -67,20 +93,55 @@ function settle(taskId: string, outcome: 'succeeded' | 'failed'): void {
     to: 'coord',
     subject: 'Done',
     type: 'worker_done',
+    ...(body ? { body } : {}),
     payload: JSON.stringify({ taskId, dispatchId: dispatch.id, outcome }),
     senderPaneKey: dispatch.assignee_pane_key ?? undefined
   })
+}
+
+/** A plan the lead wrote before the coordinator started, with each node's footprint declared. */
+async function planWithFiles(runId: string, files: Record<string, string[]>): Promise<void> {
+  const journal: Journal = {
+    runId,
+    objective: 'Ship partial refunds.',
+    status: 'running',
+    startedAt: '2026-09-08T00:00:00.000Z',
+    budgetCents: null,
+    spentCents: null,
+    decisions: [],
+    assumptions: [],
+    plan: Object.entries(files).map(([id, paths]) => ({
+      id,
+      title: `node ${id}`,
+      owner: 'builder',
+      dependsOn: [],
+      status: 'pending' as const,
+      model: null,
+      dispatchId: null,
+      files: paths
+    })),
+    waves: [],
+    contractRegistry: '',
+    log: [],
+    notDone: []
+  }
+  await writeJournal(journalPath(worktree, runId), journal)
+}
+
+function inIdOrder(ids: readonly string[]): string[] {
+  return [...ids].sort((left, right) => left.localeCompare(right, 'en', { numeric: true }))
 }
 
 /** One terminal means one dispatch per tick, so each task settles on its own pass. */
 async function drive(
   run: Promise<{ runId: string }>,
   taskIds: string[],
-  outcomes: ('succeeded' | 'failed')[]
+  outcomes: ('succeeded' | 'failed')[],
+  bodies: (string | undefined)[] = []
 ): Promise<{ runId: string }> {
   for (const [index, taskId] of taskIds.entries()) {
     await waitFor(() => db.getDispatchContext(taskId) !== undefined)
-    settle(taskId, outcomes[index] ?? 'succeeded')
+    settle(taskId, outcomes[index] ?? 'succeeded', bodies[index])
   }
   return run
 }
@@ -248,5 +309,111 @@ describe('coordinator journalling', () => {
     expect(view.run.plan.map((node) => node.title)).toContain('orient — map the area')
     const dispatched = view.run.plan.filter((node) => node.dispatchId !== null)
     expect(dispatched).toHaveLength(2)
+  })
+
+  it('records the waves the plan implies', async () => {
+    const { coordinator, taskIds } = coordinatorFor({
+      orchestrated: true,
+      taskSpecs: ['backend endpoint', 'frontend against the contract']
+    })
+
+    const result = await drive(coordinator.run(), taskIds, ['succeeded', 'succeeded'])
+
+    const journal = await readJournal(journalPath(worktree, result.runId))
+    expect(journal?.waves).toHaveLength(1)
+    expect(journal?.waves[0]?.nodeIds.sort()).toEqual([...taskIds].sort())
+  })
+
+  // The ticket in one test: two nodes with no edge between them, declaring the same file. They are
+  // not independent whatever the DAG says, so only one of them is ever in flight — and two free
+  // terminals mean that is a scheduling decision rather than an artefact of the stub.
+  it('serialises two nodes that declare the same file, and journals the overlap', async () => {
+    const taskIds = ['backend endpoint', 'frontend against the contract'].map((spec) => {
+      const task = db.createTask({ spec })
+      db.setTaskExecutionStrategy(task.id, 'orchestrated', 'user')
+      return task.id
+    })
+    const run = db.createCoordinatorRun({
+      spec: 'Ship partial refunds.',
+      coordinatorHandle: 'coord',
+      pollIntervalMs: 5
+    })
+    await planWithFiles(run.id, { [taskIds[0]!]: ['src/a.ts'], [taskIds[1]!]: ['src/a.ts'] })
+
+    const coordinator = new Coordinator(db, runtimeStub(['term_a', 'term_b']), {
+      spec: 'Ship partial refunds.',
+      coordinatorHandle: 'coord',
+      pollIntervalMs: 5,
+      worktree: 'wt1',
+      worktreePath: worktree
+    })
+    const running = coordinator.runFromExistingRun(run.id)
+
+    const [firstOut, secondOut] = inIdOrder(taskIds) as [string, string]
+    await waitFor(() => db.getDispatchContext(firstOut) !== undefined)
+    // Several poll intervals: without the hold the second node goes out in the same tick.
+    await new Promise((resolve) => setTimeout(resolve, 80))
+    expect(db.getDispatchContext(secondOut)).toBeUndefined()
+
+    settle(firstOut, 'succeeded')
+    await waitFor(() => db.getDispatchContext(secondOut) !== undefined)
+    settle(secondOut, 'succeeded')
+    await running
+
+    const journal = await readJournal(journalPath(worktree, run.id))
+    const overlapped = journal!.waves.filter((wave) => wave.overlaps.length > 0)
+    expect(overlapped).toHaveLength(2)
+    expect(overlapped[0]!.nodeIds).toEqual([firstOut])
+    expect(overlapped[1]!.nodeIds).toEqual([secondOut])
+    expect(overlapped[0]!.overlaps[0]).toEqual({ path: 'src/a.ts', nodeIds: [firstOut, secondOut] })
+    expect(journal!.log.some((entry) => entry.line.includes('serialised on src/a.ts'))).toBe(true)
+  })
+
+  // The lead reads one table, never N reports: that is what the reduce step buys.
+  it('reduces a settled wave into one table and points the journal at it', async () => {
+    const { coordinator, taskIds } = coordinatorFor({
+      orchestrated: true,
+      taskSpecs: ['backend endpoint', 'frontend against the contract']
+    })
+
+    const result = await drive(
+      coordinator.run(),
+      taskIds,
+      ['succeeded', 'succeeded'],
+      [
+        reportBody({ summary: 'Wrote the endpoint.' }),
+        reportBody({ summary: 'Wrote the form.', open_questions: ['which currency?'] })
+      ]
+    )
+
+    const journal = await readJournal(journalPath(worktree, result.runId))
+    const wave = journal!.waves[0]!
+    expect(wave.reducedPath).toBe(`.foreman/${result.runId}/wave-1.md`)
+
+    const table = readFileSync(wavePath(worktree, result.runId, 1), 'utf8')
+    expect(table).toContain(`# Wave 1 — ${result.runId}`)
+    expect(table).toContain('Wrote the endpoint.')
+    expect(table).toContain('Wrote the form.')
+    // Both reports named the same path, which is exactly what the lead has to be told.
+    expect(table).toContain('⚠ src/api/refunds.ts')
+    expect(table).toContain('**Wave tokens:** in 2000 / out 400')
+    // Counts, not bodies: the open question stays in the report it came from.
+    expect(table).not.toContain('which currency?')
+    expect(
+      journal!.log.some((entry) => entry.line.includes('wave 1 reduced from 2 report(s)'))
+    ).toBe(true)
+  })
+
+  // A worker on a single-agent run sends free text. Nothing to reduce is not an error, and an empty
+  // table would cost the lead a read that says nothing.
+  it('writes no wave table when no bounded report came back', async () => {
+    const { coordinator, taskIds } = coordinatorFor({ orchestrated: true })
+
+    const result = await drive(coordinator.run(), taskIds, ['succeeded'], ['not json'])
+
+    expect(existsSync(wavePath(worktree, result.runId, 1))).toBe(false)
+    expect(
+      (await readJournal(journalPath(worktree, result.runId)))!.waves[0]?.reducedPath
+    ).toBeNull()
   })
 })

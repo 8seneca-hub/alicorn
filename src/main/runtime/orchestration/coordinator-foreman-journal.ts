@@ -2,11 +2,21 @@ import {
   appendJournalLog,
   journalPath,
   openRunJournal,
+  recordWaves,
   setJournalStatus,
   updateRunJournal,
   upsertPlanNode
 } from '../../alicorn/foreman/journal-writer'
-import type { Journal } from '../../alicorn/foreman/journal'
+import {
+  readJournal,
+  relativeWavePath,
+  wavePath,
+  writeWaveTable,
+  type Journal
+} from '../../alicorn/foreman/journal'
+import { holdsForFileOverlap, isWaveSettled } from '../../alicorn/foreman/wave-dependency-check'
+import { reduceReports, renderWaveFile } from '../../alicorn/foreman/reduce-reports'
+import { ForemanReportSchema, type ForemanReport } from '../../../shared/alicorn/foreman-report'
 import type { ForemanNodeStatus } from '../../../shared/alicorn/foreman-run'
 import type { OrchestrationDb } from './db'
 import type { CoordinatorStatus, TaskRow } from './types'
@@ -32,6 +42,10 @@ export class CoordinatorForemanJournal {
   private readonly deps: ForemanJournalDeps
   private path: string | null = null
   private now: () => Date
+  // Reports live here only between a node settling and its wave reducing. Nothing durable depends
+  // on them: a restart mid-wave loses the wave's table, never the wave — the journal has the nodes.
+  private readonly waveReports = new Map<string, ForemanReport>()
+  private readonly announcedHolds = new Set<string>()
 
   constructor(deps: ForemanJournalDeps) {
     this.deps = deps
@@ -75,6 +89,7 @@ export class CoordinatorForemanJournal {
         if (journal.log.length > 0) {
           appendJournalLog(current, this.now().toISOString(), `coordinator resumed run ${runId}`)
         }
+        this.logNewOverlaps(current)
       })
     })
   }
@@ -97,12 +112,57 @@ export class CoordinatorForemanJournal {
     })
   }
 
-  async onTaskSettled(taskId: string, outcome: 'completed' | 'failed'): Promise<void> {
+  async onTaskSettled(
+    taskId: string,
+    outcome: 'completed' | 'failed',
+    reportBody?: string | null
+  ): Promise<void> {
     const status: ForemanNodeStatus = outcome === 'completed' ? 'done' : 'failed'
-    await this.mutate((journal) => {
-      upsertPlanNode(journal, { id: taskId, status })
-      appendJournalLog(journal, this.now().toISOString(), `node ${taskId} ${status}`)
+    const report = parseReport(reportBody)
+    if (report) {
+      this.waveReports.set(taskId, report)
+    }
+    const journal = await this.mutate((current) => {
+      upsertPlanNode(current, { id: taskId, status })
+      appendJournalLog(current, this.now().toISOString(), `node ${taskId} ${status}`)
     })
+    if (journal) {
+      await this.reduceSettledWave(journal, taskId)
+    }
+  }
+
+  /**
+   * Which of the ready tasks may go out now.
+   *
+   * Identity when this run is not journalled, which is what keeps CLAUDE.md's rule literal: a
+   * `single` run's scheduler is not consulted about waves at all. It also fails open — a journal
+   * that cannot be read costs the serialisation, never the run.
+   */
+  async admitReadyTasks(taskIds: readonly string[]): Promise<string[]> {
+    const path = this.path
+    if (!path || taskIds.length === 0) {
+      return [...taskIds]
+    }
+    let journal: Journal | null = null
+    await this.guard(async () => {
+      journal = await readJournal(path)
+    })
+    if (!journal) {
+      return [...taskIds]
+    }
+    const holds = holdsForFileOverlap((journal as Journal).plan, taskIds)
+    for (const hold of holds) {
+      const key = `${hold.nodeId}<-${hold.blockedBy}:${hold.path}`
+      if (this.announcedHolds.has(key)) {
+        continue
+      }
+      this.announcedHolds.add(key)
+      this.deps.onLog?.(
+        `Foreman: holding node ${hold.nodeId} — ${hold.path} is claimed by node ${hold.blockedBy}`
+      )
+    }
+    const held = new Set(holds.map((hold) => hold.nodeId))
+    return taskIds.filter((taskId) => !held.has(taskId))
   }
 
   /** An escalation is the run's own history, not a node's: it explains a re-plan later. */
@@ -129,12 +189,78 @@ export class CoordinatorForemanJournal {
       .some((task) => this.deps.db.getTaskExecutionStrategy(task.id).strategy === 'orchestrated')
   }
 
-  private async mutate(change: (journal: Journal) => void): Promise<void> {
+  /** Waves are recomputed on every write, so an overlap surfaces as soon as the lead declares it. */
+  private logNewOverlaps(journal: Journal): void {
+    for (const overlap of recordWaves(journal)) {
+      appendJournalLog(
+        journal,
+        this.now().toISOString(),
+        `serialised on ${overlap.path}: nodes ${overlap.nodeIds.join(', ')} declare the same file`
+      )
+    }
+  }
+
+  /**
+   * Folds a settled wave into `.foreman/<run>/wave-<n>.md` and points the journal at it.
+   *
+   * Once per wave: the lead reads one table instead of N reports, which is the whole reason a code
+   * step runs here at all. A wave nobody reported on gets no file — an empty table would cost a
+   * read and say nothing.
+   */
+  private async reduceSettledWave(journal: Journal, settledNodeId: string): Promise<void> {
+    const worktreePath = this.deps.worktreePath
     const path = this.path
-    if (!path) {
+    const wave = journal.waves.find((entry) => entry.nodeIds.includes(settledNodeId))
+    if (!worktreePath || !path || !wave || wave.reducedPath) {
       return
     }
-    await this.guard(() => updateRunJournal(path, change))
+    if (!isWaveSettled(journal.plan, wave.nodeIds)) {
+      return
+    }
+    const entries = wave.nodeIds
+      .map((nodeId) => ({ nodeId, report: this.waveReports.get(nodeId) }))
+      .filter((entry): entry is { nodeId: string; report: ForemanReport } => !!entry.report)
+    if (entries.length === 0) {
+      return
+    }
+
+    const reduced = reduceReports(entries)
+    const relative = relativeWavePath(journal.runId, wave.n)
+    await this.guard(async () => {
+      await writeWaveTable(
+        wavePath(worktreePath, journal.runId, wave.n),
+        renderWaveFile(wave.n, journal.runId, reduced)
+      )
+      await updateRunJournal(path, (current) => {
+        const target = current.waves.find((entry) => entry.n === wave.n)
+        if (target) {
+          target.reducedPath = relative
+        }
+        appendJournalLog(
+          current,
+          this.now().toISOString(),
+          `wave ${wave.n} reduced from ${entries.length} report(s) to ${relative}`
+        )
+      })
+    })
+    for (const nodeId of wave.nodeIds) {
+      this.waveReports.delete(nodeId)
+    }
+  }
+
+  private async mutate(change: (journal: Journal) => void): Promise<Journal | null> {
+    const path = this.path
+    if (!path) {
+      return null
+    }
+    let updated: Journal | null = null
+    await this.guard(async () => {
+      updated = await updateRunJournal(path, (journal) => {
+        change(journal)
+        this.logNewOverlaps(journal)
+      })
+    })
+    return updated
   }
 
   /**
@@ -183,5 +309,18 @@ function nodeStatusFor(status: TaskRow['status']): ForemanNodeStatus {
     case 'pending':
     case 'ready':
       return 'pending'
+  }
+}
+
+/** A worker on a single-agent run sends free text; that is not a report, and is not an error here. */
+function parseReport(body: string | null | undefined): ForemanReport | null {
+  if (!body) {
+    return null
+  }
+  try {
+    const parsed = ForemanReportSchema.safeParse(JSON.parse(body) as unknown)
+    return parsed.success ? parsed.data : null
+  } catch {
+    return null
   }
 }

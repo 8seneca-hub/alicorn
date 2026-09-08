@@ -39,6 +39,14 @@ describe('the journal template in foreman-templates.md', () => {
     expect(journal.plan[3]).toMatchObject({ dependsOn: ['2', '3'], dispatchId: null })
   })
 
+  // The lead declares Files by hand from this template; the hidden-dependency check reads them.
+  it('documents the Files column and the Waves the parser derives from it', () => {
+    const journal = parseJournal(journalTemplate())
+    expect(journal.plan[1]?.files).toEqual(['src/api/refunds.ts'])
+    expect(journal.waves.map((wave) => wave.nodeIds)).toEqual([['1'], ['2', '3'], ['4']])
+    expect(journal.waves[0]?.reducedPath).toBe('.foreman/run_alc42/wave-1.md')
+  })
+
   it('documents a run status the parser accepts', () => {
     const doc = readFileSync(TEMPLATE, 'utf8')
     const statuses = /\*\*Status:\*\* ([^\n]+)/.exec(doc)?.[1] ?? ''
