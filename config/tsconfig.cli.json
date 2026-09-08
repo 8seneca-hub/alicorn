@@ -18,6 +18,8 @@
     "../src/main/agent-hooks/runtime-home-hook-command.ts",
     "../src/main/agent-hooks/windows-powershell-hook-launcher.ts",
     // Why: the CLI installs Claude's managed hooks, and the Foreman lead gate is one of them.
+    // `agent-pane-role.ts` is the role env var the gate script guards on; it imports nothing.
+    "../src/main/alicorn/agent-pane-role.ts",
     "../src/main/alicorn/foreman/lead-tool-gate-hook.ts",
     "../src/main/alicorn/foreman/lead-tool-gate-script.ts",
     "../src/main/amp/agent-status-plugin-source.ts",

@@ -1,3 +1,4 @@
+import { ALICORN_ROLE_ENV } from '../agent-pane-role'
 import type { MemberBackend } from '../../../shared/alicorn/members'
 
 /**
@@ -12,8 +13,8 @@ import type { MemberBackend } from '../../../shared/alicorn/members'
  */
 export const LEAD_DISALLOWED_TOOLS = ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'] as const
 
-/** Read by the PreToolUse hook to tell a lead pane from a worker pane. */
-export const ALICORN_ROLE_ENV = 'ALICORN_ROLE'
+/** Read by the PreToolUse hook to tell a restricted pane from an ordinary one. */
+export { ALICORN_ROLE_ENV }
 
 export type LeadLaunchOptions = { disallowedTools: string[]; env: Record<string, string> }
 export type LeadLaunchUnsupported = { unsupported: true; reason: string }

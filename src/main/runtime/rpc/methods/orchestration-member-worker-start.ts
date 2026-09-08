@@ -1,10 +1,13 @@
 import type { OrcaRuntimeService } from '../../orca-runtime'
-import { OrchestrationError } from '../../orchestration/orchestration-error'
 import type { OrchestrationDb } from '../../orchestration/db/orchestration-db'
 import { resolveMemberLaunchForRequest } from '../../../alicorn/member-launch-request'
 import { prepareLocalWorkerStart } from './orchestration-worker-start-validation'
 import type { WorkerStartInput } from './orchestration-worker-start-schema'
-import type { LeadLaunchOptions } from '../../../alicorn/foreman/lead-launch-options'
+import type { RestrictedPaneLaunch } from '../../../alicorn/agent-pane-role'
+import {
+  restrictedLaunchTerminalReuseError,
+  restrictedLaunchWorktreeError
+} from '../../../alicorn/restricted-launch-refusals'
 
 /**
  * Member resolution and local worker-start validation as one step, so the
@@ -23,8 +26,8 @@ export async function prepareMemberAwareWorkerStart(args: {
   ReturnType<typeof prepareLocalWorkerStart> & {
     /** No-ops for a direct launch, so the caller needs no null check. */
     stampMember: (dispatchId: string) => void
-    /** Set only for a lead dispatch; the terminal it launches carries these restrictions. */
-    leadLaunch: LeadLaunchOptions | null
+    /** Set for a restricted role; the terminal it launches carries these restrictions. */
+    restrictedLaunch: RestrictedPaneLaunch | null
   }
 > {
   const { params, createsWorktree, runtime, db, taskId } = args
@@ -39,7 +42,11 @@ export async function prepareMemberAwareWorkerStart(args: {
       : {}),
     ...(params.role ? { role: params.role } : {})
   })
-  assertLeadLaunchIsApplicable({ leadLaunch: member.leadLaunch, params, createsWorktree })
+  assertRestrictedLaunchIsApplicable({
+    restrictedLaunch: member.restrictedLaunch,
+    params,
+    createsWorktree
+  })
   // The member's backend wins over --agent; a conflict already threw above.
   const prepared = prepareLocalWorkerStart({
     params: member.dispatchMember ? { ...params, agent: member.agent } : params,
@@ -54,34 +61,32 @@ export async function prepareMemberAwareWorkerStart(args: {
         db.setDispatchMember({ dispatchId, ...stamp })
       }
     },
-    leadLaunch: member.leadLaunch
+    restrictedLaunch: member.restrictedLaunch
   }
 }
 
 /**
- * Both refusals exist because a lead whose restrictions were not applied is a lead that can write
- * code, and the run would look orchestrated while being nothing of the sort.
+ * Both refusals exist because restrictions that were not applied leave a role holding every tool
+ * while the run still claims otherwise — a lead that can write code, or a QA member that can read
+ * the implementation it is testing. Neither is visible downstream, so the dispatch is refused here.
+ *
+ * The worktree refusal is a scope limit for QA rather than a principle: `createManagedWorktree`
+ * builds its own startup launch and has no seam for launch restrictions, and a QA member started
+ * unsandboxed is worse than one that has to be pointed at an existing worktree.
  */
-function assertLeadLaunchIsApplicable(args: {
-  leadLaunch: LeadLaunchOptions | null
+function assertRestrictedLaunchIsApplicable(args: {
+  restrictedLaunch: RestrictedPaneLaunch | null
   params: WorkerStartInput
   createsWorktree: boolean
 }): void {
-  if (!args.leadLaunch) {
+  if (!args.restrictedLaunch) {
     return
   }
-  // A lead writes no code, so a worktree of its own would have nothing in it to write to.
   if (args.createsWorktree) {
-    throw new OrchestrationError(
-      'lead_worktree_unsupported',
-      'A lead writes no code and needs no worktree of its own: dispatch it into an existing worktree.'
-    )
+    throw restrictedLaunchWorktreeError(args.restrictedLaunch.role)
   }
   // An already-running agent cannot be restricted after the fact.
   if (args.params.terminal) {
-    throw new OrchestrationError(
-      'lead_terminal_reuse_unsupported',
-      'A lead is restricted at launch, so it cannot reuse a running agent terminal: omit --terminal.'
-    )
+    throw restrictedLaunchTerminalReuseError(args.restrictedLaunch.role)
   }
 }

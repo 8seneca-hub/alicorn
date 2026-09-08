@@ -1,3 +1,4 @@
+import { ALICORN_ROLE_ENV } from '../agent-pane-role'
 import {
   buildPosixHookPayloadCapture,
   WINDOWS_HOOK_STDIN_DRAIN_COMMAND
@@ -7,9 +8,9 @@ import {
  *  fail-open `/hook/<source>` contract is untouched. */
 export const ALICORN_LEAD_TOOL_GATE_PATHNAME = '/alicorn/lead-tool-gate'
 
-/** Set on a lead pane at launch (`lead-launch-options.ts`); absent everywhere else, which is what
- *  keeps an ordinary session from spawning this hook at all. */
-export const ALICORN_ROLE_ENV_VAR = 'ALICORN_ROLE'
+/** Set on a restricted pane at launch; absent everywhere else, which is what keeps an ordinary
+ *  session from spawning this hook at all. */
+export const ALICORN_ROLE_ENV_VAR = ALICORN_ROLE_ENV
 
 const CURL_FLAGS = [
   '--connect-timeout 0.5 --max-time 1.5',

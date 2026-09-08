@@ -1,11 +1,9 @@
-import {
-  isLeadLaunchUnsupported,
-  leadLaunchOptions,
-  type LeadLaunchOptions
-} from './foreman/lead-launch-options'
+import { isLeadLaunchUnsupported, leadLaunchOptions } from './foreman/lead-launch-options'
 import { OrchestrationError } from '../runtime/orchestration/orchestration-error'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
-import type { MemberBackend } from '../../shared/alicorn/members'
+import { isQaLaunchUnsupported, qaLaunchOptions } from './qa-sandbox/qa-launch-options'
+import type { RestrictedPaneLaunch } from './agent-pane-role'
+import type { MemberBackend, MemberRole } from '../../shared/alicorn/members'
 import type { TuiAgent } from '../../shared/tui-agent'
 import { getAuthorBackendsForTask } from './author-backends'
 import { evaluateReviewBackend } from './review-backend-policy'
@@ -13,7 +11,7 @@ import type { MemberDirectory } from './member-directory'
 
 export type DispatchMemberStamp = {
   memberId: string
-  memberRole: string
+  memberRole: MemberRole
   backend: MemberBackend
   reviewBackendBypass: boolean
 }
@@ -21,8 +19,11 @@ export type DispatchMemberStamp = {
 export type WorkerMemberLaunch = {
   agent: string | undefined
   dispatchMember: DispatchMemberStamp | null
-  /** Set only for a lead dispatch; the launch path applies these to the spawned agent. */
-  leadLaunch: LeadLaunchOptions | null
+  /**
+   * Set for a role the tool boundary restricts — a Foreman lead, or a blindfolded QA member. The
+   * launch path applies these to the spawned agent and refuses the dispatch if it cannot.
+   */
+  restrictedLaunch: RestrictedPaneLaunch | null
 }
 
 // Every member backend is a TUI agent Orca can launch; the mapping is identity
@@ -64,7 +65,7 @@ export async function resolveWorkerMemberLaunch(input: {
 }): Promise<WorkerMemberLaunch> {
   assertLeadDispatchNamesMember(input)
   if (!input.memberId) {
-    return { agent: input.requestedAgent, dispatchMember: null, leadLaunch: null }
+    return { agent: input.requestedAgent, dispatchMember: null, restrictedLaunch: null }
   }
 
   const member = await input.directory.getMember(input.memberId)
@@ -100,16 +101,14 @@ export async function resolveWorkerMemberLaunch(input: {
     reviewBackendBypass = verdict.bypassed
   }
 
-  // Why refuse rather than launch a lead anyway: a lead that can quietly write code makes a run
-  // look orchestrated while being nothing of the sort, and nothing downstream would notice.
-  let leadLaunch: LeadLaunchOptions | null = null
-  if (input.role === 'lead') {
-    const options = leadLaunchOptions(member.backend)
-    if (isLeadLaunchUnsupported(options)) {
-      throw new OrchestrationError('lead_backend_unsupported', options.reason)
-    }
-    leadLaunch = options
-  }
+  // Why refuse rather than launch anyway: a lead that can quietly write code makes a run look
+  // orchestrated while being nothing of the sort, and a QA member that can quietly read the
+  // implementation makes a run look blindfolded. Neither would be noticed downstream.
+  const restrictedLaunch = resolveRestrictedPaneLaunch({
+    backend: member.backend,
+    dispatchRole: input.role,
+    memberRole: member.role
+  })
 
   return {
     agent,
@@ -119,6 +118,36 @@ export async function resolveWorkerMemberLaunch(input: {
       backend: member.backend,
       reviewBackendBypass
     },
-    leadLaunch
+    restrictedLaunch
   }
+}
+
+/**
+ * A lead is a lead because the dispatch says so; QA is QA because the Member entity says so. Both
+ * resolve here so there is one answer to "does this pane get restricted", rather than a second
+ * notion of role growing next to the first.
+ *
+ * Lead wins when a QA member is dispatched to lead: the lead policy withholds strictly more of the
+ * worktree, so the blindfold still holds.
+ */
+function resolveRestrictedPaneLaunch(input: {
+  backend: MemberBackend
+  dispatchRole: 'worker' | 'lead' | undefined
+  memberRole: MemberRole
+}): RestrictedPaneLaunch | null {
+  if (input.dispatchRole === 'lead') {
+    const options = leadLaunchOptions(input.backend)
+    if (isLeadLaunchUnsupported(options)) {
+      throw new OrchestrationError('lead_backend_unsupported', options.reason)
+    }
+    return { role: 'lead', restrictions: options }
+  }
+  if (input.memberRole !== 'qa') {
+    return null
+  }
+  const options = qaLaunchOptions(input.backend)
+  if (isQaLaunchUnsupported(options)) {
+    throw new OrchestrationError('qa_backend_unsupported', options.reason)
+  }
+  return { role: 'qa', restrictions: options }
 }

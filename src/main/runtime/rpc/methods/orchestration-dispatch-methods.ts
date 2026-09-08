@@ -7,6 +7,7 @@ import { resolveRunScope } from './orchestration-run-scope'
 import { DispatchParams, DispatchShowParams } from './orchestration-schemas'
 import { enqueueContextCapture, memberContextSlice } from '../../../alicorn/context-capture-enqueue'
 import { resolveMemberLaunchForRequest } from '../../../alicorn/member-launch-request'
+import { restrictedLaunchTerminalReuseError } from '../../../alicorn/restricted-launch-refusals'
 
 export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
   defineMethod({
@@ -104,6 +105,13 @@ export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
           ? { allowSameBackendReview: params.allowSameBackendReview }
           : {})
       })
+
+      // Why refuse rather than dispatch anyway: this path hands work to an agent that is already
+      // running, and a restricted role is restricted at launch. Dispatching one here would give a
+      // QA member with every tool while the run still reports it as blindfolded.
+      if (memberLaunch.restrictedLaunch) {
+        throw restrictedLaunchTerminalReuseError(memberLaunch.restrictedLaunch.role)
+      }
 
       revalidateLegacyCoordinator?.()
       const ctx = db.createDispatchContext({

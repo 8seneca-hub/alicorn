@@ -4,10 +4,10 @@ import { OrchestrationError } from '../../orchestration/orchestration-error'
 import { prepareMemberAwareWorkerStart } from './orchestration-member-worker-start'
 import type { OrcaRuntimeService } from '../../orca-runtime'
 import type { MemberDirectory } from '../../../alicorn/member-directory'
-import type { Member, MemberBackend } from '../../../../shared/alicorn/members'
+import type { Member, MemberBackend, MemberRole } from '../../../../shared/alicorn/members'
 import type { WorkerStartInput } from './orchestration-worker-start-schema'
 
-function member(backend: MemberBackend): Member {
+function member(backend: MemberBackend, role: MemberRole = 'developer'): Member {
   return {
     id: 'm1',
     tenantId: 'local',
@@ -16,7 +16,7 @@ function member(backend: MemberBackend): Member {
     updatedAt: '2026-09-06T00:00:00.000Z',
     name: 'Lead',
     // A lead is a dispatch role, not a member role: any member can be dispatched to lead.
-    role: 'developer',
+    role,
     backend,
     workspaceKind: 'worktree',
     permissionMode: 'ask',
@@ -69,8 +69,8 @@ describe('prepareMemberAwareWorkerStart', () => {
       taskId: 't1'
     })
 
-    expect(prepared.leadLaunch?.disallowedTools).toContain('Write')
-    expect(prepared.leadLaunch?.env.ALICORN_ROLE).toBe('lead')
+    expect(prepared.restrictedLaunch?.restrictions.disallowedTools).toContain('Write')
+    expect(prepared.restrictedLaunch?.restrictions.env.ALICORN_ROLE).toBe('lead')
   })
 
   it('leaves an ordinary worker dispatch unrestricted', async () => {
@@ -82,7 +82,7 @@ describe('prepareMemberAwareWorkerStart', () => {
       taskId: 't1'
     })
 
-    expect(prepared.leadLaunch).toBeNull()
+    expect(prepared.restrictedLaunch).toBeNull()
   })
 
   // A lead writes no code, so a worktree of its own would have nothing in it to write to.
@@ -122,5 +122,44 @@ describe('prepareMemberAwareWorkerStart', () => {
         taskId: 't1'
       })
     ).rejects.toBeInstanceOf(OrchestrationError)
+  })
+
+  it('carries the QA sandbox on an ordinary worker dispatch', async () => {
+    const prepared = await prepareMemberAwareWorkerStart({
+      params: params({ role: undefined }),
+      createsWorktree: false,
+      runtime: runtimeFor(member('claude', 'qa')),
+      db,
+      taskId: 't1'
+    })
+
+    expect(prepared.restrictedLaunch?.role).toBe('qa')
+    expect(prepared.restrictedLaunch?.restrictions.env.ALICORN_ROLE).toBe('qa')
+  })
+
+  // Worktree creation has no seam for launch restrictions, and an unsandboxed QA member is worse
+  // than one that has to be pointed at an existing worktree.
+  it('refuses a QA member that creates a worktree', async () => {
+    await expect(
+      prepareMemberAwareWorkerStart({
+        params: params({ role: undefined, worktree: 'new-child', name: 'qa' }),
+        createsWorktree: true,
+        runtime: runtimeFor(member('claude', 'qa')),
+        db,
+        taskId: 't1'
+      })
+    ).rejects.toMatchObject({ code: 'qa_worktree_unsupported' })
+  })
+
+  it('refuses a QA member that reuses a running agent terminal', async () => {
+    await expect(
+      prepareMemberAwareWorkerStart({
+        params: params({ role: undefined, terminal: 'terminal-9' }),
+        createsWorktree: false,
+        runtime: runtimeFor(member('claude', 'qa')),
+        db,
+        taskId: 't1'
+      })
+    ).rejects.toMatchObject({ code: 'qa_terminal_reuse_unsupported' })
   })
 })

@@ -382,6 +382,31 @@ only path a ledger write may take.
 - **Export is a first-class feature.** Auditors ask for the trail; make it a signed, dated export
   rather than a screenshot.
 
+**As built (QA1, 2026-09-08) — the QA context sandbox, and exactly what it guarantees.**
+A member whose `role` is `qa` launches with `ALICORN_ROLE=qa`, and its pane's Claude `PreToolUse`
+hook — the same transport the Foreman lead gate uses — asks the running app about every tool call
+before it happens (`src/main/alicorn/agent-tool-gate-request.ts`, policy in
+`src/main/alicorn/qa-sandbox/`). Inside the workspace the default is deny: readable are `docs/`,
+`.foreman/`, test directories, `*.test.*` / `*.spec.*` files and Markdown. Paths are resolved
+through `..` and symlinks before they are judged, and anything landing outside the workspace is
+denied too, because the sibling of a worktree is usually another checkout of the same repository.
+Denials are what the agent sees, and each one is logged as `[alicorn] qa-sandbox denied`.
+
+The boundary is worth stating precisely, because the value of this control is that it is mechanical:
+
+- **Enforced.** Path arguments of the file tools, search patterns that walk directories, an unscoped
+  `Grep`/`Glob`, and any shell command whose text names a denied path — except the argument of a
+  `cd`, which reads nothing and is how most agents open a command.
+- **Not enforced.** A shell command that builds its path at runtime (`$var`, `$(…)`, a Python
+  one-liner), and what a test runner prints — a failing assertion's code frame is implementation.
+  The sound fix for both is a QA workspace that never contains the implementation (a sparse
+  checkout), not a longer deny list.
+- **Refused rather than half-applied.** A QA member on a backend with no tool gate
+  (`qa_backend_unsupported`), one creating its own worktree (`qa_worktree_unsupported` — worktree
+  creation has no seam for launch restrictions yet), one reusing a running terminal, and any tool
+  call whose workspace this host cannot resolve, which is how a WSL or SSH pane evaluated on the
+  wrong side of the execution boundary shows up.
+
 ## 10. Non-goals
 
 - Hosting agent execution or inference.

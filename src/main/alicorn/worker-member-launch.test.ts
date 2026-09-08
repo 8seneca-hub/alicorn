@@ -54,7 +54,7 @@ describe('resolveWorkerMemberLaunch', () => {
         taskId: 't1',
         requestedAgent: 'claude'
       })
-    ).resolves.toEqual({ agent: 'claude', dispatchMember: null, leadLaunch: null })
+    ).resolves.toEqual({ agent: 'claude', dispatchMember: null, restrictedLaunch: null })
   })
 
   it('rejects an unknown member', async () => {
@@ -85,7 +85,7 @@ describe('resolveWorkerMemberLaunch', () => {
         backend: 'codex',
         reviewBackendBypass: false
       },
-      leadLaunch: null
+      restrictedLaunch: null
     })
   })
 
@@ -232,8 +232,8 @@ describe('lead dispatches', () => {
       memberId: 'm1',
       role: 'lead'
     })
-    expect(result.leadLaunch?.disallowedTools).toContain('Write')
-    expect(result.leadLaunch?.env.ALICORN_ROLE).toBe('lead')
+    expect(result.restrictedLaunch?.restrictions.disallowedTools).toContain('Write')
+    expect(result.restrictedLaunch?.restrictions.env.ALICORN_ROLE).toBe('lead')
   })
 
   // Why refuse: a lead that can quietly write code makes a run look orchestrated while being
@@ -280,6 +280,37 @@ describe('lead dispatches', () => {
       taskId: 't1',
       memberId: 'm1'
     })
-    expect(result.leadLaunch).toBeNull()
+    expect(result.restrictedLaunch).toBeNull()
+  })
+
+  // The role comes off the Member entity, not a second flag: QA is blindfolded because of who it
+  // is, whereas a lead is a lead because of how it was dispatched.
+  it('sandboxes a QA member on an ordinary worker dispatch', async () => {
+    const result = await resolveWorkerMemberLaunch({
+      db,
+      directory: directory(member('qa', 'claude')),
+      taskId: 't1',
+      memberId: 'm1'
+    })
+    expect(result.restrictedLaunch?.role).toBe('qa')
+    expect(result.restrictedLaunch?.restrictions.env.ALICORN_ROLE).toBe('qa')
+    // QA writes tests, so nothing is disallowed at launch; the gate is the whole enforcement.
+    expect(result.restrictedLaunch?.restrictions.disallowedTools).toBeUndefined()
+  })
+
+  // Why refuse: an ungated QA member reads the implementation and nothing records that it did.
+  it('refuses a QA member on a backend that cannot gate its tool calls', async () => {
+    let caught: unknown
+    try {
+      await resolveWorkerMemberLaunch({
+        db,
+        directory: directory(member('qa', 'codex')),
+        taskId: 't1',
+        memberId: 'm1'
+      })
+    } catch (error) {
+      caught = error
+    }
+    expect((caught as OrchestrationError).code).toBe('qa_backend_unsupported')
   })
 })

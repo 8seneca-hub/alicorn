@@ -1,9 +1,5 @@
 import type { IncomingHttpHeaders } from 'node:http'
-import {
-  evaluateLeadToolUse,
-  leadToolUseFromPreToolUsePayload,
-  type LeadToolDecision
-} from './lead-tool-policy'
+import { evaluateLeadToolUse, leadToolUseFromPreToolUsePayload } from './lead-tool-policy'
 
 /**
  * A `PreToolUse` deny, in both spellings Claude accepts. Emitting the pair is deliberate: the
@@ -25,7 +21,8 @@ function readHeader(headers: IncomingHttpHeaders, name: string): string | undefi
   return typeof first === 'string' && first.trim() ? first.trim() : undefined
 }
 
-function buildDenyResponse(decision: LeadToolDecision): LeadToolGateResponse {
+/** Shared with the QA branch of the gate: one deny shape, so the two roles cannot drift. */
+export function buildToolGateDenyResponse(decision: { reason: string }): LeadToolGateResponse {
   return {
     decision: 'block',
     reason: decision.reason,
@@ -71,5 +68,5 @@ export function evaluateLeadToolGateRequest(
     return null
   }
   const decision = evaluateLeadToolUse(use)
-  return decision ? buildDenyResponse(decision) : null
+  return decision ? buildToolGateDenyResponse(decision) : null
 }

@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { randomUUID } from 'node:crypto'
 
-import { evaluateLeadToolGateRequest } from '../../alicorn/foreman/lead-tool-gate-request'
+import { evaluateAgentToolGateRequest } from '../../alicorn/agent-tool-gate-request'
 import { ALICORN_LEAD_TOOL_GATE_PATHNAME } from '../../alicorn/foreman/lead-tool-gate-script'
 
 import {
@@ -79,7 +79,7 @@ export abstract class AgentHookServerLifecycle extends AgentHookServerRuntimeEnv
         // managed status script discards the response anyway. The lead gate is the one hook whose
         // answer *is* its stdout, so it gets a path where a body means something.
         if (pathname === ALICORN_LEAD_TOOL_GATE_PATHNAME) {
-          const decision = evaluateLeadToolGateRequest(body, req.headers)
+          const decision = evaluateAgentToolGateRequest(body, req.headers)
           if (!decision) {
             res.writeHead(204)
             res.end()
