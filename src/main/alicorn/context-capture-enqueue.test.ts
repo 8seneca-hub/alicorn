@@ -1,4 +1,8 @@
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { installFakeAppEnvironment } from '../../../config/scripts/vitest-host-ports-setup'
 import { OrchestrationDb } from '../runtime/orchestration/db'
 import { enqueueContextCapture } from './context-capture-enqueue'
 
@@ -84,6 +88,23 @@ describe('context capture enqueue', () => {
       enqueueContextCapture(db, { ...base, prompt: 'y'.repeat(70 * 1024) }, { writePromptFile })
     ).not.toThrow()
     expect(rows()).toHaveLength(0)
+  })
+
+  // Why: the spill path must resolve through the AppEnvironment port, not electron's `app` —
+  // this module is in the orcad graph, and a direct electron import fails that build outright.
+  it('spills through the host port, under its userData', () => {
+    const userData = mkdtempSync(join(tmpdir(), 'context-capture-'))
+    installFakeAppEnvironment({ getPath: () => userData })
+
+    try {
+      enqueueContextCapture(db, { ...base, prompt: 'z'.repeat(70 * 1024) })
+
+      const expected = join(userData, 'alicorn', 'context-captures', 'ctx_1.md')
+      expect(JSON.parse(rows()[0]!.payload).promptPath).toBe(expected)
+      expect(readFileSync(expected, 'utf-8')).toHaveLength(70 * 1024)
+    } finally {
+      rmSync(userData, { recursive: true, force: true })
+    }
   })
 
   it('never throws when the database rejects the row', () => {

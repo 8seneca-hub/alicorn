@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { app } from 'electron'
+import { getAppEnvironment } from '../../shared/app-environment'
 import type { OrchestrationDb } from '../runtime/orchestration/db'
 
 // Why: mirrors CONTEXT_CAPTURE_MAX_PROMPT_BYTES in the wire contract. A prompt over the cap is
@@ -16,8 +16,10 @@ export type ContextCaptureInput = {
   contextSlice: Record<string, unknown>
 }
 
+// Why the port and not electron's `app`: this module is reachable from the runtime RPC and orcad
+// entry points, which boot on plain Node — a direct electron import fails the orcad build outright.
 function defaultWritePromptFile(dispatchId: string, prompt: string): string {
-  const directory = join(app.getPath('userData'), 'alicorn', 'context-captures')
+  const directory = join(getAppEnvironment().getPath('userData'), 'alicorn', 'context-captures')
   mkdirSync(directory, { recursive: true })
   const path = join(directory, `${dispatchId}.md`)
   writeFileSync(path, prompt, 'utf-8')
