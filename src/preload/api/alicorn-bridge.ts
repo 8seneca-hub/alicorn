@@ -20,6 +20,13 @@ export const alicornApi: AlicornApi = {
   listRuleProposals: (args) => ipcRenderer.invoke(ALICORN_IPC.ruleProposalsList, args),
   acceptRuleProposal: (args) => ipcRenderer.invoke(ALICORN_IPC.ruleProposalsAccept, args),
   rejectRuleProposal: (args) => ipcRenderer.invoke(ALICORN_IPC.ruleProposalsReject, args),
+  listWorkflows: (projectId) => ipcRenderer.invoke(ALICORN_IPC.workflowsList, { projectId }),
+  getWorkflow: (id) => ipcRenderer.invoke(ALICORN_IPC.workflowGet, { id }),
+  listWorkflowTemplates: () => ipcRenderer.invoke(ALICORN_IPC.workflowTemplatesList),
+  createWorkflow: (graph) => ipcRenderer.invoke(ALICORN_IPC.workflowCreate, { graph }),
+  updateWorkflow: (args) => ipcRenderer.invoke(ALICORN_IPC.workflowUpdate, args),
+  createWorkflowFromTemplate: (args) =>
+    ipcRenderer.invoke(ALICORN_IPC.workflowCreateFromTemplate, args),
 
   // Returns an unsubscribe rather than exposing removeListener, so a renderer
   // cannot detach another subscriber's handler.

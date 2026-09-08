@@ -39,7 +39,7 @@ describePostgres('workflows routes (postgres)', () => {
     transitions: [
       { from: 'spec', to: 'build', trigger: { kind: 'on_success' } },
       { from: 'build', to: 'review', trigger: { kind: 'on_success' } },
-      { from: 'review', to: 'build', trigger: { kind: 'on_failure' } }
+      { from: 'review', to: 'build', kind: 'correction', trigger: { kind: 'on_failure' } }
     ],
     ...over
   })
@@ -155,7 +155,9 @@ describePostgres('workflows routes (postgres)', () => {
     })
     const { workflow } = (await res.json()) as { workflow: Workflow }
     expect(workflow.stages.map((s) => s.key)).toEqual(['spec', 'implement', 'review'])
-    expect(workflow.transitions).toEqual([{ from: 'spec', to: 'implement', trigger: { kind: 'on_success' } }])
+    expect(workflow.transitions).toEqual([
+      { from: 'spec', to: 'implement', kind: 'forward', trigger: { kind: 'on_success' } }
+    ])
   })
 
   it('unassigns a stage when its member is deleted rather than losing the workflow', async () => {

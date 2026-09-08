@@ -1,5 +1,6 @@
-// Hand-mirrored from cloud/packages/control-plane-contract/src/workflow.ts — the read side only.
-// The desktop never authors a workflow; that is the Control API's job.
+// Hand-mirrored from cloud/packages/control-plane-contract/src/workflow.ts. WF1 mirrored the read
+// side only; WF2's canvas authors a graph too, so the write shapes are here as well. The Control
+// API still owns validation — these types are what the canvas sends, not a second rulebook.
 
 import type { RequiredCheck } from './members'
 
@@ -31,9 +32,17 @@ export type WorkflowStage = {
   requiredChecks: RequiredCheck[]
 }
 
+/**
+ * The two return paths GRAPH-ENGINEERING names. `correction` is the return edge — findings going
+ * back to the author. Authored on the transition, never derived from the trigger.
+ */
+export const TRANSITION_KINDS = ['forward', 'correction'] as const
+export type TransitionKind = (typeof TRANSITION_KINDS)[number]
+
 export type WorkflowTransition = {
   from: string
   to: string
+  kind: TransitionKind
   trigger: { kind: TriggerKind }
 }
 
@@ -57,4 +66,31 @@ export type WorkflowSummary = {
   version: number
   stageCount: number
   updatedAt: string
+}
+
+/** What the canvas sends. Identity and version live on the request, not in the graph. */
+export type WorkflowGraphInput = {
+  projectId: string
+  name: string
+  stages: WorkflowStage[]
+  transitions: WorkflowTransition[]
+}
+
+/** A stage of a shipped template: names a *role*, which instantiation binds to a member. */
+export type WorkflowTemplateStage = {
+  key: string
+  name: string
+  ordinal: number
+  memberRole: string | null
+  columnId: string | null
+  reversibility: StageReversibility
+  inheritedCost: InheritedCost
+}
+
+export type WorkflowTemplate = {
+  key: string
+  name: string
+  description: string
+  stages: WorkflowTemplateStage[]
+  transitions: WorkflowTransition[]
 }

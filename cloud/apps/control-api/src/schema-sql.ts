@@ -93,7 +93,16 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      workflow_id TEXT NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
      from_stage TEXT NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
      to_stage TEXT NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
+     kind TEXT NOT NULL DEFAULT 'forward' CHECK (kind IN ('forward', 'correction')),
      trigger JSONB NOT NULL)`,
+  // WF1 rows predate the kind, so they arrive as 'forward'.
+  `ALTER TABLE transitions ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'forward'`,
+  // ...but a WF1 edge to a lower ordinal *is* a return, and leaving it labelled 'forward' would
+  // both draw the wrong arc and make the row un-resaveable — the wire schema now rejects that
+  // pairing. Idempotent: post-WF2 no such row can exist.
+  `UPDATE transitions tr SET kind = 'correction'
+     FROM stages f, stages t
+     WHERE tr.from_stage = f.id AND tr.to_stage = t.id AND t.ordinal < f.ordinal AND tr.kind = 'forward'`,
   `CREATE UNIQUE INDEX IF NOT EXISTS transitions_workflow_edge ON transitions(workflow_id, from_stage, to_stage)`,
   tenantRlsPolicySql('transitions'),
   // Rulebook (v1.5): a human-corrected step proposes a standing rule on the member that caused it.

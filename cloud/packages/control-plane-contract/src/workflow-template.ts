@@ -57,17 +57,17 @@ export const FEATURE_DELIVERY_TEMPLATE = {
     { key: 'deploy', name: 'Deploy', ordinal: 7, memberRole: null, columnId: null, reversibility: 'irreversible', inheritedCost: 'low' }
   ],
   transitions: [
-    { from: 'spec', to: 'architecture', trigger: { kind: 'on_success' } },
-    { from: 'architecture', to: 'design', trigger: { kind: 'on_success' } },
-    { from: 'design', to: 'build', trigger: { kind: 'on_success' } },
-    { from: 'build', to: 'review', trigger: { kind: 'on_success' } },
-    { from: 'review', to: 'verify', trigger: { kind: 'on_success' } },
-    { from: 'verify', to: 'merge', trigger: { kind: 'on_success' } },
-    { from: 'merge', to: 'deploy', trigger: { kind: 'on_success' } },
-    // Why: the return edge carries the point of the diagram — findings go back to the author,
+    { from: 'spec', to: 'architecture', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'architecture', to: 'design', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'design', to: 'build', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'build', to: 'review', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'review', to: 'verify', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'verify', to: 'merge', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'merge', to: 'deploy', kind: 'forward', trigger: { kind: 'on_success' } },
+    // Why: the correction edge carries the point of the diagram — findings go back to the author,
     // they do not become a new ticket.
-    { from: 'review', to: 'build', trigger: { kind: 'on_failure' } },
-    { from: 'verify', to: 'build', trigger: { kind: 'on_failure' } }
+    { from: 'review', to: 'build', kind: 'correction', trigger: { kind: 'on_failure' } },
+    { from: 'verify', to: 'build', kind: 'correction', trigger: { kind: 'on_failure' } }
   ]
 } as const satisfies z.infer<typeof WorkflowTemplateSchema>
 

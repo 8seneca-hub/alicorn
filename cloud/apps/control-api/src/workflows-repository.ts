@@ -47,7 +47,12 @@ type StageRow = {
   required_checks: unknown
 }
 
-type TransitionRow = { from_key: string; to_key: string; trigger: TransitionInput['trigger'] }
+type TransitionRow = {
+  from_key: string
+  to_key: string
+  kind: TransitionInput['kind']
+  trigger: TransitionInput['trigger']
+}
 
 function toStage(row: StageRow): Stage {
   return {
@@ -72,7 +77,7 @@ async function readGraph(client: pg.PoolClient, row: WorkflowRow): Promise<Workf
     [row.id]
   )
   const transitions = await client.query<TransitionRow>(
-    `SELECT f.key AS from_key, t.key AS to_key, tr.trigger
+    `SELECT f.key AS from_key, t.key AS to_key, tr.kind, tr.trigger
      FROM transitions tr
      JOIN stages f ON f.id = tr.from_stage
      JOIN stages t ON t.id = tr.to_stage
@@ -87,7 +92,12 @@ async function readGraph(client: pg.PoolClient, row: WorkflowRow): Promise<Workf
     name: row.name,
     version: row.version,
     stages: stages.rows.map(toStage),
-    transitions: transitions.rows.map((t) => ({ from: t.from_key, to: t.to_key, trigger: t.trigger })),
+    transitions: transitions.rows.map((t) => ({
+      from: t.from_key,
+      to: t.to_key,
+      kind: t.kind,
+      trigger: t.trigger
+    })),
     createdBy: row.created_by,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString()
@@ -164,18 +174,19 @@ async function writeGraph(
   const edgeValues: string[] = []
   const edgeParams: unknown[] = []
   input.transitions.forEach((transition, i) => {
-    const p = i * 5
-    edgeValues.push(`($${p + 1}, $${p + 2}, $${p + 3}, $${p + 4}, $${p + 5}::jsonb)`)
+    const p = i * 6
+    edgeValues.push(`($${p + 1}, $${p + 2}, $${p + 3}, $${p + 4}, $${p + 5}, $${p + 6}::jsonb)`)
     edgeParams.push(
       tenantId,
       workflowId,
       idByKey.get(transition.from),
       idByKey.get(transition.to),
+      transition.kind,
       JSON.stringify(transition.trigger)
     )
   })
   await client.query(
-    `INSERT INTO transitions (tenant_id, workflow_id, from_stage, to_stage, trigger) VALUES ${edgeValues.join(', ')}`,
+    `INSERT INTO transitions (tenant_id, workflow_id, from_stage, to_stage, kind, trigger) VALUES ${edgeValues.join(', ')}`,
     edgeParams
   )
 }

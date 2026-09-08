@@ -6,6 +6,7 @@ import {
   attemptControlPlane as attempt,
   type AlicornFailure
 } from './alicorn-control-plane-result'
+import { registerAlicornWorkflowHandlers } from './alicorn-workflow-handlers'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
@@ -23,7 +24,7 @@ import { isAdvisory } from '../../shared/alicorn/gate-review'
 import { listPendingGateViews } from '../alicorn/gates/pending-gate-view'
 import { enqueueGateAgreement, isGateVerdict } from '../alicorn/gates/gate-agreement'
 
-export type { AlicornFailure }
+export type { AlicornFailure } from './alicorn-control-plane-result'
 
 export type AlicornHandlerDeps = {
   client: ControlPlaneClient | null
@@ -259,4 +260,6 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
       }
     }
   )
+
+  registerAlicornWorkflowHandlers(deps)
 }

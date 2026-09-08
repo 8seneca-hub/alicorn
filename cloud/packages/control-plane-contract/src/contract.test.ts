@@ -146,14 +146,33 @@ describe('workflow contract', () => {
     })
   })
 
-  it('accepts a return edge — a cycle is legal', () => {
+  it('accepts a correction edge — a cycle is legal', () => {
     const parsed = WorkflowInputSchema.parse(
       graph({ transitions: [
         { from: 'build', to: 'review', trigger: { kind: 'on_success' } },
-        { from: 'review', to: 'build', trigger: { kind: 'on_failure' } }
+        { from: 'review', to: 'build', kind: 'correction', trigger: { kind: 'on_failure' } }
       ] })
     )
     expect(parsed.transitions).toHaveLength(2)
+    expect(parsed.transitions.map((t) => t.kind)).toEqual(['forward', 'correction'])
+  })
+
+  // Why: WF1 shipped without the field, so an edge that never named a kind is a forward one.
+  it('defaults an unnamed edge to forward', () => {
+    expect(WorkflowInputSchema.parse(graph()).transitions.every((t) => t.kind === 'forward')).toBe(true)
+  })
+
+  // The kind is what the canvas draws, so an edge may not claim a direction it does not run in.
+  it('rejects a correction edge that runs onward', () => {
+    expect(() => WorkflowInputSchema.parse(graph({
+      transitions: [{ from: 'spec', to: 'build', kind: 'correction', trigger: { kind: 'on_failure' } }]
+    }))).toThrow(/correction_edge_must_return/)
+  })
+
+  it('rejects a forward edge that returns', () => {
+    expect(() => WorkflowInputSchema.parse(graph({
+      transitions: [{ from: 'review', to: 'build', kind: 'forward', trigger: { kind: 'on_failure' } }]
+    }))).toThrow(/forward_edge_must_not_return/)
   })
 
   it('rejects a duplicate stage key', () => {
@@ -227,11 +246,13 @@ describe('workflow templates', () => {
   })
 
   it('sends findings back to the author rather than forward', () => {
-    const returns = FEATURE_DELIVERY_TEMPLATE.transitions.filter((t) => t.trigger.kind === 'on_failure')
+    const returns = FEATURE_DELIVERY_TEMPLATE.transitions.filter((t) => t.kind === 'correction')
     expect(returns.map((t) => [t.from, t.to])).toEqual([
       ['review', 'build'],
       ['verify', 'build']
     ])
+    // Authored, not inferred: every correction edge is also the one the trigger fires on failure.
+    expect(returns.every((t) => t.trigger.kind === 'on_failure')).toBe(true)
   })
 
   it('resolves a template by key and reports an unknown one', () => {

@@ -5,6 +5,17 @@ export const STAGE_REVERSIBILITY = ['free', 'contained', 'irreversible'] as cons
 export const INHERITED_COSTS = ['low', 'high'] as const
 export const TRIGGER_KINDS = ['on_success', 'on_failure', 'manual'] as const
 
+/**
+ * The two return paths GRAPH-ENGINEERING names. A **correction edge** sends a failed unit back to
+ * the step that produced it; a forward edge carries work onward.
+ *
+ * Authored, not derived from the trigger — for the same reason `reversibility` is. An `on_failure`
+ * edge can legitimately go forward to a triage stage, and a `manual` edge can be a correction.
+ * Deriving the kind would make the canvas draw a graph nobody authored.
+ */
+export const TRANSITION_KINDS = ['forward', 'correction'] as const
+export const TransitionKindSchema = z.enum(TRANSITION_KINDS)
+
 export const STAGE_KINDS = ['worker', 'code'] as const
 export const StageKindSchema = z.enum(STAGE_KINDS)
 
@@ -52,6 +63,9 @@ export const TriggerSchema = z.discriminatedUnion('kind', [
 export const TransitionInputSchema = z.object({
   from: StageKeySchema,
   to: StageKeySchema,
+  // Why a default: WF1 shipped without this field, so every stored and in-flight edge reads as
+  // forward unless someone authored otherwise.
+  kind: TransitionKindSchema.default('forward'),
   trigger: TriggerSchema
 })
 
@@ -100,6 +114,7 @@ function checkGraph(graph: WorkflowGraph, ctx: z.RefinementCtx): void {
     }
   })
 
+  const ordinalByKey = new Map(graph.stages.map((stage) => [stage.key, stage.ordinal]))
   const edges = new Set<string>()
   const triggered = new Set<string>()
   graph.transitions.forEach((transition, i) => {
@@ -124,6 +139,19 @@ function checkGraph(graph: WorkflowGraph, ctx: z.RefinementCtx): void {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i, 'trigger'], message: 'ambiguous_trigger' })
     }
     triggered.add(fired)
+
+    // Why enforce direction: the kind is what the canvas draws, so an edge labelled `correction`
+    // that runs onward would draw a return arc for work that never returns. Skipped when either
+    // endpoint is unknown — that issue is already reported above.
+    const from = ordinalByKey.get(transition.from)
+    const to = ordinalByKey.get(transition.to)
+    if (from === undefined || to === undefined) return
+    if (transition.kind === 'correction' && to >= from) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i, 'kind'], message: 'correction_edge_must_return' })
+    }
+    if (transition.kind === 'forward' && to < from) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['transitions', i, 'kind'], message: 'forward_edge_must_not_return' })
+    }
   })
 }
 
@@ -154,6 +182,7 @@ export const WorkflowSummarySchema = z.object({
 export type StageReversibility = z.infer<typeof StageReversibilitySchema>
 export type InheritedCost = z.infer<typeof InheritedCostSchema>
 export type Trigger = z.infer<typeof TriggerSchema>
+export type TransitionKind = z.infer<typeof TransitionKindSchema>
 // Why: a stored stage and an authored one have the same shape — the defaults are already applied.
 export type Stage = z.infer<typeof StageInputSchema>
 export type StageInput = z.input<typeof StageInputSchema>

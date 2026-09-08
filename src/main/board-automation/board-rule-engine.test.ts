@@ -355,8 +355,8 @@ describe('board rule engine', () => {
     const GRAPH = {
       stages: [BUILD_STAGE, CODE_STAGE, DONE_STAGE],
       transitions: [
-        { from: 'format', to: 'qa', trigger: { kind: 'on_success' } },
-        { from: 'format', to: 'build', trigger: { kind: 'on_failure' } }
+        { from: 'format', to: 'qa', kind: 'forward' as const, trigger: { kind: 'on_success' as const } },
+        { from: 'format', to: 'build', kind: 'correction' as const, trigger: { kind: 'on_failure' as const } }
       ]
     }
 

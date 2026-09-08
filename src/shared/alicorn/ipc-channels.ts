@@ -15,7 +15,13 @@ export const ALICORN_IPC = {
   gatesResolve: 'alicorn:gates:resolve',
   ruleProposalsList: 'alicorn:ruleProposals:list',
   ruleProposalsAccept: 'alicorn:ruleProposals:accept',
-  ruleProposalsReject: 'alicorn:ruleProposals:reject'
+  ruleProposalsReject: 'alicorn:ruleProposals:reject',
+  workflowsList: 'alicorn:workflows:list',
+  workflowGet: 'alicorn:workflows:get',
+  workflowTemplatesList: 'alicorn:workflowTemplates:list',
+  workflowCreate: 'alicorn:workflows:create',
+  workflowUpdate: 'alicorn:workflows:update',
+  workflowCreateFromTemplate: 'alicorn:workflows:createFromTemplate'
 } as const
 
 export const ALICORN_EVENTS = {

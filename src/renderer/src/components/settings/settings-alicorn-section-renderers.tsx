@@ -1,5 +1,6 @@
 import { SettingsSection } from './SettingsSection'
 import { AlicornMembersPane } from './AlicornMembersPane'
+import { AlicornWorkflowsPane } from './AlicornWorkflowsPane'
 import { BoardAutomationPane } from './BoardAutomationPane'
 import type { SettingsRenderContext } from './settings-render-context'
 import { translate } from '@/i18n/i18n'
@@ -38,6 +39,25 @@ export function renderBoardAutomationSettingsSection(
       searchEntries={navigation.getSectionSearchEntries('board-automation')}
     >
       {view.isSectionMounted('board-automation') ? <BoardAutomationPane /> : null}
+    </SettingsSection>
+  )
+}
+
+export function renderAlicornWorkflowsSettingsSection(
+  context: SettingsRenderContext
+): React.JSX.Element {
+  const { navigation, view } = context
+  return (
+    <SettingsSection
+      id="alicorn-workflows"
+      title={translate('auto.components.settings.alicornWorkflows.sectionTitle', 'Workflows')}
+      description={translate(
+        'auto.components.settings.alicornWorkflows.sectionDescription',
+        'Stages, who runs them, and the edges between them — including findings going back to the author.'
+      )}
+      searchEntries={navigation.getSectionSearchEntries('alicorn-workflows')}
+    >
+      {view.isSectionMounted('alicorn-workflows') ? <AlicornWorkflowsPane /> : null}
     </SettingsSection>
   )
 }

@@ -14,12 +14,17 @@ import type {
   StageConfig,
   TrackRecord
 } from '../../shared/alicorn/gate-policy'
-import type { Workflow, WorkflowSummary } from '../../shared/alicorn/workflows'
 import type {
   RuleProposal,
   RuleProposalInput,
   RuleProposalStatus
 } from '../../shared/alicorn/rule-proposals'
+import type {
+  Workflow,
+  WorkflowGraphInput,
+  WorkflowSummary,
+  WorkflowTemplate
+} from '../../shared/alicorn/workflows'
 
 export type ControlPlaneClient = {
   listMembers: () => Promise<Member[]>
@@ -59,7 +64,16 @@ export type ControlPlaneClient = {
   listRuleProposals: (memberId: string, status?: RuleProposalStatus) => Promise<RuleProposal[]>
   /** The human action. The accepting actor comes from the request's bearer, never from here. */
   acceptRuleProposal: (id: string, rule: string) => Promise<RuleProposal>
-  rejectRuleProposal: (id: string) => Promise<RuleProposal>
+  rejectRuleProposal: (id: string) => Promise<RuleProposal>,
+  listWorkflowTemplates: () => Promise<WorkflowTemplate[]>
+  createWorkflow: (input: WorkflowGraphInput) => Promise<Workflow>
+  /** `version` is the one the canvas loaded; the API answers 409 `version_conflict` if it moved. */
+  updateWorkflow: (id: string, version: number, input: WorkflowGraphInput) => Promise<Workflow>
+  createWorkflowFromTemplate: (input: {
+    projectId: string
+    templateKey: string
+    name?: string
+  }) => Promise<Workflow>
 }
 
 /**
@@ -238,6 +252,39 @@ export function createControlPlaneClient(deps?: {
         { method: 'POST' }
       )
       return body.proposal
+    },
+
+    listWorkflowTemplates: async () => {
+      const body = await readJson<{ templates: WorkflowTemplate[] }>(
+        'control',
+        '/v1/workflow-templates'
+      )
+      return body.templates ?? []
+    },
+
+    createWorkflow: async (input) => {
+      const body = await readJson<{ workflow: Workflow }>('control', '/v1/workflows', {
+        method: 'POST',
+        body: JSON.stringify(input)
+      })
+      return body.workflow
+    },
+
+    updateWorkflow: async (id, version, input) => {
+      const body = await readJson<{ workflow: Workflow }>(
+        'control',
+        `/v1/workflows/${encodeURIComponent(id)}`,
+        { method: 'PUT', body: JSON.stringify({ ...input, version }) }
+      )
+      return body.workflow
+    },
+
+    createWorkflowFromTemplate: async (input) => {
+      const body = await readJson<{ workflow: Workflow }>('control', '/v1/workflows/from-template', {
+        method: 'POST',
+        body: JSON.stringify(input)
+      })
+      return body.workflow
     }
   }
 }

@@ -94,7 +94,12 @@ describePostgres('workflow template routes (postgres)', () => {
     expect(byKey.get('deploy')!.reversibility).toBe('irreversible')
     expect(byKey.get('architecture')!.inheritedCost).toBe('high')
 
-    expect(workflow.transitions).toContainEqual({ from: 'review', to: 'build', trigger: { kind: 'on_failure' } })
+    expect(workflow.transitions).toContainEqual({
+      from: 'review',
+      to: 'build',
+      kind: 'correction',
+      trigger: { kind: 'on_failure' }
+    })
   })
 
   it('takes a caller-supplied name so one project can hold two instances', async () => {

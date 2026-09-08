@@ -12,6 +12,12 @@ import type {
   RuleProposalsListResult,
   RuleProposalStatus
 } from '../../shared/alicorn/rule-proposals'
+import type {
+  Workflow,
+  WorkflowGraphInput,
+  WorkflowSummary,
+  WorkflowTemplate
+} from '../../shared/alicorn/workflows'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -70,5 +76,27 @@ export type AlicornApi = {
     worktreeId: string | null
     commitToRepo: boolean
   }) => Promise<RuleProposalDecisionResult>
-  rejectRuleProposal: (args: { id: string }) => Promise<RuleProposalDecisionResult>
+  rejectRuleProposal: (args: { id: string }) => Promise<RuleProposalDecisionResult>,
+  /** WF2's canvas. The Control API stays the authority on what graph is legal. */
+  listWorkflows: (
+    projectId: string
+  ) => Promise<{ ok: true; workflows: WorkflowSummary[] } | AlicornFailure>
+  getWorkflow: (id: string) => Promise<WorkflowResult>
+  listWorkflowTemplates: () => Promise<
+    { ok: true; templates: WorkflowTemplate[] } | AlicornFailure
+  >
+  createWorkflow: (graph: WorkflowGraphInput) => Promise<WorkflowResult>
+  /** `version` is the one the canvas loaded; a `version_conflict` error means someone else saved. */
+  updateWorkflow: (args: {
+    id: string
+    version: number
+    graph: WorkflowGraphInput
+  }) => Promise<WorkflowResult>
+  createWorkflowFromTemplate: (args: {
+    projectId: string
+    templateKey: string
+    name?: string
+  }) => Promise<WorkflowResult>
 }
+
+export type WorkflowResult = { ok: true; workflow: Workflow } | AlicornFailure

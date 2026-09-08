@@ -1,6 +1,7 @@
 import { getArtifactsSettingsSearchEntries } from '@/components/settings/artifacts-settings-search'
 import { getBoardAutomationSearchEntries } from '@/components/settings/board-automation-search'
 import { getAlicornMembersSearchEntries } from '@/components/settings/alicorn-members-search'
+import { getAlicornWorkflowsSearchEntries } from '@/components/settings/alicorn-workflows-search'
 import { getAutomationsSettingsSearchEntries } from '@/components/settings/automations-settings-search'
 import { getBrowserPaneCombinedSearchEntries } from '@/components/settings/browser-pane-search'
 import { getCommitMessageAiPaneSearchEntries } from '@/components/settings/commit-message-ai-search'
@@ -55,6 +56,20 @@ export function buildWorkflowSettingsSections(
       ),
       icon: Users,
       searchEntries: getAlicornMembersSearchEntries(),
+      group: 'workflows'
+    },
+    {
+      id: 'alicorn-workflows',
+      title: translate(
+        'auto.hooks.useSettingsNavigationMetadata.alicornWorkflowsTitle',
+        'Workflows'
+      ),
+      description: translate(
+        'auto.hooks.useSettingsNavigationMetadata.alicornWorkflowsDescription',
+        'Stages, who runs them, and the edges between them — including findings going back to the author.'
+      ),
+      icon: Workflow,
+      searchEntries: getAlicornWorkflowsSearchEntries(),
       group: 'workflows'
     },
     {
