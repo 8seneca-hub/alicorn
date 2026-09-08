@@ -172,6 +172,9 @@ export const ORCHESTRATION_POLICY_METHODS: RpcMethod[] = [
             }
           : null,
         evidence: evaluation.detail?.evidence ?? null,
+        // BR1: which authored rule each reached path matched. `touchedProtectedPath` says whether
+        // the run reached the surface; this says where, which is what a human at the gate needs.
+        protectedPathMatches: evaluation.detail?.protectedPathMatches ?? [],
         // Advisory. Level 0/1: reading this never resolves a gate, and no caller may treat an
         // `auto` here as permission — `gateCreate` is the only place a decision is acted on.
         wouldDecide: evaluation.decision

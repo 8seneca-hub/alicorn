@@ -1,5 +1,7 @@
 import { evaluateGate } from './evaluate-gate'
 import { resolveRequiredChecksPassed } from './required-checks-verdict'
+import type { RunBlastRadius } from './run-blast-radius'
+import { resolveProtectedPathReach } from '../../../shared/alicorn/protected-paths'
 import { defaultAutonomyPolicy, type GateDecision } from '../../../shared/alicorn/gate-policy'
 import type {
   AutonomyPolicy,
@@ -8,6 +10,7 @@ import type {
   StageConfig,
   TrackRecord
 } from '../../../shared/alicorn/gate-policy'
+import type { ProtectedPath, ProtectedPathMatch } from '../../../shared/alicorn/protected-paths'
 import type { RequiredCheck } from '../../../shared/alicorn/members'
 import type { DispatchVerificationRow } from '../../runtime/orchestration/db/alicorn/alicorn-rows'
 
@@ -22,6 +25,8 @@ export type GatePolicySource = {
   }) => Promise<AutonomyPolicy | null>
   getStageConfig: (projectId: string, stageKey: string) => Promise<StageConfig>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  /** BR1's reach surface. Authored by an org admin, never by the member being judged. */
+  getProtectedPaths: (projectId: string) => Promise<ProtectedPath[]>
   getTrackRecord: (key: {
     projectId: string
     stageKey: string
@@ -35,6 +40,8 @@ export type GateEvaluationInput = {
   stageKey: string
   memberId: string | null
   verifications: DispatchVerificationRow[]
+  /** Accumulated over the task's *run*, across every task in it — see `measureBlastRadius`. */
+  blastRadius: RunBlastRadius
 }
 
 /**
@@ -52,6 +59,8 @@ export type GateEvaluation = {
     policyAuthored: boolean
     evidence: GateEvidence
     trackRecord: TrackRecord | null
+    /** Which authored rule each reached path matched — what the human at the gate is shown. */
+    protectedPathMatches: ProtectedPathMatch[]
   } | null
 }
 
@@ -72,19 +81,22 @@ export async function evaluateGateForTask(
   let stageConfig: StageConfig
   let authored: AutonomyPolicy | null
   let authoredChecks: RequiredCheck[]
+  let protectedPaths: ProtectedPath[]
   try {
-    const [config, policy, checks] = await Promise.all([
+    const [config, policy, checks, paths] = await Promise.all([
       source.getStageConfig(projectId, input.stageKey),
       source.getAutonomyPolicy({
         projectId,
         stageKey: input.stageKey,
         memberId: input.memberId
       }),
-      source.getRequiredChecks(projectId)
+      source.getRequiredChecks(projectId),
+      source.getProtectedPaths(projectId)
     ])
     stageConfig = config
     authored = policy
     authoredChecks = checks
+    protectedPaths = paths
   } catch (error) {
     console.warn('[alicorn] gate policy unreadable — gating', error)
     return unverified('the control plane could not be read')
@@ -102,21 +114,28 @@ export async function evaluateGateForTask(
   })
 
   const step: GateStep = { stageKey: input.stageKey, ...stageConfig }
+  // BR1. Both numbers are the *run's*, summed over its tasks, because a per-task budget is
+  // laundered by decomposition. Reach is a match against the authored surface: `false` means we
+  // looked and nothing protected was touched, `null` means we could not look, and `evaluateGate`
+  // gives those two different reasons.
+  const reach = resolveProtectedPathReach(input.blastRadius.changedPaths, protectedPaths)
   const evidence: GateEvidence = {
     allRequiredChecksPassed: resolveRequiredChecksPassed(authoredChecks, input.verifications),
-    // Blast radius is BR1's: until it lands nothing computes a file count or a run spend, and
-    // both budgets default to null, so the two checks are skipped rather than faked.
-    filesChanged: null,
-    spendCents: null,
-    // False, not null: no project can author a protected path until BR1 adds the surface, so
-    // nothing is protected yet. BR1 replaces this with a real match — and a null when the
-    // worktree cannot be read.
-    touchedProtectedPath: false,
+    filesChanged: input.blastRadius.filesChanged,
+    spendCents: input.blastRadius.spendCents,
+    touchedProtectedPath: reach.touched,
     stats: trackRecord
   }
   return {
     decision: evaluateGate(step, policy, evidence),
-    detail: { step, policy, policyAuthored: authored !== null, evidence, trackRecord }
+    detail: {
+      step,
+      policy,
+      policyAuthored: authored !== null,
+      evidence,
+      trackRecord,
+      protectedPathMatches: reach.touched === true ? reach.matches : []
+    }
   }
 }
 

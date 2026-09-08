@@ -21,6 +21,7 @@ const MEMBER: Member = {
 const listMembers = vi.fn()
 const getOrgPolicy = vi.fn()
 const getRequiredChecks = vi.fn()
+const getProtectedPaths = vi.fn()
 const getAutonomyPolicy = vi.fn()
 const listAutonomyPolicies = vi.fn()
 const putAutonomyPolicy = vi.fn()
@@ -45,6 +46,7 @@ function directory(ttlMs = 60_000) {
       listMembers,
       getOrgPolicy,
       getRequiredChecks,
+      getProtectedPaths,
       getAutonomyPolicy,
       listAutonomyPolicies,
       putAutonomyPolicy,
@@ -59,6 +61,7 @@ beforeEach(() => {
   listMembers.mockReset().mockResolvedValue([MEMBER])
   getOrgPolicy.mockReset().mockResolvedValue({ enforceDistinctReviewerBackend: false })
   getRequiredChecks.mockReset().mockResolvedValue([])
+  getProtectedPaths.mockReset().mockResolvedValue([])
   getAutonomyPolicy.mockReset().mockResolvedValue(null)
   listAutonomyPolicies.mockReset().mockResolvedValue([])
   putAutonomyPolicy.mockReset().mockResolvedValue({ ...POLICY_INPUT, createdBy: 'actor' })
@@ -94,6 +97,22 @@ describe('caching', () => {
     await dir.getRequiredChecks('p2')
 
     expect(getRequiredChecks).toHaveBeenCalledTimes(2)
+  })
+
+  it('caches the protected-path surface per project', async () => {
+    const dir = directory()
+
+    await dir.getProtectedPaths('p1')
+    await dir.getProtectedPaths('p1')
+    await dir.getProtectedPaths('p2')
+
+    expect(getProtectedPaths).toHaveBeenCalledTimes(2)
+  })
+
+  it('lets an unreadable protected-path surface throw, so the gate can fail safe', async () => {
+    // An empty list here would read as "this project protects nothing" — the one wrong answer.
+    getProtectedPaths.mockRejectedValue(new Error('ECONNREFUSED'))
+    await expect(directory().getProtectedPaths('p1')).rejects.toThrow('ECONNREFUSED')
   })
 
   it('returns null for a member the org does not have', async () => {

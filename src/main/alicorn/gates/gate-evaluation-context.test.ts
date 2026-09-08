@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { OrchestrationDb } from '../../runtime/orchestration/db'
 import { resolveGateEvaluationInput } from './gate-evaluation-context'
+import { UNMEASURED_RUN_BLAST_RADIUS, type RunBlastRadiusSource } from './run-blast-radius'
 
 describe('resolveGateEvaluationInput', () => {
   let db: OrchestrationDb
@@ -52,7 +53,7 @@ describe('resolveGateEvaluationInput', () => {
 
     const input = await resolveGateEvaluationInput(
       db,
-      { showManagedWorktree },
+      { showManagedWorktree, getAlicornBlastRadiusSource: () => null },
       { taskId, stageKey: 'review' }
     )
 
@@ -66,7 +67,10 @@ describe('resolveGateEvaluationInput', () => {
     const { taskId } = taskWithDispatch('worktree-7')
     const input = await resolveGateEvaluationInput(
       db,
-      { showManagedWorktree: vi.fn().mockResolvedValue({ repoId: 'repo-1' }) },
+      {
+        showManagedWorktree: vi.fn().mockResolvedValue({ repoId: 'repo-1' }),
+        getAlicornBlastRadiusSource: () => null
+      },
       { taskId, stageKey: 'build' }
     )
     expect(input.projectId).toBe('repo-1')
@@ -76,7 +80,10 @@ describe('resolveGateEvaluationInput', () => {
     const { taskId } = taskWithDispatch('worktree-gone')
     const input = await resolveGateEvaluationInput(
       db,
-      { showManagedWorktree: vi.fn().mockRejectedValue(new Error('selector_not_found')) },
+      {
+        showManagedWorktree: vi.fn().mockRejectedValue(new Error('selector_not_found')),
+        getAlicornBlastRadiusSource: () => null
+      },
       { taskId, stageKey: 'build' }
     )
     expect(input).toMatchObject({ projectId: null, memberId: null })
@@ -87,15 +94,54 @@ describe('resolveGateEvaluationInput', () => {
     const showManagedWorktree = vi.fn()
     const input = await resolveGateEvaluationInput(
       db,
-      { showManagedWorktree },
+      { showManagedWorktree, getAlicornBlastRadiusSource: () => null },
       { taskId: task.id, stageKey: 'build' }
     )
     expect(input).toEqual({
       projectId: null,
       stageKey: 'build',
       memberId: null,
-      verifications: []
+      verifications: [],
+      blastRadius: UNMEASURED_RUN_BLAST_RADIUS
     })
     expect(showManagedWorktree).not.toHaveBeenCalled()
+  })
+
+  it("measures the blast radius over the task's run, not the task", async () => {
+    const { taskId } = taskWithDispatch('worktree-7')
+    const runId = db.getTask(taskId)!.run_id
+    const measure = vi.fn().mockResolvedValue({
+      filesChanged: 42,
+      spendCents: 900,
+      changedPaths: ['infra/main.tf']
+    })
+    const source: RunBlastRadiusSource = { measure }
+
+    const input = await resolveGateEvaluationInput(
+      db,
+      {
+        showManagedWorktree: vi.fn().mockResolvedValue({ repoId: 'repo-1' }),
+        getAlicornBlastRadiusSource: () => source
+      },
+      { taskId, stageKey: 'build' }
+    )
+
+    expect(measure).toHaveBeenCalledWith(runId)
+    expect(input.blastRadius).toMatchObject({ filesChanged: 42, spendCents: 900 })
+  })
+
+  it('reads a throwing blast-radius source as unmeasured, never as clean', async () => {
+    const { taskId } = taskWithDispatch('worktree-7')
+    const input = await resolveGateEvaluationInput(
+      db,
+      {
+        showManagedWorktree: vi.fn().mockResolvedValue({ repoId: 'repo-1' }),
+        getAlicornBlastRadiusSource: () => ({
+          measure: vi.fn().mockRejectedValue(new Error('git is gone'))
+        })
+      },
+      { taskId, stageKey: 'build' }
+    )
+    expect(input.blastRadius).toEqual(UNMEASURED_RUN_BLAST_RADIUS)
   })
 })

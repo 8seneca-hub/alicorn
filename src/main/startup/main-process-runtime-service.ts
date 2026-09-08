@@ -35,6 +35,9 @@ import { createVerificationRunner } from '../alicorn/diff-coverage/verification-
 import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fetch'
 import { runDiffCoverageCheck } from '../alicorn/diff-coverage/diff-coverage-check'
 import { createBaseRefResolver } from '../alicorn/diff-coverage/base-ref-resolver'
+import { createRunBlastRadiusSource } from '../alicorn/gates/run-blast-radius'
+import { createWorktreeChangedFilesReader } from '../alicorn/gates/worktree-changed-files'
+import { createDispatchSpendReader } from '../alicorn/gates/dispatch-spend-reader'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 import { getAlicornControlPlaneUrls } from '../alicorn/control-plane-urls'
 import { readAlicornBearer } from '../alicorn/control-plane-session'
@@ -155,6 +158,25 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
       }
     }
   })
+  // BR1: what the run has already changed and spent, for the blast-radius budgets. Reuses D6's
+  // authored base-ref resolution and C5's spend attribution rather than measuring either twice.
+  runtime.setAlicornBlastRadiusSource(
+    createRunBlastRadiusSource({
+      getDb: () => runtime.getOrchestrationDb(),
+      readChangedFiles: createWorktreeChangedFilesReader({
+        showManagedWorktree: (selector) => runtime.showManagedWorktree(selector),
+        resolveBaseRef: createBaseRefResolver({
+          store,
+          showManagedWorktree: (selector) => runtime.showManagedWorktree(selector)
+        })
+      }),
+      // Why lazy: usage stores are created after the runtime, so read state.* at call time.
+      readDispatchSpendCents: createDispatchSpendReader({
+        claudeUsage: () => state.claudeUsage ?? null,
+        codexUsage: () => state.codexUsage ?? null
+      })
+    })
+  )
   state.ledgerOutboxDrainer = startLedgerOutboxDrainer({
     getDb: () => runtime.getOrchestrationDb(),
     runtime,

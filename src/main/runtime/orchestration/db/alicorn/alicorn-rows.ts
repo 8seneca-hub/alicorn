@@ -90,3 +90,10 @@ export type BoardAutomationStateRow = {
   disabledAt: string | null
   disabledBy: string | null
 }
+
+/**
+ * One dispatch inside a run, for BR1's blast-radius accumulation. Same columns
+ * `ActiveOrRecentDispatchRow` carries plus the task, because the whole point of the run scope is
+ * that the tasks a change was split into are counted together.
+ */
+export type RunDispatchRow = ActiveOrRecentDispatchRow & { taskId: string }

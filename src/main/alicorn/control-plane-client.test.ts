@@ -112,6 +112,19 @@ describe('policy and required checks', () => {
     expect(lastCall()[1]).toBe('/v1/projects/proj-1/required-checks')
   })
 
+  it('unwraps the protected-paths envelope', async () => {
+    const rule = { kind: 'path', path: 'infra', reason: 'production topology' }
+    fetchMock.mockResolvedValue(jsonResponse({ paths: [rule] }))
+
+    await expect(client.getProtectedPaths('proj-1')).resolves.toEqual([rule])
+    expect(lastCall()[1]).toBe('/v1/projects/proj-1/protected-paths')
+  })
+
+  it('reads an absent protected-paths envelope as an empty surface', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({}))
+    await expect(client.getProtectedPaths('proj-1')).resolves.toEqual([])
+  })
+
   it('unwraps the authored-policies envelope for the audit view', async () => {
     fetchMock.mockResolvedValue(jsonResponse({}))
     await expect(client.listAutonomyPolicies('proj 1')).resolves.toEqual([])

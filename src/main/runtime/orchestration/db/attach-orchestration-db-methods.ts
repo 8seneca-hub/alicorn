@@ -1,4 +1,5 @@
 import { attachActiveOrRecentDispatchMethods } from './alicorn/active-or-recent-dispatch-methods'
+import { attachRunDispatchMethods } from './alicorn/run-dispatch-methods'
 import { attachCorrectionScanMethods } from './alicorn/correction-scan-methods'
 import { attachDispatchLedgerMethods } from './alicorn/dispatch-ledger-methods'
 import { attachBoardTransitionMethods } from './alicorn/board-transition-methods'
@@ -137,6 +138,7 @@ export function attachOrchestrationDbMethods(ctor: { prototype: object }): void 
   attachDispatchVerificationMethods(ctor)
   attachBoardTransitionMethods(ctor)
   attachActiveOrRecentDispatchMethods(ctor)
+  attachRunDispatchMethods(ctor)
   attachCorrectionScanMethods(ctor)
   attachDispatchLedgerMethods(ctor)
   attachSettledDispatchCorrectionsMethods(ctor)

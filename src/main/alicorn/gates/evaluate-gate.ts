@@ -48,6 +48,11 @@ export function evaluateGate(
     return gate('unverified')
   }
 
+  // BR1's budgets, and level 2's guard rail: nothing may reach level 2 without passing through
+  // them. `maxFiles` and `maxSpendCents` are opt-in ceilings — an unauthored budget skips its
+  // check — but the reach test below is not, so a project can never be handed unattended autonomy
+  // over a protected path by simply not authoring a number. Every value here is the *run's*,
+  // accumulated across its tasks, because a per-task budget is laundered by decomposition.
   if (policy.maxFiles !== null) {
     if (evidence.filesChanged === null || evidence.filesChanged > policy.maxFiles) {
       return gate('blast:files')

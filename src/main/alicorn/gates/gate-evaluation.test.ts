@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { evaluateGateForTask, type GatePolicySource } from './gate-evaluation'
+import {
+  evaluateGateForTask,
+  type GateEvaluationInput,
+  type GatePolicySource
+} from './gate-evaluation'
 import type { RequiredCheck } from '../../../shared/alicorn/members'
 import type { AutonomyPolicy, TrackRecord } from '../../../shared/alicorn/gate-policy'
 import type { DispatchVerificationRow } from '../../runtime/orchestration/db/alicorn/alicorn-rows'
@@ -29,6 +33,7 @@ function source(overrides: Partial<GatePolicySource> = {}): GatePolicySource {
     getStageConfig: vi.fn().mockResolvedValue({ reversibility: 'contained', inheritedCost: 'low' }),
     getAutonomyPolicy: vi.fn().mockResolvedValue(null),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
+    getProtectedPaths: vi.fn().mockResolvedValue([]),
     // Absent by default: GP1's suite predates the track record, and a member with none must keep
     // gating on 'history'.
     getTrackRecord: vi.fn().mockRejectedValue(new Error('no track record')),
@@ -36,12 +41,13 @@ function source(overrides: Partial<GatePolicySource> = {}): GatePolicySource {
   }
 }
 
-function input(overrides: Partial<Parameters<typeof evaluateGateForTask>[1]> = {}) {
+function input(overrides: Partial<GateEvaluationInput> = {}): GateEvaluationInput {
   return {
     projectId: 'repo-1',
     stageKey: 'build',
     memberId: 'member-1',
     verifications: [] as DispatchVerificationRow[],
+    blastRadius: { filesChanged: 0, spendCents: 0, changedPaths: [] as string[] },
     ...overrides
   }
 }
@@ -208,5 +214,142 @@ describe('evaluateGateForTask', () => {
       stageKey: 'review',
       memberId: 'member-9'
     })
+  })
+})
+
+// BR1. The budgets themselves are `evaluateGate`'s; what is tested here is that the *evidence*
+// reaching them is the run's, is real, and never reads as clean when it could not be measured.
+describe('evaluateGateForTask blast radius', () => {
+  function spotless(overrides: Partial<GatePolicySource> = {}): GatePolicySource {
+    return source({
+      getTrackRecord: vi.fn().mockResolvedValue(trackRecord()),
+      getRequiredChecks: vi.fn().mockResolvedValue([COVERAGE]),
+      ...overrides
+    })
+  }
+
+  function budget(overrides: Partial<AutonomyPolicy>): GatePolicySource['getAutonomyPolicy'] {
+    return vi.fn().mockResolvedValue({
+      projectId: 'repo-1',
+      stageKey: 'build',
+      memberId: 'member-1',
+      mode: 'evidence',
+      minRuns: 10,
+      minAcceptRate: 0.9,
+      maxFiles: null,
+      maxSpendCents: null,
+      createdBy: 'admin',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      expiresAt: null,
+      ...overrides
+    } satisfies AutonomyPolicy)
+  }
+
+  const passing = { verifications: [passingCoverage()] }
+
+  it('gates on the run total, which five small tasks summed past the budget', async () => {
+    // Each task changed eight files; no single one breaches a ceiling of ten, the run does.
+    const decision = await decisionFor(
+      spotless({ getAutonomyPolicy: budget({ maxFiles: 10 }) }),
+      input({ ...passing, blastRadius: { filesChanged: 40, spendCents: 0, changedPaths: [] } })
+    )
+    expect(decision).toEqual({ decision: 'gate', reason: 'blast:files' })
+  })
+
+  it('lets a run inside the budget through', async () => {
+    const decision = await decisionFor(
+      spotless({ getAutonomyPolicy: budget({ maxFiles: 10, maxSpendCents: 500 }) }),
+      input({ ...passing, blastRadius: { filesChanged: 9, spendCents: 499, changedPaths: [] } })
+    )
+    expect(decision).toEqual({ decision: 'auto', reason: 'auto' })
+  })
+
+  it('gates on the run spend the same way', async () => {
+    const decision = await decisionFor(
+      spotless({ getAutonomyPolicy: budget({ maxSpendCents: 500 }) }),
+      input({ ...passing, blastRadius: { filesChanged: 1, spendCents: 501, changedPaths: [] } })
+    )
+    expect(decision).toEqual({ decision: 'gate', reason: 'blast:spend' })
+  })
+
+  it('gates when the run could not be measured at all and a budget is authored', async () => {
+    const decision = await decisionFor(
+      spotless({ getAutonomyPolicy: budget({ maxFiles: 10 }) }),
+      input({
+        ...passing,
+        blastRadius: { filesChanged: null, spendCents: null, changedPaths: null }
+      })
+    )
+    expect(decision).toEqual({ decision: 'gate', reason: 'blast:files' })
+  })
+
+  it('gates on reach even with no numeric budget authored — the reach guard is not opt-in', async () => {
+    const evaluation = await evaluateGateForTask(
+      spotless({
+        getProtectedPaths: vi.fn().mockResolvedValue([{ kind: 'path', path: 'infra' }])
+      }),
+      input({
+        ...passing,
+        blastRadius: { filesChanged: 2, spendCents: 0, changedPaths: ['src/a.ts', 'infra/main.tf'] }
+      })
+    )
+    expect(evaluation.decision).toEqual({ decision: 'gate', reason: 'blast:reach' })
+    expect(evaluation.detail?.evidence.touchedProtectedPath).toBe(true)
+    expect(evaluation.detail?.protectedPathMatches).toEqual([
+      { path: 'infra/main.tf', rule: { kind: 'path', path: 'infra' } }
+    ])
+  })
+
+  it('reads an unreadable worktree as unverified, not as reach — a null is not a match', async () => {
+    const evaluation = await evaluateGateForTask(
+      spotless({
+        getProtectedPaths: vi.fn().mockResolvedValue([{ kind: 'extension', extension: '.tf' }])
+      }),
+      input({
+        ...passing,
+        blastRadius: { filesChanged: null, spendCents: 0, changedPaths: null }
+      })
+    )
+    expect(evaluation.detail?.evidence.touchedProtectedPath).toBeNull()
+    expect(evaluation.decision).toEqual({ decision: 'gate', reason: 'unverified' })
+  })
+
+  it('changes nothing for a project that has authored no surface and no budget', async () => {
+    // BR1 must be inert until an org admin authors something: an unmeasurable worktree on a
+    // project that protects nothing still resolves to false, not to a new gate.
+    const evaluation = await evaluateGateForTask(
+      spotless(),
+      input({
+        ...passing,
+        blastRadius: { filesChanged: null, spendCents: null, changedPaths: null }
+      })
+    )
+    expect(evaluation.detail?.evidence.touchedProtectedPath).toBe(false)
+    expect(evaluation.decision).toEqual({ decision: 'auto', reason: 'auto' })
+  })
+
+  it('checks the hard stop before the blast radius, so reach never has to be measured to gate', async () => {
+    const decision = await decisionFor(
+      spotless({
+        getProtectedPaths: vi.fn().mockResolvedValue([{ kind: 'path', path: 'infra' }]),
+        getStageConfig: vi
+          .fn()
+          .mockResolvedValue({ reversibility: 'irreversible', inheritedCost: 'high' })
+      }),
+      input({
+        ...passing,
+        stageKey: 'merge',
+        blastRadius: { filesChanged: 1, spendCents: 0, changedPaths: ['infra/main.tf'] }
+      })
+    )
+    expect(decision).toEqual({ decision: 'gate', reason: 'irreversible' })
+  })
+
+  it('gates when the protected-path surface cannot be read', async () => {
+    const decision = await decisionFor(
+      spotless({ getProtectedPaths: vi.fn().mockRejectedValue(new Error('ECONNREFUSED')) }),
+      input(passing)
+    )
+    expect(decision).toEqual({ decision: 'gate', reason: 'unverified' })
   })
 })

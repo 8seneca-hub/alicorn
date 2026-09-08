@@ -7,6 +7,7 @@ import type {
   RunCost
 } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
+import type { ProtectedPath } from '../../shared/alicorn/protected-paths'
 import type {
   AutonomyPolicy,
   AutonomyPolicyInput,
@@ -22,6 +23,8 @@ export type ControlPlaneClient = {
   deleteMember: (id: string) => Promise<void>
   getOrgPolicy: () => Promise<OrgPolicy>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  /** BR1's authored reach surface — empty means the project protects nothing, not that it is unknown. */
+  getProtectedPaths: (projectId: string) => Promise<ProtectedPath[]>
   /** Null when the project has authored no policy — distinct from the control plane being down. */
   getAutonomyPolicy: (key: {
     projectId: string
@@ -106,6 +109,14 @@ export function createControlPlaneClient(deps?: {
         `${projectPath(projectId)}/required-checks`
       )
       return body.checks ?? []
+    },
+
+    getProtectedPaths: async (projectId) => {
+      const body = await readJson<{ paths: ProtectedPath[] }>(
+        'control',
+        `${projectPath(projectId)}/protected-paths`
+      )
+      return body.paths ?? []
     },
 
     getAutonomyPolicy: async ({ projectId, stageKey, memberId }) => {

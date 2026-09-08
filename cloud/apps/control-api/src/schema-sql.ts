@@ -36,6 +36,16 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      PRIMARY KEY (tenant_id, project_id))`,
   tenantRlsPolicySql('project_required_checks'),
+  // BR1: the reach half of a blast-radius budget. Authored by an org admin, never by the member
+  // being judged, and never inferred from what a run happened to touch.
+  `CREATE TABLE IF NOT EXISTS project_protected_paths (
+     tenant_id TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     paths JSONB NOT NULL DEFAULT '[]'::jsonb,
+     updated_by TEXT,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, project_id))`,
+  tenantRlsPolicySql('project_protected_paths'),
   // Workflows — authored stage graphs (WF1). Stages are addressed on the wire by `key`;
   // ids stay internal so a save is idempotent and a reorder is one request.
   `CREATE TABLE IF NOT EXISTS workflows (

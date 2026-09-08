@@ -1,5 +1,6 @@
 import type { ControlPlaneClient } from './control-plane-client'
 import type { Member, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
+import type { ProtectedPath } from '../../shared/alicorn/protected-paths'
 import type {
   AutonomyPolicy,
   AutonomyPolicyInput,
@@ -18,6 +19,10 @@ export type MemberDirectory = {
   getMember: (id: string) => Promise<Member | null>
   getOrgPolicy: () => Promise<OrgPolicy>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  // BR1's reach surface. Same no-fallback posture as the policy: an unreadable surface throws so
+  // the gate caller fails safe, rather than being handed an empty list that reads as "nothing is
+  // protected" — the one wrong answer here.
+  getProtectedPaths: (projectId: string) => Promise<ProtectedPath[]>
   // Gate policy (GP1). Deliberately no fail-closed fallback here: a gate caller has to tell an
   // absent policy (null, apply the default) from an unreadable one (throws, fail safe to a gate),
   // and swallowing the error here would collapse the two.
@@ -51,6 +56,7 @@ export function createMemberDirectory(
   let members: Cached<Member[]> | null = null
   let policy: Cached<OrgPolicy> | null = null
   const checks = new Map<string, Cached<RequiredCheck[]>>()
+  const protectedPaths = new Map<string, Cached<ProtectedPath[]>>()
   const policies = new Map<string, Cached<AutonomyPolicy | null>>()
   const stageConfigs = new Map<string, Cached<StageConfig>>()
   const authoredPolicies = new Map<string, Cached<AutonomyPolicy[]>>()
@@ -119,6 +125,15 @@ export function createMemberDirectory(
         () => client.getRequiredChecks(projectId),
         (entry) => {
           checks.set(projectId, entry)
+        }
+      ),
+
+    getProtectedPaths: async (projectId) =>
+      refresh(
+        protectedPaths.get(projectId),
+        () => client.getProtectedPaths(projectId),
+        (entry) => {
+          protectedPaths.set(projectId, entry)
         }
       ),
 

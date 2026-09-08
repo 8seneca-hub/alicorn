@@ -1,6 +1,7 @@
 export * from './member.js'
 export * from './org-policy.js'
 export * from './required-check.js'
+export * from './protected-path.js'
 export * from './rule-proposal.js'
 export * from './workflow.js'
 export * from './workflow-template.js'
