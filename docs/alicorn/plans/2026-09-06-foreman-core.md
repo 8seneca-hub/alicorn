@@ -184,7 +184,9 @@ export function leadLaunchOptions(backend: MemberBackend): { disallowedTools: st
 
 ### Task 10 (SM1): Success measurement protocol
 
-**Files:** `docs/alicorn/FOREMAN.md` (§ *Measuring it*: the v0.1 `interruptions_per_completed_task` baseline; the v2.0 experiment — same ticket, one developer vs a Foreman run, time to mergeable PR and total spend; threshold agreed *before* running; record in Plane), CLI `alicorn ledger report --compare-runs <a> <b>` (reads both runs' cost + interruptions from the ledger).
+**Protocol written 2026-09-08 — [`docs/alicorn/MEASUREMENT.md`](../MEASUREMENT.md)**, as a standing document rather than a section, because it is signed off before the run and cited after it. Read it before touching this task; the remaining work below is what it depends on and does not itself build.
+
+**Files:** `docs/alicorn/FOREMAN.md` (§ *Measuring it*: records the run's result — numbers per pair, the registration SHA and the app SHA under test, per MEASUREMENT §13), CLI: **not** `--compare-runs`; MEASUREMENT §11.1 replaces it with `runId` and `executionStrategy` filters on `getInterruptionsReport` and the `ledger report` spec, plus `ledger cost --run <id>` and `ledger provenance` (§11.7). MEASUREMENT §11.4 (`step_interruptions.resolved_at`) is the highest-value of the gaps — without it, attended time is hand-timed.
 - [ ] Commit `docs(foreman): lead specification and the measurement protocol`.
 
 ---

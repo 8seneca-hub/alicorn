@@ -6,6 +6,7 @@ Planning documents for the Alicorn product built on this codebase.
 | --- | --- |
 | [PROJECT-BRIEF.md](PROJECT-BRIEF.md) | The review brief: goal, two execution axes, Foreman, feature list with origins, the committed first slice, decisions (accepted 2026-09-06) and risks |
 | [ROADMAP.md](ROADMAP.md) | Four releases with scope, exit criteria, critical path, team shape and risks |
+| [MEASUREMENT.md](MEASUREMENT.md) | SM1 — how Foreman is compared against one developer on a real ticket, with the ledger fields it reads. **Draft: every threshold is a proposal awaiting sign-off** |
 | [plans/](plans/) | Implementation plans — one per subsystem, executed task by task |
 | [OWNERSHIP.md](OWNERSHIP.md) | Who owns which Plane module and which files, the shared-file rule, and the seams both owners rely on |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Components, identity, data model, the autonomy policy and the API surface |
