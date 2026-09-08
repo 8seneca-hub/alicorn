@@ -54,6 +54,48 @@ describe('summarizeTrackRecord', () => {
     expect(summarizeTrackRecord(KEY, window).rejected).toBe(1)
   })
 
+  it('names which half of the demotion rule fired, and prefers the rejection', () => {
+    expect(summarizeTrackRecord(KEY, [...outcomes(1, 'rejected'), ...outcomes(9)])).toMatchObject({
+      demotionReason: 'rejection',
+      recentRejected: 1,
+      recentAmended: 0
+    })
+    expect(summarizeTrackRecord(KEY, [...outcomes(2, 'amended'), ...outcomes(8)])).toMatchObject({
+      demotionReason: 'amendments',
+      recentRejected: 0,
+      recentAmended: 2
+    })
+    expect(
+      summarizeTrackRecord(KEY, [
+        ...outcomes(1, 'rejected'),
+        ...outcomes(2, 'amended'),
+        ...outcomes(7)
+      ]).demotionReason
+    ).toBe('rejection')
+  })
+
+  it('names no reason on a record nobody has faulted', () => {
+    const record = summarizeTrackRecord(KEY, [...outcomes(1, 'amended'), ...outcomes(49)])
+    expect(record).toMatchObject({ demotionReason: null, recentRegression: false })
+  })
+
+  it('is asymmetric: 50 clean runs to reach level 3, one rejection to lose it', () => {
+    const earned = summarizeTrackRecord(KEY, [
+      ...outcomes(30),
+      ...outcomes(1, 'amended'),
+      ...outcomes(19)
+    ])
+    expect(earned.level).toBe(3)
+    // The same record with a single rejection at its head — one run of fifty-one.
+    const lost = summarizeTrackRecord(KEY, [
+      ...outcomes(1, 'rejected'),
+      ...outcomes(30),
+      ...outcomes(1, 'amended'),
+      ...outcomes(19)
+    ])
+    expect(lost).toMatchObject({ level: 2, demotionReason: 'rejection' })
+  })
+
   it('takes the newest amendment as lastAmendedAt', () => {
     const record = summarizeTrackRecord(KEY, [
       { succeeded: true, humanVerdict: 'amended', createdAt: '2026-02-01T00:00:00.000Z' },

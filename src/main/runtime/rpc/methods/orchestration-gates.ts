@@ -5,11 +5,12 @@ import type { GateStatus } from '../../orchestration/db'
 import { Coordinator } from '../../orchestration/coordinator'
 import { resolveRunScope } from './orchestration-run-scope'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
-import { DEFAULT_GATE_STAGE_KEY, evaluateGateForTask } from '../../../alicorn/gates/gate-evaluation'
+import { evaluateGateForTask } from '../../../alicorn/gates/gate-evaluation'
 import { enqueueGateAgreement, GATE_VERDICTS } from '../../../alicorn/gates/gate-agreement'
 import { resolveGateEvaluationInput } from '../../../alicorn/gates/gate-evaluation-context'
 import { getLatestDispatchForTask } from '../../orchestration/db/dispatch-context/task-dispatch-reconciliation'
 import type { GateDecision } from '../../../../shared/alicorn/gate-policy'
+import type { GateRetirement } from '../../../../shared/alicorn/gate-retirement'
 
 // Why: the coordinator instance is stored at module scope so orchestration.runStop
 // can signal it to halt. Only one coordinator can run at a time (enforced by
@@ -175,7 +176,7 @@ export const ORCHESTRATION_GATE_METHODS: RpcMethod[] = [
       const evaluationInput = params.evaluate
         ? await resolveGateEvaluationInput(db, runtime, {
             taskId: params.task,
-            stageKey: params.stageKey ?? DEFAULT_GATE_STAGE_KEY
+            stageKey: params.stageKey
           })
         : null
       const gate = db.createGate({
@@ -191,17 +192,39 @@ export const ORCHESTRATION_GATE_METHODS: RpcMethod[] = [
       // honest answer is a gate, not an unevaluated pass.
       const evaluation = directory
         ? await evaluateGateForTask(directory, evaluationInput)
-        : { decision: { decision: 'gate', reason: 'unverified' } as GateDecision, detail: null }
+        : {
+            decision: { decision: 'gate', reason: 'unverified' } as GateDecision,
+            retirement: { retire: false, refusal: 'not-earned' } as GateRetirement,
+            detail: null
+          }
       const recommendation: GateDecision = evaluation.decision
       // ARCHITECTURE §7 Levels: the entry condition (runs >= 10) governs which level the member
       // is *in*, not whether the decision is recorded — level 0 records one too. GP3 reads the
       // level back to decide whether the recommendation may be shown to the human.
       const level = evaluation.detail?.trackRecord?.level ?? null
-      // Level 0 records the decision it *would* have made and still gates. Nothing in GP1
-      // auto-resolves: autonomy is unlocked by evidence, and evidence only accumulates by
-      // running gated. Retiring a gate is SK1's, behind the ledger's windowed track record.
-      const recorded = db.setGateRecommendation(gate.id, { ...recommendation, level })
-      return { gate: recorded ?? gate, recommendation }
+      // Level 0 records the decision it *would* have made and still gates. Autonomy is unlocked by
+      // evidence, and evidence only accumulates by running gated — so every path below that is not
+      // a fully earned level 3 leaves the gate pending, and records why.
+      const retirement = evaluation.retirement
+      const recorded = db.setGateRecommendation(gate.id, {
+        ...recommendation,
+        level,
+        stageKey: evaluationInput.stageKey,
+        retirementRefusal: retirement.retire ? null : retirement.refusal
+      })
+      if (!retirement.retire) {
+        return { gate: recorded ?? gate, recommendation, retired: false, retirement }
+      }
+      // SK1 level 3 — *Autonomous*: notify instead of blocking. The gate row still exists and
+      // still carries the decision; it simply does not wait for a human, and the interruption
+      // sweep does not count it as one.
+      const retired = db.retireGate(gate.id, `auto:${recommendation.reason}`)
+      return {
+        gate: retired ?? recorded ?? gate,
+        recommendation,
+        retired: true,
+        retirement
+      }
     }
   }),
 

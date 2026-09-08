@@ -118,23 +118,84 @@ export function resolveGate(
 }
 
 /**
- * Records what the autonomy policy would have decided. Separate from `resolveGate` on purpose:
- * a recommendation never resolves anything, so nothing here touches the gate's status or the
- * task's — that is what "level 0 always gates" means in code.
+ * Records what the autonomy policy would have decided, under which stage key, and why retirement
+ * was refused if it was. Separate from `resolveGate` on purpose: a recommendation never resolves
+ * anything, so nothing here touches the gate's status or the task's — that is what "level 0 always
+ * gates" means in code. Retiring is `retireGate`, which is a resolution and reads as one.
  */
 export function setGateRecommendation(
   this: OrchestrationDb,
   gateId: string,
-  recommendation: { decision: 'gate' | 'auto'; reason: string; level: number | null }
+  recommendation: {
+    decision: 'gate' | 'auto'
+    reason: string
+    level: number | null
+    /** SK1's canonical key (`resolveStageKey`), not the caller's free text. */
+    stageKey?: string | null
+    /** `RetirementRefusal`, or null when the gate is about to be retired. */
+    retirementRefusal?: string | null
+  }
 ): DecisionGateRow | undefined {
   this.db
     .prepare(
       `UPDATE decision_gates
-       SET recommended_decision = ?, recommended_reason = ?, recommended_level = ?
+       SET recommended_decision = ?, recommended_reason = ?, recommended_level = ?,
+           stage_key = ?, retirement_refusal = ?
        WHERE id = ?`
     )
-    .run(recommendation.decision, recommendation.reason, recommendation.level, gateId)
+    .run(
+      recommendation.decision,
+      recommendation.reason,
+      recommendation.level,
+      recommendation.stageKey ?? null,
+      recommendation.retirementRefusal ?? null,
+      gateId
+    )
   return this.getGate(gateId)
+}
+
+/**
+ * Level 3 (SK1): the policy resolves the gate itself instead of blocking a human.
+ *
+ * Deliberately not `resolveGate`, even though the row transition is nearly the same. A resolution
+ * has a resolver and counts as an interruption; a retirement has neither, and `retired_at` is what
+ * every reader downstream — the interruption sweep, the audit view — keys on to tell them apart.
+ * The gate row is still written, because "notifies instead of blocking" needs something to notify
+ * about and the record is the product.
+ */
+export function retireGate(
+  this: OrchestrationDb,
+  gateId: string,
+  resolution: string
+): DecisionGateRow | undefined {
+  const gate = this.getGate(gateId)
+  if (!gate) {
+    return undefined
+  }
+  this.db.exec('SAVEPOINT retire_gate')
+  try {
+    const { changes } = this.db
+      .prepare(
+        `UPDATE decision_gates
+         SET status = 'resolved', resolution = ?, resolved_at = datetime('now'),
+             retired_at = datetime('now'), retirement_refusal = NULL
+         WHERE id = ? AND status = 'pending'`
+      )
+      .run(resolution, gateId)
+    // createGate blocked the task; a retired gate must not leave it blocked on nobody. Only when
+    // this call is the one that resolved it: a gate already timed out or answered by a human has
+    // had its task moved on by whoever did that, and unblocking again would race them.
+    if (changes > 0) {
+      this.updateTaskStatus(gate.task_id, 'ready')
+    }
+    const retired = this.getGate(gateId)
+    this.db.exec('RELEASE retire_gate')
+    return retired
+  } catch (error) {
+    this.db.exec('ROLLBACK TO retire_gate')
+    this.db.exec('RELEASE retire_gate')
+    throw error
+  }
 }
 
 export function timeoutGate(this: OrchestrationDb, gateId: string): DecisionGateRow | undefined {
@@ -182,6 +243,7 @@ export function getGate(this: OrchestrationDb, id: string): DecisionGateRow | un
 export type DecisionGateStoreMethods = {
   createGate: typeof createGate
   resolveGate: typeof resolveGate
+  retireGate: typeof retireGate
   setGateRecommendation: typeof setGateRecommendation
   timeoutGate: typeof timeoutGate
   listGates: typeof listGates
@@ -192,6 +254,7 @@ export function attachDecisionGateStore(ctor: { prototype: object }): void {
   Object.assign(ctor.prototype, {
     createGate,
     resolveGate,
+    retireGate,
     setGateRecommendation,
     timeoutGate,
     listGates,

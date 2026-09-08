@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { defineMethod, type RpcMethod } from '../core'
 import { OptionalFiniteNumber, OptionalString, requiredString } from '../schemas'
-import { DEFAULT_GATE_STAGE_KEY, evaluateGateForTask } from '../../../alicorn/gates/gate-evaluation'
+import { evaluateGateForTask } from '../../../alicorn/gates/gate-evaluation'
+import { resolveStageKey } from '../../../../shared/alicorn/stage-keys'
 import { resolveGateEvaluationInput } from '../../../alicorn/gates/gate-evaluation-context'
 import {
   AUTONOMY_POLICY_MODES,
@@ -54,7 +55,8 @@ export const ORCHESTRATION_POLICY_METHODS: RpcMethod[] = [
     params: PolicyGetParams,
     handler: async (params, { runtime }) => {
       const directory = requireDirectory(runtime)
-      const stageKey = params.stageKey ?? DEFAULT_GATE_STAGE_KEY
+      // SK1: canonical, so a policy authored for `Build` is the one a gate on `build` reads.
+      const stageKey = resolveStageKey({ reportedPhase: params.stageKey }).stageKey
       const memberId = params.member ?? null
       const [authored, stageConfig] = await Promise.all([
         directory.getAutonomyPolicy({ projectId: params.project, stageKey, memberId }),
@@ -99,7 +101,7 @@ export const ORCHESTRATION_POLICY_METHODS: RpcMethod[] = [
         )
       }
       const input: AutonomyPolicyInput = {
-        stageKey: params.stageKey ?? DEFAULT_GATE_STAGE_KEY,
+        stageKey: resolveStageKey({ reportedPhase: params.stageKey }).stageKey,
         memberId: params.member ?? null,
         mode: params.mode,
         ...body.data
@@ -154,7 +156,7 @@ export const ORCHESTRATION_POLICY_METHODS: RpcMethod[] = [
       const directory = requireDirectory(runtime)
       const input = await resolveGateEvaluationInput(db, runtime, {
         taskId: params.task,
-        stageKey: params.stageKey ?? DEFAULT_GATE_STAGE_KEY
+        stageKey: params.stageKey
       })
       const evaluation = await evaluateGateForTask(directory, input)
       return {
@@ -177,7 +179,13 @@ export const ORCHESTRATION_POLICY_METHODS: RpcMethod[] = [
         protectedPathMatches: evaluation.detail?.protectedPathMatches ?? [],
         // Advisory. Level 0/1: reading this never resolves a gate, and no caller may treat an
         // `auto` here as permission — `gateCreate` is the only place a decision is acted on.
-        wouldDecide: evaluation.decision
+        wouldDecide: evaluation.decision,
+        // SK1: whether the same gate would be retired, and if not, which condition held it. Also
+        // advisory — this is the read path, and retiring happens only inside `gateCreate`.
+        retirement: evaluation.retirement,
+        // False for a free-text key. Nothing is refused for it here; it is why a window may look
+        // long and still never retire, and a reader who cannot see it will not work that out.
+        stageKeyAuthored: input.stageKeyAuthored
       }
     }
   })

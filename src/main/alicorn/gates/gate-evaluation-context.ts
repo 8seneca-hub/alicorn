@@ -1,5 +1,6 @@
 import { getLatestDispatchForTask } from '../../runtime/orchestration/db/dispatch-context/task-dispatch-reconciliation'
 import { UNMEASURED_RUN_BLAST_RADIUS, type RunBlastRadiusSource } from './run-blast-radius'
+import { resolveStageKey } from '../../../shared/alicorn/stage-keys'
 import type { OrchestrationDb } from '../../runtime/orchestration/db'
 import type { GateEvaluationInput } from './gate-evaluation'
 
@@ -18,7 +19,7 @@ export type GateWorktreeResolver = {
 export async function resolveGateEvaluationInput(
   db: OrchestrationDb,
   runtime: GateWorktreeResolver,
-  input: { taskId: string; stageKey: string }
+  input: { taskId: string; stageKey?: string | null }
 ): Promise<GateEvaluationInput> {
   const dispatch = getLatestDispatchForTask(db, input.taskId)
   const memberId = dispatch ? (db.getDispatchMember(dispatch.id)?.memberId ?? null) : null
@@ -34,9 +35,21 @@ export async function resolveGateEvaluationInput(
     }
   }
 
+  // SK1: the board column that dispatched the task wins over anything the caller named, and both
+  // are folded onto a template key. The gate is then evaluated under the same key the ledger
+  // measures the window under — a gate judged on `Build` against a window keyed `build` compares
+  // a stage to nothing.
+  const stage = resolveStageKey({
+    boardColumnId: dispatch
+      ? (db.getBoardTransitionByDispatch(dispatch.id)?.toStatusId ?? null)
+      : null,
+    reportedPhase: input.stageKey
+  })
+
   return {
     projectId,
-    stageKey: input.stageKey,
+    stageKey: stage.stageKey,
+    stageKeyAuthored: stage.authored,
     memberId,
     verifications: db.listTaskVerifications(input.taskId),
     blastRadius: await measureBlastRadius(db, runtime, input.taskId)

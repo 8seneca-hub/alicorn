@@ -17,6 +17,9 @@ function gateRow(overrides: Partial<DecisionGateRow> = {}): DecisionGateRow {
     recommended_decision: 'auto',
     recommended_reason: 'auto',
     recommended_level: 1,
+    stage_key: 'build',
+    retired_at: null,
+    retirement_refusal: null,
     ...overrides
   }
 }

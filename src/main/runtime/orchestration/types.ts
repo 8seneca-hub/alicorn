@@ -303,6 +303,12 @@ export type DecisionGateRow = {
   recommended_reason: string | null
   /** Autonomy level of the member/stage when the gate opened; null when never evaluated. */
   recommended_level: number | null
+  /** Canonical stage key the gate was evaluated under (SK1); null when never evaluated. */
+  stage_key: string | null
+  /** Set when the policy retired the gate instead of blocking — never on a human resolution. */
+  retired_at: string | null
+  /** `RetirementRefusal` when retirement was refused; null on a retired or unevaluated gate. */
+  retirement_refusal: string | null
 }
 
 export type CoordinatorRun = {

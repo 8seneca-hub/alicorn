@@ -166,7 +166,16 @@ CREATE TABLE IF NOT EXISTS decision_gates (
   -- The member's autonomy level when the gate opened (GP3). Level 1 is what earns the
   -- recommendation a place on screen; stored here so the panel is a local read and so the
   -- level recorded is the one that applied then, not whatever the ledger says later.
-  recommended_level    INTEGER
+  recommended_level    INTEGER,
+  -- The stage the gate was evaluated under, canonicalised by resolveStageKey (SK1). Stored so a
+  -- retirement is auditable against the same key the ledger measures the window under.
+  stage_key            TEXT,
+  -- Set when the policy retired this gate instead of blocking a human. A retired gate is resolved
+  -- without a resolver, is not a human interruption, and is the only gate with this stamped.
+  retired_at           TEXT,
+  -- Why retirement was refused, when it was (RetirementRefusal). Null on a retired gate and on
+  -- one never evaluated. This is what tells a human why a gate they had stopped seeing came back.
+  retirement_refusal   TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_gates_task ON decision_gates(task_id);

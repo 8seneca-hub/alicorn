@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { OrchestrationDb } from '../runtime/orchestration/db'
 import { createRootDispatch } from '../runtime/orchestration/db/root-dispatch-test-fixture'
+import { STAGE_KEY_MAX_LENGTH } from '../../shared/alicorn/stage-keys'
 import { buildStepOutcomeInput } from './step-outcome-builder'
 
 describe('buildStepOutcomeInput', () => {
@@ -133,7 +134,10 @@ describe('buildStepOutcomeInput', () => {
     expect(input.stageKey).toBe('build')
   })
 
-  it('caps an oversized phase at 64 characters', () => {
+  // SK1 narrowed the cap from 64 to 63: `step_outcomes.stageKey` accepts 64, but `StageKeySchema`
+  // — which the track-record query uses — does not, so a 64-character key was writable and then
+  // unreadable as a window.
+  it('caps an oversized phase at the narrower of the two wire bounds', () => {
     db = new OrchestrationDb(':memory:')
     const task = db.createTask({ spec: 'work' })
     const dispatch = createRootDispatch(db, task.id, 'term_worker')
@@ -150,7 +154,7 @@ describe('buildStepOutcomeInput', () => {
       worktree: null
     })
 
-    expect(input.stageKey).toBe('x'.repeat(64))
+    expect(input.stageKey).toBe('x'.repeat(STAGE_KEY_MAX_LENGTH))
   })
 
   it('defaults to other backend for an agent Alicorn does not price', () => {
@@ -275,14 +279,22 @@ describe('buildStepOutcomeInput', () => {
       })
     }
 
-    it('records the column that dispatched the work', () => {
-      expect(settledBoardDispatch({ toStatusId: 'in-review' }).stageKey).toBe('in-review')
+    // SK1: the column is recorded as the *template stage* it dispatches, so a board dispatch and
+    // a worker reporting the same stage by name accumulate one window rather than two halves.
+    it('records the column that dispatched the work, as its template stage', () => {
+      expect(settledBoardDispatch({ toStatusId: 'in-review' }).stageKey).toBe('review')
     })
 
     // The stage a member is judged on is authored config, never chosen by the member itself.
     it('lets the column win over the phase the worker reported', () => {
       expect(settledBoardDispatch({ toStatusId: 'in-review', phase: 'build' }).stageKey).toBe(
-        'in-review'
+        'review'
+      )
+    })
+
+    it('lands a board dispatch and a reported phase on the same key', () => {
+      expect(settledBoardDispatch({ toStatusId: 'in-progress' }).stageKey).toBe(
+        settledBoardDispatch({ phase: 'Build' }).stageKey
       )
     })
 
@@ -290,8 +302,24 @@ describe('buildStepOutcomeInput', () => {
       expect(settledBoardDispatch({ phase: 'review' }).stageKey).toBe('review')
     })
 
+    // SK1: free text is normalised and kept, never discarded and never folded into a real stage's
+    // window — `resolveStageKey` is what decides it cannot earn autonomy, not this builder.
+    it('keeps an unrecognised phase, normalised', () => {
+      expect(settledBoardDispatch({ phase: '  Code Review!  ' }).stageKey).toBe('code-review')
+    })
+
+    it('does not let a typo land in the stage it nearly named', () => {
+      expect(settledBoardDispatch({ phase: 'reveiw' }).stageKey).toBe('reveiw')
+    })
+
     it('falls back to build when neither names a stage', () => {
       expect(settledBoardDispatch({}).stageKey).toBe('build')
+      expect(settledBoardDispatch({ phase: '   ' }).stageKey).toBe('build')
+    })
+
+    it('never emits a key the ledger would reject', () => {
+      const key = settledBoardDispatch({ phase: `${'x'.repeat(200)} spill` }).stageKey
+      expect(key).toMatch(/^[a-z0-9][a-z0-9_-]{0,62}$/)
     })
 
     // A refusal carries no dispatch id, so it must never be resolved onto another dispatch.
@@ -321,8 +349,10 @@ describe('buildStepOutcomeInput', () => {
       expect(input.stageKey).toBe('build')
     })
 
-    it('truncates an oversized column id to the 64-char ledger limit', () => {
-      expect(settledBoardDispatch({ toStatusId: 'x'.repeat(80) }).stageKey).toBe('x'.repeat(64))
+    it('truncates an oversized column id to the narrower wire bound', () => {
+      expect(settledBoardDispatch({ toStatusId: 'x'.repeat(80) }).stageKey).toBe(
+        'x'.repeat(STAGE_KEY_MAX_LENGTH)
+      )
     })
   })
 })

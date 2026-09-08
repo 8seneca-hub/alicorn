@@ -2,6 +2,10 @@
 // Field names must stay identical — the desktop does not import the contract package,
 // so a rename there is a silent break here.
 
+/** Slow to earn, immediate to lose — see `resolveGateRetirement`. Never make the two symmetric. */
+export const DEMOTION_REASONS = ['rejection', 'amendments'] as const
+export type DemotionReason = (typeof DEMOTION_REASONS)[number]
+
 export const AUTONOMY_POLICY_MODES = ['always_gate', 'evidence', 'never_gate'] as const
 export const STAGE_REVERSIBILITY = ['free', 'contained', 'irreversible'] as const
 export const INHERITED_COSTS = ['low', 'high'] as const
@@ -74,9 +78,17 @@ export type TrackRecord = GateTrackRecord & {
   rejected: number
   amended: number
   lastAmendedAt: string | null
-  /** Derived at read time. Descriptive: nothing retires a gate on it — that is SK1's. */
+  /** Derived at read time. SK1's retirement reads it; `evaluateGate` still must not. */
   level: number
   amendmentsObserved: boolean
+  /**
+   * Which half of the demotion rule fired, or null when neither did. Optional on this side only:
+   * a paired host older than SK1 omits it, and a missing reason must read as "not stated" rather
+   * than as "not demoted" — `recentRegression` is the field the policy acts on either way.
+   */
+  demotionReason?: DemotionReason | null
+  recentRejected?: number
+  recentAmended?: number
 }
 
 /** What `policySet` writes. `projectId` is the route, `createdBy` is the authenticated actor. */

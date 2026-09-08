@@ -79,6 +79,18 @@ This is what makes per-stage track record mean anything: `member_stage_stats` is
 `(member_id, stage_key)` and the autonomy policy reads it, so a reviewer dispatched by an
 *In Review* column must not accumulate its record mixed in with implementation work.
 
+**As built (SK1, 2026-09-08) — keys come from the template, and the column maps onto it.**
+`resolveStageKey` (`src/shared/alicorn/stage-keys.ts`) is the single resolver, used by the
+step-outcome builder, the gate path and `policyGet`/`policySet`. The precedence above is unchanged
+— board column, then `--phase`, then `build` — and what SK1 adds is the fold onto
+`FEATURE_DELIVERY_STAGE_KEYS`: `in-review` and `Review` both resolve to `review`, so a board
+dispatch and a worker naming the same stage accumulate one window rather than two halves. Free text
+that matches nothing is **kept, normalised, and marked `authored: false`** — it is still written to
+the ledger and still measured, it simply cannot retire a gate. Nothing is discarded and nothing is
+backfilled; a typo'd `--phase` never lands in the stage it nearly named. Keys are capped at **63**
+characters, not 64: `step_outcomes.stageKey` accepts 64 but `StageKeySchema` (which the
+track-record query uses) does not, so a 64-character key was writable and then unreadable.
+
 ## 4. Topology
 
 ```
@@ -319,6 +331,38 @@ table. The level is **derived and stored nowhere** — `member_stage_stats.level
 it. It is named *track record*, not *evidence*: `GateEvidence` is the wider shape (required checks,
 blast radius, track record) assembled on the client, and one word for two shapes is how the two
 drift apart.
+
+**As built (SK1, 2026-09-08) — retirement, and how it is kept inert.** `resolveGateRetirement`
+(`src/shared/alicorn/gate-retirement.ts`) is the only thing that stops a gate interrupting, and it
+is a second, narrower question than `evaluateGate`'s: not "would the policy have gated?" but "has
+this stage earned the right to skip the interruption?". Its order is the contract — hard stops,
+`always_gate`, unauthored stage key, **demotion**, then a fully earned `auto`, then a record, then
+level 3 — and every non-retirement path returns a named `RetirementRefusal`, stored on the gate row
+(`decision_gates.retirement_refusal`, v41) so a gate that came back can say why.
+
+Three things keep it inert until evidence genuinely exists, and each has a test that a *spotless*
+record is refused rather than one that a bad record is:
+
+- **Hard stops are re-checked here**, not inherited from `evaluateGate`'s ordering. A perfect
+  500-run record does not retire an irreversible or inherited-cost stage. An invariant that holds
+  only because another function orders its branches correctly is one refactor from not holding.
+- **49 spotless runs do not retire**, and neither does a record nobody has ever corrected —
+  `computeAutonomyLevel` caps an unfaulted window at level 1, so `amendmentsObserved` is a
+  precondition of level 3 and therefore of retirement.
+- **A `never_gate` exception does not retire.** It decides `auto`, but `reason !== 'auto'`, and an
+  exception a project authored for itself is not evidence.
+
+**Demotion is checked ahead of the decision, deliberately.** A demoted stage also fails
+`evaluateGate` (on `regression`), so checking the decision first would report every returned gate
+as the generic "the policy gated" and hide the specific reason. The asymmetry stays visible in the
+code and on the wire: `TrackRecord.demotionReason` says which half of the rule fired.
+
+Retirement is level 3's "notifies instead of blocking", implemented as `db.retireGate` — the gate
+row is written and resolved with `auto:<reason>` and `retired_at` stamped, and the task returns to
+`ready` rather than `blocked`. It is deliberately not `resolveGate`: a resolution has a resolver and
+counts as an interruption, a retirement has neither, and the interruption sweep excludes
+`retired_at IS NOT NULL` so a gate nobody was asked about never moves
+`interruptions_per_completed_task` the wrong way.
 
 **The corrections watcher is load-bearing.** `human_verdict` must also be written from post-hoc
 corrections — a follow-up commit touching the same files inside a window, a revert, a reopened task.

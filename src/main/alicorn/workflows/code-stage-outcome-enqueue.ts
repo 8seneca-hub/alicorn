@@ -1,3 +1,4 @@
+import { DEFAULT_STAGE_KEY, normalizeStageKey } from '../../../shared/alicorn/stage-keys'
 import type { OrchestrationDb } from '../../runtime/orchestration/db'
 import type { StepOutcomeInput } from '../../../shared/alicorn/ledger-inputs'
 import { codeStageOutcome, type CodeStageResult } from './code-stage-runner'
@@ -53,7 +54,9 @@ export function buildCodeStageOutcome(input: CodeStageOutcomeInput): StepOutcome
     // No memberId at all: a code stage has no member, and a null one would read as
     // "member with no id" rather than "never had one".
     backend: 'code',
-    stageKey: input.stageKey.slice(0, 64),
+    // Already an authored workflow stage key, so this only enforces the shape and the narrower of
+    // the two wire bounds — through the one normaliser, not a second slice with its own opinion.
+    stageKey: normalizeStageKey(input.stageKey) ?? DEFAULT_STAGE_KEY,
     // Automation dispatches one step for one column; `orchestrated` stays a human choice.
     executionStrategy: 'single',
     outcome,

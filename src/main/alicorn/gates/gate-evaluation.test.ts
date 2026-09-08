@@ -45,6 +45,7 @@ function input(overrides: Partial<GateEvaluationInput> = {}): GateEvaluationInpu
   return {
     projectId: 'repo-1',
     stageKey: 'build',
+    stageKeyAuthored: true,
     memberId: 'member-1',
     verifications: [] as DispatchVerificationRow[],
     blastRadius: { filesChanged: 0, spendCents: 0, changedPaths: [] as string[] },
@@ -351,5 +352,83 @@ describe('evaluateGateForTask blast radius', () => {
       input(passing)
     )
     expect(decision).toEqual({ decision: 'gate', reason: 'unverified' })
+  })
+})
+
+/**
+ * SK1. The assembly's own retirement verdict — the pure ordering is `gate-retirement.test.ts`'s;
+ * these are about what the *assembled* evidence resolves to, which is where a real deployment gets
+ * its answer. Everything here must refuse, except the one case that has genuinely earned it.
+ */
+describe('evaluateGateForTask retirement', () => {
+  function earned(overrides: Partial<TrackRecord> = {}): GatePolicySource {
+    return source({
+      getRequiredChecks: vi.fn().mockResolvedValue([COVERAGE]),
+      getTrackRecord: vi.fn().mockResolvedValue(
+        trackRecord({
+          runs: 50,
+          accepted: 49,
+          amended: 1,
+          acceptRate: 0.98,
+          level: 3,
+          lastAmendedAt: '2026-06-01T00:00:00.000Z',
+          ...overrides
+        })
+      )
+    })
+  }
+
+  const passing = { verifications: [passingCoverage()] }
+
+  it('retires a gate whose stage has genuinely reached level 3', async () => {
+    const evaluation = await evaluateGateForTask(earned(), input(passing))
+    expect(evaluation.decision).toEqual({ decision: 'auto', reason: 'auto' })
+    expect(evaluation.retirement).toEqual({ retire: true, level: 3 })
+  })
+
+  it('does NOT retire a spotless but short record — 49 runs is not 50', async () => {
+    const evaluation = await evaluateGateForTask(
+      earned({ runs: 49, accepted: 49, amended: 0, acceptRate: 1, level: 2, lastAmendedAt: null }),
+      input(passing)
+    )
+    expect(evaluation.retirement).toEqual({ retire: false, refusal: 'level' })
+  })
+
+  it('does NOT retire an irreversible stage on a perfect 500-run record', async () => {
+    const evaluation = await evaluateGateForTask(
+      source({
+        getRequiredChecks: vi.fn().mockResolvedValue([COVERAGE]),
+        getTrackRecord: vi
+          .fn()
+          .mockResolvedValue(trackRecord({ runs: 500, accepted: 500, acceptRate: 1, level: 3 })),
+        getStageConfig: vi
+          .fn()
+          .mockResolvedValue({ reversibility: 'irreversible', inheritedCost: 'low' })
+      }),
+      input({ ...passing, stageKey: 'merge' })
+    )
+    expect(evaluation.decision).toEqual({ decision: 'gate', reason: 'irreversible' })
+    expect(evaluation.retirement).toEqual({ retire: false, refusal: 'hard-stop:irreversible' })
+  })
+
+  it('does NOT retire a free-text stage key, however long its record', async () => {
+    const evaluation = await evaluateGateForTask(
+      earned({ runs: 500, accepted: 500, acceptRate: 1 }),
+      input({ ...passing, stageKey: 'reveiw', stageKeyAuthored: false })
+    )
+    expect(evaluation.retirement).toEqual({ retire: false, refusal: 'stage-key-unauthored' })
+  })
+
+  it('returns the gate on one rejection inside the last ten', async () => {
+    const evaluation = await evaluateGateForTask(
+      earned({ rejected: 1, recentRegression: true, demotionReason: 'rejection', level: 2 }),
+      input(passing)
+    )
+    expect(evaluation.retirement).toEqual({ retire: false, refusal: 'demoted' })
+  })
+
+  it('refuses when the control plane could not be read at all', async () => {
+    const evaluation = await evaluateGateForTask(source(), input({ ...passing, projectId: null }))
+    expect(evaluation.retirement).toEqual({ retire: false, refusal: 'not-earned' })
   })
 })

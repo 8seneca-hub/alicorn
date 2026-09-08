@@ -65,6 +65,14 @@ description rather than editing it in a feature branch — the desktop mirrors i
   board module records the transition; the ledger module reads it. Neither imports the other — the
   join is the dispatch id. If you add another dispatch source that should carry its own stage key,
   extend the builder rather than teaching the board module about the ledger.
+- **Stage keys are one resolver — closed 2026-09-08 (SK1).** `resolveStageKey`
+  (`src/shared/alicorn/stage-keys.ts`) is the only place a stage key is decided: the step-outcome
+  builder, the gate path (`resolveGateEvaluationInput`) and `policyGet`/`policySet` all call it, so
+  a policy authored for a stage is the one a gate on that stage reads and the one the ledger
+  measures. Do not normalise a stage key anywhere else. The desktop's copy of
+  `FEATURE_DELIVERY_TEMPLATE` is a hand-mirror held by a ratchet
+  (`stage-keys-template-parity.test.ts`) — changing the template in the contract package without
+  the mirror fails that test rather than silently making a stage unretirable.
 
 ## Branches
 

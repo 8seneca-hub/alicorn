@@ -14,6 +14,14 @@ export const TRACK_RECORD_REGRESSION_WINDOW = 10
 /** Level 3 additionally requires no amendment inside this many runs. */
 export const TRACK_RECORD_CLEAN_WINDOW = 20
 
+/**
+ * Demotion is deliberately **asymmetric** to retirement: level 3 costs 50 runs at a 0.95 accept
+ * rate with no amendment in 20, and *one* rejection — or two amendments — inside the last ten
+ * takes it away. Slow to earn, immediate to lose; do not make the two symmetric.
+ */
+export const DEMOTION_REASONS = ['rejection', 'amendments'] as const
+export type DemotionReason = (typeof DEMOTION_REASONS)[number]
+
 export const TrackRecordQuerySchema = z.object({
   memberId: z.string().trim().min(1).max(200),
   stageKey: StageKeySchema.default('build'),
@@ -39,7 +47,17 @@ export const TrackRecordSchema = z.object({
    * Has any human verdict at all reached this window? Accept rate is machine-derived, so a stage
    * nobody has ever corrected looks perfect and is not. Caps the level at 1 until it is true.
    */
-  amendmentsObserved: z.boolean()
+  amendmentsObserved: z.boolean(),
+  /** Rejections inside the demotion window — one is enough to demote. */
+  recentRejected: z.number().int().nonnegative(),
+  /** Amendments inside the demotion window — two are enough to demote. */
+  recentAmended: z.number().int().nonnegative(),
+  /**
+   * Why the stage was demoted, or null when it was not. Descriptive: `recentRegression` is what
+   * the policy acts on, and this says which of its two halves fired, so a human reading a gate
+   * that came back is told whether it was a rejection or a run of amendments.
+   */
+  demotionReason: z.enum(DEMOTION_REASONS).nullable()
 })
 export type TrackRecord = z.infer<typeof TrackRecordSchema>
 
@@ -89,9 +107,12 @@ export function summarizeTrackRecord(
     (row) => row.succeeded && row.humanVerdict !== 'rejected' && row.humanVerdict !== 'amended'
   ).length
   const recent = window.slice(0, TRACK_RECORD_REGRESSION_WINDOW)
-  const recentRegression =
-    recent.some((row) => row.humanVerdict === 'rejected') ||
-    recent.filter((row) => row.humanVerdict === 'amended').length >= 2
+  const recentRejected = recent.filter((row) => row.humanVerdict === 'rejected').length
+  const recentAmended = recent.filter((row) => row.humanVerdict === 'amended').length
+  // One rejection, or two amendments, inside the last ten. See DEMOTION_REASONS.
+  const demotionReason: DemotionReason | null =
+    recentRejected >= 1 ? 'rejection' : recentAmended >= 2 ? 'amendments' : null
+  const recentRegression = demotionReason !== null
   const amendmentsObserved = window.some((row) => row.humanVerdict !== null)
   const amendedInCleanWindow = window
     .slice(0, TRACK_RECORD_CLEAN_WINDOW)
@@ -116,6 +137,9 @@ export function summarizeTrackRecord(
       amendmentsObserved,
       amendedInCleanWindow
     }),
-    amendmentsObserved
+    amendmentsObserved,
+    recentRejected,
+    recentAmended,
+    demotionReason
   })
 }

@@ -1,3 +1,4 @@
+import { DEFAULT_STAGE_KEY, STAGE_KEY_MAX_LENGTH } from '../../../shared/alicorn/stage-keys'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { OrchestrationDb } from '../../runtime/orchestration/db/orchestration-db'
 import { buildCodeStageOutcome, enqueueCodeStageOutcome } from './code-stage-outcome-enqueue'
@@ -80,8 +81,17 @@ describe('code stage outcome', () => {
     ).toMatchObject({ outcome: 'failed' })
   })
 
-  it('truncates a stage key to the ledger limit', () => {
-    expect(buildCodeStageOutcome({ ...INPUT, stageKey: 'k'.repeat(200) }).stageKey).toHaveLength(64)
+  // SK1 narrowed the cap to 63 and routed it through `normalizeStageKey`: 64 passes the ledger's
+  // own bound but not `StageKeySchema`, which the track-record query uses.
+  it('truncates a stage key to the narrower of the two wire bounds', () => {
+    expect(buildCodeStageOutcome({ ...INPUT, stageKey: 'k'.repeat(200) }).stageKey).toHaveLength(
+      STAGE_KEY_MAX_LENGTH
+    )
+  })
+
+  it('normalises a stage key nobody validated on the wire', () => {
+    expect(buildCodeStageOutcome({ ...INPUT, stageKey: 'Type Check' }).stageKey).toBe('type-check')
+    expect(buildCodeStageOutcome({ ...INPUT, stageKey: '   ' }).stageKey).toBe(DEFAULT_STAGE_KEY)
   })
 
   describe('through the outbox', () => {

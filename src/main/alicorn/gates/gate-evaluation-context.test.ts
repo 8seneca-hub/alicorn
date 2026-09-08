@@ -100,6 +100,7 @@ describe('resolveGateEvaluationInput', () => {
     expect(input).toEqual({
       projectId: null,
       stageKey: 'build',
+      stageKeyAuthored: true,
       memberId: null,
       verifications: [],
       blastRadius: UNMEASURED_RUN_BLAST_RADIUS

@@ -53,7 +53,7 @@ quality gates left on.
 | Workstream | Scope | Weeks |
 |---|---|---|
 | **Authored workflows + canvas** | Stages, owners, triggers as a saved object. Node canvas with the return edge as a first-class concept. Stages bind to board columns — one model, two views. | 6–8 |
-| **Stable stage keys** | Keys from workflow templates, not free-text `phase`. Level 3, automatic retirement and demotion. | 3 |
+| **Stable stage keys** | Keys from workflow templates, not free-text `phase`. Level 3, automatic retirement and demotion. **Shipped 2026-09-08 (SK1)** — the machinery is complete and inert: nothing retires below 50 runs, an uncorrected record caps at level 1, and hard stops never retire. See ARCHITECTURE §3 and §7. | 3 |
 | **Voice intent** | Route transcripts to an agent holding the CLI skill rather than writing a parser. Confirm before anything destructive. On-device transcription stays the default. | 3–4 |
 | **Org platform** | Orgs, invites, roles, seats. Org skill catalog with stage-authored required checks. Collaborator seats for PM, BA and design in folder workspaces. | 5–8 |
 

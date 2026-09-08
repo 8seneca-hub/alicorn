@@ -3,6 +3,9 @@ import { resolveRequiredChecksPassed } from './required-checks-verdict'
 import type { RunBlastRadius } from './run-blast-radius'
 import { resolveProtectedPathReach } from '../../../shared/alicorn/protected-paths'
 import { defaultAutonomyPolicy, type GateDecision } from '../../../shared/alicorn/gate-policy'
+import { resolveGateRetirement } from '../../../shared/alicorn/gate-retirement'
+import { DEFAULT_STAGE_KEY } from '../../../shared/alicorn/stage-keys'
+import type { GateRetirement } from '../../../shared/alicorn/gate-retirement'
 import type {
   AutonomyPolicy,
   GateEvidence,
@@ -14,7 +17,7 @@ import type { ProtectedPath, ProtectedPathMatch } from '../../../shared/alicorn/
 import type { RequiredCheck } from '../../../shared/alicorn/members'
 import type { DispatchVerificationRow } from '../../runtime/orchestration/db/alicorn/alicorn-rows'
 
-export const DEFAULT_GATE_STAGE_KEY = 'build'
+export const DEFAULT_GATE_STAGE_KEY = DEFAULT_STAGE_KEY
 
 /** The admin-authored reads a gate needs, plus GP2's track record. Satisfied by `MemberDirectory`. */
 export type GatePolicySource = {
@@ -37,7 +40,13 @@ export type GatePolicySource = {
 export type GateEvaluationInput = {
   /** Null when the task's worktree could not be resolved to a project. */
   projectId: string | null
+  /** Canonical, from `resolveStageKey` — never the caller's raw `--phase`. */
   stageKey: string
+  /**
+   * SK1: does `stageKey` name an authored stage? Only an authored window may retire a gate. False
+   * is the safe answer, so a caller that cannot tell simply keeps gating.
+   */
+  stageKeyAuthored: boolean
   memberId: string | null
   verifications: DispatchVerificationRow[]
   /** Accumulated over the task's *run*, across every task in it — see `measureBlastRadius`. */
@@ -51,6 +60,11 @@ export type GateEvaluationInput = {
  */
 export type GateEvaluation = {
   decision: GateDecision
+  /**
+   * SK1: may this gate stop interrupting? A second, narrower question than `decision` — see
+   * `resolveGateRetirement`. Everything that cannot be read gates, so this refuses by default.
+   */
+  retirement: GateRetirement
   /** Null when the control plane could not be read; the decision is then a fail-safe gate. */
   detail: {
     step: GateStep
@@ -126,8 +140,16 @@ export async function evaluateGateForTask(
     touchedProtectedPath: reach.touched,
     stats: trackRecord
   }
+  const decision = evaluateGate(step, policy, evidence)
   return {
-    decision: evaluateGate(step, policy, evidence),
+    decision,
+    retirement: resolveGateRetirement({
+      step,
+      policy,
+      decision,
+      trackRecord,
+      stageKeyAuthored: input.stageKeyAuthored
+    }),
     detail: {
       step,
       policy,
@@ -161,5 +183,11 @@ async function readTrackRecord(
 
 function unverified(why: string): GateEvaluation {
   console.warn(`[alicorn] gate evidence incomplete — ${why}`)
-  return { decision: { decision: 'gate', reason: 'unverified' }, detail: null }
+  return {
+    decision: { decision: 'gate', reason: 'unverified' },
+    // Nothing was read, so nothing was earned. `not-earned` is the accurate refusal: the policy
+    // did not decide `auto`, because it could not decide at all.
+    retirement: { retire: false, refusal: 'not-earned' },
+    detail: null
+  }
 }

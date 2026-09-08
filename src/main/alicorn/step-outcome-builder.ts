@@ -1,6 +1,7 @@
 import type { OrchestrationDb } from '../runtime/orchestration/db'
 import type { StepOutcomeInput } from '../../shared/alicorn/ledger-inputs'
 import type { StepOutcomeBackend } from '../../shared/alicorn/ledger'
+import { resolveStageKey } from '../../shared/alicorn/stage-keys'
 import { tuiAgentToAgentKind } from '../../shared/agent-kind'
 import type { TuiAgent } from '../../shared/tui-agent'
 
@@ -69,14 +70,18 @@ export function buildStepOutcomeInput(input: {
   const worker = db.getWorkerDispatch(payload.dispatchId)
   const strategy = db.getTaskExecutionStrategy(payload.taskId)
   const dispatchContext = db.getDispatchContextById(payload.dispatchId)
-  // Why sanitize: --phase is worker free text; empty or oversized values would
-  // otherwise reach the ledger as a stageKey that fails its 1-64 char validation.
-  const phase = parsedResult.phase?.trim()
-  // A board dispatch is measured under the column that triggered it, and that column
-  // wins over the worker's own --phase: the stage a member is judged on is authored
-  // config, never something the member being judged chooses for itself.
-  const boardColumn = db.getBoardTransitionByDispatch(payload.dispatchId)?.toStatusId?.trim()
-  const stageKey = boardColumn || phase || 'build'
+  // A board dispatch is measured under the column that triggered it, and that column wins over
+  // the worker's own --phase: the stage a member is judged on is authored config, never something
+  // the member being judged chooses for itself.
+  //
+  // SK1 folds both onto a workflow-template key (`resolveStageKey`), which is also what sanitizes
+  // free text — an empty, oversized or punctuated --phase can no longer reach the ledger as a
+  // stage key that fails its 1-64 char validation. A phase matching nothing authored survives as
+  // itself, normalised: it is still measured, it simply cannot earn a stage its autonomy.
+  const stage = resolveStageKey({
+    boardColumnId: db.getBoardTransitionByDispatch(payload.dispatchId)?.toStatusId,
+    reportedPhase: parsedResult.phase
+  })
 
   return {
     runId: task.run_id,
@@ -90,7 +95,7 @@ export function buildStepOutcomeInput(input: {
     backend:
       (member?.backend as StepOutcomeBackend | undefined) ??
       backendFromWorkerStartOptions(worker?.start_options),
-    stageKey: stageKey.slice(0, 64),
+    stageKey: stage.stageKey,
     executionStrategy: strategy.strategy,
     outcome: payload.outcome,
     filesModified: parsedResult.filesModified ?? [],

@@ -288,6 +288,157 @@ describe('gate policy RPCs', () => {
     })
   })
 
+  /**
+   * SK1 level 3. The one place a gate stops interrupting — so these assert both halves: that a
+   * stage which has genuinely earned it stops blocking, and that nothing short of that does.
+   */
+  describe('orchestration.gateCreate retirement (SK1)', () => {
+    /** A window that has genuinely reached level 3: 50 runs, 0.98 accepted, corrected once. */
+    function earnedTrackRecord(overrides: Record<string, unknown> = {}) {
+      return {
+        memberId: 'm1',
+        stageKey: 'build',
+        projectId: 'repo-1',
+        runs: 50,
+        accepted: 49,
+        rejected: 0,
+        amended: 1,
+        acceptRate: 0.98,
+        recentRegression: false,
+        lastAmendedAt: '2026-06-01T00:00:00.000Z',
+        level: 3,
+        amendmentsObserved: true,
+        demotionReason: null,
+        ...overrides
+      }
+    }
+
+    async function createEvaluatedGate(
+      trackRecord: Record<string, unknown> | null,
+      params: Record<string, unknown> = {},
+      overrides: Partial<MemberDirectory> = {}
+    ) {
+      setup()
+      runtime.setAlicornMemberDirectory(
+        directory({
+          getTrackRecord:
+            trackRecord === null
+              ? vi.fn().mockRejectedValue(new Error('no track record'))
+              : vi.fn().mockResolvedValue(trackRecord),
+          ...overrides
+        })
+      )
+      const { taskId } = dispatchedTask()
+      const result = (await call('orchestration.gateCreate', {
+        task: taskId,
+        question: 'Proceed?',
+        evaluate: true,
+        ...params
+      })) as {
+        gate: DecisionGateRow
+        recommendation: { decision: string; reason: string }
+        retired: boolean
+        retirement: { retire: boolean; refusal?: string }
+      }
+      return { ...result, taskId }
+    }
+
+    it('retires the gate and lets the task carry on', async () => {
+      const result = await createEvaluatedGate(earnedTrackRecord())
+
+      expect(result.recommendation).toEqual({ decision: 'auto', reason: 'auto' })
+      expect(result.retired).toBe(true)
+      expect(result.gate.status).toBe('resolved')
+      expect(result.gate.resolution).toBe('auto:auto')
+      expect(result.gate.retired_at).not.toBeNull()
+      expect(result.gate.retirement_refusal).toBeNull()
+      // "Notifies instead of blocking": the record is kept, the task is not held.
+      expect(db.getTask(result.taskId)?.status).toBe('ready')
+    })
+
+    it('records the canonical stage key it was judged under, not the caller free text', async () => {
+      const result = await createEvaluatedGate(earnedTrackRecord(), { stageKey: 'In Progress' })
+      expect(result.gate.stage_key).toBe('build')
+    })
+
+    it('does NOT retire a spotless but short record, and says why', async () => {
+      const result = await createEvaluatedGate(
+        earnedTrackRecord({ runs: 49, accepted: 49, amended: 0, acceptRate: 1, level: 2 })
+      )
+
+      expect(result.retired).toBe(false)
+      expect(result.gate.status).toBe('pending')
+      expect(result.gate.retired_at).toBeNull()
+      expect(result.gate.retirement_refusal).toBe('level')
+      expect(db.getTask(result.taskId)?.status).toBe('blocked')
+    })
+
+    it('does NOT retire an irreversible stage on a perfect 500-run record', async () => {
+      const result = await createEvaluatedGate(
+        earnedTrackRecord({ runs: 500, accepted: 500, amended: 0, acceptRate: 1 }),
+        { stageKey: 'merge' },
+        {
+          getStageConfig: vi
+            .fn()
+            .mockResolvedValue({ reversibility: 'irreversible', inheritedCost: 'low' })
+        }
+      )
+
+      expect(result.retired).toBe(false)
+      expect(result.gate.status).toBe('pending')
+      expect(result.gate.retirement_refusal).toBe('hard-stop:irreversible')
+      expect(db.getTask(result.taskId)?.status).toBe('blocked')
+    })
+
+    it('returns the gate on one rejection inside the last ten', async () => {
+      const result = await createEvaluatedGate(
+        earnedTrackRecord({
+          rejected: 1,
+          recentRegression: true,
+          demotionReason: 'rejection',
+          level: 2
+        })
+      )
+
+      expect(result.retired).toBe(false)
+      expect(result.gate.retirement_refusal).toBe('demoted')
+      expect(db.getTask(result.taskId)?.status).toBe('blocked')
+    })
+
+    it('does NOT retire when there is no track record at all', async () => {
+      const result = await createEvaluatedGate(null)
+      expect(result.retired).toBe(false)
+      expect(result.gate.retirement_refusal).toBe('not-earned')
+    })
+
+    // The north-star metric is interruptions per completed task; a gate nobody was asked about
+    // must not be counted as one.
+    it('does not count a retired gate as a ledger interruption', async () => {
+      const result = await createEvaluatedGate(earnedTrackRecord())
+      const blocking = db.createGate({ taskId: result.taskId, question: 'and this one?' })
+      db.resolveGate(blocking.id, 'yes')
+
+      const dispatch = db.createDispatchContext({
+        taskId: result.taskId,
+        assigneeHandle: 'term_worker_2',
+        creator: { kind: 'system' },
+        maxDepth: 3
+      })
+      db.settleWorkerReport({
+        taskId: result.taskId,
+        dispatchId: dispatch.id,
+        outcome: 'succeeded',
+        result: 'done'
+      })
+
+      const gateInterruptions = db
+        .listDueLedgerOutbox(50)
+        .map((row) => JSON.parse(row.payload) as { kind?: string; sourceId?: string })
+        .filter((payload) => payload.kind === 'gate')
+      expect(gateInterruptions.map((payload) => payload.sourceId)).toEqual([blocking.id])
+    })
+  })
+
   describe('orchestration.verifyRecord', () => {
     it('records a named result against the task latest dispatch', async () => {
       setup()

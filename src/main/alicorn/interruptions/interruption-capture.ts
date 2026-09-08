@@ -113,9 +113,14 @@ function enqueueInterruptions(db: OrchestrationDb, ids: DispatchInterruptionIds)
   // regardless of which dispatch's capture finds it first. This is why escalation below keys on
   // taskId rather than dispatchId: alicorn_task_strategy has one row per task, not per dispatch,
   // so dispatchId as sourceId would let the same offer land twice under two different keys.
+  // SK1: a retired gate never interrupted anybody — the policy resolved it and the task carried
+  // on. Counting one would move `interruptions_per_completed_task` in the wrong direction for a
+  // feature whose whole purpose is to move it down, so retirement is excluded here rather than
+  // netted out downstream.
   const gates = db.db
     .prepare(
-      `SELECT id, created_at FROM decision_gates WHERE task_id = ? AND created_at BETWEEN ? AND ?`
+      `SELECT id, created_at FROM decision_gates
+       WHERE task_id = ? AND created_at BETWEEN ? AND ? AND retired_at IS NULL`
     )
     .all(ids.taskId, start, end) as GateRow[]
   for (const gate of gates) {
