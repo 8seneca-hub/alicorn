@@ -1,6 +1,11 @@
 import type { ControlPlaneClient } from './control-plane-client'
 import type { Member, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
-import type { AutonomyPolicy, StageConfig } from '../../shared/alicorn/gate-policy'
+import type {
+  AutonomyPolicy,
+  AutonomyPolicyInput,
+  StageConfig,
+  TrackRecord
+} from '../../shared/alicorn/gate-policy'
 
 const DEFAULT_TTL_MS = 60_000
 
@@ -22,6 +27,17 @@ export type MemberDirectory = {
     memberId: string | null
   }) => Promise<AutonomyPolicy | null>
   getStageConfig: (projectId: string, stageKey: string) => Promise<StageConfig>
+  /** GP2's audit read: every authored policy, lapsed `never_gate` exceptions included. */
+  listAutonomyPolicies: (projectId: string) => Promise<AutonomyPolicy[]>
+  /** The only write here. Drops the cached reads it invalidates so a set is visible to the next get. */
+  setAutonomyPolicy: (projectId: string, input: AutonomyPolicyInput) => Promise<AutonomyPolicy>
+  // Same no-fallback posture as getAutonomyPolicy: an unreachable ledger throws so the caller can
+  // gate on `history`, rather than being handed a zeroed record that reads as a real empty one.
+  getTrackRecord: (key: {
+    projectId: string
+    stageKey: string
+    memberId: string
+  }) => Promise<TrackRecord>
 }
 
 type Cached<T> = { value: T; fetchedAt: number }
@@ -37,6 +53,16 @@ export function createMemberDirectory(
   const checks = new Map<string, Cached<RequiredCheck[]>>()
   const policies = new Map<string, Cached<AutonomyPolicy | null>>()
   const stageConfigs = new Map<string, Cached<StageConfig>>()
+  const authoredPolicies = new Map<string, Cached<AutonomyPolicy[]>>()
+  const trackRecords = new Map<string, Cached<TrackRecord>>()
+
+  function policyCacheKey(key: {
+    projectId: string
+    stageKey: string
+    memberId: string | null
+  }): string {
+    return `${key.projectId}\u0000${key.stageKey}\u0000${key.memberId ?? ''}`
+  }
 
   // A launch is worth more than a fresh read: when a refresh fails, serve the
   // last known answer rather than failing the dispatch. Only a cold cache throws.
@@ -97,7 +123,7 @@ export function createMemberDirectory(
       ),
 
     getAutonomyPolicy: async (key) => {
-      const cacheKey = `${key.projectId}\u0000${key.stageKey}\u0000${key.memberId ?? ''}`
+      const cacheKey = policyCacheKey(key)
       return refresh(
         policies.get(cacheKey),
         () => client.getAutonomyPolicy(key),
@@ -106,6 +132,33 @@ export function createMemberDirectory(
         }
       )
     },
+
+    listAutonomyPolicies: async (projectId) =>
+      refresh(
+        authoredPolicies.get(projectId),
+        () => client.listAutonomyPolicies(projectId),
+        (entry) => {
+          authoredPolicies.set(projectId, entry)
+        }
+      ),
+
+    setAutonomyPolicy: async (projectId, input) => {
+      const written = await client.putAutonomyPolicy(projectId, input)
+      // Evict rather than store the response: the wildcard row this write replaced may also be
+      // cached under a member-specific key, and only a re-read can say which row now applies.
+      policies.clear()
+      authoredPolicies.delete(projectId)
+      return written
+    },
+
+    getTrackRecord: async (key) =>
+      refresh(
+        trackRecords.get(policyCacheKey(key)),
+        () => client.getTrackRecord(key),
+        (entry) => {
+          trackRecords.set(policyCacheKey(key), entry)
+        }
+      ),
 
     getStageConfig: async (projectId, stageKey) => {
       const cacheKey = `${projectId}\u0000${stageKey}`

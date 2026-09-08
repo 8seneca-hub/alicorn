@@ -32,6 +32,9 @@ const ORCHESTRATION_MUTATION_METHODS = new Set([
   'orchestration.gateCreate',
   'orchestration.gateResolve',
   'orchestration.verifyRecord',
+  // GP2: a control-plane write, so it takes the same contract fence and retry-request recovery
+  // as every other mutation. The three reads beside it (policyGet, policyList, evidence) do not.
+  'orchestration.policySet',
   'orchestration.reset',
   'orchestration.federationAttachStart',
   'orchestration.federationAck',

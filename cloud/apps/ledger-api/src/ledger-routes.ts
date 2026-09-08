@@ -7,7 +7,8 @@ import {
   InterruptionsReportFiltersSchema,
   SpendPatchSchema,
   StepOutcomeInputSchema,
-  StepVerificationInputSchema
+  StepVerificationInputSchema,
+  TrackRecordQuerySchema
 } from '@alicorn-cloud/control-plane-contract'
 import type { LedgerApiDeps, LedgerApiEnv } from './app-env.js'
 import { insertStepOutcome, patchStepOutcomeHumanVerdict, patchStepOutcomeSpend } from './step-outcomes-repository.js'
@@ -15,6 +16,7 @@ import { insertStepVerification } from './step-verifications-repository.js'
 import { insertContextCapture, listContextCapturesForRun } from './context-captures-repository.js'
 import { getProvenance, getRunCost } from './provenance-repository.js'
 import { getInterruptionsReport, insertInterruption } from './interruptions-repository.js'
+import { getTrackRecord } from './track-record-repository.js'
 import { readJsonBody } from './read-json-body.js'
 
 export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDeps): void {
@@ -136,5 +138,19 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
     if (!result.success) return c.json({ error: 'invalid_query' }, 400)
     const report = await getInterruptionsReport(deps.pool, auth.tenantId, result.data)
     return c.json(report)
+  })
+
+  // GP2: the windowed track record `evaluateGate` reads as `evidence.stats`. Named track-record,
+  // not evidence: `GateEvidence` is a wider shape (checks, blast radius) assembled on the client,
+  // and one word for two shapes is how the two drift apart.
+  app.get('/v1/ledger/track-record', async (c) => {
+    const auth = c.get('auth')
+    const query = TrackRecordQuerySchema.safeParse({
+      memberId: c.req.query('memberId'),
+      stageKey: c.req.query('stageKey') ?? undefined,
+      projectId: c.req.query('projectId')
+    })
+    if (!query.success) return c.json({ error: 'invalid_query' }, 400)
+    return c.json(await getTrackRecord(deps.pool, auth.tenantId, query.data))
   })
 }

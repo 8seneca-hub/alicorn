@@ -317,6 +317,23 @@ Use `ask` for worker-to-coordinator questions; it creates a `question` message t
 
 `gate-create --evaluate` runs the project's autonomy policy and records the decision it would have made on the gate; the gate still blocks, so there is no way to ask the policy and act on the answer yourself. `verify-record` stores a named check result the policy reads — a check the project requires and nobody recorded reads as unverified, never as passed.
 
+## Autonomy Policy
+
+```bash
+orca orchestration policy-get --project <project_id> [--stage-key <key>] [--member <member_id>] [--json]
+orca orchestration policy-set --project <project_id> --mode <always_gate|evidence|never_gate> [--stage-key <key>] [--member <member_id>] [--min-runs <n>] [--min-accept-rate <0..1>] [--max-files <n>] [--max-spend-cents <n>] [--expires-at <iso8601>] [--json]
+orca orchestration policy-list --project <project_id> [--json]
+orca orchestration evidence --task <task_id> [--stage-key <key>] [--json]
+```
+
+`policy-get` always returns a policy: a project that authored none gets the default, flagged `authored: false`. It also returns the stage's `reversibility` and `inheritedCost`, which are authored on the stage and outrank the policy — an irreversible stage gates whatever the policy says.
+
+`policy-set` replaces the policy for that stage, so an omitted budget clears it rather than keeping the old value. `--mode never_gate` requires `--expires-at` in the future; an exception that cannot lapse is rejected before the write leaves the client. The author is the authenticated caller and is never taken from the request.
+
+`policy-list` is the audit view for standing exceptions. Lapsed ones are listed too — when an exception ended is part of the audit.
+
+`evidence` reports the task's windowed track record (last 50 runs) and what the policy would decide right now, from the same evaluation `gate-create --evaluate` runs. It is advisory: reading it resolves nothing, and `gate-create` remains the only place a decision is acted on.
+
 `coordinator-start`, `coordinator-stop`, `run`, and `run-stop` are retired scheduler commands. They perform no effects and return the current-skill recovery action. They are not aliases for lightweight Run creation or binding.
 
 Recovery only: `orca orchestration reset --tasks|--messages|--all --json` clears the selected local orchestration database state. Do not run it during active coordination unless explicitly abandoning that state.

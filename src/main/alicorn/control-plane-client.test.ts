@@ -111,6 +111,44 @@ describe('policy and required checks', () => {
     await expect(client.getRequiredChecks('proj-1')).resolves.toEqual([check])
     expect(lastCall()[1]).toBe('/v1/projects/proj-1/required-checks')
   })
+
+  it('unwraps the authored-policies envelope for the audit view', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({}))
+    await expect(client.listAutonomyPolicies('proj 1')).resolves.toEqual([])
+    expect(lastCall()[1]).toBe('/v1/projects/proj%201/autonomy-policies')
+  })
+
+  it('PUTs a policy without an author — the control plane takes it from the caller', async () => {
+    const input = {
+      stageKey: 'merge',
+      memberId: null,
+      mode: 'never_gate' as const,
+      minRuns: 10,
+      minAcceptRate: 0.9,
+      maxFiles: null,
+      maxSpendCents: null,
+      expiresAt: '2026-12-01T00:00:00.000Z'
+    }
+    fetchMock.mockResolvedValue(jsonResponse({ policy: { ...input, createdBy: 'actor' } }))
+
+    await expect(client.putAutonomyPolicy('proj-1', input)).resolves.toMatchObject({
+      createdBy: 'actor'
+    })
+    const [service, path, init] = lastCall()
+    expect(service).toBe('control')
+    expect(path).toBe('/v1/projects/proj-1/autonomy-policy')
+    expect(init?.method).toBe('PUT')
+    expect(JSON.parse(String(init?.body))).toEqual(input)
+  })
+
+  it('reads the track record from the ledger service, not the control service', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ runs: 4 }))
+
+    await client.getTrackRecord({ projectId: 'p1', stageKey: 'build', memberId: 'm1' })
+    const [service, path] = lastCall()
+    expect(service).toBe('ledger')
+    expect(path).toBe('/v1/ledger/track-record?projectId=p1&stageKey=build&memberId=m1')
+  })
 })
 
 describe('ledger reads', () => {

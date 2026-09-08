@@ -1,3 +1,4 @@
+import { hasPolicyExpired } from '../../../shared/alicorn/gate-policy'
 import type {
   AutonomyPolicy,
   GateDecision,
@@ -39,7 +40,7 @@ export function evaluateGate(
   }
 
   // An exception that has lapsed is not an exception; the policy falls back to `evidence`.
-  if (policy.mode === 'never_gate' && !hasExpired(policy.expiresAt, now())) {
+  if (policy.mode === 'never_gate' && !hasPolicyExpired(policy.expiresAt, now())) {
     return { decision: 'auto', reason: 'never_gate' }
   }
 
@@ -82,14 +83,4 @@ export function evaluateGate(
 
 function gate(reason: GateDecisionReason): GateDecision {
   return { decision: 'gate', reason }
-}
-
-function hasExpired(expiresAt: string | null, nowMs: number): boolean {
-  if (expiresAt === null) {
-    return true
-  }
-  const at = Date.parse(expiresAt)
-  // An unparseable expiry is treated as lapsed — the schema and the DB CHECK both require a real
-  // one, so a value that got here malformed is corruption, and corruption must not grant autonomy.
-  return Number.isNaN(at) || at <= nowMs
 }

@@ -2,7 +2,12 @@ import type { alicornFetch as AlicornFetch } from './control-plane-http'
 import { alicornFetch } from './control-plane-http'
 import type { ProvenanceReport, RunCost } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
-import type { AutonomyPolicy, StageConfig } from '../../shared/alicorn/gate-policy'
+import type {
+  AutonomyPolicy,
+  AutonomyPolicyInput,
+  StageConfig,
+  TrackRecord
+} from '../../shared/alicorn/gate-policy'
 import type { Workflow, WorkflowSummary } from '../../shared/alicorn/workflows'
 
 export type ControlPlaneClient = {
@@ -18,7 +23,16 @@ export type ControlPlaneClient = {
     stageKey: string
     memberId: string | null
   }) => Promise<AutonomyPolicy | null>
+  /** Every authored policy for the project, lapsed exceptions included — the audit view. */
+  listAutonomyPolicies: (projectId: string) => Promise<AutonomyPolicy[]>
+  putAutonomyPolicy: (projectId: string, input: AutonomyPolicyInput) => Promise<AutonomyPolicy>
   getStageConfig: (projectId: string, stageKey: string) => Promise<StageConfig>
+  /** Windowed track record from the Ledger API — `evaluateGate`'s `evidence.stats`. */
+  getTrackRecord: (key: {
+    projectId: string
+    stageKey: string
+    memberId: string
+  }) => Promise<TrackRecord>
   getProvenance: (repoId: string, branch: string) => Promise<ProvenanceReport>
   getRunCost: (runId: string) => Promise<RunCost>
   listWorkflows: (projectId: string) => Promise<WorkflowSummary[]>
@@ -97,12 +111,34 @@ export function createControlPlaneClient(deps?: {
       return body.policy ?? null
     },
 
+    listAutonomyPolicies: async (projectId) => {
+      const body = await readJson<{ policies: AutonomyPolicy[] }>(
+        'control',
+        `${projectPath(projectId)}/autonomy-policies`
+      )
+      return body.policies ?? []
+    },
+
+    putAutonomyPolicy: async (projectId, input) => {
+      const body = await readJson<{ policy: AutonomyPolicy }>(
+        'control',
+        `${projectPath(projectId)}/autonomy-policy`,
+        { method: 'PUT', body: JSON.stringify(input) }
+      )
+      return body.policy
+    },
+
     getStageConfig: async (projectId, stageKey) => {
       const body = await readJson<{ config: StageConfig }>(
         'control',
         `${projectPath(projectId)}/stage-config/${encodeURIComponent(stageKey)}`
       )
       return body.config
+    },
+
+    getTrackRecord: ({ projectId, stageKey, memberId }) => {
+      const query = new URLSearchParams({ projectId, stageKey, memberId })
+      return readJson<TrackRecord>('ledger', `/v1/ledger/track-record?${query.toString()}`)
     },
 
     getProvenance: (repoId, branch) => {

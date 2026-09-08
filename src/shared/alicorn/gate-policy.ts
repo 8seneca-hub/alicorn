@@ -62,6 +62,52 @@ export type GateTrackRecord = {
 }
 
 /**
+ * GP2's windowed track record, as the Ledger API serves it. A superset of `GateTrackRecord`, so it
+ * drops straight into `GateEvidence.stats`; the extra fields exist for the human reading the
+ * recommendation, not for `evaluateGate`, which must never see `level`.
+ */
+export type TrackRecord = GateTrackRecord & {
+  memberId: string
+  stageKey: string
+  projectId: string
+  accepted: number
+  rejected: number
+  amended: number
+  lastAmendedAt: string | null
+  /** Derived at read time. Descriptive: nothing retires a gate on it — that is SK1's. */
+  level: number
+  amendmentsObserved: boolean
+}
+
+/** What `policySet` writes. `projectId` is the route, `createdBy` is the authenticated actor. */
+export type AutonomyPolicyInput = {
+  stageKey: string
+  memberId: string | null
+  mode: AutonomyPolicyMode
+  minRuns: number
+  minAcceptRate: number
+  maxFiles: number | null
+  maxSpendCents: number | null
+  expiresAt: string | null
+}
+
+/**
+ * Has a standing exception lapsed? Shared by the policy evaluator and the audit view so the two
+ * can never disagree about which exceptions are still live.
+ *
+ * A missing expiry counts as lapsed, and so does an unparseable one: the schema and the DB CHECK
+ * both require a real date, so a value that got here malformed is corruption, and corruption must
+ * not grant autonomy.
+ */
+export function hasPolicyExpired(expiresAt: string | null, nowMs: number): boolean {
+  if (expiresAt === null) {
+    return true
+  }
+  const at = Date.parse(expiresAt)
+  return Number.isNaN(at) || at <= nowMs
+}
+
+/**
  * Everything the policy is allowed to look at. Every field is nullable because "we could not
  * find out" is a real answer — an SSH host out of contact, a folder workspace with no diff, a
  * control plane that is down — and it must never read as "fine".

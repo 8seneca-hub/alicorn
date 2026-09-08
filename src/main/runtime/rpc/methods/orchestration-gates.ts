@@ -185,7 +185,7 @@ export const ORCHESTRATION_GATE_METHODS: RpcMethod[] = [
       // No directory means the control plane is unconfigured: the policy cannot be read, so the
       // honest answer is a gate, not an unevaluated pass.
       const recommendation: GateDecision = directory
-        ? await evaluateGateForTask(directory, evaluationInput)
+        ? (await evaluateGateForTask(directory, evaluationInput)).decision
         : { decision: 'gate', reason: 'unverified' }
       // Level 0 records the decision it *would* have made and still gates. Nothing in GP1
       // auto-resolves: autonomy is unlocked by evidence, and evidence only accumulates by

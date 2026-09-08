@@ -143,6 +143,10 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
       'orchestration verify-record',
       'orchestration gate-resolve',
       'orchestration gate-list',
+      'orchestration policy-get',
+      'orchestration policy-set',
+      'orchestration policy-list',
+      'orchestration evidence',
       'orchestration reset'
     ],
     load: async () => (await import('./handlers/orchestration.js')).ORCHESTRATION_HANDLERS

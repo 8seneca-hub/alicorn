@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { evaluateGateForTask, type GatePolicySource } from './gate-evaluation'
 import type { RequiredCheck } from '../../../shared/alicorn/members'
-import type { AutonomyPolicy } from '../../../shared/alicorn/gate-policy'
+import type { AutonomyPolicy, TrackRecord } from '../../../shared/alicorn/gate-policy'
 import type { DispatchVerificationRow } from '../../runtime/orchestration/db/alicorn/alicorn-rows'
 
 const COVERAGE: RequiredCheck = {
@@ -29,6 +29,9 @@ function source(overrides: Partial<GatePolicySource> = {}): GatePolicySource {
     getStageConfig: vi.fn().mockResolvedValue({ reversibility: 'contained', inheritedCost: 'low' }),
     getAutonomyPolicy: vi.fn().mockResolvedValue(null),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
+    // Absent by default: GP1's suite predates the track record, and a member with none must keep
+    // gating on 'history'.
+    getTrackRecord: vi.fn().mockRejectedValue(new Error('no track record')),
     ...overrides
   }
 }
@@ -43,9 +46,31 @@ function input(overrides: Partial<Parameters<typeof evaluateGateForTask>[1]> = {
   }
 }
 
+async function decisionFor(...args: Parameters<typeof evaluateGateForTask>) {
+  return (await evaluateGateForTask(...args)).decision
+}
+
+function trackRecord(overrides: Partial<TrackRecord> = {}): TrackRecord {
+  return {
+    memberId: 'member-1',
+    stageKey: 'build',
+    projectId: 'repo-1',
+    runs: 25,
+    accepted: 25,
+    rejected: 0,
+    amended: 0,
+    acceptRate: 1,
+    recentRegression: false,
+    lastAmendedAt: null,
+    level: 2,
+    amendmentsObserved: true,
+    ...overrides
+  }
+}
+
 describe('evaluateGateForTask', () => {
   it('gates when the task could not be resolved to a project', async () => {
-    await expect(evaluateGateForTask(source(), input({ projectId: null }))).resolves.toEqual({
+    await expect(decisionFor(source(), input({ projectId: null }))).resolves.toEqual({
       decision: 'gate',
       reason: 'unverified'
     })
@@ -55,7 +80,7 @@ describe('evaluateGateForTask', () => {
     const unreachable = source({
       getAutonomyPolicy: vi.fn().mockRejectedValue(new Error('ECONNREFUSED'))
     })
-    await expect(evaluateGateForTask(unreachable, input())).resolves.toEqual({
+    await expect(decisionFor(unreachable, input())).resolves.toEqual({
       decision: 'gate',
       reason: 'unverified'
     })
@@ -63,7 +88,7 @@ describe('evaluateGateForTask', () => {
 
   it('applies the default policy when the project authored none', async () => {
     // Default is `evidence`, so with no track record the reason is history rather than policy.
-    await expect(evaluateGateForTask(source(), input())).resolves.toEqual({
+    await expect(decisionFor(source(), input())).resolves.toEqual({
       decision: 'gate',
       reason: 'history'
     })
@@ -84,10 +109,7 @@ describe('evaluateGateForTask', () => {
       expiresAt: null
     }
     await expect(
-      evaluateGateForTask(
-        source({ getAutonomyPolicy: vi.fn().mockResolvedValue(authored) }),
-        input()
-      )
+      decisionFor(source({ getAutonomyPolicy: vi.fn().mockResolvedValue(authored) }), input())
     ).resolves.toEqual({ decision: 'gate', reason: 'policy' })
   })
 
@@ -97,21 +119,82 @@ describe('evaluateGateForTask', () => {
         .fn()
         .mockResolvedValue({ reversibility: 'irreversible', inheritedCost: 'low' })
     })
-    await expect(
-      evaluateGateForTask(irreversible, input({ stageKey: 'ship-it' }))
-    ).resolves.toEqual({ decision: 'gate', reason: 'irreversible' })
+    await expect(decisionFor(irreversible, input({ stageKey: 'ship-it' }))).resolves.toEqual({
+      decision: 'gate',
+      reason: 'irreversible'
+    })
   })
 
   it('reads the required checks from the project, not from what the member reported', async () => {
     const withChecks = source({ getRequiredChecks: vi.fn().mockResolvedValue([COVERAGE]) })
     // The member ran nothing, so the authored check has no result: unverified, not history.
-    await expect(evaluateGateForTask(withChecks, input())).resolves.toEqual({
+    await expect(decisionFor(withChecks, input())).resolves.toEqual({
       decision: 'gate',
       reason: 'unverified'
     })
     await expect(
-      evaluateGateForTask(withChecks, input({ verifications: [passingCoverage()] }))
+      decisionFor(withChecks, input({ verifications: [passingCoverage()] }))
     ).resolves.toEqual({ decision: 'gate', reason: 'history' })
+  })
+
+  it('feeds the track record into the policy and returns the evidence it used', async () => {
+    const withRecord = source({ getTrackRecord: vi.fn().mockResolvedValue(trackRecord()) })
+    const evaluation = await evaluateGateForTask(withRecord, input())
+
+    expect(evaluation.decision).toEqual({ decision: 'auto', reason: 'auto' })
+    expect(evaluation.detail?.evidence.stats).toMatchObject({ runs: 25, acceptRate: 1 })
+    expect(evaluation.detail?.policyAuthored).toBe(false)
+  })
+
+  it('gates on accept-rate and on regression from the same record', async () => {
+    await expect(
+      decisionFor(
+        source({
+          getTrackRecord: vi.fn().mockResolvedValue(trackRecord({ acceptRate: 0.5, accepted: 12 }))
+        }),
+        input()
+      )
+    ).resolves.toEqual({ decision: 'gate', reason: 'accept-rate' })
+    await expect(
+      decisionFor(
+        source({
+          getTrackRecord: vi.fn().mockResolvedValue(trackRecord({ recentRegression: true }))
+        }),
+        input()
+      )
+    ).resolves.toEqual({ decision: 'gate', reason: 'regression' })
+  })
+
+  it('gates on history when the ledger is unreachable, not on unverified', async () => {
+    const ledgerDown = source({
+      getTrackRecord: vi.fn().mockRejectedValue(new Error('ECONNREFUSED'))
+    })
+    // A ledger outage is not a policy outage: the reason must say which one happened.
+    await expect(decisionFor(ledgerDown, input())).resolves.toEqual({
+      decision: 'gate',
+      reason: 'history'
+    })
+  })
+
+  it('does not ask the ledger for a task with no member recorded', async () => {
+    const getTrackRecord = vi.fn()
+    await expect(
+      decisionFor(source({ getTrackRecord }), input({ memberId: null }))
+    ).resolves.toEqual({ decision: 'gate', reason: 'history' })
+    expect(getTrackRecord).not.toHaveBeenCalled()
+  })
+
+  it('never lets a spotless track record retire a hard stop', async () => {
+    const spotless = source({
+      getTrackRecord: vi.fn().mockResolvedValue(trackRecord({ runs: 500, level: 3 })),
+      getStageConfig: vi
+        .fn()
+        .mockResolvedValue({ reversibility: 'irreversible', inheritedCost: 'high' })
+    })
+    await expect(decisionFor(spotless, input({ stageKey: 'merge' }))).resolves.toEqual({
+      decision: 'gate',
+      reason: 'irreversible'
+    })
   })
 
   it('asks for the policy scoped to the project, stage and member', async () => {

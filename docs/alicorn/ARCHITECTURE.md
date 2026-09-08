@@ -310,6 +310,16 @@ a member with 400 good runs must not average its way out of 12 recent bad ones.
 Demotion is evaluated from `step_outcomes.human_verdict` (written by the corrections sweep), never
 from `accept_rate`.
 
+**As built (GP2, 2026-09-08).** The windowed record is `GET /v1/ledger/track-record?memberId&stageKey&projectId`,
+computed from the last 50 raw `step_outcomes` at read time rather than from `member_stage_stats`,
+whose aggregate is lifetime. `summarizeTrackRecord` and `computeAutonomyLevel`
+(`cloud/packages/control-plane-contract/src/track-record.ts`) hold the arithmetic and the level
+table. The level is **derived and stored nowhere** — `member_stage_stats.level` is still unwritten
+— because nothing consumes it to retire a gate yet; that is SK1's, and `evaluateGate` never sees
+it. It is named *track record*, not *evidence*: `GateEvidence` is the wider shape (required checks,
+blast radius, track record) assembled on the client, and one word for two shapes is how the two
+drift apart.
+
 **The corrections watcher is load-bearing.** `human_verdict` must also be written from post-hoc
 corrections — a follow-up commit touching the same files inside a window, a revert, a reopened task.
 Without it, accept rate drifts up while quality drifts down. Until it ships, run advisory-only.
@@ -335,7 +345,21 @@ ask the policy and then ignore the answer. The ledger stays authoritative.
 gate is always pending: **nothing auto-resolves**. Level 0 records the decision it would have made,
 which is how a level is ever earned — autonomy is unlocked by evidence, and evidence only
 accumulates by running gated. Retiring a gate on an `auto` recommendation is SK1's, once the Ledger
-API serves the windowed track record (GP2).
+API serves the windowed track record (GP2 — shipped; `evaluateGateForTask` now reads it, so a
+stage with a real record can reach `auto` as a *recommendation*, and still gates).
+
+**As built (GP2, 2026-09-08).** `policyGet`, `policySet`, `policyList` and `evidence` are the four
+methods, all reached through `MemberDirectory` so a policy read is cached for 60 s and a write
+evicts what it invalidates. `policySet` is the only mutation of the four and is declared as one in
+`orchestration-rpc-contract.ts`; it is a *replace*, so an omitted budget clears it. A `never_gate`
+with no expiry — or one already lapsed — is rejected before the write leaves the process, which is
+the third place that rule is enforced after zod and the DB CHECK. `policyList` is the §9 audit view:
+it lists lapsed exceptions as well as standing ones, because when an exception ended is part of the
+audit, and it shares `hasPolicyExpired` with the evaluator so the two can never disagree about which
+are live. `evidence` is keyed on a **task**, not on the three ids, so it runs the same
+`evaluateGateForTask` assembly `gateCreate` does — one implementation of a gate verdict, never two
+that could disagree — and returns `wouldDecide` alongside the track record and the evidence it was
+computed from. Reading it resolves nothing.
 
 `verifyRecord` writes to the client's own store (`alicorn_dispatch_verifications`), which is what
 the policy reads: the Ledger API is authoritative but eventual, and a gate has to decide now. D5's

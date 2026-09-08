@@ -31,7 +31,10 @@ function directory(found: Member): MemberDirectory {
     getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
     getAutonomyPolicy: vi.fn().mockResolvedValue(null),
-    getStageConfig: vi.fn().mockResolvedValue({ reversibility: 'contained', inheritedCost: 'low' })
+    getStageConfig: vi.fn().mockResolvedValue({ reversibility: 'contained', inheritedCost: 'low' }),
+    listAutonomyPolicies: vi.fn().mockResolvedValue([]),
+    setAutonomyPolicy: vi.fn(),
+    getTrackRecord: vi.fn().mockRejectedValue(new Error('no track record'))
   }
 }
 

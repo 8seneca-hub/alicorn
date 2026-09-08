@@ -9,6 +9,7 @@ import { ORCHESTRATION_MESSAGE_METHODS } from './orchestration-message-methods'
 import { ORCHESTRATION_DISPATCH_METHODS } from './orchestration-dispatch-methods'
 import { ORCHESTRATION_ASK_METHODS } from './orchestration-ask-methods'
 import { ORCHESTRATION_GATE_METHODS } from './orchestration-gates'
+import { ORCHESTRATION_POLICY_METHODS } from './orchestration-policy'
 import { ORCHESTRATION_RESET_METHODS } from './orchestration-reset-methods'
 
 export const ORCHESTRATION_METHODS: RpcMethod[] = [
@@ -22,5 +23,6 @@ export const ORCHESTRATION_METHODS: RpcMethod[] = [
   ...ORCHESTRATION_DISPATCH_METHODS,
   ...ORCHESTRATION_ASK_METHODS,
   ...ORCHESTRATION_GATE_METHODS,
+  ...ORCHESTRATION_POLICY_METHODS,
   ...ORCHESTRATION_RESET_METHODS
 ]
