@@ -22,7 +22,8 @@ describe('parseAuthConfig', () => {
       authMode: 'keycloak',
       issuer: 'https://id.example.com/realms/alicorn',
       internalIssuer: 'https://keycloak.internal/realms/alicorn',
-      clientId: 'alicorn-desktop'
+      clientId: 'alicorn-desktop',
+      allowInsecureJwks: false
     })
   })
   it('defaults the internal issuer to the issuer', () => {
@@ -31,7 +32,8 @@ describe('parseAuthConfig', () => {
       authMode: 'keycloak',
       issuer: 'https://id.example.com/realms/alicorn',
       internalIssuer: 'https://id.example.com/realms/alicorn',
-      clientId: 'alicorn-desktop'
+      clientId: 'alicorn-desktop',
+      allowInsecureJwks: false
     })
   })
 })

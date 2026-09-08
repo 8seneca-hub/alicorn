@@ -27,7 +27,9 @@ export function createLedgerApiApp(deps: LedgerApiDeps): Hono<LedgerApiEnv> {
     return c.text(metrics.renderPrometheus(), 200, { 'content-type': 'text/plain; version=0.0.4; charset=utf-8' })
   })
   registerProvenanceJwksRoute(app, deps)
-  app.use('/v1/*', requireTenant({ config: deps.config.auth }))
+  // No lookupUserId / resolveOrgAliases here: the ledger API has no identity tables, so a token
+  // carrying only organisation aliases is refused rather than guessed at (org_claim_unresolvable).
+  app.use('/v1/*', requireTenant({ config: deps.config.auth, verifyAccessToken: deps.verifyAccessToken }))
   registerLedgerRoutes(app, { ...deps, metrics })
   registerProvenanceExportRoutes(app, { ...deps, metrics })
   return app

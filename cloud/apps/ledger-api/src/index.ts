@@ -1,4 +1,5 @@
 import { serve } from '@hono/node-server'
+import { createKeycloakVerifiers } from '@alicorn-cloud/control-plane-auth'
 import { applySchema, openControlPlanePool } from '@alicorn-cloud/control-plane-postgres'
 import { createLedgerApiApp } from './app.js'
 import { loadLedgerApiConfig } from './config.js'
@@ -11,5 +12,12 @@ const pool = await openControlPlanePool({
 })
 await applySchema(pool, LEDGER_SCHEMA_STATEMENTS)
 // PV2 retention has no object-store adapter yet; exports are signed and served, never archived.
-const app = createLedgerApiApp({ config, pool, exportSigningKey: config.exportSigningKey })
+const app = createLedgerApiApp({
+  config,
+  pool,
+  exportSigningKey: config.exportSigningKey,
+  ...(config.auth.authMode === 'keycloak'
+    ? { verifyAccessToken: createKeycloakVerifiers(config.auth).verifyAccessToken }
+    : {})
+})
 serve({ fetch: app.fetch, port: config.port }, () => console.log(`[alicorn-ledger-api] listening on :${config.port}`))

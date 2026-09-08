@@ -33,16 +33,19 @@ describe('requireTenant (local mode)', () => {
 describe('requireTenant (keycloak mode)', () => {
   // Why: this fail-fast is the only thing stopping a keycloak-configured deployment from
   // accepting unverified traffic, and a regression here keeps build and typecheck green.
-  it('refuses to construct until the verifier lands', () => {
+  // The placeholder this replaces asserted 'not implemented'; the verifier has landed, so the
+  // fail-closed case is now a keycloak config constructed without one.
+  it('refuses to construct without a token verifier', () => {
     expect(() =>
       requireTenant({
         config: {
           authMode: 'keycloak',
           issuer: 'http://127.0.0.1:8080/realms/alicorn',
           internalIssuer: 'http://keycloak:8080/realms/alicorn',
-          clientId: 'alicorn-desktop'
+          clientId: 'alicorn-desktop',
+          allowInsecureJwks: false
         }
       })
-    ).toThrow('keycloak mode not implemented')
+    ).toThrow('verifyAccessToken required in keycloak mode')
   })
 })

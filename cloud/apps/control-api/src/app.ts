@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { ControlApiEnv } from './app-env.js'
 import { requireTenant } from '@alicorn-cloud/control-plane-auth'
+import { registerDesktopAuthRoutes } from './desktop-auth-routes.js'
 import { registerMembersRoutes } from './members-routes.js'
 import { registerOrgPolicyRoutes } from './org-policy-routes.js'
 import { registerAutonomyPolicyRoutes } from './autonomy-policy-routes.js'
@@ -29,7 +30,21 @@ export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
   app.get('/healthz', (c) => c.json({ ok: true, service: 'control-api' }))
   // Why (LC-R4): unauthenticated like /healthz — same port, no second listener; loopback/network-policy covers reachability.
   app.get('/metrics', (c) => c.text(metrics.renderPrometheus(), 200, { 'content-type': 'text/plain; version=0.0.4; charset=utf-8' }))
-  app.use('/v1/*', requireTenant({ config: deps.config.auth }))
+  // Registered before the /v1/* guard so it is exempt from it: hono runs matched handlers in
+  // registration order, and the desktop has no organisation to send until this exchange runs.
+  registerDesktopAuthRoutes(app, deps)
+  app.use(
+    '/v1/*',
+    requireTenant({
+      config: deps.config.auth,
+      verifyAccessToken: deps.verifyAccessToken,
+      // No lookupUserId until the identity tables land (I3), so `auth.userId` stays null and
+      // `actor` is the verified subject — the same shape the ledger API already runs with.
+      resolveOrgAliases: deps.identityStore
+        ? (aliases) => deps.identityStore!.resolveOrgAliases(aliases)
+        : undefined
+    })
+  )
   registerMembersRoutes(app, deps)
   registerOrgPolicyRoutes(app, deps)
   registerAutonomyPolicyRoutes(app, deps)
