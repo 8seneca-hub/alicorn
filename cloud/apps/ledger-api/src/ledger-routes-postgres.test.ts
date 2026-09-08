@@ -382,19 +382,24 @@ describePostgres('ledger routes (postgres)', () => {
     expect(res.status).toBe(200)
     const report = (await res.json()) as InterruptionsReport
     expect(InterruptionsReportSchema.parse(report)).toEqual(report)
+    expect(report.completedTaskDefinition).toBe('any_successful_step')
     expect(report.completedTasks).toBe(2)
+    // Why identical: every outcome here succeeded, so the strict and loose denominators agree.
+    expect(report.tasksTouched).toBe(2)
     expect(report.interruptions).toBe(3)
     expect(report.perCompletedTask).toBe(1.5)
+    expect(report.perTaskTouched).toBe(1.5)
     expect(report.byKind).toEqual({ gate: 1, ask: 1, escalation: 1 })
     expect(report.byStage).toEqual([
-      { stageKey: 'build', completedTasks: 1, interruptions: 2, perCompletedTask: 2 },
-      { stageKey: 'review', completedTasks: 1, interruptions: 1, perCompletedTask: 1 }
+      { stageKey: 'build', completedTasks: 1, tasksTouched: 1, interruptions: 2, perCompletedTask: 2, perTaskTouched: 2 },
+      { stageKey: 'review', completedTasks: 1, tasksTouched: 1, interruptions: 1, perCompletedTask: 1, perTaskTouched: 1 }
     ])
     expect(report.excluded).toEqual(['permission_prompt'])
 
     const narrowed = await app.request('/v1/ledger/reports/interruptions?projectId=p10&stageKey=build', { headers: authHeaders })
     const narrowedReport = (await narrowed.json()) as InterruptionsReport
     expect(narrowedReport.completedTasks).toBe(1)
+    expect(narrowedReport.tasksTouched).toBe(1)
     expect(narrowedReport.interruptions).toBe(2)
     expect(narrowedReport.perCompletedTask).toBe(2)
     expect(narrowedReport.byKind).toEqual({ gate: 1, ask: 1 })
@@ -407,13 +412,113 @@ describePostgres('ledger routes (postgres)', () => {
     const futureReport = (await future.json()) as InterruptionsReport
     expect(futureReport).toEqual({
       filters: { projectId: 'p10', since: '2099-01-01T00:00:00.000Z' },
-      completedTasks: 0, interruptions: 0, perCompletedTask: 0,
+      completedTaskDefinition: 'any_successful_step',
+      completedTasks: 0, tasksTouched: 0, interruptions: 0, perCompletedTask: 0, perTaskTouched: 0,
       byKind: {}, byStage: [], excluded: ['permission_prompt']
     })
 
     const malformed = await app.request('/v1/ledger/reports/interruptions?since=not-a-date', { headers: authHeaders })
     expect(malformed.status).toBe(400)
     expect(await malformed.json()).toEqual({ error: 'invalid_query' })
+  })
+
+  it('keeps a failed-only task out of completedTasks but inside tasksTouched', async () => {
+    // Why this fixture: the metric's denominator used to be "tasks touched", which grows when steps
+    // fail — so `perCompletedTask` read best exactly when the system was doing worst. The two counts
+    // must diverge here, and the strict one must be the smaller (LG5).
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_10', taskId: 'task_10a', dispatchId: 'ctx_20', outcome: 'succeeded',
+      projectId: 'p12', memberId: 'mA', stageKey: 'build'
+    })
+    // Touched, never completed: its only step failed.
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_10', taskId: 'task_10b', dispatchId: 'ctx_21', outcome: 'failed',
+      projectId: 'p12', memberId: 'mA', stageKey: 'build'
+    })
+    // Failed then retried into a later stage that succeeded — completed under `any_successful_step`.
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_10', taskId: 'task_10c', dispatchId: 'ctx_22', outcome: 'failed',
+      projectId: 'p12', memberId: 'mB', stageKey: 'build'
+    })
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_10', taskId: 'task_10c', dispatchId: 'ctx_23', outcome: 'succeeded',
+      projectId: 'p12', memberId: 'mB', stageKey: 'review'
+    })
+
+    for (const [kind, sourceId, taskId, dispatchId] of [
+      ['gate', 'gate_10a', 'task_10a', 'ctx_20'],
+      ['ask', 'ask_10b', 'task_10b', 'ctx_21'],
+      ['gate', 'gate_10c', 'task_10c', 'ctx_23']
+    ] as const) {
+      await post('/v1/ledger/interruptions', {
+        runId: 'run_10', taskId, dispatchId, kind, sourceId,
+        occurredAt: '2026-09-06T03:00:00.000Z'
+      })
+    }
+
+    const res = await app.request('/v1/ledger/reports/interruptions?projectId=p12', { headers: authHeaders })
+    const report = (await res.json()) as InterruptionsReport
+    expect(InterruptionsReportSchema.parse(report)).toEqual(report)
+
+    expect(report.tasksTouched).toBe(3)
+    expect(report.completedTasks).toBe(2)
+    // The whole point: the old single-denominator report could not show this gap.
+    expect(report.completedTasks).toBeLessThan(report.tasksTouched)
+    expect(report.interruptions).toBe(3)
+    expect(report.perCompletedTask).toBe(1.5)
+    expect(report.perTaskTouched).toBe(1)
+    // Directional: the loose figure is the flattering one, and it is the one that used to be printed.
+    expect(report.perTaskTouched).toBeLessThan(report.perCompletedTask)
+
+    expect(report.byStage).toEqual([
+      { stageKey: 'build', completedTasks: 1, tasksTouched: 3, interruptions: 2, perCompletedTask: 2, perTaskTouched: 2 / 3 },
+      { stageKey: 'review', completedTasks: 1, tasksTouched: 1, interruptions: 1, perCompletedTask: 1, perTaskTouched: 1 }
+    ])
+  })
+
+  it('narrows the interruptions report by runId and executionStrategy', async () => {
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_11', taskId: 'task_11a', dispatchId: 'ctx_24', outcome: 'succeeded',
+      projectId: 'p13', memberId: 'mA', stageKey: 'build', executionStrategy: 'single'
+    })
+    await post('/v1/ledger/step-outcomes', {
+      runId: 'run_12', taskId: 'task_11b', dispatchId: 'ctx_25', outcome: 'succeeded',
+      projectId: 'p13', memberId: 'mA', stageKey: 'build', executionStrategy: 'orchestrated'
+    })
+    await post('/v1/ledger/interruptions', {
+      runId: 'run_11', taskId: 'task_11a', dispatchId: 'ctx_24',
+      kind: 'gate', sourceId: 'gate_11a', occurredAt: '2026-09-06T04:00:00.000Z'
+    })
+    await post('/v1/ledger/interruptions', {
+      runId: 'run_12', taskId: 'task_11b', dispatchId: 'ctx_25',
+      kind: 'gate', sourceId: 'gate_11b', occurredAt: '2026-09-06T04:01:00.000Z'
+    })
+    await post('/v1/ledger/interruptions', {
+      runId: 'run_12', taskId: 'task_11b', dispatchId: 'ctx_25',
+      kind: 'ask', sourceId: 'ask_11b', occurredAt: '2026-09-06T04:02:00.000Z'
+    })
+
+    const byRun = (await (await app.request(
+      '/v1/ledger/reports/interruptions?projectId=p13&runId=run_12',
+      { headers: authHeaders }
+    )).json()) as InterruptionsReport
+    expect(byRun.filters).toEqual({ projectId: 'p13', runId: 'run_12' })
+    expect(byRun.completedTasks).toBe(1)
+    expect(byRun.interruptions).toBe(2)
+
+    const byStrategy = (await (await app.request(
+      '/v1/ledger/reports/interruptions?projectId=p13&executionStrategy=single',
+      { headers: authHeaders }
+    )).json()) as InterruptionsReport
+    expect(byStrategy.filters).toEqual({ projectId: 'p13', executionStrategy: 'single' })
+    expect(byStrategy.completedTasks).toBe(1)
+    expect(byStrategy.interruptions).toBe(1)
+
+    const unknownStrategy = await app.request(
+      '/v1/ledger/reports/interruptions?executionStrategy=team',
+      { headers: authHeaders }
+    )
+    expect(unknownStrategy.status).toBe(400)
   })
 
   it('does not inflate interruptions when one dispatch spans two step_outcomes rows', async () => {
@@ -439,8 +544,8 @@ describePostgres('ledger routes (postgres)', () => {
     expect(report.interruptions).toBe(1)
     expect(report.byKind).toEqual({ gate: 1 })
     expect(report.byStage).toEqual([
-      { stageKey: 'build', completedTasks: 1, interruptions: 1, perCompletedTask: 1 },
-      { stageKey: 'review', completedTasks: 1, interruptions: 1, perCompletedTask: 1 }
+      { stageKey: 'build', completedTasks: 1, tasksTouched: 1, interruptions: 1, perCompletedTask: 1, perTaskTouched: 1 },
+      { stageKey: 'review', completedTasks: 1, tasksTouched: 1, interruptions: 1, perCompletedTask: 1, perTaskTouched: 1 }
     ])
   })
 

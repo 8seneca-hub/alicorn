@@ -34,10 +34,12 @@ first dispatch of either arm — and that ordering is machine-checkable, because
 ## 02 · What we already measure — M1 as shipped
 
 The protocol builds on what exists. These are the real fields and the real command, verified against
-the code on 2026-09-08; do not invent metric names beside them.
+the code on 2026-09-08 and re-verified after LG5 (ALC-105) on the same day; do not invent metric
+names beside them.
 
-**Command.** `orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--since <iso>]
-[--until <iso>] [--json]` — `src/cli/specs/ledger.ts`, handler
+**Command.** `orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--run <id>]
+[--strategy <single|orchestrated>] [--since <iso>] [--until <iso>] [--json]` —
+`src/cli/specs/ledger.ts`, handler
 `src/cli/handlers/ledger/report-handlers.ts`. The binary renames to `alicorn` with R1–R5; the
 subcommand path does not change.
 
@@ -46,12 +48,22 @@ subcommand path does not change.
 
 | Field | Meaning as computed |
 |---|---|
-| `completedTasks` | `COUNT(DISTINCT o.task_id)` over `step_outcomes` matching the filters. **Not filtered by `outcome`** — a task whose only step failed is still counted. |
+| `completedTaskDefinition` | Which rule produced `completedTasks`. Today always `any_successful_step`; `terminal_stage_succeeded` and `no_failed_step_outstanding` are declared in the contract but not implemented. |
+| `completedTasks` | `COUNT(DISTINCT task_id)` over `step_outcomes` matching the filters **and `outcome = 'succeeded'`**. A task whose every step failed is not counted. |
+| `tasksTouched` | The same count with no `outcome` condition — every task with a settled outcome, failures included. This is what `completedTasks` used to mean. |
 | `interruptions` | `COUNT(DISTINCT i.id)` over `step_interruptions` joined to those outcomes on `(tenant, task, dispatch)`. `DISTINCT` deliberately, so a v1.5 multi-dispatch task cannot inflate the north star. |
 | `perCompletedTask` | `interruptions / completedTasks`, or `0` when the denominator is zero. **The north-star metric.** |
+| `perTaskTouched` | `interruptions / tasksTouched`. The loose figure, reported beside the strict one so a divergence is visible. It is always the smaller of the two, which is why it must never be quoted alone. |
 | `byKind` | Counts by `gate` \| `ask` \| `escalation`. |
-| `byStage[]` | The same three numbers per `stage_key`. |
+| `byStage[]` | The same five numbers per `stage_key`. Stage rows come from *touched*, so a stage whose every step failed still appears. |
 | `excluded` | Always `['permission_prompt']` — permission prompts are not interruptions. |
+
+**LG5 (ALC-105) changed what `perCompletedTask` means.** Before it, the denominator was tasks
+*touched*: a failed step enlarged it, so the north star read best exactly when the system was
+failing most. It is now tasks with at least one successful step — candidate (a) of three; (b)
+*terminal stage succeeded* and (c) *no failed step outstanding* remain open and are chosen from real
+data once the two printed figures have diverged on a real run. The swap point is
+`completedTaskPairsSql` in `cloud/apps/ledger-api/src/interruptions-repository.ts`.
 
 **Other ledger reads the protocol uses** (HTTP only — there is no CLI for either, see §11):
 
@@ -67,9 +79,12 @@ subcommand path does not change.
 **Four things M1 does not tell us**, each of which the protocol has to work around rather than
 assume away — the full list with proposed fixes is §11.
 
-1. The report cannot be scoped to a **run** or to an **execution strategy**. Its filters are
-   `stageKey`, `projectId`, `memberId`, `since`, `until` and nothing else.
-2. `completedTasks` counts *tasks touched*, not *tasks completed successfully*.
+1. ~~The report cannot be scoped to a **run** or to an **execution strategy**.~~ **Closed by LG5.**
+   Filters are now `stageKey`, `projectId`, `memberId`, `runId`, `executionStrategy`, `since`,
+   `until`. `--compare-runs <a> <b>` still does not exist; two `--run` reports replace it.
+2. ~~`completedTasks` counts *tasks touched*, not *tasks completed successfully*.~~ **Closed by
+   LG5**, under definition (a). Both counts are now reported; which definition is right is still
+   open.
 3. **The ledger holds no duration.** `created_at` is server time and `client_ts` is the dispatch's
    completion; there is no start time on the row. Elapsed time comes from git and the provider API.
 4. Nothing records **how long a human was engaged**. `step_interruptions` has `occurred_at` and
@@ -167,16 +182,19 @@ Four measures. Three are compared; the fourth is a gate that is never traded awa
 **Source.** `orca ledger report --project <arm project id> --since <t0> --until <t_end> --json`,
 field `perCompletedTask`; report `byKind` alongside it.
 
-**Isolation, given that the report cannot filter by run.** Each arm gets **its own `project_id` and
-a disjoint time window**, and both filters are applied. `--project` maps to `o.project_id`;
-`--since`/`--until` map to `o.created_at`, which is server time. Belt and braces, because a shared
-project id would silently merge the arms and the merge would look like a result.
+**Isolation.** Since LG5 the report filters by run and by execution strategy directly:
+`--run <id>` maps to `o.run_id`, `--strategy single|orchestrated` to `o.execution_strategy`. Each
+arm still gets **its own `project_id` and a disjoint time window** as well — belt and braces, because
+a shared project id would silently merge the arms and the merge would look like a result — but the
+per-arm project ids are no longer the only thing separating them.
 
-**Denominator caveat, recorded every time.** `completedTasks` counts distinct `task_id` values with
-any settled outcome, successful or not. If the arms differ in failure rate, the denominators are not
-comparable. **Report both**: `perCompletedTask` as emitted, and a hand-computed variant over tasks
-whose every outcome is `succeeded` (from the provenance read). If the two disagree by more than 10%,
-the run is reported as inconclusive on M-1 rather than resolved in either direction.
+**Denominator caveat, recorded every time.** The report now emits two denominators and both are
+recorded: `completedTasks` (tasks with at least one `succeeded` outcome) and `tasksTouched` (any
+settled outcome). `perCompletedTask` is the north star; `perTaskTouched` is the figure the report
+used to print under that name, and it is always the flattering one. If the two disagree by more than
+10%, the run is reported as inconclusive on M-1 rather than resolved in either direction — the gap
+means the arms' failure rates differ enough that neither denominator settles the comparison. No
+hand-computed variant is needed any more.
 
 ### M-2 · Attended time
 
@@ -418,8 +436,8 @@ ticket. Each is listed as a dependency with what the protocol does in the meanti
 
 | # | Gap | Impact | Workaround for this run | Proposed fix |
 |---|---|---|---|---|
-| 11.1 | **The interruptions report cannot filter by `run_id` or `execution_strategy`.** `InterruptionsReportFilters` is `{ stageKey, projectId, memberId, since, until }`. The `--compare-runs <a> <b>` flag named in [foreman-core](plans/2026-09-06-foreman-core.md) Task 10 **does not exist** | The two arms cannot be separated by the one command that computes the north star | Per-arm `project_id` **and** disjoint `--since`/`--until` windows (§05, M-1) | Add `runId` and `executionStrategy` to the filter and to the CLI. Additive, small, and it makes every future comparison a one-liner |
-| 11.2 | **`completedTasks` counts tasks touched, not tasks completed.** No `outcome = 'succeeded'` filter in `getInterruptionsReport` | If the arms differ in failure rate, the two denominators are not comparable | Report both figures; declare M-1 inconclusive if they diverge by >10% | An `outcome` filter, or a second field `succeededTasks` beside `completedTasks` |
+| 11.1 | ~~**The interruptions report cannot filter by `run_id` or `execution_strategy`.**~~ **Fixed by LG5 (ALC-105)** — `--run <id>` and `--strategy <single\|orchestrated>` are on the filter, the RPC and the CLI. **Still missing:** `--compare-runs <a> <b>`, named in [foreman-core](plans/2026-09-06-foreman-core.md) Task 10, which is a second command over two reports, not a filter | — | — | File `--compare-runs` separately: it is a formatting command, not a ledger change |
+| 11.2 | ~~**`completedTasks` counts tasks touched, not tasks completed.**~~ **Fixed by LG5 (ALC-105)** — `completedTasks` now requires `outcome = 'succeeded'`, `tasksTouched` carries the old count, and both are emitted with `completedTaskDefinition` saying which rule was used. **Still open:** *which* definition. (a) any successful step is what ships; (b) terminal stage succeeded and (c) no failed step outstanding are reserved for the user, to be chosen once two real arms have diverged | — | — | Swap `completedTaskPairsSql` in `interruptions-repository.ts`; the contract already declares all three values so the change is not a wire change |
 | 11.3 | **No duration on any ledger row.** `step_outcomes` has `created_at` (server) and `client_ts` (the dispatch's `completed_at`); no start time. Per-dispatch wall clock exists only in the client's orchestration SQLite (`dispatchedAt`, used by `run-cost-publisher.ts`) | M-3 cannot come from the ledger | Git and provider timestamps | A `started_client_ts` column, forensics-only like `client_ts` |
 | 11.4 | **`step_interruptions` has no `resolved_at`.** It has `occurred_at` and `resolved_by`, so an interruption's arrival is recorded but not its cost | M-2, the measure Foreman's case rests on, is hand-timed | A manual timer, logged per event | **The highest-value fix here.** `resolved_at TIMESTAMPTZ` is additive and cheap, and it makes attended time computable for every run afterwards, not just this one |
 | 11.5 | **Cost covers `claude` and `codex` only.** Every other backend writes `spendCents: null`, `usage.status = 'unavailable'` (`provider_unsupported` / `usage_not_enabled`) | A mixed-backend arm produces a floor, and a floor cannot settle T-2 or T-3 | Restrict both arms to the two priced backends | Out of scope; the "—, never a guess" rule is correct as it stands |
@@ -428,8 +446,9 @@ ticket. Each is listed as a dependency with what the protocol does in the meanti
 | 11.8 | **Binary name in flux.** Spec usage strings say `orca ledger report`; the rebrand (R1–R5) renames the binary to `alicorn` | Cosmetic, but a protocol that names the wrong binary gets run wrong | Both names appear in §02 | None — resolved by R5 |
 
 **Blocker worth naming separately:** the sequencing plan's *blocker zero* — the cloud toolchain does
-not build on the current machine (pnpm 9 vs the required 10, empty `cloud/node_modules`). 11.1 and
-11.4 are `Lane: ledger-api` and cannot be written or verified until that is fixed.
+not build on the current machine (pnpm 9 vs the required 10, empty `cloud/node_modules`). It is
+cleared per-worktree with a pnpm shim and a dedicated Postgres slot, which is how LG5 built and
+verified 11.1 and 11.2. 11.4 is still `Lane: ledger-api` and unbuilt.
 
 ---
 

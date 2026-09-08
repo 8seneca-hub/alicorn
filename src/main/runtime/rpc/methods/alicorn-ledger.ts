@@ -15,12 +15,22 @@ const LedgerReportParams = z.object({
   stageKey: OptionalString,
   projectId: OptionalString,
   memberId: OptionalString,
+  runId: OptionalString,
+  executionStrategy: OptionalString,
   since: OptionalString,
   until: OptionalString
 })
 
 // Why: a fixed order keeps the query string (and its test assertions) stable.
-const QUERY_FIELDS = ['stageKey', 'projectId', 'memberId', 'since', 'until'] as const
+const QUERY_FIELDS = [
+  'stageKey',
+  'projectId',
+  'memberId',
+  'runId',
+  'executionStrategy',
+  'since',
+  'until'
+] as const
 
 const OutboxListParams = z.object({
   dead: OptionalBoolean,

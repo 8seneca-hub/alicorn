@@ -127,21 +127,40 @@ export const InterruptionsReportFiltersSchema = z.object({
   stageKey: z.string().optional(),
   projectId: z.string().optional(),
   memberId: z.string().optional(),
+  runId: z.string().optional(),
+  executionStrategy: ExecutionStrategySchema.optional(),
   since: z.string().datetime().optional(),
   until: z.string().datetime().optional()
 })
 
+// Why all three are declared while only the first is implemented: widening a response value domain
+// later breaks a paired client that already validates it, so the candidate rules are named up front.
+export const COMPLETED_TASK_DEFINITIONS = [
+  'any_successful_step',
+  'terminal_stage_succeeded',
+  'no_failed_step_outstanding'
+] as const
+export const CompletedTaskDefinitionSchema = z.enum(COMPLETED_TASK_DEFINITIONS)
+
 export const InterruptionsReportSchema = z.object({
   filters: InterruptionsReportFiltersSchema,
+  // Which rule produced `completedTasks`; `tasksTouched` never depends on it.
+  completedTaskDefinition: CompletedTaskDefinitionSchema,
   completedTasks: z.number().int(),
+  // Every task with a settled outcome, succeeded or failed — the loose denominator, carried beside
+  // the strict one so a divergence stays visible instead of being averaged away.
+  tasksTouched: z.number().int(),
   interruptions: z.number().int(),
   perCompletedTask: z.number(),
+  perTaskTouched: z.number(),
   byKind: z.record(z.number().int()),
   byStage: z.array(z.object({
     stageKey: z.string(),
     completedTasks: z.number().int(),
+    tasksTouched: z.number().int(),
     interruptions: z.number().int(),
-    perCompletedTask: z.number()
+    perCompletedTask: z.number(),
+    perTaskTouched: z.number()
   })),
   excluded: z.array(z.literal('permission_prompt'))
 })
@@ -157,5 +176,6 @@ export type ContextCaptureRead = z.infer<typeof ContextCaptureReadSchema>
 export type ProvenanceReport = z.infer<typeof ProvenanceReportSchema>
 export type RunCost = z.infer<typeof RunCostSchema>
 export type InterruptionInput = z.infer<typeof InterruptionInputSchema>
+export type CompletedTaskDefinition = z.infer<typeof CompletedTaskDefinitionSchema>
 export type InterruptionsReportFilters = z.infer<typeof InterruptionsReportFiltersSchema>
 export type InterruptionsReport = z.infer<typeof InterruptionsReportSchema>

@@ -91,13 +91,15 @@ describe('control-plane contract', () => {
 
   it('parses an interruptions report with permission_prompt always excluded', () => {
     const parsed = InterruptionsReportSchema.parse({
-      filters: { stageKey: 'build' },
-      completedTasks: 2, interruptions: 3, perCompletedTask: 1.5,
+      filters: { stageKey: 'build', runId: 'run_1', executionStrategy: 'orchestrated' },
+      completedTaskDefinition: 'any_successful_step',
+      completedTasks: 2, tasksTouched: 3, interruptions: 3, perCompletedTask: 1.5, perTaskTouched: 1,
       byKind: { gate: 1, ask: 1, escalation: 1 },
-      byStage: [{ stageKey: 'build', completedTasks: 2, interruptions: 3, perCompletedTask: 1.5 }],
+      byStage: [{ stageKey: 'build', completedTasks: 2, tasksTouched: 3, interruptions: 3, perCompletedTask: 1.5, perTaskTouched: 1 }],
       excluded: ['permission_prompt']
     })
     expect(parsed.excluded).toEqual(['permission_prompt'])
+    expect(parsed.filters.executionStrategy).toBe('orchestrated')
   })
 
 })

@@ -1,6 +1,11 @@
 import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
-import type { InterruptionInput, InterruptionsReport, InterruptionsReportFilters } from '@alicorn-cloud/control-plane-contract'
+import type {
+  CompletedTaskDefinition,
+  InterruptionInput,
+  InterruptionsReport,
+  InterruptionsReportFilters
+} from '@alicorn-cloud/control-plane-contract'
 
 export function insertInterruption(
   pool: pg.Pool,
@@ -25,8 +30,8 @@ export function insertInterruption(
   })
 }
 
-// Why: same stageKey/projectId/memberId/since/until filters apply to both queries, always against
-// step_outcomes (`o`) — the join brings step_interruptions into that scope, never the reverse.
+// Why: the same filters apply to every query, always against step_outcomes (`o`) — the join brings
+// step_interruptions into that scope, never the reverse.
 function outcomeFilterClause(filters: InterruptionsReportFilters, startIndex: number): { clause: string; params: unknown[] } {
   const conditions: string[] = []
   const params: unknown[] = []
@@ -34,6 +39,8 @@ function outcomeFilterClause(filters: InterruptionsReportFilters, startIndex: nu
   if (filters.stageKey) { conditions.push(`o.stage_key = $${i++}`); params.push(filters.stageKey) }
   if (filters.projectId) { conditions.push(`o.project_id = $${i++}`); params.push(filters.projectId) }
   if (filters.memberId) { conditions.push(`o.member_id = $${i++}`); params.push(filters.memberId) }
+  if (filters.runId) { conditions.push(`o.run_id = $${i++}`); params.push(filters.runId) }
+  if (filters.executionStrategy) { conditions.push(`o.execution_strategy = $${i++}`); params.push(filters.executionStrategy) }
   if (filters.since) { conditions.push(`o.created_at >= $${i++}`); params.push(filters.since) }
   if (filters.until) { conditions.push(`o.created_at <= $${i++}`); params.push(filters.until) }
   return { clause: conditions.length ? `WHERE ${conditions.join(' AND ')}` : '', params }
@@ -41,6 +48,39 @@ function outcomeFilterClause(filters: InterruptionsReportFilters, startIndex: nu
 
 const INTERRUPTIONS_JOIN = `FROM step_interruptions i JOIN step_outcomes o
   ON o.tenant_id = i.tenant_id AND o.task_id = i.task_id AND o.dispatch_id = i.dispatch_id`
+
+function withCondition(clause: string, condition: string): string {
+  return clause ? `${clause} AND ${condition}` : `WHERE ${condition}`
+}
+
+// ── The definition seam (LG5) ────────────────────────────────────────────────────────────────────
+// Everything downstream counts (task_id, stage_key) pairs; only these two functions know what
+// "completed" and "touched" mean, and only `completedTaskPairsSql` is up for redefinition.
+//
+// Today it is (a) *any successful step* — unambiguous, and it needs nothing that does not exist yet.
+// Swapping to (b) *terminal stage succeeded* or (c) *no failed step outstanding* (latest outcome per
+// stage all succeeded) means replacing `completedTaskPairsSql` and `COMPLETED_TASK_DEFINITION`, and
+// nothing else in this file or above it. Both candidates are expressible as a query over the same
+// filtered `step_outcomes` rows yielding the same two columns, so the seam holds:
+//   (b) join the pairs against the workflow template's terminal stage (WF1) instead of `outcome`;
+//   (c) keep, per (task_id, stage_key), the row with the greatest created_at and require it to have
+//       succeeded — a DISTINCT ON (o.task_id, o.stage_key) … ORDER BY o.created_at DESC subquery.
+export const COMPLETED_TASK_DEFINITION: CompletedTaskDefinition = 'any_successful_step'
+
+function completedTaskPairsSql(clause: string): string {
+  return `SELECT DISTINCT o.task_id, o.stage_key FROM step_outcomes o ${withCondition(clause, `o.outcome = 'succeeded'`)}`
+}
+
+// The loose denominator the report shipped with: a task is counted for being touched at all.
+function touchedTaskPairsSql(clause: string): string {
+  return `SELECT DISTINCT o.task_id, o.stage_key FROM step_outcomes o ${clause}`
+}
+// ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+// Why: no completed tasks means nothing to divide by — report 0, not NaN.
+function perTask(interruptions: number, tasks: number): number {
+  return tasks === 0 ? 0 : interruptions / tasks
+}
 
 export function getInterruptionsReport(
   pool: pg.Pool,
@@ -50,11 +90,23 @@ export function getInterruptionsReport(
   return withTenant(pool, tenantId, async (client) => {
     const { clause, params } = outcomeFilterClause(filters, 1)
 
-    const { rows: completedRows } = await client.query<{ n: number }>(
-      `SELECT COUNT(DISTINCT o.task_id)::int AS n FROM step_outcomes o ${clause}`,
-      params
-    )
-    const completedTasks = completedRows[0]?.n ?? 0
+    const countTasks = async (pairsSql: string): Promise<number> => {
+      const { rows } = await client.query<{ n: number }>(
+        `SELECT COUNT(DISTINCT pairs.task_id)::int AS n FROM (${pairsSql}) pairs`,
+        params
+      )
+      return rows[0]?.n ?? 0
+    }
+    const countTasksByStage = async (pairsSql: string): Promise<Map<string, number>> => {
+      const { rows } = await client.query<{ stage_key: string; n: number }>(
+        `SELECT pairs.stage_key, COUNT(DISTINCT pairs.task_id)::int AS n FROM (${pairsSql}) pairs GROUP BY pairs.stage_key`,
+        params
+      )
+      return new Map(rows.map((r) => [r.stage_key, r.n]))
+    }
+
+    const completedTasks = await countTasks(completedTaskPairsSql(clause))
+    const tasksTouched = await countTasks(touchedTaskPairsSql(clause))
 
     // Why DISTINCT i.id, not COUNT(*): today's join can't fan out, but v1.5 stages make a task
     // carry more than one dispatch plausible, and a fanned-out COUNT(*) would silently inflate
@@ -72,35 +124,38 @@ export function getInterruptionsReport(
     const byKind: Record<string, number> = {}
     for (const row of kindRows) byKind[row.kind] = row.n
 
-    const { rows: stageCompletedRows } = await client.query<{ stage_key: string; n: number }>(
-      `SELECT o.stage_key, COUNT(DISTINCT o.task_id)::int AS n FROM step_outcomes o ${clause} GROUP BY o.stage_key`,
-      params
-    )
+    const completedByStage = await countTasksByStage(completedTaskPairsSql(clause))
+    const touchedByStage = await countTasksByStage(touchedTaskPairsSql(clause))
     const { rows: stageInterruptionRows } = await client.query<{ stage_key: string; n: number }>(
       `SELECT o.stage_key, COUNT(DISTINCT i.id)::int AS n ${INTERRUPTIONS_JOIN} ${clause} GROUP BY o.stage_key`,
       params
     )
-    const completedByStage = new Map(stageCompletedRows.map((r) => [r.stage_key, r.n]))
     const interruptionsByStage = new Map(stageInterruptionRows.map((r) => [r.stage_key, r.n]))
-    const stageKeys = [...new Set([...completedByStage.keys(), ...interruptionsByStage.keys()])].sort()
+    // Why touched, not completed: a stage whose every step failed still has to appear, or the
+    // failing stage disappears from the report exactly when it matters most.
+    const stageKeys = [...new Set([...touchedByStage.keys(), ...interruptionsByStage.keys()])].sort()
     const byStage = stageKeys.map((stageKey) => {
       const stageCompleted = completedByStage.get(stageKey) ?? 0
+      const stageTouched = touchedByStage.get(stageKey) ?? 0
       const stageInterruptions = interruptionsByStage.get(stageKey) ?? 0
       return {
         stageKey,
         completedTasks: stageCompleted,
+        tasksTouched: stageTouched,
         interruptions: stageInterruptions,
-        // Why: no completed tasks for a stage means nothing to divide by — report 0, not NaN.
-        perCompletedTask: stageCompleted === 0 ? 0 : stageInterruptions / stageCompleted
+        perCompletedTask: perTask(stageInterruptions, stageCompleted),
+        perTaskTouched: perTask(stageInterruptions, stageTouched)
       }
     })
 
     return {
       filters,
+      completedTaskDefinition: COMPLETED_TASK_DEFINITION,
       completedTasks,
+      tasksTouched,
       interruptions,
-      // Why: same zero rule as per-stage — an empty denominator reports 0.
-      perCompletedTask: completedTasks === 0 ? 0 : interruptions / completedTasks,
+      perCompletedTask: perTask(interruptions, completedTasks),
+      perTaskTouched: perTask(interruptions, tasksTouched),
       byKind,
       byStage,
       excluded: ['permission_prompt']

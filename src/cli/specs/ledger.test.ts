@@ -12,13 +12,22 @@ describe('ledger command specs', () => {
 
   it('accepts the filter flags plus the global flags', () => {
     expect(effectiveAllowedFlags(report!)).toEqual(
-      expect.arrayContaining([...GLOBAL_FLAGS, 'stage', 'project', 'member', 'since', 'until'])
+      expect.arrayContaining([
+        ...GLOBAL_FLAGS,
+        'stage',
+        'project',
+        'member',
+        'run',
+        'strategy',
+        'since',
+        'until'
+      ])
     )
   })
 
   it('documents its usage with the filter flags', () => {
     expect(report!.usage).toBe(
-      'orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--since <iso>] [--until <iso>] [--json]'
+      'orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--run <id>] [--strategy <single|orchestrated>] [--since <iso>] [--until <iso>] [--json]'
     )
   })
 })

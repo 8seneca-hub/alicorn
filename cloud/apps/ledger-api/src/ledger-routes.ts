@@ -128,6 +128,8 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
       stageKey: c.req.query('stageKey'),
       projectId: c.req.query('projectId'),
       memberId: c.req.query('memberId'),
+      runId: c.req.query('runId'),
+      executionStrategy: c.req.query('executionStrategy'),
       since: c.req.query('since'),
       until: c.req.query('until')
     })

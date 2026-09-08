@@ -323,7 +323,7 @@ Recovery only: `orca orchestration reset --tasks|--messages|--all --json` clears
 
 ## Ledger
 
-`orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--since <iso>] [--until <iso>] [--json]` prints `interruptions_per_completed_task` from the Alicorn ledger — how often a human had to intervene per finished task.
+`orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--run <id>] [--strategy <single|orchestrated>] [--since <iso>] [--until <iso>] [--json]` prints `interruptions_per_completed_task` from the Alicorn ledger — how often a human had to intervene per finished task. It prints two denominators side by side: `completedTasks` (tasks with at least one successful step) and `tasksTouched` (any settled outcome, failures included). Read the first; a wide gap between them means steps are failing.
 
 ## Full Handoffs
 
