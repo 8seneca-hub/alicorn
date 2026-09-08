@@ -51,6 +51,9 @@ export class LedgerMetrics {
   private ledgerWriteDuplicates = 0
   private readonly gateDecisions = new Map<string, { decision: string; reason: string; count: number }>()
   private amendedWithinWindow = 0
+  // GP3: agreement, split by whether the recommendation was on screen. Without that split the
+  // series measures the pre-fill and the policy together and neither can be read out of it.
+  private readonly gateAgreements = new Map<string, { agreed: boolean; shown: boolean; count: number }>()
 
   incLedgerWriteDuplicate(): void {
     this.ledgerWriteDuplicates++
@@ -60,6 +63,12 @@ export class LedgerMetrics {
     const key = JSON.stringify([decision, reason])
     const existing = this.gateDecisions.get(key)
     this.gateDecisions.set(key, { decision, reason, count: (existing?.count ?? 0) + 1 })
+  }
+
+  incGateAgreement(agreed: boolean, shown: boolean): void {
+    const key = `${agreed}:${shown}`
+    const existing = this.gateAgreements.get(key)
+    this.gateAgreements.set(key, { agreed, shown, count: (existing?.count ?? 0) + 1 })
   }
 
   setAmendedWithinWindow(n: number): void {
@@ -74,6 +83,10 @@ export class LedgerMetrics {
     ]
     for (const { decision, reason, count } of this.gateDecisions.values()) {
       lines.push(`gate_decisions_total{decision="${escapeLabel(decision)}",reason="${escapeLabel(reason)}"} ${count}`)
+    }
+    lines.push('# TYPE gate_agreements_total counter')
+    for (const { agreed, shown, count } of this.gateAgreements.values()) {
+      lines.push(`gate_agreements_total{agreed="${agreed}",recommendation_shown="${shown}"} ${count}`)
     }
     lines.push('# TYPE amended_within_window gauge', `amended_within_window ${this.amendedWithinWindow}`)
     return lines.join('\n') + '\n'

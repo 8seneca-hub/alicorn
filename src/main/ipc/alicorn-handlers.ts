@@ -17,6 +17,10 @@ import type {
   RunInspectorViewResult
 } from '../../shared/alicorn/run-inspector-view'
 import { readRunInspectorView } from '../alicorn/run-inspector-source'
+import type { GateResolveResult, PendingGatesResult } from '../../shared/alicorn/gate-review'
+import { isAdvisory } from '../../shared/alicorn/gate-review'
+import { listPendingGateViews } from '../alicorn/gates/pending-gate-view'
+import { enqueueGateAgreement, isGateVerdict } from '../alicorn/gates/gate-agreement'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -232,6 +236,52 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
         ok: true as const,
         capture: await client.getRunContextCapture(runId, dispatchId)
       }))
+    }
+  )
+
+  // Pending gates for the gate panel. A local read of the client's own orchestration store —
+  // the recommendation was computed and recorded when the gate opened (GP1), and re-deriving it
+  // here would show a verdict the human is then measured against but never saw.
+  ipcMain.handle(
+    ALICORN_IPC.gatesList,
+    async (): Promise<PendingGatesResult> => {
+      try {
+        return { ok: true, gates: listPendingGateViews(deps.getOrchestrationDb()) }
+      } catch (error) {
+        return { ok: false, error: error instanceof Error ? error.message : 'gates_unavailable' }
+      }
+    }
+  )
+
+  // Resolving from the panel also records GP3's agreement. `recommendationShown` is derived from
+  // the level stored on the gate row — the same test that decided whether to send it in the
+  // first place — so what is measured is exactly what was on screen, not what a caller claims.
+  ipcMain.handle(
+    ALICORN_IPC.gatesResolve,
+    async (
+      _event,
+      args: { gateId?: unknown; resolution?: unknown; humanGateDecision?: unknown }
+    ): Promise<GateResolveResult> => {
+      const gateId = asNonEmptyString(args?.gateId)
+      const resolution = asNonEmptyString(args?.resolution)
+      const decision = args?.humanGateDecision
+      if (!gateId || !resolution || !isGateVerdict(decision)) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      const db = deps.getOrchestrationDb()
+      const pending = db.getGate(gateId)
+      if (!pending || pending.status !== 'pending') {
+        return { ok: false, error: 'gate_not_pending' }
+      }
+      const recommendationShown = isAdvisory(pending.recommended_level)
+      const gate = db.resolveGate(gateId, resolution)
+      if (!gate) {
+        return { ok: false, error: 'gate_not_found' }
+      }
+      return {
+        ok: true,
+        agreementRecorded: enqueueGateAgreement(db, gate, { decision, recommendationShown }) > 0
+      }
     }
   )
 }

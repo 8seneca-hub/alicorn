@@ -14,6 +14,15 @@ export const LEDGER_SCHEMA_STATEMENTS: readonly string[] = [
      spend_cents INTEGER, usage JSONB,
      gate_decision TEXT NOT NULL DEFAULT 'human',   -- level 0: every gate still fires
      gate_reason TEXT NOT NULL DEFAULT 'level0', gate_id TEXT,
+     -- GP3 level 1: what the policy would have decided, what the human decided about the gate,
+     -- and whether the two matched. Distinct from human_verdict, which judges the work.
+     policy_recommendation TEXT CHECK (policy_recommendation IN ('gate','auto')),
+     policy_recommendation_reason TEXT,
+     human_gate_decision TEXT CHECK (human_gate_decision IN ('gate','auto')),
+     agreed_with_policy BOOLEAN,
+     -- Was the recommendation on screen when the human decided? Level 0 collects the decision
+     -- blind, so agreement measured with and without it can be compared instead of assumed.
+     recommendation_shown BOOLEAN,
      human_verdict TEXT CHECK (human_verdict IN ('accepted','rejected','amended')),
      amended_after_ms INTEGER,
      review_backend_bypass BOOLEAN NOT NULL DEFAULT false,
@@ -22,6 +31,15 @@ export const LEDGER_SCHEMA_STATEMENTS: readonly string[] = [
      client_ts TIMESTAMPTZ,                         -- forensics only
      created_at TIMESTAMPTZ NOT NULL DEFAULT now(), -- server time orders everything
      UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id))`,
+  // Added after the CREATE for a database that predates GP3; the CREATE above covers a fresh one.
+  `ALTER TABLE step_outcomes ADD COLUMN IF NOT EXISTS policy_recommendation TEXT`,
+  `ALTER TABLE step_outcomes ADD COLUMN IF NOT EXISTS policy_recommendation_reason TEXT`,
+  `ALTER TABLE step_outcomes ADD COLUMN IF NOT EXISTS human_gate_decision TEXT`,
+  `ALTER TABLE step_outcomes ADD COLUMN IF NOT EXISTS agreed_with_policy BOOLEAN`,
+  `ALTER TABLE step_outcomes ADD COLUMN IF NOT EXISTS recommendation_shown BOOLEAN`,
+  // Reads the agreement rate for a member/stage window; partial so the level-0 blind rows and the
+  // level-1 pre-filled ones stay separable without a second index.
+  `CREATE INDEX IF NOT EXISTS step_outcomes_agreement ON step_outcomes (tenant_id, member_id, stage_key, created_at DESC) WHERE agreed_with_policy IS NOT NULL`,
   `CREATE INDEX IF NOT EXISTS step_outcomes_track_record ON step_outcomes (tenant_id, member_id, stage_key, created_at DESC)`,
   `CREATE INDEX IF NOT EXISTS step_outcomes_branch ON step_outcomes (tenant_id, repo_id, branch, created_at DESC)`,
   `CREATE INDEX IF NOT EXISTS step_outcomes_run ON step_outcomes (tenant_id, run_id)`,

@@ -7,6 +7,7 @@ import { buildStepOutcomeInput } from './step-outcome-builder'
 import { isCodeStagePayload, type CodeStagePayload } from './workflows/code-stage-outcome-enqueue'
 import { settleOutboxRow } from './outbox-row-processing'
 import type { LedgerWriter } from './ledger/ledger-writer'
+import type { GateAgreementOutboxPayload } from './gates/gate-agreement'
 import type {
   ContextCaptureInput,
   HumanVerdictPatch,
@@ -238,6 +239,26 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
+  /**
+   * GP3. The payload names a dispatch, not a ledger id: the gate usually resolves while the
+   * step outcome is still in flight. An outcome the drainer has not posted yet leaves the row
+   * untouched to be retried next pass — the same posture the corrections sweep takes — rather
+   * than failing it towards the dead letter for a race that resolves itself in seconds.
+   */
+  async function handleGateAgreementPatch(
+    db: OrchestrationDb,
+    row: LedgerOutboxRow,
+    writer: LedgerWriter
+  ): Promise<void> {
+    const { dispatchId, ...patch } = JSON.parse(row.payload) as GateAgreementOutboxPayload
+    const outcomeId = db.getDispatchLedgerOutcome(dispatchId)
+    if (!outcomeId) {
+      throw new RowUntouched()
+    }
+    await writer.patchGateAgreement(outcomeId, patch)
+    settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
+  }
+
   async function handleInterruption(
     db: OrchestrationDb,
     row: LedgerOutboxRow,
@@ -268,6 +289,8 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
         return handleHumanVerdictPatch(db, row, writer)
       case 'interruption':
         return handleInterruption(db, row, writer)
+      case 'gate_agreement_patch':
+        return handleGateAgreementPatch(db, row, writer)
     }
   }
 

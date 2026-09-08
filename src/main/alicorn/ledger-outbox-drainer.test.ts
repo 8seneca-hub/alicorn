@@ -19,6 +19,7 @@ function fakeWriter(overrides?: Partial<LedgerWriter>): LedgerWriter {
     postStepOutcome: vi.fn().mockResolvedValue({ id: 'so_1', duplicate: false }),
     patchStepOutcomeSpend: vi.fn().mockResolvedValue(undefined),
     patchHumanVerdict: vi.fn().mockResolvedValue('patched'),
+    patchGateAgreement: vi.fn().mockResolvedValue('patched'),
     postStepVerification: vi.fn().mockResolvedValue({ id: 'sv_1', duplicate: false }),
     postContextCapture: vi.fn().mockResolvedValue({ id: 'cc_1', duplicate: false }),
     postInterruption: vi.fn().mockResolvedValue({ id: 'int_1', duplicate: false }),
@@ -98,6 +99,73 @@ describe('startLedgerOutboxDrainer', () => {
     const notBeforeMs = new Date(spendRow.not_before!).getTime()
     expect(notBeforeMs - Date.now()).toBeGreaterThan(55_000)
     expect(notBeforeMs - Date.now()).toBeLessThan(65_000)
+  })
+
+  describe('gate agreement patches (GP3)', () => {
+    function enqueueAgreement(dispatchId: string): void {
+      db.enqueueLedgerOutbox({
+        kind: 'gate_agreement_patch',
+        dedupeKey: 'gate_agreement:gate_1',
+        payload: {
+          gateId: 'gate_1',
+          dispatchId,
+          policyRecommendation: 'auto',
+          policyRecommendationReason: 'auto',
+          humanGateDecision: 'gate',
+          recommendationShown: true
+        }
+      })
+    }
+
+    function agreementDrainer(writer: LedgerWriter): LedgerOutboxDrainer {
+      return startLedgerOutboxDrainer({
+        getDb: () => db,
+        runtime: { showManagedWorktree: vi.fn().mockResolvedValue(WORKTREE) },
+        writer,
+        spendAttributor: null,
+        intervalMs: 60_000,
+        // The step outcome row is posted by its own test; excluding it keeps this pass to
+        // the one kind under test.
+        excludeKinds: ['step_outcome', 'step_verification']
+      })
+    }
+
+    it('patches the outcome the dispatch resolved to', async () => {
+      const { dispatchId } = settleSucceededWithWorktree()
+      db.setDispatchLedgerOutcome(dispatchId, 'so_gate', [])
+      enqueueAgreement(dispatchId)
+      const writer = fakeWriter()
+      drainer = agreementDrainer(writer)
+
+      const result = await drainer.drainOnce()
+
+      expect(result.sent).toBe(1)
+      expect(writer.patchGateAgreement).toHaveBeenCalledWith('so_gate', {
+        gateId: 'gate_1',
+        policyRecommendation: 'auto',
+        policyRecommendationReason: 'auto',
+        humanGateDecision: 'gate',
+        recommendationShown: true
+      })
+    })
+
+    it('leaves the row untouched while the outcome is still in flight', async () => {
+      const { dispatchId } = settleSucceededWithWorktree()
+      enqueueAgreement(dispatchId)
+      const writer = fakeWriter()
+      drainer = agreementDrainer(writer)
+
+      const result = await drainer.drainOnce()
+
+      expect(result).toEqual({ sent: 0, retried: 0, dead: 0 })
+      expect(writer.patchGateAgreement).not.toHaveBeenCalled()
+      // Untouched, not failed: no attempt is burned on a race that resolves itself in seconds.
+      const row = db
+        .listDueLedgerOutbox(25)
+        .find((candidate) => candidate.kind === 'gate_agreement_patch')!
+      expect(row.attempts).toBe(0)
+      expect(row.sent_at).toBeNull()
+    })
   })
 
   describe('code stage outcomes', () => {

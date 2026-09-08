@@ -2,6 +2,7 @@ import type { Hono } from 'hono'
 import {
   CONTEXT_CAPTURE_MAX_PROMPT_BYTES,
   ContextCaptureInputSchema,
+  GateAgreementPatchSchema,
   HumanVerdictPatchSchema,
   InterruptionInputSchema,
   InterruptionsReportFiltersSchema,
@@ -11,7 +12,7 @@ import {
   TrackRecordQuerySchema
 } from '@alicorn-cloud/control-plane-contract'
 import type { LedgerApiDeps, LedgerApiEnv } from './app-env.js'
-import { insertStepOutcome, patchStepOutcomeHumanVerdict, patchStepOutcomeSpend } from './step-outcomes-repository.js'
+import { insertStepOutcome, patchStepOutcomeGateAgreement, patchStepOutcomeHumanVerdict, patchStepOutcomeSpend } from './step-outcomes-repository.js'
 import { insertStepVerification } from './step-verifications-repository.js'
 import {
   getContextCaptureForDispatch,
@@ -70,6 +71,29 @@ export function registerLedgerRoutes(app: Hono<LedgerApiEnv>, deps: LedgerApiDep
       return c.json({ error: 'verdict_already_set' }, 409)
     }
     return c.json({ id })
+  })
+
+  // GP3 level 1: whether the human's gate decision matched what the policy would have decided.
+  // A separate route from human-verdict on purpose — the two measure different things and a
+  // caller that could confuse them would be writing the wrong one half the time.
+  app.patch('/v1/ledger/step-outcomes/:id/gate-agreement', async (c) => {
+    const auth = c.get('auth')
+    const body = await readJsonBody(c)
+    if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
+    const result = GateAgreementPatchSchema.safeParse(body.value)
+    if (!result.success) return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
+    const id = c.req.param('id')
+    const outcome = await patchStepOutcomeGateAgreement(deps.pool, auth.tenantId, id, result.data)
+    if (outcome === 'not_found') return c.json({ error: 'not_found' }, 404)
+    if (outcome === 'already_set') {
+      console.warn('[alicorn-ledger-api] gate agreement already recorded', { id, gateId: result.data.gateId })
+      return c.json({ error: 'agreement_already_set' }, 409)
+    }
+    deps.metrics?.incGateAgreement(
+      result.data.policyRecommendation === result.data.humanGateDecision,
+      result.data.recommendationShown
+    )
+    return c.json({ id, agreed: result.data.policyRecommendation === result.data.humanGateDecision })
   })
 
   app.post('/v1/ledger/step-verifications', async (c) => {

@@ -1,6 +1,6 @@
 import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
-import type { HumanVerdictPatch, SpendPatch, StepOutcomeInput, StepOutcomeRecord } from '@alicorn-cloud/control-plane-contract'
+import type { GateAgreementPatch, HumanVerdictPatch, SpendPatch, StepOutcomeInput, StepOutcomeRecord } from '@alicorn-cloud/control-plane-contract'
 import { upsertMemberStageStats } from './member-stage-stats.js'
 
 export type StepOutcomeRow = {
@@ -24,6 +24,12 @@ export type StepOutcomeRow = {
   usage: Record<string, unknown> | null
   gate_decision: string
   gate_reason: string
+  gate_id: string | null
+  policy_recommendation: string | null
+  policy_recommendation_reason: string | null
+  human_gate_decision: string | null
+  agreed_with_policy: boolean | null
+  recommendation_shown: boolean | null
   human_verdict: string | null
   amended_after_ms: number | null
   review_backend_bypass: boolean
@@ -60,6 +66,12 @@ export function toStepOutcomeRecord(row: StepOutcomeRow): StepOutcomeRecord {
     usage: row.usage,
     gateDecision: row.gate_decision,
     gateReason: row.gate_reason,
+    gateId: row.gate_id,
+    policyRecommendation: row.policy_recommendation as StepOutcomeRecord['policyRecommendation'],
+    policyRecommendationReason: row.policy_recommendation_reason,
+    humanGateDecision: row.human_gate_decision as StepOutcomeRecord['humanGateDecision'],
+    agreedWithPolicy: row.agreed_with_policy,
+    recommendationShown: row.recommendation_shown,
     humanVerdict: row.human_verdict as StepOutcomeRecord['humanVerdict'],
     amendedAfterMs: row.amended_after_ms,
     createdAt: row.created_at.toISOString()
@@ -151,5 +163,38 @@ export function patchStepOutcomeHumanVerdict(
       )
     }
     return 'patched'
+  })
+}
+
+/**
+ * GP3: records what the policy would have decided, what the human decided about the gate, and
+ * whether they matched. Write-once like the human verdict — a gate resolves once, so a second
+ * patch is a new event to log, never an overwrite of the first answer.
+ *
+ * `agreed_with_policy` is computed here rather than taken from the body: agreement is the
+ * measurement, and a measurement a client can assert independently of its own inputs is not one.
+ */
+export function patchStepOutcomeGateAgreement(
+  pool: pg.Pool,
+  tenantId: string,
+  id: string,
+  patch: GateAgreementPatch
+): Promise<'patched' | 'not_found' | 'already_set'> {
+  return withTenant(pool, tenantId, async (client) => {
+    const result = await client.query(
+      `UPDATE step_outcomes
+         SET gate_id = $1, policy_recommendation = $2, policy_recommendation_reason = $3,
+             human_gate_decision = $4, agreed_with_policy = ($2 = $4), recommendation_shown = $5
+       WHERE id = $6 AND human_gate_decision IS NULL`,
+      [
+        patch.gateId, patch.policyRecommendation, patch.policyRecommendationReason,
+        patch.humanGateDecision, patch.recommendationShown, id
+      ]
+    )
+    if ((result.rowCount ?? 0) > 0) {
+      return 'patched'
+    }
+    const existing = await client.query(`SELECT id FROM step_outcomes WHERE id = $1`, [id])
+    return existing.rows[0] ? 'already_set' : 'not_found'
   })
 }

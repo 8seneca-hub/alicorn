@@ -10,7 +10,9 @@ export const ALICORN_IPC = {
   foremanJournal: 'alicorn:foreman:journal',
   provenanceGet: 'alicorn:provenance:get',
   runInspectorGet: 'alicorn:runInspector:get',
-  contextCaptureGet: 'alicorn:contextCapture:get'
+  contextCaptureGet: 'alicorn:contextCapture:get',
+  gatesList: 'alicorn:gates:list',
+  gatesResolve: 'alicorn:gates:resolve'
 } as const
 
 export const ALICORN_EVENTS = {

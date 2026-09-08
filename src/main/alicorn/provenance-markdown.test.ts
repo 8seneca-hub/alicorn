@@ -31,6 +31,12 @@ function outcome(overrides: Partial<StepOutcomeRecord> = {}): StepOutcomeRecord 
     usage: null,
     gateDecision: 'auto',
     gateReason: '',
+    gateId: null,
+    policyRecommendation: null,
+    policyRecommendationReason: null,
+    humanGateDecision: null,
+    agreedWithPolicy: null,
+    recommendationShown: null,
     createdAt: '2026-09-06T00:00:00.000Z',
     ...overrides
   }

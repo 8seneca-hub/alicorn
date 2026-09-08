@@ -50,6 +50,21 @@ export type ContextCaptureInput = {
   contextSlice: Record<string, unknown>
 }
 
+/**
+ * GP3 (level 1 advisory). What the human decided *about the gate*, beside what the policy would
+ * have decided. Deliberately not `HumanVerdictPatch`: that judges the work after the fact and is
+ * written by the corrections sweep; this judges whether the interruption was warranted and is
+ * written when the gate resolves. `agreedWithPolicy` is absent on purpose — the server derives it.
+ */
+export type GateAgreementPatch = {
+  gateId: string
+  policyRecommendation: 'gate' | 'auto'
+  policyRecommendationReason: string
+  humanGateDecision: 'gate' | 'auto'
+  /** Whether the recommendation was on screen when the human decided. Never assumed true. */
+  recommendationShown: boolean
+}
+
 export type HumanVerdictPatch = {
   humanVerdict: 'accepted' | 'rejected' | 'amended'
   amendedAfterMs: number | null

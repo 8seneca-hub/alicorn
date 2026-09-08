@@ -301,6 +301,8 @@ export type DecisionGateRow = {
   /** Null on a gate opened without `evaluate` — the policy was never asked. */
   recommended_decision: 'gate' | 'auto' | null
   recommended_reason: string | null
+  /** Autonomy level of the member/stage when the gate opened; null when never evaluated. */
+  recommended_level: number | null
 }
 
 export type CoordinatorRun = {

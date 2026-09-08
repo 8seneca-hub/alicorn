@@ -53,12 +53,101 @@ describe('gate policy RPCs', () => {
         `INSERT INTO worker_dispatches (dispatch_id, state, worktree_id) VALUES (?, 'succeeded', ?)`
       )
       .run(dispatch.id, worktreeId)
+    // Why the member stamp: the gate's track record is keyed by member, so a memberless dispatch
+    // has no level to record — `readTrackRecord` returns null before it ever asks the directory.
+    db.setDispatchMember({
+      dispatchId: dispatch.id,
+      memberId: 'm1',
+      memberRole: 'implementer',
+      backend: 'claude',
+      reviewBackendBypass: false
+    })
     vi.spyOn(runtime, 'showManagedWorktree').mockResolvedValue({
       id: worktreeId,
       repoId: 'repo-1'
     } as Awaited<ReturnType<OrcaRuntimeService['showManagedWorktree']>>)
     return { taskId: task.id, dispatchId: dispatch.id }
   }
+
+  describe('orchestration.gateResolve agreement (GP3)', () => {
+    async function evaluatedGate(level: number): Promise<string> {
+      setup()
+      runtime.setAlicornMemberDirectory(
+        directory({
+          getTrackRecord: vi.fn().mockResolvedValue({
+            memberId: 'm1',
+            stageKey: 'build',
+            projectId: 'repo-1',
+            runs: 12,
+            accepted: 12,
+            rejected: 0,
+            amended: 0,
+            acceptRate: 1,
+            recentRegression: false,
+            lastAmendedAt: null,
+            level,
+            amendmentsObserved: false
+          })
+        })
+      )
+      const { taskId } = dispatchedTask()
+      const created = (await call('orchestration.gateCreate', {
+        task: taskId,
+        question: 'Proceed?',
+        evaluate: true
+      })) as { gate: DecisionGateRow }
+      return created.gate.id
+    }
+
+    it('records the level the member was at when the gate opened', async () => {
+      const gateId = await evaluatedGate(1)
+      expect(db.getGate(gateId)?.recommended_level).toBe(1)
+    })
+
+    it('enqueues the agreement when the resolver states its own gate verdict', async () => {
+      const gateId = await evaluatedGate(1)
+
+      const result = (await call('orchestration.gateResolve', {
+        id: gateId,
+        resolution: 'go ahead',
+        humanGateDecision: 'auto',
+        recommendationShown: true
+      })) as { agreementRecorded: boolean }
+
+      expect(result.agreementRecorded).toBe(true)
+      const row = db.listDueLedgerOutbox(25).find((r) => r.kind === 'gate_agreement_patch')!
+      expect(JSON.parse(row.payload)).toMatchObject({
+        gateId,
+        humanGateDecision: 'auto',
+        recommendationShown: true
+      })
+    })
+
+    it('records nothing when the resolver says nothing about the gate', async () => {
+      const gateId = await evaluatedGate(1)
+
+      const result = (await call('orchestration.gateResolve', {
+        id: gateId,
+        resolution: 'go ahead'
+      })) as { agreementRecorded: boolean }
+
+      expect(result.agreementRecorded).toBe(false)
+      expect(db.listDueLedgerOutbox(25).some((r) => r.kind === 'gate_agreement_patch')).toBe(false)
+    })
+
+    it('treats an unstated recommendationShown as not shown, never as shown', async () => {
+      const gateId = await evaluatedGate(1)
+
+      await call('orchestration.gateResolve', {
+        id: gateId,
+        resolution: 'go ahead',
+        humanGateDecision: 'gate'
+      })
+
+      const row = db.listDueLedgerOutbox(25).find((r) => r.kind === 'gate_agreement_patch')!
+      expect(JSON.parse(row.payload).recommendationShown).toBe(false)
+    })
+  })
 
   describe('orchestration.gateCreate { evaluate }', () => {
     it('leaves the gate untouched when evaluate is absent', async () => {

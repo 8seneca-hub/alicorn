@@ -36,6 +36,13 @@ export type StepOutcomeRecord = {
   usage: Record<string, unknown> | null
   gateDecision: string
   gateReason: string
+  gateId: string | null
+  /** GP3: null on a gate opened without `evaluate`, or a step that never opened one. */
+  policyRecommendation: 'gate' | 'auto' | null
+  policyRecommendationReason: string | null
+  humanGateDecision: 'gate' | 'auto' | null
+  agreedWithPolicy: boolean | null
+  recommendationShown: boolean | null
   createdAt: string
 }
 

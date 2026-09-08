@@ -6,6 +6,7 @@ import { Coordinator } from '../../orchestration/coordinator'
 import { resolveRunScope } from './orchestration-run-scope'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
 import { DEFAULT_GATE_STAGE_KEY, evaluateGateForTask } from '../../../alicorn/gates/gate-evaluation'
+import { enqueueGateAgreement, GATE_VERDICTS } from '../../../alicorn/gates/gate-agreement'
 import { resolveGateEvaluationInput } from '../../../alicorn/gates/gate-evaluation-context'
 import { getLatestDispatchForTask } from '../../orchestration/db/dispatch-context/task-dispatch-reconciliation'
 import type { GateDecision } from '../../../../shared/alicorn/gate-policy'
@@ -52,6 +53,10 @@ const VerifyRecordParams = z.object({
 const GateResolveParams = z.object({
   id: requiredString('Missing --id'),
   resolution: requiredString('Missing --resolution'),
+  // GP3 level 1, both additive and both optional: a resolver that says nothing about the gate
+  // records no agreement, which is the honest answer rather than a default one.
+  humanGateDecision: z.enum(GATE_VERDICTS).optional(),
+  recommendationShown: OptionalBoolean,
   from: OptionalString,
   run: OptionalString
 })
@@ -184,13 +189,18 @@ export const ORCHESTRATION_GATE_METHODS: RpcMethod[] = [
       const directory = runtime.getAlicornMemberDirectory()
       // No directory means the control plane is unconfigured: the policy cannot be read, so the
       // honest answer is a gate, not an unevaluated pass.
-      const recommendation: GateDecision = directory
-        ? (await evaluateGateForTask(directory, evaluationInput)).decision
-        : { decision: 'gate', reason: 'unverified' }
+      const evaluation = directory
+        ? await evaluateGateForTask(directory, evaluationInput)
+        : { decision: { decision: 'gate', reason: 'unverified' } as GateDecision, detail: null }
+      const recommendation: GateDecision = evaluation.decision
+      // ARCHITECTURE §7 Levels: the entry condition (runs >= 10) governs which level the member
+      // is *in*, not whether the decision is recorded — level 0 records one too. GP3 reads the
+      // level back to decide whether the recommendation may be shown to the human.
+      const level = evaluation.detail?.trackRecord?.level ?? null
       // Level 0 records the decision it *would* have made and still gates. Nothing in GP1
       // auto-resolves: autonomy is unlocked by evidence, and evidence only accumulates by
       // running gated. Retiring a gate is SK1's, behind the ledger's windowed track record.
-      const recorded = db.setGateRecommendation(gate.id, recommendation)
+      const recorded = db.setGateRecommendation(gate.id, { ...recommendation, level })
       return { gate: recorded ?? gate, recommendation }
     }
   }),
@@ -278,7 +288,14 @@ export const ORCHESTRATION_GATE_METHODS: RpcMethod[] = [
       if (!gate) {
         throw new Error(`Gate not found: ${params.id}`)
       }
-      return { gate }
+      const agreementRecorded = params.humanGateDecision
+        ? enqueueGateAgreement(db, gate, {
+            decision: params.humanGateDecision,
+            // Absent means the caller never showed one — false, never assumed true.
+            recommendationShown: params.recommendationShown ?? false
+          }) > 0
+        : false
+      return { gate, agreementRecorded }
     }
   }),
 

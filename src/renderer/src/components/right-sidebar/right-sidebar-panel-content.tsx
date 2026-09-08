@@ -21,6 +21,9 @@ const ContextInspectorPanel = lazy(() =>
     default: m.ContextInspectorPanel
   }))
 )
+const GatePanel = lazy(() =>
+  import('./gate-panel/GatePanel').then((m) => ({ default: m.GatePanel }))
+)
 
 type RightSidebarPanelContentProps = {
   effectiveTab: ActiveRightSidebarTab
@@ -63,6 +66,10 @@ export function RightSidebarPanelContent({
             fetched one at a time, only while a dispatch is expanded. */}
         {effectiveTab === 'context' && (
           <ContextInspectorPanel isVisible={rightSidebarOpen && effectiveTab === 'context'} />
+        )}
+        {/* isVisible gates the poll: a closed panel must not keep reading the gate store. */}
+        {effectiveTab === 'gates' && (
+          <GatePanel isVisible={rightSidebarOpen && effectiveTab === 'gates'} />
         )}
         {effectiveTab === 'workspaces' && <FolderWorkspaceWorktreesPanel />}
         {effectiveTab === 'pr-checks' && (

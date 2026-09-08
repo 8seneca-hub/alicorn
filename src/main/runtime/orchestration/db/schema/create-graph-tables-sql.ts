@@ -162,7 +162,11 @@ CREATE TABLE IF NOT EXISTS decision_gates (
   -- What the autonomy policy would have decided (GP1). Recorded on every evaluated gate,
   -- including at level 0 where it changes nothing — that record is how a level is ever earned.
   recommended_decision TEXT CHECK(recommended_decision IN ('gate', 'auto')),
-  recommended_reason   TEXT
+  recommended_reason   TEXT,
+  -- The member's autonomy level when the gate opened (GP3). Level 1 is what earns the
+  -- recommendation a place on screen; stored here so the panel is a local read and so the
+  -- level recorded is the one that applied then, not whatever the ledger says later.
+  recommended_level    INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS idx_gates_task ON decision_gates(task_id);

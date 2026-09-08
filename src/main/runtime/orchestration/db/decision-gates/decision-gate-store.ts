@@ -125,13 +125,15 @@ export function resolveGate(
 export function setGateRecommendation(
   this: OrchestrationDb,
   gateId: string,
-  recommendation: { decision: 'gate' | 'auto'; reason: string }
+  recommendation: { decision: 'gate' | 'auto'; reason: string; level: number | null }
 ): DecisionGateRow | undefined {
   this.db
     .prepare(
-      'UPDATE decision_gates SET recommended_decision = ?, recommended_reason = ? WHERE id = ?'
+      `UPDATE decision_gates
+       SET recommended_decision = ?, recommended_reason = ?, recommended_level = ?
+       WHERE id = ?`
     )
-    .run(recommendation.decision, recommendation.reason, gateId)
+    .run(recommendation.decision, recommendation.reason, recommendation.level, gateId)
   return this.getGate(gateId)
 }
 

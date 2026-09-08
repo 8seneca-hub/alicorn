@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const handlers = new Map<string, (event: unknown, args?: unknown) => unknown>()
 
@@ -17,7 +17,7 @@ import {
   ControlPlaneUnavailableError
 } from '../alicorn/control-plane-http'
 import type { ControlPlaneClient } from '../alicorn/control-plane-client'
-import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
+import { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { Member, MemberInput } from '../../shared/alicorn/members'
 
 const INPUT: MemberInput = {
@@ -57,11 +57,12 @@ function fakeClient(overrides: Partial<ControlPlaneClient> = {}): ControlPlaneCl
   } as unknown as ControlPlaneClient
 }
 
-function register(client: ControlPlaneClient | null): void {
+function register(client: ControlPlaneClient | null, db?: OrchestrationDb): void {
   handlers.clear()
   registerAlicornHandlers({
     client,
-    getOrchestrationDb: () => ({ setTaskExecutionStrategy }) as unknown as OrchestrationDb
+    getOrchestrationDb: () =>
+      db ?? (({ setTaskExecutionStrategy }) as unknown as OrchestrationDb)
   })
 }
 
@@ -458,5 +459,102 @@ describe('context capture', () => {
       })
     }
     expect(getRunContextCapture).not.toHaveBeenCalled()
+  })
+})
+
+describe('gate panel reads and resolves (GP3)', () => {
+  let db: OrchestrationDb
+
+  afterEach(() => db?.close())
+
+  function pendingGate(level: number | null): { gateId: string; taskId: string } {
+    db = new OrchestrationDb(':memory:')
+    const task = db.createTask({ spec: 'ship it' })
+    const { dispatch } = db.createStartingWorkerDispatch({
+      taskId: task.id,
+      startOptions: {},
+      creator: { kind: 'system' },
+      maxDepth: Number.MAX_SAFE_INTEGER
+    })
+    db.markWorkerDispatchReady(dispatch.id)
+    db.settleWorkerReport({
+      taskId: task.id,
+      dispatchId: dispatch.id,
+      outcome: 'succeeded',
+      result: JSON.stringify({ phase: 'build', body: 'done', filesModified: [] })
+    })
+    const gate = db.createGate({ taskId: task.id, question: 'Merge?', options: ['yes'] })
+    if (level !== null) {
+      db.setGateRecommendation(gate.id, { decision: 'auto', reason: 'auto', level })
+    }
+    register(fakeClient(), db)
+    return { gateId: gate.id, taskId: task.id }
+  }
+
+  it('sends the recommendation at level 1 and withholds it at level 0', async () => {
+    pendingGate(1)
+    await expect(invoke(ALICORN_IPC.gatesList)).resolves.toMatchObject({
+      ok: true,
+      gates: [{ recommendation: { decision: 'auto', reason: 'auto' }, policyEvaluated: true }]
+    })
+    db.close()
+
+    pendingGate(0)
+    await expect(invoke(ALICORN_IPC.gatesList)).resolves.toMatchObject({
+      ok: true,
+      gates: [{ recommendation: null, policyEvaluated: true, autonomyLevel: 0 }]
+    })
+  })
+
+  it('resolves the gate and enqueues the agreement, shown-flag derived from the level', async () => {
+    const { gateId } = pendingGate(1)
+
+    await expect(
+      invoke(ALICORN_IPC.gatesResolve, {
+        gateId,
+        resolution: 'yes',
+        humanGateDecision: 'gate'
+      })
+    ).resolves.toEqual({ ok: true, agreementRecorded: true })
+
+    expect(db.getGate(gateId)?.status).toBe('resolved')
+    const row = db.listDueLedgerOutbox(25).find((r) => r.kind === 'gate_agreement_patch')!
+    expect(JSON.parse(row.payload)).toMatchObject({
+      gateId,
+      policyRecommendation: 'auto',
+      humanGateDecision: 'gate',
+      recommendationShown: true
+    })
+  })
+
+  it('records the answer as given blind when the recommendation was withheld', async () => {
+    const { gateId } = pendingGate(0)
+
+    await invoke(ALICORN_IPC.gatesResolve, {
+      gateId,
+      resolution: 'yes',
+      humanGateDecision: 'auto'
+    })
+
+    const row = db.listDueLedgerOutbox(25).find((r) => r.kind === 'gate_agreement_patch')!
+    expect(JSON.parse(row.payload)).toMatchObject({ recommendationShown: false })
+  })
+
+  it('refuses a resolve that names no gate verdict', async () => {
+    const { gateId } = pendingGate(1)
+
+    await expect(
+      invoke(ALICORN_IPC.gatesResolve, { gateId, resolution: 'yes' })
+    ).resolves.toEqual({ ok: false, error: 'invalid_body' })
+    expect(db.getGate(gateId)?.status).toBe('pending')
+  })
+
+  it('refuses to resolve a gate that is no longer pending', async () => {
+    const { gateId } = pendingGate(1)
+    db.resolveGate(gateId, 'already done')
+
+    await expect(
+      invoke(ALICORN_IPC.gatesResolve, { gateId, resolution: 'yes', humanGateDecision: 'auto' })
+    ).resolves.toEqual({ ok: false, error: 'gate_not_pending' })
   })
 })

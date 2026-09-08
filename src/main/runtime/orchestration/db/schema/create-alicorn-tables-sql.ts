@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS ledger_outbox (
   id           TEXT PRIMARY KEY,
   kind         TEXT NOT NULL CHECK (kind IN (
     'step_outcome', 'context_capture', 'spend_attribution', 'step_verification',
-    'human_verdict_patch', 'interruption'
+    'human_verdict_patch', 'interruption', 'gate_agreement_patch'
   )),
   dedupe_key   TEXT NOT NULL UNIQUE,
   payload      TEXT NOT NULL,

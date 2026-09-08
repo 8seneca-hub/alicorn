@@ -35,6 +35,30 @@ export const SpendPatchSchema = z.object({
   usage: z.record(z.unknown()).nullable().default(null)
 })
 
+/**
+ * GP3 (level 1 advisory). What the human decided *about the gate*, next to what the policy would
+ * have decided — deliberately not `human_verdict`, which is what a human later did to the work.
+ * The two answer different questions and one field for both would make neither readable.
+ *
+ * `agreedWithPolicy` is never sent: the server derives it from the two decisions, so a client
+ * cannot report agreement that its own two fields contradict.
+ */
+export const GATE_VERDICTS = ['gate', 'auto'] as const
+export const GateVerdictSchema = z.enum(GATE_VERDICTS)
+export const GateAgreementPatchSchema = z.object({
+  gateId: z.string().min(1).max(200),
+  /** What `evaluateGate` returned when the gate was opened; recorded on the gate row by GP1. */
+  policyRecommendation: GateVerdictSchema,
+  policyRecommendationReason: z.string().min(1).max(64),
+  /** The human's own call on whether the step needed them. */
+  humanGateDecision: GateVerdictSchema,
+  /**
+   * Was the recommendation visible when they decided? Only the surface that rendered it knows,
+   * so it is reported rather than derived — and it defaults to false, never to true.
+   */
+  recommendationShown: z.boolean().default(false)
+})
+
 export const HumanVerdictPatchSchema = z.object({
   humanVerdict: z.enum(['accepted', 'rejected', 'amended']),
   amendedAfterMs: z.number().int().nonnegative().nullable().default(null),
@@ -71,6 +95,12 @@ export const StepOutcomeRecordSchema = StepOutcomeInputSchema.extend({
   usage: z.record(z.unknown()).nullable(),
   gateDecision: z.string(),
   gateReason: z.string(),
+  gateId: z.string().nullable(),
+  policyRecommendation: GateVerdictSchema.nullable(),
+  policyRecommendationReason: z.string().nullable(),
+  humanGateDecision: GateVerdictSchema.nullable(),
+  agreedWithPolicy: z.boolean().nullable(),
+  recommendationShown: z.boolean().nullable(),
   humanVerdict: z.enum(['accepted', 'rejected', 'amended']).nullable(),
   amendedAfterMs: z.number().int().nullable(),
   createdAt: z.string().datetime()
@@ -169,6 +199,8 @@ export type ExecutionStrategy = z.infer<typeof ExecutionStrategySchema>
 export type StepOutcomeInput = z.infer<typeof StepOutcomeInputSchema>
 export type StepOutcomeRecord = z.infer<typeof StepOutcomeRecordSchema>
 export type SpendPatch = z.infer<typeof SpendPatchSchema>
+export type GateVerdict = z.infer<typeof GateVerdictSchema>
+export type GateAgreementPatch = z.infer<typeof GateAgreementPatchSchema>
 export type HumanVerdictPatch = z.infer<typeof HumanVerdictPatchSchema>
 export type StepVerificationInput = z.infer<typeof StepVerificationInputSchema>
 export type ContextCaptureInput = z.infer<typeof ContextCaptureInputSchema>

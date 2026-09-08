@@ -6,6 +6,7 @@ import type {
   ContextCaptureDetailResult,
   RunInspectorViewResult
 } from '../../shared/alicorn/run-inspector-view'
+import type { GateResolveResult, PendingGatesResult } from '../../shared/alicorn/gate-review'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -40,4 +41,12 @@ export type AlicornApi = {
     runId: string
     dispatchId: string
   }) => Promise<ContextCaptureDetailResult>
+  /** Gates still waiting on a human, with the policy's recommendation where level 1 allows it. */
+  listPendingGates: () => Promise<PendingGatesResult>
+  /** Resolves a gate and records whether the human's call matched the policy's (GP3). */
+  resolveGate: (args: {
+    gateId: string
+    resolution: string
+    humanGateDecision: 'gate' | 'auto'
+  }) => Promise<GateResolveResult>
 }

@@ -5,6 +5,7 @@ export type LedgerOutboxKind =
   | 'step_verification'
   | 'human_verdict_patch'
   | 'interruption'
+  | 'gate_agreement_patch'
 
 // Why: raw `ledger_outbox` row, mirrors the SQLite columns directly (no camelCase mapping).
 export type LedgerOutboxRow = {

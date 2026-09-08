@@ -7,6 +7,7 @@ import {
   Microscope,
   Network,
   ScrollText,
+  ShieldQuestion,
   SquareTerminal,
   Workflow
 } from 'lucide-react'
@@ -158,6 +159,17 @@ export function useRightSidebarActivityItems({
         title: translate(
           'auto.components.right.sidebar.use.right.sidebar.activity.items.context',
           'Context'
+        ),
+        shortcut: ''
+      },
+      {
+        id: 'gates',
+        icon: ShieldQuestion,
+        // Why no shortcut: a gate is an interruption you are already being pulled into, usually
+        // from a notification — it does not earn a chord ahead of Explorer or Source Control.
+        title: translate(
+          'auto.components.right.sidebar.use.right.sidebar.activity.items.gates',
+          'Gates'
         ),
         shortcut: ''
       },

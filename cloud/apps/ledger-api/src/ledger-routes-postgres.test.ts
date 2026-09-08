@@ -298,6 +298,89 @@ describePostgres('ledger routes (postgres)', () => {
     expect(forbidden.status).toBe(403)
   })
 
+  it('records gate agreement, derives it server-side, and keeps it separate from the human verdict', async () => {
+    const created = await post('/v1/ledger/step-outcomes', {
+      runId: 'run_g', taskId: 'task_g', dispatchId: 'ctx_g', outcome: 'succeeded',
+      memberId: 'm_g', projectId: 'p_g', repoId: 'r_g', branch: 'feat/agreement'
+    })
+    const { id } = (await created.json()) as { id: string }
+
+    // Disagreement: the policy would have skipped the gate, the human says it was needed.
+    const patch = await app.request(`/v1/ledger/step-outcomes/${id}/gate-agreement`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({
+        gateId: 'gate_1', policyRecommendation: 'auto', policyRecommendationReason: 'auto',
+        humanGateDecision: 'gate', recommendationShown: true
+      })
+    })
+    expect(patch.status).toBe(200)
+    expect(await patch.json()).toEqual({ id, agreed: false })
+
+    const { rows } = await withTenant(pool, 'local', (c) =>
+      c.query(
+        `SELECT gate_id, policy_recommendation, human_gate_decision, agreed_with_policy,
+                recommendation_shown, human_verdict
+         FROM step_outcomes WHERE id = $1`,
+        [id]
+      )
+    )
+    expect(rows[0]).toEqual({
+      gate_id: 'gate_1', policy_recommendation: 'auto', human_gate_decision: 'gate',
+      // Derived from the two decisions, never taken from the body.
+      agreed_with_policy: false, recommendation_shown: true,
+      // The work verdict is a different signal and this route must not have touched it.
+      human_verdict: null
+    })
+
+    // Write-once, like the human verdict: a gate resolves once.
+    const again = await app.request(`/v1/ledger/step-outcomes/${id}/gate-agreement`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({
+        gateId: 'gate_1', policyRecommendation: 'auto', policyRecommendationReason: 'auto',
+        humanGateDecision: 'auto'
+      })
+    })
+    expect(again.status).toBe(409)
+    expect(await again.json()).toEqual({ error: 'agreement_already_set' })
+
+    const notFound = await app.request(`/v1/ledger/step-outcomes/nope/gate-agreement`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({
+        gateId: 'g', policyRecommendation: 'gate', policyRecommendationReason: 'history',
+        humanGateDecision: 'gate'
+      })
+    })
+    expect(notFound.status).toBe(404)
+
+    const bad = await app.request(`/v1/ledger/step-outcomes/${id}/gate-agreement`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({ gateId: 'g', policyRecommendation: 'maybe', humanGateDecision: 'gate' })
+    })
+    expect(bad.status).toBe(400)
+  })
+
+  it('agreement defaults recommendationShown to false, so a blind answer is never counted as pre-filled', async () => {
+    const created = await post('/v1/ledger/step-outcomes', {
+      runId: 'run_g2', taskId: 'task_g2', dispatchId: 'ctx_g2', outcome: 'succeeded',
+      memberId: 'm_g2', projectId: 'p_g2', repoId: 'r_g2', branch: 'feat/blind'
+    })
+    const { id } = (await created.json()) as { id: string }
+
+    const patch = await app.request(`/v1/ledger/step-outcomes/${id}/gate-agreement`, {
+      method: 'PATCH', headers: authHeaders,
+      body: JSON.stringify({
+        gateId: 'gate_2', policyRecommendation: 'gate', policyRecommendationReason: 'history',
+        humanGateDecision: 'gate'
+      })
+    })
+    expect(await patch.json()).toEqual({ id, agreed: true })
+
+    const { rows } = await withTenant(pool, 'local', (c) =>
+      c.query(`SELECT agreed_with_policy, recommendation_shown FROM step_outcomes WHERE id = $1`, [id])
+    )
+    expect(rows[0]).toEqual({ agreed_with_policy: true, recommendation_shown: false })
+  })
+
   it('only a correction (amended/rejected) touches last_amended_at, not an accepted verdict', async () => {
     const acceptedOutcome = await post('/v1/ledger/step-outcomes', {
       runId: 'run_4', taskId: 'task_4', dispatchId: 'ctx_10', outcome: 'succeeded',

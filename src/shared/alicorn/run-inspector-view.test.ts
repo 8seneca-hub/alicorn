@@ -30,6 +30,13 @@ function outcome(overrides: Partial<StepOutcomeRecord> = {}): StepOutcomeRecord 
     gateDecision: 'auto',
     gateReason: 'auto',
     createdAt: '2026-09-06T00:00:00.000Z',
+    // GP3 fields: null is correct here — this fixture's step never opened a gate.
+    gateId: null,
+    policyRecommendation: null,
+    policyRecommendationReason: null,
+    humanGateDecision: null,
+    agreedWithPolicy: null,
+    recommendationShown: null,
     ...overrides
   }
 }

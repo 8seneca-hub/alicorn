@@ -20,12 +20,17 @@ describe('v38 gate policy migration', () => {
     try {
       const task = db.createTask({ spec: 'ship it' })
       const gate = db.createGate({ taskId: task.id, question: 'Proceed?' })
-      const recorded = db.setGateRecommendation(gate.id, { decision: 'auto', reason: 'never_gate' })
+      const recorded = db.setGateRecommendation(gate.id, {
+        decision: 'auto',
+        reason: 'never_gate',
+        level: 2
+      })
       expect(recorded).toMatchObject({
         status: 'pending',
         resolution: null,
         recommended_decision: 'auto',
-        recommended_reason: 'never_gate'
+        recommended_reason: 'never_gate',
+        recommended_level: 2
       })
       expect(db.getTask(task.id)?.status).toBe('blocked')
     } finally {
