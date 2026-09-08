@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { OrchestrationDb } from './db'
@@ -121,7 +121,7 @@ async function planWithFiles(runId: string, files: Record<string, string[]>): Pr
       files: paths
     })),
     waves: [],
-    contractRegistry: '',
+    contractRegistry: { entries: [], gaps: [], notes: '' },
     log: [],
     notDone: []
   }
@@ -209,6 +209,89 @@ describe('coordinator journalling', () => {
     expect(lines).toContain(`node ${taskIds[1]!} failed`)
   })
 
+  // CR1: the registry has to be in the journal before the first brief is written, or it saves the
+  // worker nothing.
+  it('seeds the Contract Registry from the worktree schema at run start', async () => {
+    writeFileSync(
+      join(worktree, 'openapi.yaml'),
+      "openapi: 3.1.0\npaths:\n  /refunds:\n    post:\n      responses:\n        '201': {}\n",
+      'utf8'
+    )
+    const { coordinator, taskIds } = coordinatorFor({ orchestrated: true })
+
+    const result = await drive(coordinator.run(), taskIds, ['succeeded'])
+
+    const registry = (await readJournal(journalPath(worktree, result.runId)))!.contractRegistry
+    expect(registry.entries).toEqual([
+      {
+        repo: '',
+        kind: 'endpoint',
+        name: 'POST /refunds',
+        shape: '→ 201',
+        provenance: 'extracted',
+        source: 'openapi.yaml#/paths/~1refunds/post',
+        breaking: false
+      }
+    ])
+    expect(registry.gaps).toEqual([])
+  })
+
+  // The honest fallback: a worktree with no schema says what would have to be generated, rather
+  // than leaving a section that reads as "this repo has no interfaces".
+  it('records the schema-generation precondition when the worktree has no schema', async () => {
+    const { coordinator, taskIds } = coordinatorFor({ orchestrated: true })
+
+    const result = await drive(coordinator.run(), taskIds, ['succeeded'])
+
+    const journal = (await readJournal(journalPath(worktree, result.runId)))!
+    expect(journal.contractRegistry.entries).toEqual([])
+    expect(journal.contractRegistry.gaps).toHaveLength(1)
+    expect(journal.contractRegistry.gaps[0]?.missing).toContain('no OpenAPI document')
+    expect(journal.log.some((entry) => entry.line.includes('no schema extracted'))).toBe(true)
+    expect(readFileSync(journalPath(worktree, result.runId), 'utf8')).toContain(
+      '### Schema generation required'
+    )
+  })
+
+  it('records a settled node’s interface deltas as agent-declared', async () => {
+    const { coordinator, taskIds } = coordinatorFor({ orchestrated: true })
+
+    const result = await drive(
+      coordinator.run(),
+      taskIds,
+      ['succeeded'],
+      [
+        reportBody({
+          interface_delta: [
+            {
+              kind: 'http_endpoint',
+              name: 'POST /refunds/partial',
+              shape: '{ amount: number }',
+              breaking: true
+            }
+          ]
+        })
+      ]
+    )
+
+    const journal = (await readJournal(journalPath(worktree, result.runId)))!
+    expect(journal.contractRegistry.entries).toEqual([
+      {
+        repo: '',
+        kind: 'http_endpoint',
+        name: 'POST /refunds/partial',
+        shape: '{ amount: number }',
+        provenance: 'declared',
+        source: `node ${taskIds[0]!}`,
+        breaking: true
+      }
+    ])
+    expect(readFileSync(journalPath(worktree, result.runId), 'utf8')).toContain('⚠ agent-declared')
+    expect(journal.log.some((entry) => entry.line.includes('1 interface(s) agent-declared'))).toBe(
+      true
+    )
+  })
+
   it('records the run outcome', async () => {
     const { coordinator, taskIds } = coordinatorFor({ orchestrated: true })
 
@@ -236,7 +319,7 @@ describe('coordinator journalling', () => {
         reversible: false
       }
     ]
-    beforeRestart!.contractRegistry = 'POST /refunds/partial'
+    beforeRestart!.contractRegistry.notes = 'POST /refunds/partial'
     beforeRestart!.plan[0]!.owner = 'builder'
     beforeRestart!.plan[0]!.model = 'opus'
     await writeJournal(path, beforeRestart!)
@@ -256,7 +339,7 @@ describe('coordinator journalling', () => {
     const after = await readJournal(path)
     expect(after?.decisions).toHaveLength(1)
     expect(after?.decisions[0]?.decision).toBe('Multi-currency at launch')
-    expect(after?.contractRegistry).toBe('POST /refunds/partial')
+    expect(after?.contractRegistry.notes).toBe('POST /refunds/partial')
     // The lead owns Owner and Model; the coordinator must not have reset them.
     const firstNode = after?.plan.find((node) => node.id === first.taskIds[0]!)
     expect(firstNode).toMatchObject({ owner: 'builder', model: 'opus' })

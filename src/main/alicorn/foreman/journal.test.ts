@@ -68,7 +68,21 @@ function journal(overrides: Partial<Journal> = {}): Journal {
         overlaps: [{ path: 'src/api/refunds.ts', nodeIds: ['1', '2'] }]
       }
     ],
-    contractRegistry: 'POST /refunds/partial { amount: cents }',
+    contractRegistry: {
+      entries: [
+        {
+          repo: '',
+          kind: 'endpoint',
+          name: 'POST /refunds/partial',
+          shape: 'body {amount: integer} → 201 Refund',
+          provenance: 'extracted',
+          source: 'openapi.yaml#/paths/~1refunds~1partial/post',
+          breaking: false
+        }
+      ],
+      gaps: [{ repo: 'ui', missing: 'no OpenAPI document', generate: 'an OpenAPI 3.1 document' }],
+      notes: 'the lead typed this by hand'
+    },
     log: [{ at: '00:01', line: 'node 2 dispatched' }],
     notDone: ['multi-region rollout'],
     ...overrides
@@ -100,7 +114,7 @@ describe('renderJournal / parseJournal', () => {
       decisions: [],
       assumptions: [],
       plan: [],
-      contractRegistry: '',
+      contractRegistry: { entries: [], gaps: [], notes: '' },
       log: [],
       notDone: [],
       waves: []

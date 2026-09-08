@@ -1,3 +1,12 @@
+import type { ForemanReport } from '../../../shared/alicorn/foreman-report'
+import {
+  clearContractGap,
+  contractEntriesFromReport,
+  emptyContractRegistry,
+  mergeContractEntries,
+  mergeContractGaps
+} from './contract-registry'
+import type { RepoContractScan } from './repo-contract-scan'
 import {
   journalPath,
   readJournal,
@@ -57,7 +66,7 @@ export async function openRunJournal(
     assumptions: [],
     plan: [],
     waves: [],
-    contractRegistry: '',
+    contractRegistry: emptyContractRegistry(),
     log: [],
     notDone: []
   }
@@ -132,4 +141,55 @@ export function recordWaves(journal: Journal): JournalWaveOverlap[] {
     }
   }
   return [...fresh.values()]
+}
+
+function refusedSuffix(refused: number): string {
+  return refused > 0 ? `; ${refused} refused at the registry ceiling` : ''
+}
+
+/**
+ * Records a repo scan into the Contract Registry and returns the line to log.
+ *
+ * A scan that found nothing writes a gap rather than nothing at all: an empty registry reads as
+ * "this repo has no interfaces", which is a claim the scan never made (`repo-contract-scan.ts`).
+ * A scan that found something clears the repo's earlier gap, because the precondition is met.
+ */
+export function recordContractScan(journal: Journal, scan: RepoContractScan): string {
+  const registry = journal.contractRegistry
+  const merged = mergeContractEntries(registry, scan.entries)
+  if (scan.entries.length > 0) {
+    clearContractGap(registry, scan.repo)
+  }
+  mergeContractGaps(registry, scan.gaps)
+
+  const where = scan.repo || 'the worktree'
+  if (scan.entries.length === 0) {
+    const gap = scan.gaps[0]
+    return `contract registry: no schema extracted from ${where} — ${gap?.missing ?? 'nothing to extract'}; entries for it can only be agent-declared`
+  }
+  const documents = scan.sources.length
+  return `contract registry: ${merged.added} interface(s) extracted from ${documents} document(s) in ${where}, ${merged.replaced} updated${refusedSuffix(merged.refused)}`
+}
+
+/**
+ * Records a settled node's `interface_delta` as the agent-declared fallback.
+ *
+ * Marked as declared on the row, never silently merged with extracted rows: a model's assertion and
+ * a schema's contents are different epistemic objects, and an extracted entry of the same name is
+ * left standing rather than overwritten.
+ */
+export function recordDeclaredContracts(
+  journal: Journal,
+  nodeId: string,
+  report: ForemanReport
+): string | null {
+  const entries = contractEntriesFromReport(nodeId, report)
+  if (entries.length === 0) {
+    return null
+  }
+  const merged = mergeContractEntries(journal.contractRegistry, entries)
+  if (merged.added === 0 && merged.replaced === 0) {
+    return null
+  }
+  return `contract registry: ${merged.added + merged.replaced} interface(s) agent-declared by node ${nodeId}${refusedSuffix(merged.refused)}`
 }

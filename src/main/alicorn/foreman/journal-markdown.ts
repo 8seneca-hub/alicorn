@@ -10,6 +10,7 @@ import {
   type JournalWave,
   type JournalWaveOverlap
 } from './journal-types'
+import { parseContractRegistry, renderContractRegistry } from './contract-registry-markdown'
 import { cell, list, renderTable, tableRows, uncell, unlist } from './markdown-table'
 
 const NODE_STATUSES: JournalNodeStatus[] = ['pending', 'dispatched', 'done', 'failed', 'blocked']
@@ -123,7 +124,7 @@ export function renderJournal(journal: Journal): string {
     ),
     '',
     '## Contract registry',
-    journal.contractRegistry || '—',
+    renderContractRegistry(journal.contractRegistry),
     '',
     '## Log',
     ...(journal.log.length > 0
@@ -257,7 +258,7 @@ export function parseJournal(markdown: string): Journal {
     assumptions: parseAssumptions(markdown),
     plan: parsePlan(markdown),
     waves: parseWaves(markdown),
-    contractRegistry: registry === '—' ? '' : registry,
+    contractRegistry: parseContractRegistry(registry),
     log: parseLog(markdown),
     notDone: bulletList(requireSection(markdown, 'Not done, and why'))
   }

@@ -3,6 +3,7 @@ import type {
   ForemanPlanNode,
   ForemanRunStatus
 } from '../../../shared/alicorn/foreman-run'
+import type { ContractRegistry } from './contract-registry'
 
 // The Feature Journal is the source of truth for an orchestrated run; the lead's context is a cache
 // of it (docs/alicorn/foreman-templates.md §3). It lives on disk so a run survives the session that
@@ -61,7 +62,8 @@ export type Journal = {
   plan: JournalNode[]
   /** Derived from the plan, not authored: `planWaves` recomputes it on every journal write. */
   waves: JournalWave[]
-  contractRegistry: string
+  /** The typed interfaces crossing between nodes — never a "ledger", see contract-registry.ts. */
+  contractRegistry: ContractRegistry
   log: JournalLogEntry[]
   notDone: string[]
 }

@@ -2,11 +2,14 @@ import {
   appendJournalLog,
   journalPath,
   openRunJournal,
+  recordContractScan,
+  recordDeclaredContracts,
   recordWaves,
   setJournalStatus,
   updateRunJournal,
   upsertPlanNode
 } from '../../alicorn/foreman/journal-writer'
+import { scanRepoContracts } from '../../alicorn/foreman/repo-contract-scan'
 import {
   readJournal,
   relativeWavePath,
@@ -92,6 +95,28 @@ export class CoordinatorForemanJournal {
         this.logNewOverlaps(current)
       })
     })
+    await this.seedContractRegistry()
+  }
+
+  /**
+   * Fills the Contract Registry from whatever schemas the worktree actually has.
+   *
+   * Once, at run start, before the first brief goes out — the registry only saves a worker the
+   * 40k-token conversation if it is there when the brief is written. Guarded like every other
+   * journal write: an unreadable worktree costs the record, never the run.
+   */
+  private async seedContractRegistry(): Promise<void> {
+    const worktreePath = this.deps.worktreePath
+    const path = this.path
+    if (!worktreePath || !path) {
+      return
+    }
+    await this.guard(async () => {
+      const scan = await scanRepoContracts(worktreePath, { repo: '' })
+      await updateRunJournal(path, (current) => {
+        appendJournalLog(current, this.now().toISOString(), recordContractScan(current, scan))
+      })
+    })
   }
 
   async onDispatch(task: TaskRow, dispatchId: string, owner: string): Promise<void> {
@@ -125,6 +150,11 @@ export class CoordinatorForemanJournal {
     const journal = await this.mutate((current) => {
       upsertPlanNode(current, { id: taskId, status })
       appendJournalLog(current, this.now().toISOString(), `node ${taskId} ${status}`)
+      // The agent-declared fallback: what the node says its interfaces are, marked as its word.
+      const declared = report && recordDeclaredContracts(current, taskId, report)
+      if (declared) {
+        appendJournalLog(current, this.now().toISOString(), declared)
+      }
     })
     if (journal) {
       await this.reduceSettledWave(journal, taskId)

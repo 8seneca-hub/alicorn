@@ -30,7 +30,7 @@ function journal(overrides: Partial<Journal> = {}): Journal {
       }
     ],
     waves: [],
-    contractRegistry: '',
+    contractRegistry: { entries: [], gaps: [], notes: '' },
     log: [],
     notDone: [],
     ...overrides
@@ -77,7 +77,12 @@ describe('readForemanRunView', () => {
   // Why not the whole journal: decisions, assumptions, the log and the contract registry are not
   // drawn, and shipping them across IPC every poll spends bandwidth on text nobody reads.
   it('carries only what the view draws', async () => {
-    writeJournalAt('run_1', renderJournal(journal({ contractRegistry: 'POST /refunds' })))
+    writeJournalAt(
+      'run_1',
+      renderJournal(
+        journal({ contractRegistry: { entries: [], gaps: [], notes: 'POST /refunds' } })
+      )
+    )
 
     const result = await readForemanRunView(worktree)
 

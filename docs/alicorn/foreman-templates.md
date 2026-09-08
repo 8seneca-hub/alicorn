@@ -155,8 +155,26 @@ bounded reports into one row per node at `.foreman/<run-id>/wave-<n>.md`. **Read
 reports** — one bounded report is affordable, N of them in a lead's window is context collapse.
 
 ## Contract registry
-<Accumulated interface deltas from reports. This is what subagents build against.
-Never the transcripts.>
+Orca fills this at run start from the repo's OpenAPI documents and shared contract types, and adds
+each report's `interface_delta` as a node settles. This is what you paste into a brief — one row,
+about 200 tokens, never a transcript. `Provenance` is the column that decides how far to trust a
+row: `extracted` was read out of a schema, `⚠ agent-declared` is a subagent's word for it. An
+extracted row is never overwritten by a declared one.
+
+A repo under *Schema generation required* is a repo whose interfaces nobody could extract — not a
+repo without interfaces. Until what its last column names exists, every entry for it can only be
+agent-declared. Prose you write above the tables is kept; Orca only rewrites the tables.
+
+### Interfaces
+| Repo | Kind | Name | Shape | Provenance | Source | Breaking? |
+|---|---|---|---|---|---|---|
+| — | endpoint | POST /refunds/partial | body PartialRefundRequest; → 201 Refund | extracted | openapi.yaml#/paths/~1refunds~1partial/post | no |
+| — | type | RefundState | type RefundState = 'pending' \| 'settled' | ⚠ agent-declared | node 3 | no |
+
+### Schema generation required
+| Repo | Missing | Must be generated |
+|---|---|---|
+| billing | no OpenAPI document and no shared contract types found | an OpenAPI document for the HTTP surface, or exported types under contracts/ |
 
 ## Log
 - `<time>` node 2 dispatched — brief: implement POST /refunds/partial

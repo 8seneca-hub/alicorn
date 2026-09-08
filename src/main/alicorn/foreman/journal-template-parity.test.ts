@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { parseJournal } from './journal'
+import { parseJournal, renderJournal } from './journal'
 
 // Why this exists: a lead writes the journal by hand from the template, and the coordinator reads it
 // back with this parser. If the two drift, a hand-written journal stops loading — and the failure
@@ -45,6 +45,47 @@ describe('the journal template in foreman-templates.md', () => {
     expect(journal.plan[1]?.files).toEqual(['src/api/refunds.ts'])
     expect(journal.waves.map((wave) => wave.nodeIds)).toEqual([['1'], ['2', '3'], ['4']])
     expect(journal.waves[0]?.reducedPath).toBe('.foreman/run_alc42/wave-1.md')
+  })
+
+  // A lead pastes a registry row into a brief; if the documented columns drift from the parser's
+  // order the pasted row is the wrong contract, which is worse than no registry at all.
+  it('keeps the documented Contract Registry columns in the order the parser reads them', () => {
+    const registry = parseJournal(journalTemplate()).contractRegistry
+    expect(registry.entries).toEqual([
+      {
+        repo: '',
+        kind: 'endpoint',
+        name: 'POST /refunds/partial',
+        shape: 'body PartialRefundRequest; → 201 Refund',
+        provenance: 'extracted',
+        source: 'openapi.yaml#/paths/~1refunds~1partial/post',
+        breaking: false
+      },
+      {
+        repo: '',
+        kind: 'type',
+        name: 'RefundState',
+        shape: "type RefundState = 'pending' | 'settled'",
+        provenance: 'declared',
+        source: 'node 3',
+        breaking: false
+      }
+    ])
+    expect(registry.gaps).toEqual([
+      {
+        repo: 'billing',
+        missing: 'no OpenAPI document and no shared contract types found',
+        generate: 'an OpenAPI document for the HTTP surface, or exported types under contracts/'
+      }
+    ])
+  })
+
+  // The lead's own prose lives above the tables; a coordinator write must not eat it.
+  it('keeps the documented prose out of the tables and round-trips it', () => {
+    const template = journalTemplate()
+    const registry = parseJournal(template).contractRegistry
+    expect(registry.notes).toContain('agent-declared')
+    expect(renderJournal(parseJournal(template)).includes(registry.notes)).toBe(true)
   })
 
   it('documents a run status the parser accepts', () => {
