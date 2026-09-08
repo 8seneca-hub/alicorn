@@ -13003,7 +13003,8 @@
                 "activity": {
                   "items": {
                     "7f0215bd93": "Run",
-                    "terminal": "Terminal"
+                    "terminal": "Terminal",
+                    "provenance": "Provenance"
                   }
                 }
               }
@@ -13406,6 +13407,90 @@
             "panel": {
               "TerminalPanel": {
                 "noWorkspace": "Open a workspace to use the terminal."
+              }
+            }
+          },
+          "provenance": {
+            "panel": {
+              "section": {
+                "checks": "Required checks",
+                "policy": "Policy on this run",
+                "gaps": "Not in this record"
+              },
+              "checks": {
+                "none": "No check was recorded against this branch. A step with no green check gates as unverified.",
+                "required": "required",
+                "advisory": "advisory"
+              },
+              "ProvenanceEvidenceSections": {
+                "ef86fb6cb9": "{{value0}}% covered"
+              },
+              "reviewer": {
+                "bypassed": "Reviewer backend rule bypassed — the reviewer ran on the author’s own backend. The bypass is recorded on the run.",
+                "enforced": "Reviewer backend rule enforced — the reviewer ran on a different backend from the author.",
+                "off": "Reviewer backend rule is not enforced for this organisation. That is not the same as no conflict."
+              },
+              "escalation": {
+                "offered": "Escalation to orchestrated was offered at",
+                "none": "Single agent throughout; no escalation was offered.",
+                "accepted": "accepted",
+                "declined": "declined",
+                "unanswered": "no answer"
+              },
+              "context": {
+                "captured": "dispatches captured their exact prompt and context slice.",
+                "none": "No context capture was recorded, so an underinformed member cannot be told apart from a wrong one."
+              },
+              "gaps": {
+                "body": "The reason above names the rule that decided. The numbers behind it — the member’s run count and accept rate on the stage, the stage’s authored reversibility, and the policy’s file and spend budgets — are not part of the provenance read, so they show as — rather than as a guess."
+              },
+              "no": {
+                "branch": "This workspace has no branch, so there is nothing to look the record up by. The ledger keys a run by repository and branch."
+              },
+              "loading": "Reading the ledger…",
+              "unavailable": "The ledger could not be read for this branch. Nothing is claimed about it either way.",
+              "empty": "No step has settled on this branch yet. The record fills in as members finish work.",
+              "refresh": "Re-read the ledger",
+              "count": {
+                "auto": "auto",
+                "gated": "gated",
+                "unknown": "not recorded"
+              },
+              "totals": {
+                "steps": "steps",
+                "dispatches": "dispatches"
+              },
+              "step": {
+                "files": "files"
+              },
+              "retry": "Try again",
+              "gate": {
+                "decision": {
+                  "auto": "No human asked",
+                  "gate": "Human asked",
+                  "unknown": "Not recorded"
+                },
+                "reason": {
+                  "unknown": "This step was recorded without a gate decision, so the ledger cannot say whether a human was asked or why.",
+                  "auto": "Every condition passed: the required checks were green, the change stayed inside the policy’s blast-radius budget, and this member’s track record on this stage cleared the bar.",
+                  "never": {
+                    "gate": "A standing never-gate exception for this stage was in force and had not expired. It buys the stage out of the evidence checks, never out of a hard stop."
+                  },
+                  "policy": "The policy for this stage is always-gate, so a human is asked no matter what the track record says.",
+                  "irreversible": "The stage is authored irreversible. That is a hard stop: accumulated evidence never retires it.",
+                  "inherited": "The stage carries a high inherited cost. That is a hard stop: accumulated evidence never retires it.",
+                  "unverified": "A required check had not passed, or its result could not be read. Unknown is not permission.",
+                  "blast": {
+                    "files": "More files changed than the policy’s file budget allows — or the count could not be read.",
+                    "spend": "Spend went past the policy’s budget for this stage — or the step ran on a backend Alicorn cannot price.",
+                    "reach": "The change touched a protected path."
+                  },
+                  "history": "This member has not run this stage often enough to meet the policy’s minimum. Autonomy is unlocked by evidence, and evidence only accumulates by running gated.",
+                  "accept": {
+                    "rate": "This member’s accept rate on this stage is below the policy’s minimum."
+                  },
+                  "regression": "A recent regression on this stage put the member back behind the gate."
+                }
               }
             }
           }

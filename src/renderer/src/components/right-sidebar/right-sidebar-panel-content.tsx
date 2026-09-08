@@ -13,6 +13,9 @@ const FolderWorkspacePrChecksPanel = lazy(() => import('./FolderWorkspacePrCheck
 const PluginPanel = lazy(() => import('./PluginPanel'))
 const RunView = lazy(() => import('./run-view/RunView').then((m) => ({ default: m.RunView })))
 const TerminalPanel = lazy(() => import('./terminal-panel/TerminalPanel'))
+const ProvenancePanel = lazy(() =>
+  import('./provenance-panel/ProvenancePanel').then((m) => ({ default: m.ProvenancePanel }))
+)
 
 type RightSidebarPanelContentProps = {
   effectiveTab: ActiveRightSidebarTab
@@ -45,6 +48,11 @@ export function RightSidebarPanelContent({
             renderer, and the session itself is created on first open, not on mount. */}
         {effectiveTab === 'terminal' && (
           <TerminalPanel isVisible={rightSidebarOpen && effectiveTab === 'terminal'} />
+        )}
+        {/* isVisible gates the ledger poll: a closed panel must not keep the control plane busy
+            for a record nobody is reading. */}
+        {effectiveTab === 'provenance' && (
+          <ProvenancePanel isVisible={rightSidebarOpen && effectiveTab === 'provenance'} />
         )}
         {effectiveTab === 'workspaces' && <FolderWorkspaceWorktreesPanel />}
         {effectiveTab === 'pr-checks' && (

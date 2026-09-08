@@ -1,6 +1,7 @@
 import type { EscalationOffer } from '../../shared/alicorn/context-ceiling'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
+import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -21,4 +22,6 @@ export type AlicornApi = {
   onEscalationOffer: (callback: (payload: EscalationOffer) => void) => () => void
   /** The journal the given workspace's run is keeping, read from disk on every call. */
   getForemanRun: (worktreeId: string) => Promise<ForemanRunViewResult>
+  /** Everything the ledger recorded for a branch, already projected for display. */
+  getProvenance: (args: { repoId: string; branch: string }) => Promise<ProvenanceViewResult>
 }

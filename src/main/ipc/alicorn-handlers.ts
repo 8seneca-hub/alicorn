@@ -10,6 +10,8 @@ import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import { readForemanRunView } from '../alicorn/foreman/run-view-source'
+import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
+import { readProvenanceView } from '../alicorn/provenance-source'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -161,6 +163,28 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
         return { state: 'none' }
       }
       return readForemanRunView(worktreePath)
+    }
+  )
+
+  // The panel's read. It goes through the same `readProvenanceView` D6's pull-request body uses,
+  // so the two can never disagree about a run, and it returns the projection rather than the raw
+  // report so the member directory is resolved once here instead of in every renderer.
+  ipcMain.handle(
+    ALICORN_IPC.provenanceGet,
+    async (_event, args: { repoId?: unknown; branch?: unknown }): Promise<ProvenanceViewResult> => {
+      const repoId = asNonEmptyString(args?.repoId)
+      const branch = asNonEmptyString(args?.branch)
+      if (!repoId || !branch) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => {
+        const view = await readProvenanceView(client, repoId, branch)
+        // `readProvenanceView` swallows the ledger read's own failure, so a null here means the
+        // ledger had nothing to say — an empty view, not an error the panel should shout about.
+        return view
+          ? { ok: true as const, view }
+          : { ok: false as const, error: 'provenance_unavailable' }
+      })
     }
   )
 }

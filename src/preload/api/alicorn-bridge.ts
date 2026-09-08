@@ -12,6 +12,7 @@ export const alicornApi: AlicornApi = {
   setTaskExecutionStrategy: (args) =>
     ipcRenderer.invoke(ALICORN_IPC.tasksSetExecutionStrategy, args),
   getForemanRun: (worktreeId) => ipcRenderer.invoke(ALICORN_IPC.foremanJournal, { worktreeId }),
+  getProvenance: (args) => ipcRenderer.invoke(ALICORN_IPC.provenanceGet, args),
 
   // Returns an unsubscribe rather than exposing removeListener, so a renderer
   // cannot detach another subscriber's handler.

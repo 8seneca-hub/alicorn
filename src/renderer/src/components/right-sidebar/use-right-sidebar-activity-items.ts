@@ -1,5 +1,14 @@
 import { useMemo } from 'react'
-import { Plug, Files, GitBranch, ListChecks, Network, SquareTerminal, Workflow } from 'lucide-react'
+import {
+  Plug,
+  Files,
+  GitBranch,
+  ListChecks,
+  Network,
+  ScrollText,
+  SquareTerminal,
+  Workflow
+} from 'lucide-react'
 import { useAppStore } from '@/store'
 import { useRepoById } from '@/store/selectors'
 import { isFolderRepo } from '../../../../shared/repo-kind'
@@ -120,6 +129,20 @@ export function useRightSidebarActivityItems({
         title: translate(
           'auto.components.right.sidebar.use.right.sidebar.activity.items.7f0215bd93',
           'Run'
+        ),
+        shortcut: ''
+      },
+      {
+        id: 'provenance',
+        // Why gitOnly: the ledger keys a run by repo and branch, and a folder workspace has
+        // neither — an empty panel there would read as "nothing was recorded".
+        gitOnly: true,
+        icon: ScrollText,
+        // Why no shortcut: this is what you open when an auto-decision surprises you, not on the
+        // way through, so it does not earn a chord ahead of Explorer or Source Control.
+        title: translate(
+          'auto.components.right.sidebar.use.right.sidebar.activity.items.provenance',
+          'Provenance'
         ),
         shortcut: ''
       },

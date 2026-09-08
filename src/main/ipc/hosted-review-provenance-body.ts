@@ -5,6 +5,7 @@ import { hostedReviewSshConnectionId } from '../source-control/hosted-review-exe
 import { readPullRequestTemplate } from '../github/client/create/pull-request-template'
 import { getControlPlaneClient } from '../alicorn/control-plane-client-instance'
 import { composeReviewBody, renderProvenanceMarkdown } from '../alicorn/provenance-markdown'
+import { readProvenanceView } from '../alicorn/provenance-source'
 
 export type ComposedHostedReviewBody = {
   body: string | undefined
@@ -32,24 +33,11 @@ export async function composeHostedReviewBodyWithProvenance(args: {
     const branch =
       args.head ??
       (await getCurrentBranch(args.worktreePath, args.executionHostId, args.executionOptions ?? {}))
-    const client = getControlPlaneClient()
-    const report = await client.getProvenance(args.repoId, branch).catch(() => null)
-    if (!report) {
+    const view = await readProvenanceView(getControlPlaneClient(), args.repoId, branch)
+    if (!view) {
       return unchanged
     }
-    const policy = await client.getOrgPolicy().catch(() => ({
-      // Fail closed for display too: claiming the rule was off when we could not
-      // read it would understate a bypass.
-      enforceDistinctReviewerBackend: true
-    }))
-    const members = await client.listMembers().catch(() => [])
-    const nameById = new Map<string, string>(
-      members.map((member) => [member.id, member.name] as const)
-    )
-    const provenance = renderProvenanceMarkdown(report, {
-      policyEnforced: policy.enforceDistinctReviewerBackend,
-      memberName: (id) => nameById.get(id)
-    })
+    const provenance = renderProvenanceMarkdown(view)
     return composeReviewBody({
       body: args.body,
       useTemplate: args.useTemplate,

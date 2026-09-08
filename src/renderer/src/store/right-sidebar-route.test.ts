@@ -57,4 +57,13 @@ describe('normalizeRightSidebarRoute', () => {
       rightSidebarExplorerView: 'files'
     })
   })
+
+  // Same trap as the terminal tab: an unknown tab is silently rewritten to Explorer, so a
+  // persisted Provenance tab would quietly stop reopening.
+  it('keeps the provenance tab', () => {
+    expect(normalizeRightSidebarRoute('provenance')).toEqual({
+      rightSidebarTab: 'provenance',
+      rightSidebarExplorerView: 'files'
+    })
+  })
 })

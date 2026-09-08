@@ -1,4 +1,4 @@
-import type { ProvenanceReport, StepOutcomeRecord } from '../../shared/alicorn/ledger'
+import { formatSpendCents, type ProvenanceView } from '../../shared/alicorn/provenance-view'
 
 // A stable fence so a re-run replaces its own section rather than appending a
 // second one, and so a human editing the body around it is never clobbered.
@@ -6,112 +6,80 @@ const START = '<!-- alicorn:provenance:start -->'
 const END = '<!-- alicorn:provenance:end -->'
 const PROVENANCE_BLOCK = /<!-- alicorn:provenance:start -->[\s\S]*?<!-- alicorn:provenance:end -->/g
 
-const MAX_REPORT_SUMMARY_CHARS = 200
-
-export type MemberNameLookup = (memberId: string) => string | undefined
-
-function formatSpend(cents: number | null | undefined): string {
-  return typeof cents === 'number' ? `$${(cents / 100).toFixed(2)}` : '—'
-}
-
-function firstLine(text: string | undefined): string {
-  const line = (text ?? '').split('\n', 1)[0]?.trim() ?? ''
-  return line.length > MAX_REPORT_SUMMARY_CHARS
-    ? `${line.slice(0, MAX_REPORT_SUMMARY_CHARS - 1)}…`
-    : line
-}
-
-// The member's name when the directory knows it, else the backend — a PR read
-// six months from now should still say who ran the step.
-function memberLabel(outcome: StepOutcomeRecord, lookup?: MemberNameLookup): string {
-  if (!outcome.memberId) {
-    return '—'
-  }
-  return lookup?.(outcome.memberId) ?? outcome.memberId
-}
-
-function renderChecks(report: ProvenanceReport): string[] {
-  if (report.verifications.length === 0) {
+function renderChecks(view: ProvenanceView): string[] {
+  if (view.checks.length === 0) {
     return []
   }
-  const lines = report.verifications.map((verification) => {
-    const icon =
-      verification.status === 'passed' ? '✅' : verification.status === 'failed' ? '❌' : '⚪'
-    const ratio = verification.detail?.ratio
+  const lines = view.checks.map((check) => {
+    const icon = check.status === 'passed' ? '✅' : check.status === 'failed' ? '❌' : '⚪'
     const detail =
-      typeof ratio === 'number'
-        ? ` — ${Math.round(ratio * 100)}% covered`
-        : ` — ${verification.status}`
-    return `- ${icon} ${verification.name}${detail}${verification.required ? ' (required)' : ''}`
+      check.ratio === null ? ` — ${check.status}` : ` — ${Math.round(check.ratio * 100)}% covered`
+    return `- ${icon} ${check.name}${detail}${check.required ? ' (required)' : ''}`
   })
   return ['**Checks**', ...lines, '']
 }
 
-function renderExecution(report: ProvenanceReport): string {
-  const escalated = report.outcomes.find((outcome) => outcome.escalationOffered)
-  if (!escalated) {
+function renderExecution(view: ProvenanceView): string {
+  if (!view.escalation.offered) {
     return '**Execution** — single agent throughout.'
   }
-  const verdict =
-    escalated.escalationAccepted === true
-      ? 'accepted'
-      : escalated.escalationAccepted === false
-        ? 'declined'
-        : 'no answer'
-  return `**Execution** — escalation to orchestrated offered at ${escalated.stageKey} (${verdict}).`
+  const verdict = view.escalation.verdict === 'unanswered' ? 'no answer' : view.escalation.verdict
+  return `**Execution** — escalation to orchestrated offered at ${view.escalation.stageKey} (${verdict}).`
 }
 
 // Why record the bypass rather than stay silent: the reviewer rule being off is
 // not the same as no conflict, and a reader of the PR has to be able to tell.
-function renderReviewerRule(report: ProvenanceReport, policyEnforced: boolean): string {
-  if (report.reviewBackend.bypassed) {
+function renderReviewerRule(view: ProvenanceView): string {
+  if (view.reviewerRule === 'bypassed') {
     return "**Reviewer backend rule** — ⚠️ bypassed: the reviewer ran on the author's backend (recorded on the run)."
   }
-  return policyEnforced
+  return view.reviewerRule === 'enforced'
     ? '**Reviewer backend rule** — enforced; the reviewer ran on a different backend from the author.'
     : '**Reviewer backend rule** — not enforced for this organisation.'
 }
 
-export function renderProvenanceMarkdown(
-  report: ProvenanceReport,
-  opts: { policyEnforced: boolean; memberName?: MemberNameLookup }
-): string {
-  if (report.outcomes.length === 0) {
+/**
+ * The PR-body half of the provenance surface. It takes the same `ProvenanceView` the in-app panel
+ * renders — assembling the ledger a second way here is how the two would come to disagree about
+ * the same run.
+ */
+export function renderProvenanceMarkdown(view: ProvenanceView): string {
+  if (view.steps.length === 0) {
     return ''
   }
-  const rows = report.outcomes.map(
-    (outcome) =>
-      `| ${outcome.stageKey} | ${memberLabel(outcome, opts.memberName)} | ${outcome.backend} | ${outcome.executionStrategy} | ${outcome.outcome} | ${outcome.filesModified.length} | ${formatSpend(outcome.spendCents)} |`
+  // The member's name when the directory knows it, else the id — a PR read six months from now
+  // should still say who ran the step.
+  const rows = view.steps.map(
+    (step) =>
+      `| ${step.stageKey} | ${step.member ?? '—'} | ${step.backend} | ${step.executionStrategy} | ${step.outcome} | ${step.filesModified} | ${formatSpendCents(step.spendCents)} |`
   )
-  const summaries = report.outcomes
-    .map((outcome) => ({ stage: outcome.stageKey, line: firstLine(outcome.reportSummary) }))
-    .filter((entry) => entry.line.length > 0)
+  const summaries = view.steps.filter((step) => step.reportSummary.length > 0)
   const sections = [
     START,
     '## Provenance',
     '',
-    `Recorded by Alicorn from the run ledger. ${report.totals.tasks} steps · ${report.totals.dispatches} dispatches · est. spend ${formatSpend(report.totals.spendCents)}.`,
+    `Recorded by Alicorn from the run ledger. ${view.totals.tasks} steps · ${view.totals.dispatches} dispatches · est. spend ${formatSpendCents(view.totals.spendCents)}.`,
     '',
     '| Step | Member | Backend | Strategy | Outcome | Files | Spend |',
     '|---|---|---|---|---|---|---|',
     ...rows,
     '',
-    ...renderChecks(report),
-    renderReviewerRule(report, opts.policyEnforced),
+    ...renderChecks(view),
+    renderReviewerRule(view),
     '',
-    renderExecution(report),
+    renderExecution(view),
     ''
   ]
   if (summaries.length > 0) {
     sections.push(
       '**Worker reports**',
-      ...summaries.map((entry) => `- ${entry.stage}: ${entry.line}`),
+      ...summaries.map((step) => `- ${step.stageKey}: ${step.reportSummary}`),
       ''
     )
   }
-  if (report.contextCaptures.length > 0) {
+  if (view.contextCaptureCount > 0) {
     sections.push(
-      `**Context captured** for ${report.contextCaptures.length} dispatches (exact prompts are in the ledger).`,
+      `**Context captured** for ${view.contextCaptureCount} dispatches (exact prompts are in the ledger).`,
       ''
     )
   }

@@ -199,3 +199,98 @@ describe('execution strategy', () => {
     expect(setTaskExecutionStrategy).not.toHaveBeenCalled()
   })
 })
+
+describe('provenance', () => {
+  const REPORT = {
+    repoId: 'repo',
+    branch: 'feature/x',
+    outcomes: [
+      {
+        id: 'o1',
+        tenantId: 'local',
+        runId: 'run_1',
+        taskId: 't1',
+        dispatchId: 'd1',
+        memberId: 'm1',
+        backend: 'claude',
+        stageKey: 'merge',
+        executionStrategy: 'single',
+        outcome: 'succeeded',
+        filesModified: ['a.ts'],
+        reviewBackendBypass: false,
+        escalationOffered: false,
+        escalationAccepted: null,
+        spendCents: 61,
+        usage: null,
+        gateDecision: 'gate',
+        gateReason: 'irreversible',
+        createdAt: '2026-09-07T00:00:00.000Z'
+      }
+    ],
+    verifications: [],
+    contextCaptures: [],
+    totals: { spendCents: 61, tasks: 1, dispatches: 1 },
+    reviewBackend: { enforced: true, bypassed: false }
+  }
+
+  it('returns the projection the panel renders, with the member named', async () => {
+    const getProvenance = vi.fn().mockResolvedValue(REPORT)
+    register(fakeClient({ getProvenance }))
+
+    const result = (await invoke(ALICORN_IPC.provenanceGet, {
+      repoId: 'repo',
+      branch: 'feature/x'
+    })) as { ok: true; view: { steps: { member: string | null; gate: unknown }[] } }
+
+    expect(getProvenance).toHaveBeenCalledWith('repo', 'feature/x')
+    expect(result.ok).toBe(true)
+    expect(result.view.steps[0]?.member).toBe('Reviewer')
+    expect(result.view.steps[0]?.gate).toEqual({ decision: 'gate', reason: 'irreversible' })
+  })
+
+  it('fails closed on the reviewer rule when the policy cannot be read', async () => {
+    // Saying the rule was off when we merely could not read it would understate a bypass.
+    register(
+      fakeClient({
+        getProvenance: vi.fn().mockResolvedValue(REPORT),
+        getOrgPolicy: vi.fn().mockRejectedValue(new Error('down'))
+      })
+    )
+
+    const result = (await invoke(ALICORN_IPC.provenanceGet, {
+      repoId: 'repo',
+      branch: 'feature/x'
+    })) as { ok: true; view: { reviewerRule: string } }
+
+    expect(result.view.reviewerRule).toBe('enforced')
+  })
+
+  it('reports the ledger being unreadable rather than an empty record', async () => {
+    register(fakeClient({ getProvenance: vi.fn().mockRejectedValue(new Error('down')) }))
+
+    await expect(
+      invoke(ALICORN_IPC.provenanceGet, { repoId: 'repo', branch: 'feature/x' })
+    ).resolves.toEqual({ ok: false, error: 'provenance_unavailable' })
+  })
+
+  it('refuses a request with no repo or branch without calling the ledger', async () => {
+    const getProvenance = vi.fn()
+    register(fakeClient({ getProvenance }))
+
+    for (const args of [{ repoId: 'repo' }, { branch: 'feature/x' }, {}]) {
+      await expect(invoke(ALICORN_IPC.provenanceGet, args)).resolves.toEqual({
+        ok: false,
+        error: 'invalid_body'
+      })
+    }
+    expect(getProvenance).not.toHaveBeenCalled()
+  })
+
+  it('says the control plane is unconfigured rather than claiming no record exists', async () => {
+    register(null)
+
+    await expect(
+      invoke(ALICORN_IPC.provenanceGet, { repoId: 'repo', branch: 'feature/x' })
+    ).resolves.toEqual({ ok: false, error: 'control_plane_unconfigured' })
+  })
+})

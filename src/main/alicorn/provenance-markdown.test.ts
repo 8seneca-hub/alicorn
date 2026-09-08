@@ -1,6 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
-import { composeReviewBody, renderProvenanceMarkdown } from './provenance-markdown'
+import { composeReviewBody, renderProvenanceMarkdown as renderView } from './provenance-markdown'
+import { buildProvenanceView, type MemberNameLookup } from '../../shared/alicorn/provenance-view'
 import type { ProvenanceReport, StepOutcomeRecord } from '../../shared/alicorn/ledger'
+
+// The renderer takes the shared projection now; these cases still start from a raw ledger report,
+// which is what keeps them a regression guard on the whole path rather than on the formatter alone.
+function renderProvenanceMarkdown(
+  report: ProvenanceReport,
+  opts: { policyEnforced: boolean; memberName?: MemberNameLookup }
+): string {
+  return renderView(buildProvenanceView(report, opts))
+}
 
 function outcome(overrides: Partial<StepOutcomeRecord> = {}): StepOutcomeRecord {
   return {
