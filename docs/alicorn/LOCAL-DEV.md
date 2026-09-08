@@ -18,6 +18,16 @@ Ledger API from [`cloud/dev/compose/alicorn-local.yml`](../../cloud/dev/compose/
   ```
 
   This leaves the global `pnpm` — and the desktop build — untouched.
+
+  **The desktop root has the same mismatch with a worse failure.** It pins `pnpm@12.0.0`. Running
+  `pnpm install` at the root with an older global pnpm does not warn and does not fail — it rewrites
+  `pnpm-lock.yaml` wholesale (~2900 lines each way, a lockfile-format downgrade) *and* resolves
+  different package versions than the lockfile pins. Observed 2026-09-08 installing with 9.15.0 and
+  then correcting with 12.0.0: `zustand` moved 5.0.15 → 5.0.14. So the wrong-pnpm install is not
+  cosmetic, and if the lockfile churn is ever committed it takes the whole team's resolutions with it.
+
+  At the root, use `corepack pnpm install --frozen-lockfile`. `--frozen-lockfile` is the part that
+  matters: it makes an accidental rewrite an error instead of a silent diff.
 - **Docker** with Compose, running.
 
 ## 1. Bring the stack up
