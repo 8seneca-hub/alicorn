@@ -8,6 +8,7 @@ import { getSetupRunnerCommandPlatformForPath } from '../../../shared/setup-runn
 import { agentKindToTuiAgent } from '../../../shared/agent-kind'
 import { useAppStore } from '@/store'
 import { queueHookCommandsForFirstWorktreeTab } from '@/lib/hook-command-delayed-delivery'
+import { findFirstMainAreaTerminalTabId } from '@/lib/main-area-terminal-tab'
 import { resolveWorkspaceTerminalHostAuthority } from '@/lib/workspace-terminal-host-authority'
 import { initialAgentTabViewModeProps } from './native-chat-initial-view-mode'
 import { getConnectionId } from '@/lib/connection-context'
@@ -73,7 +74,7 @@ export function ensureWorktreeHasInitialTerminal(
   const hostAuthority = resolveWorkspaceTerminalHostAuthority(ownerState, worktreeId)
   // Why: explicit spawn evidence survives the new-worktree ownership race; a host that owns terminal creation provides the same authority for later activations.
   if (backendStartupTerminalSpawned || hostAuthority === 'live') {
-    const existingTerminalTabId = store.tabsByWorktree[worktreeId]?.[0]?.id
+    const existingTerminalTabId = findFirstMainAreaTerminalTabId(store.tabsByWorktree[worktreeId])
     if (existingTerminalTabId && (setup || issueCommand)) {
       queueSetupAndIssueCommands(
         store,
@@ -131,7 +132,7 @@ export function ensureWorktreeHasInitialTerminal(
   const shouldCreateNewStartupTerminal =
     opts?.createNewTerminalForStartup === true && sequencedStartup !== undefined
   if (!shouldAutoCreate && !shouldCreateForExplicitWork && !shouldCreateNewStartupTerminal) {
-    const existingTerminalTabId = store.tabsByWorktree[worktreeId]?.[0]?.id
+    const existingTerminalTabId = findFirstMainAreaTerminalTabId(store.tabsByWorktree[worktreeId])
     if (existingTerminalTabId && (setup || issueCommand)) {
       // Why: main may have adopted the startup tab but failed to spawn setup; renderer must still launch the returned fallback setup.
       queueSetupAndIssueCommands(

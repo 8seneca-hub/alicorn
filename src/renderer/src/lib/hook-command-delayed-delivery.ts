@@ -1,4 +1,5 @@
 import { useAppStore } from '@/store'
+import { findFirstMainAreaTerminalTabId } from '@/lib/main-area-terminal-tab'
 
 type AppStoreSnapshot = ReturnType<typeof useAppStore.getState>
 
@@ -81,7 +82,7 @@ function stopPendingHookCommandSubscriptionIfIdle(): void {
 function flushPendingHookCommandDeliveries(): void {
   const state = useAppStore.getState()
   for (const [worktreeId, deliveries] of pendingHookCommandDeliveries) {
-    const firstTerminalTabId = state.tabsByWorktree[worktreeId]?.[0]?.id
+    const firstTerminalTabId = findFirstMainAreaTerminalTabId(state.tabsByWorktree[worktreeId])
     if (!firstTerminalTabId) {
       // Why: a worktree can be removed before its tabs ever mirror; drop the
       // entry so the subscription does not stay armed forever.

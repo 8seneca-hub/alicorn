@@ -8,6 +8,7 @@ import {
   markAgentStartupDeliveryConsumed,
   releaseAgentStartupDeliveryConsumed
 } from './agent-startup-delivery-guards'
+import { findFirstMainAreaTerminalTabId } from '@/lib/main-area-terminal-tab'
 
 type AppStoreSnapshot = ReturnType<typeof useAppStore.getState>
 
@@ -33,7 +34,7 @@ export function resolveAgentStartupTabId(
   return (
     primaryTabId ??
     state.activeTabIdByWorktree[worktreeId] ??
-    state.tabsByWorktree[worktreeId]?.[0]?.id ??
+    findFirstMainAreaTerminalTabId(state.tabsByWorktree[worktreeId]) ??
     null
   )
 }

@@ -8,9 +8,12 @@ import type {
 } from '../../../shared/agent-session-resume'
 import type { WorktreeRuntimeOwnerState } from '@/lib/worktree-runtime-owner'
 import type { AgentStartedTelemetry } from '@/lib/worktree-startup-payload'
+import type { TerminalTab } from '../../../shared/terminal-tab-types'
 
 export type WorktreeActivationStore = Partial<WorktreeRuntimeOwnerState> & {
-  tabsByWorktree: Record<string, { id: string }[]>
+  // `surface` is read to keep unattended work off the sidebar terminal — see
+  // findFirstMainAreaTerminalTabId.
+  tabsByWorktree: Record<string, { id: string; surface?: TerminalTab['surface'] }[]>
   defaultTerminalTabsAppliedByWorktreeId: Record<string, true>
   createTab: (
     worktreeId: string,
