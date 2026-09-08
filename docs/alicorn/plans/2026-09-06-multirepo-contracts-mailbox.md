@@ -21,6 +21,33 @@
 
 ## Decisions
 1. **Tuple type** `TaskWorktreeTuple = { repoId: string; branch: string; worktreeId: string; primary: boolean }`, stored in SQLite `alicorn_task_worktrees (task_id, repo_id, branch, worktree_id, is_primary, PRIMARY KEY (task_id, repo_id))`; `Worktree`/`Repo` types unchanged.
+
+   **Amended as built (2026-09-08) — three changes, each forced by something the decision did not
+   know.** `Worktree`/`Repo` are still unchanged, and the table is still task-keyed and additive.
+
+   - **The primary key is `(task_id, worktree_id)`, not `(task_id, repo_id)`.** `folderWorkspaceToWorktree`
+     gives every folder workspace in a project group the *same* synthetic
+     `repoId = folder-workspace:<projectGroupId>`, so a repo key silently collapses a two-folder
+     feature workspace into one tuple. A worktree belongs to exactly one repo, so worktree identity
+     is strictly finer and never wrong. `repo_id` stays a plain column; `duplicateGitRepoIds`
+     detects two branches of one git repo for the picker, where that check actually belongs.
+   - **`branch` is nullable.** A folder workspace has no branch (the projection writes `''`) and
+     neither does a detached HEAD. Both are legal members of a feature workspace.
+   - **The execution host is not stored.** A repo can be re-homed (local → SSH) under an
+     already-bound task, so a cached host is a second source of truth that goes stale silently —
+     and the failure is a client-side read of a remote path. `ResolvedTaskWorktreeTuple` adds
+     `executionHostId`, `repoKind` and `path` at use time via
+     `src/shared/alicorn/resolve-feature-workspace-tuples.ts`, which routes through the existing
+     fail-closed resolvers (`resolveWorktreeExecutionHost`, `resolveFolderWorkspaceHost`) and
+     returns an `unresolved` verdict rather than defaulting to `local`.
+
+   **Cross-host feature workspaces are allowed** — a local frontend plus a backend on an SSH box is
+   the shape that motivates the feature. Every operation over the set fans out per host
+   (`groupTuplesByExecutionHost`), and a dispatched worker is handed paths only for the tuples on
+   its own host (`partitionTuplesByReachability`); the rest are named as off-host. That partition is
+   by ownership, never liveness — `unverifiable` stays a separate verdict.
+
+   **`SCHEMA_VERSION` 39 is claimed by this table** (v38 was taken by the gate-policy work).
 2. **Registry write path**: coordinator → Control API directly (not via `ledger_outbox`; the outbox is Ledger-only by CLAUDE.md), idempotent on `(tenant_id, project_id, run_id, dispatch_id, name)`.
 3. **Extraction sources** in order: `openapi.json` at repo root or `docs/` (JSON only; YAML needs a parser the repo does not ship), exported TS types under a configured `contracts/` directory via the TypeScript compiler API already in the toolchain; everything else agent-declared.
 4. **CR2 gate** = required check `{ kind: 'contract_acknowledged' }`: fails when any contract row for the run has `breaking = true` and `acknowledged_by IS NULL`; acknowledgement is a human action (`POST …/acknowledge`).
@@ -32,7 +59,19 @@
 
 ### Task 1 (MR1a): tuple storage and resolution
 `create-alicorn-tables-sql.ts` (+ `alicorn_task_worktrees`), migration (`SCHEMA_VERSION` +1), `db/alicorn/task-worktree-methods.ts` (`setTaskWorktrees`, `listTaskWorktrees`), RPC `orchestration.taskWorktreesSet { taskId, tuples }`, `orchestration-folder-worktree-placement.ts` (`assertOrchestrationWorktreeCreationSupported` accepts an array; validates each `repoSelector`), `coordinator-task-dispatch.ts` (resolves all tuples before dispatch; primary → the existing scalar `worktree`; all paths into the dispatch env `ALICORN_WORKTREE_<REPO_SLUG>` and the preamble *Repositories* section). Tests (harness): two tuples → two worktrees resolved, primary chosen, env populated; one tuple → identical to today.
-- [ ] Commit `feat(alicorn): tasks bind repo/branch/worktree tuples; dispatch resolves all of them`.
+- [x] **Partly landed 2026-09-08 (ALC-83).** Shipped: the tuple model and its normalization
+      (`src/shared/alicorn/feature-workspace-tuples.ts`), host resolution
+      (`resolve-feature-workspace-tuples.ts`), the table + v39 migration
+      (`create-alicorn-tables-sql.ts`, `migrate-v39-task-worktrees.ts`), the store
+      (`db/alicorn/task-worktree-methods.ts` — `setTaskWorktrees` / `listTaskWorktrees` /
+      `countTaskRepos`, whole-set replace in one transaction) and the additive RPC pair
+      `orchestration.taskWorktreesSet` / `orchestration.taskWorktreesList`. 42 tests.
+      **Not done, and deliberately deferred:** `coordinator-task-dispatch.ts` still resolves the one
+      scalar worktree it always did — nothing reads the tuples on the dispatch path yet, so the
+      `ALICORN_WORKTREE_<REPO_SLUG>` env export and the preamble *Repositories* section are unbuilt,
+      and so is `assertOrchestrationWorktreeCreationSupported` taking an array. Wiring those touches
+      the live dispatch path and wants its own ticket. MR2 needs only `countTaskRepos`, which is
+      done.
 
 ### Task 2 (MR1b): composer multi-repo picker
 Near `ComposerParentWorktreePicker.tsx`: `ComposerRepoTuplesPicker.tsx` (add repos, choose branch per repo, primary radio), wired into new-workspace/new-task creation → `taskWorktreesSet`. Cross-repo tasks show a "spans N repos" badge in the tab bar; D4's watcher reads `listTaskWorktrees(taskId).length > 1` for the escalation offer (the Foreman plan's MR2 task consumes this). Component tests. Localise.

@@ -175,6 +175,32 @@ document them where a merge conflict will send someone looking.
   `STATIC_RIGHT_SIDEBAR_TABS` in `main/runtime/rpc/methods/client-ui-schemas.ts`, whose value-domain
   parity ratchet is what stops a paired client rejecting the whole `ui.set` payload.
 
+## Multi-repo feature workspaces (MR1)
+
+A task may bind **N (repo, branch, worktree) tuples** — one feature spanning repositories as one
+workspace. The set lives in orchestration SQLite (`alicorn_task_worktrees`, `SCHEMA_VERSION` 39),
+keyed by task, and it is **additive**: a task with no tuples is the pre-MR1 shape and every existing
+path keeps resolving the one scalar worktree it always did. Model in
+`src/shared/alicorn/feature-workspace-tuples.ts`, resolution in `resolve-feature-workspace-tuples.ts`.
+
+Four things are easy to get wrong here, so they are decided:
+
+- **Identity inside a set is the worktree, not the repo.** `folderWorkspaceToWorktree` gives every
+  folder workspace in a project group the same `folder-workspace:<projectGroupId>` repo id, so a
+  repo key collapses a two-folder feature workspace into one tuple. `repo_id` is a plain column;
+  `duplicateGitRepoIds` is where "two branches of one git repo" gets caught.
+- **The execution host is never stored on a tuple.** A repo can be re-homed under a bound task, and
+  a cached host is a stale second source of truth whose failure mode is a client-side read of a
+  remote path. Resolve it at use time through the existing fail-closed resolvers, which answer
+  `unresolved`, never `local`.
+- **A feature workspace may span hosts** — local frontend, SSH backend. Operations fan out per host
+  (`groupTuplesByExecutionHost`), and a worker gets paths only for the tuples on its own host
+  (`partitionTuplesByReachability`). That partition is by ownership, never liveness.
+- **This does not re-key tabs.** UI5 is still its own ticket and its own persisted-schema migration;
+  the tuple model sits alongside the worktree key rather than replacing it.
+
+MR2's escalation signal reads `countTaskRepos(taskId) > 1`.
+
 ## Decisions taken — PROJECT-BRIEF §11, accepted 2026-09-06
 
 Each was a recommendation in the brief; all seven were accepted as written. Treat them as settled.

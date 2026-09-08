@@ -61,6 +61,25 @@ CREATE TABLE IF NOT EXISTS alicorn_dispatch_verifications (
 CREATE INDEX IF NOT EXISTS idx_dispatch_verifications_task
   ON alicorn_dispatch_verifications(task_id);
 
+-- MR1: a task's feature workspace — the (repo, branch, worktree) tuples it spans.
+-- Keyed by worktree, not repo: a folder workspace's repo id is folder-workspace:<projectGroupId>,
+-- shared by every folder workspace in the group, so a repo key collapses a two-folder set into one.
+-- The execution host is deliberately absent: a repo can be re-homed under a bound task, so the host
+-- is resolved from the repo/worktree registry at use time rather than cached here and read stale.
+CREATE TABLE IF NOT EXISTS alicorn_task_worktrees (
+  task_id     TEXT NOT NULL,
+  worktree_id TEXT NOT NULL,
+  repo_id     TEXT NOT NULL,
+  branch      TEXT,
+  is_primary  INTEGER NOT NULL DEFAULT 0,
+  ordinal     INTEGER NOT NULL DEFAULT 0,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (task_id, worktree_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_worktrees_worktree
+  ON alicorn_task_worktrees(worktree_id);
+
 CREATE TABLE IF NOT EXISTS alicorn_dispatch_ledger (
   dispatch_id    TEXT PRIMARY KEY,
   outcome_id     TEXT NOT NULL,

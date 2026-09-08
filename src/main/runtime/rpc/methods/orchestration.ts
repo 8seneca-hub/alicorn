@@ -6,6 +6,7 @@ import { ORCHESTRATION_MUTATION_REQUEST_METHODS } from './orchestration-mutation
 import { ORCHESTRATION_SEND_METHODS } from './orchestration-send-methods'
 import { ORCHESTRATION_CHECK_METHODS } from './orchestration-check-methods'
 import { ORCHESTRATION_MESSAGE_METHODS } from './orchestration-message-methods'
+import { ORCHESTRATION_TASK_WORKTREE_METHODS } from './orchestration-task-worktree-methods'
 import { ORCHESTRATION_DISPATCH_METHODS } from './orchestration-dispatch-methods'
 import { ORCHESTRATION_ASK_METHODS } from './orchestration-ask-methods'
 import { ORCHESTRATION_GATE_METHODS } from './orchestration-gates'
@@ -20,6 +21,7 @@ export const ORCHESTRATION_METHODS: RpcMethod[] = [
   ...ORCHESTRATION_SEND_METHODS,
   ...ORCHESTRATION_CHECK_METHODS,
   ...ORCHESTRATION_MESSAGE_METHODS,
+  ...ORCHESTRATION_TASK_WORKTREE_METHODS,
   ...ORCHESTRATION_DISPATCH_METHODS,
   ...ORCHESTRATION_ASK_METHODS,
   ...ORCHESTRATION_GATE_METHODS,

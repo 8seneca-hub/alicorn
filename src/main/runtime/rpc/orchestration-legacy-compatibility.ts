@@ -18,6 +18,8 @@ const COORDINATOR_PREFLIGHT_METHODS = new Set([
   'orchestration.taskCreate',
   'orchestration.taskList',
   'orchestration.taskUpdate',
+  'orchestration.taskWorktreesSet',
+  'orchestration.taskWorktreesList',
   'orchestration.dispatch',
   'orchestration.gateCreate',
   'orchestration.gateResolve',
@@ -266,7 +268,9 @@ function currentCallerHandle(method: string, params: Record<string, unknown>): s
   if (
     method === 'orchestration.taskCreate' ||
     method === 'orchestration.taskList' ||
-    method === 'orchestration.taskUpdate'
+    method === 'orchestration.taskUpdate' ||
+    method === 'orchestration.taskWorktreesSet' ||
+    method === 'orchestration.taskWorktreesList'
   ) {
     return stringValue(params.callerTerminalHandle)
   }

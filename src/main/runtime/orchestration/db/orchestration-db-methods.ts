@@ -8,6 +8,7 @@ import type { DispatchVerificationMethods } from './alicorn/dispatch-verificatio
 import type { LedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
 import type { SettledDispatchCorrectionsMethods } from './alicorn/settled-dispatch-corrections-methods'
 import type { TaskStrategyMethods } from './alicorn/task-strategy-methods'
+import type { TaskWorktreeMethods } from './alicorn/task-worktree-methods'
 import type { CoordinatorRunStoreMethods } from './coordinator-runs/coordinator-run-store'
 import type { DecisionGateStoreMethods } from './decision-gates/decision-gate-store'
 import type { DispatchCapabilityMethods } from './dispatch-context/dispatch-capability'
@@ -133,6 +134,7 @@ export type OrchestrationDbMethods = CreateTablesMethods &
   OrchestrationResetMethods &
   LedgerOutboxMethods &
   TaskStrategyMethods &
+  TaskWorktreeMethods &
   DispatchMemberMethods &
   DispatchVerificationMethods &
   ActiveOrRecentDispatchMethods &

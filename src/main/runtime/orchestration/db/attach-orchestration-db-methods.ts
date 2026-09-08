@@ -8,6 +8,7 @@ import { attachDispatchVerificationMethods } from './alicorn/dispatch-verificati
 import { attachLedgerOutboxMethods } from './alicorn/ledger-outbox-methods'
 import { attachSettledDispatchCorrectionsMethods } from './alicorn/settled-dispatch-corrections-methods'
 import { attachTaskStrategyMethods } from './alicorn/task-strategy-methods'
+import { attachTaskWorktreeMethods } from './alicorn/task-worktree-methods'
 import { attachCoordinatorRunStore } from './coordinator-runs/coordinator-run-store'
 import { attachDecisionGateStore } from './decision-gates/decision-gate-store'
 import { attachDispatchCapability } from './dispatch-context/dispatch-capability'
@@ -134,6 +135,7 @@ export function attachOrchestrationDbMethods(ctor: { prototype: object }): void 
   attachOrchestrationReset(ctor)
   attachLedgerOutboxMethods(ctor)
   attachTaskStrategyMethods(ctor)
+  attachTaskWorktreeMethods(ctor)
   attachDispatchMemberMethods(ctor)
   attachDispatchVerificationMethods(ctor)
   attachBoardTransitionMethods(ctor)
