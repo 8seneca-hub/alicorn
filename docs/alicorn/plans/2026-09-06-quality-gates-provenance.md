@@ -34,7 +34,8 @@
 5. **Spend-so-far** comes from D7's run-cost publisher (`known` estimates only); unknown → excluded and reported as `spendKnown: false` in the gate record.
 6. **Evidence and policy are cached in main for 60 s** (same shape as `member-directory.ts`); a cache miss with the control plane unreachable → fail safe.
 7. **Advisory agreement (GP3)** is recorded on the interruption row: `step_interruptions.recommendation`, `agreed` (additive columns on the table the ledger-completion plan introduces; if that plan has not landed, GP3 adds the table's minimal form itself and the two plans reconcile at review).
-8. **PV2 export signature = HMAC-SHA256** over canonical JSON with `ALICORN_EXPORT_SIGNING_SECRET` (service signature). Asymmetric signing is a follow-up if auditors need non-repudiation.
+8. ~~**PV2 export signature = HMAC-SHA256** over canonical JSON with `ALICORN_EXPORT_SIGNING_SECRET` (service signature). Asymmetric signing is a follow-up if auditors need non-repudiation.~~
+   **Superseded as built (2026-09-08): ES256, not HMAC.** An HMAC an auditor can only check by holding the secret that produced it is not evidence — the same key both signs and verifies, so the exporter can never be told apart from a forger, and handing the secret out lets anyone mint exports. The estate already speaks ES256 against a JWKS (the relay's token verifier pins `algorithms: ['ES256']`), so PV2 signs with an EC P-256 key from `ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM` and publishes the public half at `GET /.well-known/alicorn-provenance-jwks.json`. When I5 mints relay tokens and publishes JWKS, this consumes that keyring rather than keeping its own; the seam is `readProvenanceExportSigningKey` + `deps.exportSigningKey`, and nothing else in the export path knows where the key came from.
 9. **Gate UI is greenfield** (no renderer reads gates today): a `right-sidebar/gate-panel/` following `checks-panel`, with the provenance panel as a second tab of the same surface.
 
 ## File structure
@@ -150,7 +151,15 @@ Flow: `createGate` → if `evaluate`: `decision = evaluateGate(...)`; level ≥ 
 ### Task 9 (PV2): Signed export
 
 **Files:** ledger-api `config.ts` (`ALICORN_EXPORT_SIGNING_SECRET` ≥ 32 chars, optional; 503 `export_not_configured` when absent), `provenance-export.ts` (`GET /v1/ledger/provenance/export?repoId&branch&format=json|md` → `{ format, payload, signedAt, signature: hex HMAC-SHA256 over canonicalJson({ payload, signedAt }) }`; Markdown via `renderProvenanceMarkdown` (D6) extended with gate/evidence sections), `verifyExportSignature(secret, body)` exported for tests; desktop `src/main/ipc/export.ts` (+ `export:save-text` — save dialog + `writeFile`), preload `export-bridge.ts` (+ `saveText`), panel "Export" button (JSON/Markdown).
-- [ ] Tests: signature verifies; tampering fails; unconfigured → 503; IPC handler saves the chosen format. Commit `feat(alicorn): signed provenance export (Ledger API) and desktop save`.
+- [x] **Server half as built (2026-09-08).** Route and 503 code are as planned; the envelope and the signature are not (see Decision 8). Shipped:
+  - `cloud/packages/control-plane-contract/src/canonical-json.ts` — RFC 8785 (JCS), so a document that survives a store and a re-serialisation still verifies.
+  - `.../provenance-view.ts` + `.../provenance-markdown.ts` — the **canonical** copies of PV1's projection and D6's renderer. The desktop cannot import a cloud package (separate workspaces), so it mirrors them and `provenance-projection-parity.test.ts` fails on any byte of divergence. The export's Markdown is `renderProvenanceMarkdown(view)`, not a second renderer.
+  - `.../provenance-export.ts` — the document (`format`, `version`, `tenantId`, `subject`, `exportedAt`, `reviewerRuleSource`, `memberLabels`, `view`, `markdown`) and `renderSignedProvenanceMarkdown`, which attaches the whole signed document to the Markdown as a compact JWS so the file stands alone.
+  - `.../provenance-export-signature.ts` — ES256 over `protected + '.' + base64url(canonical(document))`, i.e. a detached JWS. `node:crypto` only; no new dependency, no lockfile change.
+  - `cloud/apps/ledger-api/src/provenance-export-routes.ts` (route + unauthenticated JWKS) and `provenance-export-archive.ts` (retention seam, **no adapter** — the response says `{"stored": false, "reason": "not_configured"}`).
+  - The gate half PV1 left out is now in the projection: `gate.gateId` and `gate.agreement` (GP3's four columns, all-or-nothing), plus `view.agreementCounts` and a **Gate decisions** section in the Markdown. The PR body gets it too, by construction.
+- [ ] **Not built:** the desktop half — `export:save-text`, the preload bridge, the panel's Export button. The endpoint is the dependency it was waiting on.
+- [ ] **Dependency:** no object store exists for product data in `cloud/` (the only bucket is the relay fence broker's GCS mutation lease, which is coordination state). Retention needs one provisioned; the adapter is a ~20-line `put` behind `ProvenanceExportArchive`.
 
 ---
 

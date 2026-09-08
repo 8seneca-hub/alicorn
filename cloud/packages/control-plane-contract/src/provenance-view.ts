@@ -3,18 +3,18 @@
 // signed export (an auditor, later). Structured only — no prose and no icons — because the panel
 // localises its copy while the PR body and the export must stay English.
 //
-// CANONICAL COPY: cloud/packages/control-plane-contract/src/provenance-view.ts. The Ledger API
-// renders the export from the same projection, and `provenance-projection-parity.test.ts` there
-// fails if the two bodies diverge by a byte.
+// CANONICAL COPY. The desktop mirrors this file at src/shared/alicorn/provenance-view.ts because
+// the two workspaces do not share a package graph; `provenance-projection-parity.test.ts` fails if
+// the two bodies diverge by a byte.
 
-import { GATE_DECISION_REASONS, type GateDecisionReason } from './gate-policy'
+import { GATE_DECISION_REASONS, type GateDecisionReason } from './autonomy-policy.js'
 import type {
   ExecutionStrategy,
   ProvenanceReport,
   StepOutcomeBackend,
   StepOutcomeRecord,
   StepVerificationRecord
-} from './ledger'
+} from './ledger.js'
 
 const MAX_REPORT_SUMMARY_CHARS = 200
 

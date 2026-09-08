@@ -25,7 +25,7 @@ function step(overrides: Partial<ProvenanceStepView> & { id: string }): Provenan
     outcome: 'succeeded',
     filesModified: 3,
     spendCents: 61,
-    gate: { decision: 'auto', reason: 'auto' },
+    gate: { decision: 'auto', reason: 'auto', gateId: null, agreement: { recorded: false } },
     reportSummary: '',
     createdAt: '2026-09-07T00:00:00.000Z',
     ...overrides
@@ -39,6 +39,8 @@ function view(overrides: Partial<ProvenanceView> = {}): ProvenanceView {
     gateCounts[entry.gate.decision] += 1
   }
   return {
+    // PV2 counts agreement beside the gate decisions; this fixture records none.
+    agreementCounts: { agreed: 0, disagreed: 0, unrecorded: steps.length },
     repoId: 'repo',
     branch: 'feature/x',
     totals: { tasks: steps.length, dispatches: steps.length, spendCents: 61 },
@@ -86,7 +88,7 @@ describe('ProvenancePanel', () => {
       ok: true,
       view: view({
         steps: [
-          step({ id: 'a', stageKey: 'merge', gate: { decision: 'gate', reason: 'irreversible' } })
+          step({ id: 'a', stageKey: 'merge', gate: { decision: 'gate', reason: 'irreversible', gateId: null, agreement: { recorded: false } } })
         ]
       })
     })
@@ -100,7 +102,7 @@ describe('ProvenancePanel', () => {
   it('says a step carries no decision instead of implying it was automatic', async () => {
     seed({
       ok: true,
-      view: view({ steps: [step({ id: 'a', gate: { decision: 'unknown', reason: 'unknown' } })] })
+      view: view({ steps: [step({ id: 'a', gate: { decision: 'unknown', reason: 'unknown', gateId: null, agreement: { recorded: false } } })] })
     })
     render(<ProvenancePanel />)
 

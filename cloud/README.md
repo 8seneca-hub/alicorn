@@ -67,7 +67,8 @@ SQLite for this data — see `docs/alicorn/ROADMAP.md`):
 - `apps/control-api` (port 8081, schema `control`): Members, org review-backend policy,
   and per-project required checks.
 - `apps/ledger-api` (port 8082, schema `ledger`): the append-only measurement ledger —
-  step outcomes, step verifications, context captures — plus provenance and cost reads.
+  step outcomes, step verifications, context captures — plus provenance and cost reads, and
+  PV2's signed provenance export.
 
 Both run in auth mode `local` by default: one constant tenant and one shared bearer token,
 never a superuser connection — see `dev/compose/postgres-init/01-alicorn-app-role.sql`.
@@ -102,6 +103,46 @@ The Postgres suites in `apps/control-api` and `apps/ledger-api` (and
 disposable database — CI sets it to the same `postgres:16-alpine` service the relay tests
 use, because those tests create their own schemas and non-superuser roles per run and need
 `CREATE ROLE`.
+
+**Signed provenance exports (PV2).** `GET /v1/ledger/provenance/export?repoId=&branch=&format=json|md`
+returns the branch's whole decision trail as one dated document, signed ES256 over its RFC 8785
+canonical bytes; the public key is published unauthenticated at
+`GET /.well-known/alicorn-provenance-jwks.json`. The route refuses with `503 export_not_configured`
+when no key is configured — an unsigned file that looks like an audit artefact is worse than none.
+Mint a throwaway key for local work (never commit one, and never put a production key in a shell
+history):
+
+```sh
+export ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM="$(openssl ecparam -name prime256v1 -genkey -noout \
+  | openssl pkcs8 -topk8 -nocrypt)"
+pnpm alicorn:up
+```
+
+`ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID` is optional; without it the key id is the key's RFC 7638
+thumbprint, which rotates with the key on its own.
+
+*Verifying one*, without any Alicorn code — canonicalise the document, rebuild the JWS signing
+input, check it against the published JWK:
+
+```js
+const canon = (v) =>
+  v === null || typeof v !== 'object' ? JSON.stringify(v)
+  : Array.isArray(v) ? `[${v.map(canon).join(',')}]`
+  : `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canon(v[k])}`).join(',')}}`
+
+const jwk = jwks.keys.find((k) => k.kid === signature.keyId)
+const input = `${signature.protected}.${Buffer.from(canon(document)).toString('base64url')}`
+crypto.verify('sha256', Buffer.from(input, 'ascii'),
+  { key: crypto.createPublicKey({ key: jwk, format: 'jwk' }), dsaEncoding: 'ieee-p1363' },
+  Buffer.from(signature.signature, 'base64url'))
+```
+
+Check the `alg` in the decoded `protected` header is `ES256` before trusting it. For a Markdown
+export, the `<!-- alicorn:export:signature ... -->` footer holds a compact JWS: split on `.`, the
+middle segment is the base64url document, and the same check applies. Retention to an object store
+is **not wired**:
+`archive` in the response reads `{"stored": false, "reason": "not_configured"}` until an adapter is
+injected as `deps.exportArchive` (see `apps/ledger-api/src/provenance-export-archive.ts`).
 
 Observability: each service logs one JSON line per request (`tenant_id`, `request_id`) and serves
 Prometheus text at `GET /metrics` on its normal port (loopback-bound by the compose file). Metrics:

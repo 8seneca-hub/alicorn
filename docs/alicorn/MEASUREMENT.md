@@ -70,11 +70,21 @@ data once the two printed figures have diverged on a real run. The swap point is
 - `GET /v1/ledger/runs/:runId/cost` → `RunCost { runId, totalSpendCents, byDispatch[] }`.
 - `GET /v1/ledger/provenance?repoId&branch` → `ProvenanceReport` with `outcomes`, `verifications`,
   `contextCaptures`, `totals { spendCents, tasks, dispatches }`, `reviewBackend { enforced, bypassed }`.
+- `GET /v1/ledger/provenance/export?repoId&branch&format=json|md` (PV2) → the same trail as one
+  dated, ES256-signed document. `format=json` returns `{ document, signature, archive }`;
+  `format=md` returns the Markdown with the whole signed document attached as a compact JWS, so the
+  file verifies on its own. The signature covers the RFC 8785 canonical bytes of `document` —
+  every step, gate decision, gate agreement and the rendered Markdown — and the public key is at
+  `GET /.well-known/alicorn-provenance-jwks.json`, unauthenticated. `503 export_not_configured`
+  when no signing key is set: an unsigned audit artefact is worse than none.
 
 **Fields on `step_outcomes` that carry experiment signal:** `execution_strategy`
 (`single` \| `orchestrated`), `backend`, `spend_cents`, `usage`, `human_verdict`
 (`accepted` \| `rejected` \| `amended`, written only by the corrections sweep), `amended_after_ms`,
-`review_backend_bypass`, `escalation_offered`, `escalation_accepted`, `gate_decision`, `gate_reason`.
+`review_backend_bypass`, `escalation_offered`, `escalation_accepted`, `gate_decision`, `gate_reason`,
+`gate_id`, `policy_recommendation`, `policy_recommendation_reason`, `human_gate_decision`,
+`agreed_with_policy`, `recommendation_shown` — the last five are what let an export say whether the
+human agreed with the policy, not only whether one was asked.
 
 **Four things M1 does not tell us**, each of which the protocol has to work around rather than
 assume away — the full list with proposed fixes is §11.

@@ -5,6 +5,7 @@ export type { LedgerApiDeps } from './app-env.js'
 import type { LedgerApiDeps } from './app-env.js'
 import { requireTenant } from '@alicorn-cloud/control-plane-auth'
 import { registerLedgerRoutes } from './ledger-routes.js'
+import { registerProvenanceExportRoutes, registerProvenanceJwksRoute } from './provenance-export-routes.js'
 import { requestLog } from './request-log.js'
 import { refreshAmendedWithinWindow, LedgerMetrics } from './ledger-metrics.js'
 
@@ -25,7 +26,9 @@ export function createLedgerApiApp(deps: LedgerApiDeps): Hono<LedgerApiEnv> {
     }
     return c.text(metrics.renderPrometheus(), 200, { 'content-type': 'text/plain; version=0.0.4; charset=utf-8' })
   })
+  registerProvenanceJwksRoute(app, deps)
   app.use('/v1/*', requireTenant({ config: deps.config.auth }))
   registerLedgerRoutes(app, { ...deps, metrics })
+  registerProvenanceExportRoutes(app, { ...deps, metrics })
   return app
 }

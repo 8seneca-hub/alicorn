@@ -37,6 +37,10 @@ services:
       ALICORN_KEYCLOAK_ISSUER: http://127.0.0.1:8080/realms/alicorn
       ALICORN_KEYCLOAK_INTERNAL_ISSUER: http://keycloak:8080/realms/alicorn
       ALICORN_DESKTOP_CLIENT_ID: alicorn-desktop
+      # PV2. No default: an unset key makes the signed-export route refuse (503) rather than serve
+      # an unsigned artefact. Mint a throwaway P-256 key for local work — see cloud/README.md.
+      ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM: ${ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM:-}
+      ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID: ${ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID:-}
     ports: ["127.0.0.1:8082:8082"]
     depends_on: { postgres: { condition: service_healthy } }
   keycloak:

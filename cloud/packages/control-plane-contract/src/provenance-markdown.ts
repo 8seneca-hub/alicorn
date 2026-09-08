@@ -1,8 +1,8 @@
-import { formatSpendCents, type ProvenanceView } from '../../shared/alicorn/provenance-view'
+import { formatSpendCents, type ProvenanceView } from './provenance-view.js'
 
-// CANONICAL COPY: cloud/packages/control-plane-contract/src/provenance-markdown.ts. PV2's signed
-// export renders from the same function, so an auditor's artefact and this PR body cannot say
-// different things about the same run; `provenance-projection-parity.test.ts` there enforces it.
+// CANONICAL COPY. The desktop mirrors this file at src/main/alicorn/provenance-markdown.ts; PV2's
+// signed export renders from this one, so an auditor's artefact and the PR body cannot say
+// different things about the same run. `provenance-projection-parity.test.ts` enforces it.
 
 // A stable fence so a re-run replaces its own section rather than appending a
 // second one, and so a human editing the body around it is never clobbered.

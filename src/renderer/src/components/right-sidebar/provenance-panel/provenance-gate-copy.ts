@@ -32,7 +32,9 @@ export function gateDecisionLabel(decision: ProvenanceGateView['decision']): str
  * GP1's `evaluateGate` order — rather than restating the enum, because a developer reading this
  * has to be able to go and change the thing that decided.
  */
-export function gateReasonSentence(gate: ProvenanceGateView): string {
+// Takes only what it reads: a caller rendering a recommendation has a decision and a reason,
+// not a whole recorded gate.
+export function gateReasonSentence(gate: Pick<ProvenanceGateView, 'decision' | 'reason'>): string {
   if (gate.decision === 'unknown' || gate.reason === 'unknown') {
     return translate(
       'auto.components.right.sidebar.provenance.panel.gate.reason.unknown',

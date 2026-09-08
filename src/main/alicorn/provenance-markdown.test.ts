@@ -148,6 +148,42 @@ describe('renderProvenanceMarkdown', () => {
     expect(markdown).toContain('escalation to orchestrated offered at build (accepted)')
   })
 
+  it('counts the gate decisions and says whether the human agreed with the policy', () => {
+    const markdown = renderProvenanceMarkdown(
+      report({
+        outcomes: [
+          outcome({ id: 'a', stageKey: 'build', gateDecision: 'auto', gateReason: 'auto' }),
+          outcome({
+            id: 'b',
+            stageKey: 'merge',
+            gateDecision: 'gate',
+            gateReason: 'irreversible',
+            gateId: 'g1',
+            policyRecommendation: 'gate',
+            policyRecommendationReason: 'irreversible',
+            humanGateDecision: 'gate',
+            agreedWithPolicy: true,
+            recommendationShown: false
+          })
+        ]
+      }),
+      { policyEnforced: true }
+    )
+
+    expect(markdown).toContain('**Gate decisions** — 1 gated, 1 automatic.')
+    expect(markdown).toContain(
+      '- merge: policy said gate (irreversible), human chose gate — agreed with the policy; recommendation not shown.'
+    )
+  })
+
+  it('counts a step written before GP1 as unrecorded rather than automatic', () => {
+    const markdown = renderProvenanceMarkdown(
+      report({ outcomes: [outcome({ gateDecision: '', gateReason: '' })] }),
+      { policyEnforced: true }
+    )
+    expect(markdown).toContain('**Gate decisions** — 0 gated, 0 automatic, 1 unrecorded.')
+  })
+
   it('truncates a long worker report to one line', () => {
     const markdown = renderProvenanceMarkdown(
       report({ outcomes: [outcome({ reportSummary: `${'x'.repeat(400)}\nsecond line` })] }),

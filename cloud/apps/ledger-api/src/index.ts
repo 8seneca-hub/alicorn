@@ -10,5 +10,6 @@ const pool = await openControlPlanePool({
   applicationName: 'alicorn-ledger-api', poolMax: config.poolMax
 })
 await applySchema(pool, LEDGER_SCHEMA_STATEMENTS)
-const app = createLedgerApiApp({ config, pool })
+// PV2 retention has no object-store adapter yet; exports are signed and served, never archived.
+const app = createLedgerApiApp({ config, pool, exportSigningKey: config.exportSigningKey })
 serve({ fetch: app.fetch, port: config.port }, () => console.log(`[alicorn-ledger-api] listening on :${config.port}`))

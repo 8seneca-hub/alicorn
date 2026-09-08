@@ -56,7 +56,7 @@ describe('buildProvenanceView', () => {
       }),
       { policyEnforced: true }
     )
-    expect(view.steps.map((step) => step.gate)).toEqual([
+    expect(view.steps.map((step) => ({ decision: step.gate.decision, reason: step.gate.reason }))).toEqual([
       { decision: 'gate', reason: 'irreversible' },
       { decision: 'auto', reason: 'auto' }
     ])
@@ -69,7 +69,12 @@ describe('buildProvenanceView', () => {
       report({ outcomes: [outcome({ gateDecision: '', gateReason: '' })] }),
       { policyEnforced: true }
     )
-    expect(view.steps[0]?.gate).toEqual({ decision: 'unknown', reason: 'unknown' })
+    expect(view.steps[0]?.gate).toEqual({
+      decision: 'unknown',
+      reason: 'unknown',
+      gateId: null,
+      agreement: { recorded: false }
+    })
     expect(view.gateCounts).toEqual({ gate: 0, auto: 0, unknown: 1 })
   })
 
@@ -78,7 +83,39 @@ describe('buildProvenanceView', () => {
       report({ outcomes: [outcome({ gateDecision: 'gate', gateReason: 'blast:something-new' })] }),
       { policyEnforced: true }
     )
-    expect(view.steps[0]?.gate).toEqual({ decision: 'gate', reason: 'unknown' })
+    expect(view.steps[0]?.gate).toMatchObject({ decision: 'gate', reason: 'unknown' })
+  })
+
+  it('reports the gate agreement only when all of GP3 recorded it', () => {
+    const view = buildProvenanceView(
+      report({
+        outcomes: [
+          outcome({
+            id: 'a',
+            gateId: 'g1',
+            policyRecommendation: 'gate',
+            policyRecommendationReason: 'irreversible',
+            humanGateDecision: 'auto',
+            agreedWithPolicy: false,
+            recommendationShown: true
+          }),
+          // Half a row is not an agreement: a step whose human never ruled says so.
+          outcome({ id: 'b', gateId: 'g2', policyRecommendation: 'gate' })
+        ]
+      }),
+      { policyEnforced: true }
+    )
+    expect(view.steps[0]?.gate.agreement).toEqual({
+      recorded: true,
+      policyRecommendation: 'gate',
+      policyRecommendationReason: 'irreversible',
+      humanGateDecision: 'auto',
+      agreed: false,
+      recommendationShown: true
+    })
+    expect(view.steps[1]?.gate.agreement).toEqual({ recorded: false })
+    expect(view.steps.map((step) => step.gate.gateId)).toEqual(['g1', 'g2'])
+    expect(view.agreementCounts).toEqual({ agreed: 0, disagreed: 1, unrecorded: 1 })
   })
 
   it('names the member when the directory knows it and leaves null when there is none', () => {

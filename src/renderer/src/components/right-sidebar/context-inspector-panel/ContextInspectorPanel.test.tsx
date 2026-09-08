@@ -67,7 +67,7 @@ function dispatch(overrides: Partial<RunInspectorDispatch> = {}): RunInspectorDi
     member: 'Developer',
     backend: 'claude',
     outcome: 'succeeded',
-    gate: { decision: 'auto', reason: 'auto' },
+    gate: { decision: 'auto', reason: 'auto', gateId: null, agreement: { recorded: false } },
     spendCents: 61,
     filesModified: 3,
     reportSummary: '',
