@@ -14,6 +14,10 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
         edit, every command comes back for approval. Alicorn removes the human from every step that
         doesn't need one, and proves it was safe to do so.
       </p>
+      <p class="lede">
+        A desktop IDE that runs your agents in parallel git worktrees, and a control plane that
+        decides when to interrupt you.
+      </p>
       <div class="row">
         <a class="btn btn--primary" href="/start">
           Start free
@@ -78,6 +82,30 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
   <div><b><span data-count="85" data-suf="%">85%</span></b>
     <span>say the bottleneck moved to review</span><small>2026 industry survey</small></div>
 </div>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack">
+      <span class="label reveal">The desktop app</span>
+      <h2 class="reveal">First, an IDE that runs agents in parallel.</h2>
+      <p class="reveal">
+        Alicorn is a desktop application. Every task gets its own git worktree, its own agent
+        terminal and its own browser tab, so three agents can attack the same bug at once and you
+        pick the winner. The control plane below is what decides when to interrupt you — but the
+        thing you install runs your agents today, with or without a workflow attached.
+      </p>
+    </div>
+    <div class="grid-3">
+      <div class="feat reveal">
+        <h3>Real git worktrees</h3><p>One per task, isolated from your main branch. <code>cd</code> in and use plain git whenever you want — nothing is a private abstraction.</p></div>
+      <div class="feat reveal" data-d="1">
+        <h3>Agents you already pay for</h3><p>Claude Code, Codex, Cursor CLI, OpenCode. Bring your own subscription; Alicorn never holds a model key and never resells capacity.</p></div>
+      <div class="feat reveal" data-d="2">
+        <h3>A terminal per task</h3><p>Agent terminal, browser tab and worktree together. No stashing, no branch-juggling, no losing your place between three parallel attempts.</p></div>
+    </div>
+    <p class="reveal"><a class="link" href="/docs">See the docs &rarr;</a></p>
+  </div>
+</section>
 
 <section class="section">
   <div class="wrap stack-6">
@@ -191,9 +219,13 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
         <h3>Your board, automated</h3><p>Two-way sync with Plane, Linear, Jira, GitHub and GitLab. Column transitions dispatch members.</p></div>
       <div class="feat reveal" data-d="1"><div class="feat__i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg></div>
         <h3>Blast-radius budgets</h3><p>Files, spend and protected paths are capped per run. Exceed the budget and it escalates to a human.</p></div>
-      <div class="feat reveal" data-d="2"><div class="feat__i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-        <h3>Self-hosted</h3><p>Your infrastructure, your identity provider, your data. Alicorn never holds a model key or resells capacity.</p></div>
-    </div>
+      <div class="feat reveal" data-d="4">
+        <h3>A signed decision trail</h3><p>Exports are ES256-signed and dated. An auditor verifies one against published keys instead of trusting a screenshot.</p></div>
+      <div class="feat reveal" data-d="5">
+        <h3>Gates that measure themselves</h3><p>Every gate shows what the policy would have decided and records whether you agreed. Autonomy is earned on that evidence, never assumed.</p></div>
+      <div class="feat reveal" data-d="6">
+        <h3>QA that never reads the code</h3><p>A QA member cannot open the implementation with its file tools or name it in a shell command &mdash; enforced at the tool boundary, not asked for in a prompt.</p></div>
+          </div>
     <div class="stack reveal">
       <span class="label">Runs the agents you already have</span>
       <div class="agents">
@@ -202,6 +234,34 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
     </div>
   </div>
 </section>
+
+<section class="section">
+  <div class="wrap stack-8">
+    <div class="stack">
+      <span class="label reveal">Where it runs</span>
+      <h2 class="reveal">Your desktop, your servers, your cloud.</h2>
+      <p class="reveal">
+        Execution happens on machines you control. Alicorn never hosts inference and never holds a
+        model key &mdash; agents run under your own subscription, wherever you put them.
+      </p>
+    </div>
+    <div class="grid-3">
+      <div class="feat reveal">
+        <h3>Desktop by default</h3><p>macOS, Windows and Linux. The agents run on your machine, under your accounts.</p></div>
+      <div class="feat reveal" data-d="1">
+        <h3>SSH and remote servers</h3><p>Point a workspace at a remote host, or run a self-hosted server and keep the desktop as the client.</p></div>
+      <div class="feat reveal" data-d="2">
+        <h3>Cloud VMs, per workspace</h3><p>On-demand environments for work that should not touch your laptop.</p></div>
+      <div class="feat reveal" data-d="3">
+        <h3>Watch it from your phone</h3><p>A run you started at your desk, followed from the train &mdash; approvals included.</p></div>
+      <div class="feat reveal" data-d="4">
+        <h3>Self-hosted control plane</h3><p>Your infrastructure, your identity provider, your data. Nothing about a run leaves machines you own.</p></div>
+      <div class="feat reveal" data-d="5">
+        <h3>Your board, automated</h3><p>Two-way sync with Plane, Linear, Jira, GitHub and GitLab. Column transitions dispatch members.</p></div>
+    </div>
+  </div>
+</section>
+
 
 <section class="section">
   <div class="wrap stack-8">
