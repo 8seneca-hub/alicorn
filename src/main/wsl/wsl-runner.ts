@@ -73,9 +73,15 @@ export type WslSpec = WslCommand & {
   timeoutMs?: number
   maxOutputBytes?: number
   /**
-   * Aborts the `wsl.exe` process tree, not just the promise. Guest-side teardown -- whether the
-   * Linux process inside the distro dies with it -- is not covered by an automated test: the
-   * real-WSL suite is gated to win32 plus ORCA_REAL_WSL_RUNNER_TEST and no CI job sets it.
+   * Kills the `wsl.exe` Orca spawned, not just the promise: `runProcess` signals it and SIGKILLs
+   * it after its grace. Proven against a real spawned process in wsl-runner-cancellation.test.ts,
+   * because a test asserting only that the promise settled passes with the child still running.
+   *
+   * Two limits. Only the root dies, not its process tree -- `runProcess` walks the tree for
+   * `terminationBarrier` callers and this is not one. And guest-side teardown, whether the Linux
+   * process inside the distro goes with the relay, is covered by no automated test: the real-WSL
+   * suite is gated to win32 plus ORCA_REAL_WSL_RUNNER_TEST and no CI job sets it.
+   *
    * Applies to the command leg only; the login-PATH probe has its own short budget instead.
    */
   signal?: AbortSignal
