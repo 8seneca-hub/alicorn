@@ -268,16 +268,20 @@ describe('electron-builder config', () => {
   })
 
   it('matches the Linux desktop entry to Electron window class', () => {
-    expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('orca')
+    expect(electronBuilderConfig.linux.desktop.entry.StartupWMClass).toBe('alicorn')
   })
 
+  // Why the package names are Alicorn but the artifact FILE names are not: the
+  // package name is product identity (R1), while the artifact names are read back
+  // by the update feed and the release-asset check, so they move with the backend
+  // cutover (BC2), not here.
   it('uses the release artifact set as local Linux targets without changing existing names', () => {
     expect(electronBuilderConfig.linux.target).toEqual(['AppImage', 'deb', 'rpm'])
     expect(electronBuilderConfig.toolsets).toEqual({ appimage: '1.0.3' })
     expect(electronBuilderConfig.appImage.artifactName).toBe('orca-linux.${ext}')
     expect(electronBuilderConfig.deb.artifactName).toBe('orca-ide_${version}_${arch}.${ext}')
     expect(electronBuilderConfig.rpm).toMatchObject({
-      packageName: 'orca-ide',
+      packageName: 'alicorn-ide',
       artifactName: 'orca-ide-${version}.${arch}.${ext}'
     })
   })
@@ -466,5 +470,49 @@ describe('Alicorn product identity', () => {
     for (const usage of usageDescriptions) {
       expect(usage).not.toMatch(/\bOrca\b/)
     }
+  })
+
+  // Why these three package.json fields and not `name`/`bin`: electron-builder
+  // copies them into the Linux package metadata — `description` becomes the
+  // .desktop Comment and the deb/rpm description, `homepage` the Homepage/URL
+  // field, `author` the fallback maintainer. `name` and `bin` are the CLI's, and
+  // move with R2.
+  it('carries Alicorn metadata into the Linux package fields', async () => {
+    const packageJson = JSON.parse(await readFile(join(REPO_ROOT, 'package.json'), 'utf8'))
+
+    expect(electronBuilderConfig.linux.maintainer).toBe('8seneca')
+    expect(packageJson.author).toBe('8seneca')
+    expect(packageJson.homepage).toBe('https://github.com/8seneca-hub/alicorn')
+    expect(packageJson.description).not.toMatch(/\bOrca\b/i)
+  })
+
+  // Attribution is a licence obligation, not documentation: Alicorn is a hard fork
+  // of MIT-licensed Orca, so the upstream LICENSE and our NOTICE have to reach the
+  // user's install, not just the repository.
+  it('packs LICENSE and NOTICE into app.asar', () => {
+    const matcher = new FileMatcher('/app', '/dest', (value) => value, electronBuilderConfig.files)
+    matcher.prependPattern('**/*')
+    const isPacked = matcher.createFilter()
+
+    for (const attributionFile of ['LICENSE', 'NOTICE']) {
+      expect(isPacked(join('/app', attributionFile), { isDirectory: () => false })).toBe(true)
+    }
+  })
+
+  // Why the pre-rebrand ProgID is not cleaned up: `appId` moved, so NSIS never runs
+  // Orca's uninstaller and an Orca install may still own "Orca.Markdown". Deleting
+  // it from Alicorn's installer would strip a live app's "Open with" entry.
+  it('registers a markdown ProgID under the Alicorn name and leaves the Orca one alone', async () => {
+    const hooks = await readFile(
+      join(REPO_ROOT, 'config', 'nsis', 'orca-installer-hooks.nsh'),
+      'utf8'
+    )
+    const directives = hooks
+      .split('\n')
+      .filter((line) => !line.trimStart().startsWith(';'))
+      .join('\n')
+
+    expect(directives).toContain('!define MARKDOWN_PROGID "Alicorn.Markdown"')
+    expect(directives).not.toContain('Orca.Markdown')
   })
 })

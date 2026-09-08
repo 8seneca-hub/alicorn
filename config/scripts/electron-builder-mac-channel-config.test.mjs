@@ -47,7 +47,7 @@ describe('electron-builder mac channel config', () => {
   // Why: Squirrel.Mac swaps the .app in place only when the replacement carries the
   // same bundle id and a valid Developer ID signature. A hourly built on the local
   // (com.8seneca.alicorn.local, ad-hoc) identity would be un-installable over a real
-  // Orca — the whole point of the channel.
+  // Alicorn — the whole point of the channel.
   it('builds hourly artifacts with the release signing identity', () => {
     withHourlyEnv((config) => {
       expect(config.mac.appId).toBeUndefined()
@@ -76,10 +76,10 @@ describe('electron-builder mac channel config', () => {
   // break update checks for every real user.
   it('publishes hourly builds to the separate hourly repo', () => {
     withHourlyEnv((config) => {
-      expect(config.publish).toMatchObject({ repo: 'orca-hourly', releaseType: 'prerelease' })
+      expect(config.publish).toMatchObject({ repo: 'alicorn-hourly', releaseType: 'prerelease' })
     })
     expect(electronBuilderConfig.publish).toMatchObject({
-      repo: 'orca',
+      repo: 'alicorn',
       releaseType: 'release'
     })
   })
@@ -94,15 +94,15 @@ describe('electron-builder mac channel config', () => {
   })
 
   // Why adhoc carries the identical mac identity to hourly: it installs over a
-  // real Orca through the same updater path, so the same signing and the same TCC
-  // argument apply. Only the destination repo differs.
+  // real Alicorn through the same updater path, so the same signing and the same
+  // TCC argument apply. Only the destination repo differs.
   it('builds adhoc artifacts with the release identity and its own repo', () => {
     withAdhocEnv((config) => {
       expect(config.appId).toBe('com.8seneca.alicorn')
       expect(config.mac.hardenedRuntime).toBe(true)
       expect(config.mac.notarize).toBe(true)
       expect(config.forceCodeSigning).toBe(true)
-      expect(config.publish).toMatchObject({ repo: 'orca-adhoc', releaseType: 'prerelease' })
+      expect(config.publish).toMatchObject({ repo: 'alicorn-adhoc', releaseType: 'prerelease' })
     })
   })
 
@@ -121,7 +121,7 @@ describe('electron-builder mac channel config', () => {
       expect(config.mac.hardenedRuntime).toBe(true)
       expect(config.mac.notarize).toBe(true)
       expect(config.forceCodeSigning).toBe(true)
-      expect(config.publish).toMatchObject({ repo: 'orca-daily', releaseType: 'prerelease' })
+      expect(config.publish).toMatchObject({ repo: 'alicorn-daily', releaseType: 'prerelease' })
     })
   })
 

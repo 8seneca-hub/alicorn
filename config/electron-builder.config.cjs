@@ -22,7 +22,10 @@ const { verifyStaticAppImagePackage } = require('./scripts/static-appimage-packa
 
 // Why: dev-channel builds must carry the *release* identity — same bundle id,
 // Developer ID signature, and notarization ticket — or Squirrel.Mac refuses to
-// swap them over an installed Orca and macOS treats each build as a new app.
+// swap them over an installed Alicorn and macOS treats each build as a new app.
+// This is also why the rebrand is a clean install, not an update: `appId` moved
+// off `com.stablyai.orca`, so no Orca install can be swapped for an Alicorn one.
+// See docs/alicorn/plans/2026-09-06-rebrand-cutover-distribution.md, Task 3.
 const isMacHourly = process.env.ORCA_MAC_HOURLY === '1'
 const isMacDaily = process.env.ORCA_MAC_DAILY === '1'
 const isMacAdhoc = process.env.ORCA_MAC_ADHOC === '1'
@@ -581,7 +584,7 @@ module.exports = {
     ],
     // Keep local artifacts aligned with the release pipeline.
     target: ['AppImage', 'deb', 'rpm'],
-    maintainer: 'stablyai',
+    maintainer: '8seneca',
     category: 'Utility'
   },
   appImage: {

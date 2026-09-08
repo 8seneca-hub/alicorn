@@ -169,6 +169,12 @@ jobs:
       - name: Verify skill freshness manifest
         run: pnpm run verify:skill-bundle-manifest
 
+      # Why on PRs and not only in `pnpm lint`: the gate is a ratchet over the
+      # skill corpus, so it only holds if every PR is measured against the
+      # baseline. R3 empties that baseline and the gate turns zero-tolerance.
+      - name: Verify rebrand CLI gate
+        run: pnpm run verify:rebrand-cli-gate
+
       - name: Verify localization catalog
         run: pnpm run verify:localization-catalog
 

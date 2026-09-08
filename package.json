@@ -1,9 +1,9 @@
 {
   "name": "orca",
   "version": "1.4.197",
-  "description": "Next-gen IDE for parallel agentic development",
-  "homepage": "https://github.com/stablyai/orca",
-  "author": "stablyai",
+  "description": "An agent development environment for directing coding agents",
+  "homepage": "https://github.com/8seneca-hub/alicorn",
+  "author": "8seneca",
   "bin": {
     "orca": "./out/cli/index.js",
     "orca-dev": "./config/scripts/orca-dev.mjs"

@@ -39,7 +39,7 @@ describe('electron-builder dev-channel identity', () => {
 
     expect(config.win.signtoolOptions.publisherName).toBe('SignPath Foundation')
     expect(config.win.verifyUpdateCodeSignature).toBeUndefined()
-    expect(config.publish.repo).toBe('orca')
+    expect(config.publish.repo).toBe('alicorn')
     expect(config.publish.releaseType).toBe('release')
   })
 
@@ -54,9 +54,9 @@ describe('electron-builder dev-channel identity', () => {
   })
 
   it.each([
-    ['hourly', { ORCA_WIN_HOURLY: '1' }, 'orca-hourly'],
-    ['daily', { ORCA_WIN_DAILY: '1' }, 'orca-daily'],
-    ['adhoc', { ORCA_WIN_ADHOC: '1' }, 'orca-adhoc']
+    ['hourly', { ORCA_WIN_HOURLY: '1' }, 'alicorn-hourly'],
+    ['daily', { ORCA_WIN_DAILY: '1' }, 'alicorn-daily'],
+    ['adhoc', { ORCA_WIN_ADHOC: '1' }, 'alicorn-adhoc']
   ])('publishes %s Windows builds to its own repo as a prerelease', (_channel, env, repo) => {
     const config = loadConfigWithEnv(env)
 
@@ -82,7 +82,7 @@ describe('electron-builder dev-channel identity', () => {
     })
 
     expect(config.mac.notarize).toBe(true)
-    expect(config.publish.repo).toBe('orca-adhoc')
+    expect(config.publish.repo).toBe('alicorn-adhoc')
   })
 })
 

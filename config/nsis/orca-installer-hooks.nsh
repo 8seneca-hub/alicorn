@@ -1,28 +1,34 @@
-; electron-builder NSIS hooks for the Orca Windows installer.
+; electron-builder NSIS hooks for the Alicorn Windows installer.
 ;
 ; electron-builder accepts exactly ONE `nsis.include` file, so every customInstall /
-; customUnInstall hook Orca needs lives here.
+; customUnInstall hook Alicorn needs lives here.
 
 ; ---------------------------------------------------------------------------
-; Markdown "Open with Orca" (issue #10138)
+; Markdown "Open with Alicorn" (issue #10138)
 ;
 ; Why hand-rolled instead of electron-builder's `fileAssociations` on Windows:
 ; app-builder-lib emits !insertmacro APP_ASSOCIATE, whose first line is
 ;   WriteRegStr SHELL_CONTEXT "Software\Classes\.md" "" "<ProgID>"
 ; That overwrites whichever editor currently owns .md, with no backup, for every
 ; existing user on their next UPDATE - and APP_UNASSOCIATE never restores it, so
-; uninstalling Orca would leave .md pointing at a deleted ProgID.
+; uninstalling Alicorn would leave .md pointing at a deleted ProgID.
 ;
 ; These writes are additive only. Registering a ProgID plus an OpenWithProgids
-; hint and an Applications\<exe>\SupportedTypes entry puts Orca in Explorer's
+; hint and an Applications\<exe>\SupportedTypes entry puts Alicorn in Explorer's
 ; "Open with" list and in "Choose another app", while the default handler stays
 ; exactly where the user left it. Never add a `Software\Classes\.<ext>` default
 ; value here.
 ;
 ; MARKDOWN_PROGID must stay in sync with the extension list handled by
 ; isMarkdownDocumentName() in src/main/ipc/markdown-documents.ts.
+;
+; Why the pre-rebrand "Orca.Markdown" ProgID is left untouched rather than
+; migrated: `appId` moved to com.8seneca.alicorn, so NSIS treats Alicorn as a
+; different product and never runs Orca's uninstaller. An Orca install can still
+; be present and still own that ProgID - deleting it here would strip a live
+; app's "Open with" entry. It goes away when the user uninstalls Orca.
 ; ---------------------------------------------------------------------------
-!define MARKDOWN_PROGID "Orca.Markdown"
+!define MARKDOWN_PROGID "Alicorn.Markdown"
 
 !macro ORCA_REGISTER_MARKDOWN_OPEN_WITH EXT
   WriteRegNone SHELL_CONTEXT "Software\Classes\${EXT}\OpenWithProgids" "${MARKDOWN_PROGID}"
