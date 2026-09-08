@@ -188,6 +188,8 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
         claudeUsage: state.claudeUsage,
         codexUsage: state.codexUsage
       }),
+    // RB1: the verdict this row carries is also what proposes a standing rule on the member.
+    proposeRule: (input) => getControlPlaneClient().createRuleProposal(input),
     // Why excluded here: step_verification rows run a project's own coverage/test command,
     // which can take minutes — the verification worker below gives them their own timer and
     // row timeout so a slow project can't queue every other ledger write behind it (LG2a).

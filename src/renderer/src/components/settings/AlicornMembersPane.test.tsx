@@ -42,7 +42,17 @@ beforeEach(async () => {
   deleteMember.mockReset().mockResolvedValue({ ok: true })
   toastError.mockReset()
   ;(window as unknown as { api: unknown }).api = {
-    alicorn: { listMembers, createMember, updateMember, deleteMember }
+    // RB1 renders MemberRuleProposals inside the pane, which loads on mount. Without these the
+    // load rejects unhandled — the suite still passes and the failure is invisible.
+    alicorn: {
+      listMembers,
+      createMember,
+      updateMember,
+      deleteMember,
+      listRuleProposals: vi.fn().mockResolvedValue({ ok: true, proposals: [] }),
+      acceptRuleProposal: vi.fn().mockResolvedValue({ ok: true }),
+      rejectRuleProposal: vi.fn().mockResolvedValue({ ok: true })
+    }
   }
 })
 

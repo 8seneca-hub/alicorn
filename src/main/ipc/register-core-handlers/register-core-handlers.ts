@@ -57,6 +57,8 @@ import { registerSpeechHandlers } from '../speech'
 import { registerTerminalRenderDesyncEvidenceHandler } from '../terminal-render-desync-evidence'
 import { registerOrcaProfileHandlers } from '../orca-profiles'
 import { registerAlicornHandlers } from '../alicorn-handlers'
+import { registerAlicornRuleProposalHandlers } from '../alicorn-rule-proposal-handlers'
+import { commitMemberRuleToRepo } from '../../alicorn/rulebook/rulebook-commit'
 import { registerBoardAutomationHandlers } from '../board-automation-handlers'
 import { createBoardRuleEngine } from '../../board-automation/board-rule-engine'
 import { LOCAL_EXECUTION_HOST_ID } from '../../../shared/execution-host'
@@ -216,6 +218,12 @@ export function registerCoreHandlers(
         return null
       }
     }
+  })
+  registerAlicornRuleProposalHandlers({
+    client: getControlPlaneClient(),
+    // Same runtime the corrections sweep resolves worktrees through, so an SSH host and a folder
+    // workspace are recognised here exactly as they are there.
+    commitAcceptedRule: (request) => commitMemberRuleToRepo({ runtime, store }, request)
   })
   registerBoardAutomationHandlers({
     getOrchestrationDb: () => runtime.getOrchestrationDb(),

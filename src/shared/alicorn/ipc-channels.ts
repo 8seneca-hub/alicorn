@@ -12,7 +12,10 @@ export const ALICORN_IPC = {
   runInspectorGet: 'alicorn:runInspector:get',
   contextCaptureGet: 'alicorn:contextCapture:get',
   gatesList: 'alicorn:gates:list',
-  gatesResolve: 'alicorn:gates:resolve'
+  gatesResolve: 'alicorn:gates:resolve',
+  ruleProposalsList: 'alicorn:ruleProposals:list',
+  ruleProposalsAccept: 'alicorn:ruleProposals:accept',
+  ruleProposalsReject: 'alicorn:ruleProposals:reject'
 } as const
 
 export const ALICORN_EVENTS = {

@@ -11881,6 +11881,26 @@
               }
             }
           }
+        },
+        "memberRuleProposals": {
+          "committed": "Committed {{path}}",
+          "skipNotRequested": "Rule saved on the member. Not committed to a repository.",
+          "skipNoWorkspace": "Rule saved on the member. No open workspace to commit it to.",
+          "skipRemote": "Rule saved on the member. A workspace on an SSH host is not committed to from here.",
+          "skipNotGit": "Rule saved on the member. This workspace is a folder, not a repository.",
+          "skipDirty": "Rule saved on the member. Commit or stash your changes, then it can be committed.",
+          "skipFailed": "Rule saved on the member, but the commit failed: {{message}}",
+          "title": "Proposed rules from corrections",
+          "description": "A human amended or reverted this member’s work. Write the rule that would have prevented it.",
+          "verdictRejected": "Reverted",
+          "verdictAmended": "Amended",
+          "moreFiles": "and {{count}} more",
+          "showDiff": "Show diff",
+          "ruleLabel": "Rule to add to this member",
+          "rulePlaceholder": "Always run the migration before changing the schema type.",
+          "commitToRepo": "Also commit to the repository",
+          "reject": "Dismiss",
+          "accept": "Accept rule"
         }
       },
       "right": {

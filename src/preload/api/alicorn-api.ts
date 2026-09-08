@@ -7,6 +7,11 @@ import type {
   RunInspectorViewResult
 } from '../../shared/alicorn/run-inspector-view'
 import type { GateResolveResult, PendingGatesResult } from '../../shared/alicorn/gate-review'
+import type {
+  RuleProposalDecisionResult,
+  RuleProposalsListResult,
+  RuleProposalStatus
+} from '../../shared/alicorn/rule-proposals'
 
 export type AlicornFailure = { ok: false; error: string }
 
@@ -49,4 +54,21 @@ export type AlicornApi = {
     resolution: string
     humanGateDecision: 'gate' | 'auto'
   }) => Promise<GateResolveResult>
+  /** Standing rules a correction proposed for this member, newest first (RB1). */
+  listRuleProposals: (args: {
+    memberId: string
+    status?: RuleProposalStatus
+  }) => Promise<RuleProposalsListResult>
+  /**
+   * Accepts a proposal with the rule a human wrote, appending it to the member's system rules and
+   * — unless `commitToRepo` is false — committing it into `worktreeId`'s repository.
+   */
+  acceptRuleProposal: (args: {
+    id: string
+    rule: string
+    memberName: string
+    worktreeId: string | null
+    commitToRepo: boolean
+  }) => Promise<RuleProposalDecisionResult>
+  rejectRuleProposal: (args: { id: string }) => Promise<RuleProposalDecisionResult>
 }

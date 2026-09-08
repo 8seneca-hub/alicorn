@@ -2,9 +2,10 @@ import { ipcMain } from 'electron'
 import { ALICORN_IPC } from '../../shared/alicorn/ipc-channels'
 import type { ControlPlaneClient } from '../alicorn/control-plane-client'
 import {
-  ControlPlaneRequestError,
-  ControlPlaneUnavailableError
-} from '../alicorn/control-plane-http'
+  asNonEmptyString,
+  attemptControlPlane as attempt,
+  type AlicornFailure
+} from './alicorn-control-plane-result'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
@@ -22,9 +23,7 @@ import { isAdvisory } from '../../shared/alicorn/gate-review'
 import { listPendingGateViews } from '../alicorn/gates/pending-gate-view'
 import { enqueueGateAgreement, isGateVerdict } from '../alicorn/gates/gate-agreement'
 
-export type AlicornFailure = { ok: false; error: string }
-
-const UNCONFIGURED: AlicornFailure = { ok: false, error: 'control_plane_unconfigured' }
+export type { AlicornFailure }
 
 export type AlicornHandlerDeps = {
   client: ControlPlaneClient | null
@@ -33,37 +32,11 @@ export type AlicornHandlerDeps = {
   resolveWorktreePath?: (worktreeId: string) => Promise<string | null>
 }
 
-// A control-plane failure is a result the renderer can render, not a rejected
-// invoke: the Members pane has to say *why* it is empty.
-async function attempt<T extends object>(
-  client: ControlPlaneClient | null,
-  run: (client: ControlPlaneClient) => Promise<T>
-): Promise<T | AlicornFailure> {
-  if (!client) {
-    return UNCONFIGURED
-  }
-  try {
-    return await run(client)
-  } catch (error) {
-    if (error instanceof ControlPlaneUnavailableError) {
-      return { ok: false, error: error.code }
-    }
-    if (error instanceof ControlPlaneRequestError) {
-      return { ok: false, error: error.code }
-    }
-    throw error
-  }
-}
-
 function asMemberInput(value: unknown): MemberInput | null {
   // The control plane validates the full shape; this only rejects payloads that
   // are not an object at all, so a malformed invoke fails here rather than as a
   // confusing 400 from the server.
   return value && typeof value === 'object' ? (value as MemberInput) : null
-}
-
-function asNonEmptyString(value: unknown): string | null {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 /** Registers every `alicorn:*` IPC handler on the main process. */
@@ -211,7 +184,12 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
         return { ok: false, error: 'invalid_body' }
       }
       return attempt(deps.client, async (client) => {
-        const view = await readRunInspectorView(client, repoId, branch, asNonEmptyString(args?.runId))
+        const view = await readRunInspectorView(
+          client,
+          repoId,
+          branch,
+          asNonEmptyString(args?.runId)
+        )
         return view
           ? { ok: true as const, view }
           : { ok: false as const, error: 'provenance_unavailable' }
@@ -242,16 +220,13 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
   // Pending gates for the gate panel. A local read of the client's own orchestration store —
   // the recommendation was computed and recorded when the gate opened (GP1), and re-deriving it
   // here would show a verdict the human is then measured against but never saw.
-  ipcMain.handle(
-    ALICORN_IPC.gatesList,
-    async (): Promise<PendingGatesResult> => {
-      try {
-        return { ok: true, gates: listPendingGateViews(deps.getOrchestrationDb()) }
-      } catch (error) {
-        return { ok: false, error: error instanceof Error ? error.message : 'gates_unavailable' }
-      }
+  ipcMain.handle(ALICORN_IPC.gatesList, async (): Promise<PendingGatesResult> => {
+    try {
+      return { ok: true, gates: listPendingGateViews(deps.getOrchestrationDb()) }
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : 'gates_unavailable' }
     }
-  )
+  })
 
   // Resolving from the panel also records GP3's agreement. `recommendationShown` is derived from
   // the level stored on the gate row — the same test that decided whether to send it in the

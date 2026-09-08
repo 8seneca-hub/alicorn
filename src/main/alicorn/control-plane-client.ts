@@ -15,6 +15,11 @@ import type {
   TrackRecord
 } from '../../shared/alicorn/gate-policy'
 import type { Workflow, WorkflowSummary } from '../../shared/alicorn/workflows'
+import type {
+  RuleProposal,
+  RuleProposalInput,
+  RuleProposalStatus
+} from '../../shared/alicorn/rule-proposals'
 
 export type ControlPlaneClient = {
   listMembers: () => Promise<Member[]>
@@ -49,6 +54,12 @@ export type ControlPlaneClient = {
   getRunContextCapture: (runId: string, dispatchId: string) => Promise<ContextCaptureRead>
   listWorkflows: (projectId: string) => Promise<WorkflowSummary[]>
   getWorkflow: (id: string) => Promise<Workflow>
+  /** RB1. Posted by the drainer on the member's behalf; idempotent on the outcome id. */
+  createRuleProposal: (input: RuleProposalInput) => Promise<RuleProposal>
+  listRuleProposals: (memberId: string, status?: RuleProposalStatus) => Promise<RuleProposal[]>
+  /** The human action. The accepting actor comes from the request's bearer, never from here. */
+  acceptRuleProposal: (id: string, rule: string) => Promise<RuleProposal>
+  rejectRuleProposal: (id: string) => Promise<RuleProposal>
 }
 
 /**
@@ -192,8 +203,47 @@ export function createControlPlaneClient(deps?: {
         `/v1/workflows/${encodeURIComponent(id)}`
       )
       return body.workflow
+    },
+
+    createRuleProposal: async (input) => {
+      const body = await readJson<{ proposal: RuleProposal }>('control', '/v1/rule-proposals', {
+        method: 'POST',
+        body: JSON.stringify(input)
+      })
+      return body.proposal
+    },
+
+    listRuleProposals: async (memberId, status) => {
+      const query = status ? `?${new URLSearchParams({ status }).toString()}` : ''
+      const body = await readJson<{ proposals: RuleProposal[] }>(
+        'control',
+        `${memberPath(memberId)}/rule-proposals${query}`
+      )
+      return body.proposals ?? []
+    },
+
+    acceptRuleProposal: async (id, rule) => {
+      const body = await readJson<{ proposal: RuleProposal }>(
+        'control',
+        `${ruleProposalPath(id)}/accept`,
+        { method: 'POST', body: JSON.stringify({ rule }) }
+      )
+      return body.proposal
+    },
+
+    rejectRuleProposal: async (id) => {
+      const body = await readJson<{ proposal: RuleProposal }>(
+        'control',
+        `${ruleProposalPath(id)}/reject`,
+        { method: 'POST' }
+      )
+      return body.proposal
     }
   }
+}
+
+function ruleProposalPath(id: string): string {
+  return `/v1/rule-proposals/${encodeURIComponent(id)}`
 }
 
 function projectPath(projectId: string): string {

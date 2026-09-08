@@ -17,6 +17,9 @@ export const alicornApi: AlicornApi = {
   getContextCapture: (args) => ipcRenderer.invoke(ALICORN_IPC.contextCaptureGet, args),
   listPendingGates: () => ipcRenderer.invoke(ALICORN_IPC.gatesList),
   resolveGate: (args) => ipcRenderer.invoke(ALICORN_IPC.gatesResolve, args),
+  listRuleProposals: (args) => ipcRenderer.invoke(ALICORN_IPC.ruleProposalsList, args),
+  acceptRuleProposal: (args) => ipcRenderer.invoke(ALICORN_IPC.ruleProposalsAccept, args),
+  rejectRuleProposal: (args) => ipcRenderer.invoke(ALICORN_IPC.ruleProposalsReject, args),
 
   // Returns an unsubscribe rather than exposing removeListener, so a renderer
   // cannot detach another subscriber's handler.

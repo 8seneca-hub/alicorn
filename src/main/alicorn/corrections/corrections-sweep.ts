@@ -19,6 +19,8 @@ import {
 } from './corrections-watcher'
 import { createGitHistoryReader, type CommitSummary } from './git-history-reader'
 import { detectReopenedTasks } from './reopened-task-detector'
+import { buildAmendmentContext } from './amendment-context'
+import type { HumanVerdictOutboxPayload } from './human-verdict-outbox-payload'
 
 const DEFAULT_INTERVAL_MS = 600_000
 const WORKTREE_ERROR_LOG_INTERVAL_MS = 5 * 60_000
@@ -249,17 +251,30 @@ export function startCorrectionsSweep(deps: CorrectionsSweepDeps): CorrectionsSw
 
       const taskIds = [...new Set(resolvedSteps.map((step) => step.taskId))]
       const spans = dispatchSpansForTasks(db, taskIds)
+      const stepsByOutcome = new Map(resolvedSteps.map((step) => [step.outcomeId, step]))
       const corrections = classifyCorrections(resolvedSteps, commits, spans, now)
       for (const correction of corrections) {
+        const step = stepsByOutcome.get(correction.outcomeId)
+        // RB1: the same event that demotes a member proposes a standing rule on it. The member is
+        // read here, where the dispatch is still in hand, so the drainer never has to guess.
+        const memberId = step ? db.getDispatchMember(step.dispatchId)?.memberId : undefined
+        const payload: HumanVerdictOutboxPayload = {
+          outcomeId: correction.outcomeId,
+          humanVerdict: correction.verdict,
+          amendedAfterMs: correction.amendedAfterMs,
+          source: correction.source
+        }
+        if (memberId) {
+          payload.memberId = memberId
+          payload.ruleContext = await buildAmendmentContext(exec, {
+            sha: correction.sha,
+            filesModified: step?.filesModified ?? []
+          })
+        }
         const enqueued = db.enqueueLedgerOutbox({
           kind: 'human_verdict_patch',
           dedupeKey: `human_verdict_patch:${correction.outcomeId}`,
-          payload: {
-            outcomeId: correction.outcomeId,
-            humanVerdict: correction.verdict,
-            amendedAfterMs: correction.amendedAfterMs,
-            source: correction.source
-          }
+          payload
         })
         if (!enqueued.duplicate) {
           result.corrections += 1
@@ -280,15 +295,25 @@ export function startCorrectionsSweep(deps: CorrectionsSweepDeps): CorrectionsSw
       if (newDispatchedAtMs === null || priorCompletedAtMs === null) {
         continue
       }
+      // No sha and no diff: a reopened task is an amendment with no commit behind it, so the
+      // proposal carries the files the step touched and nothing else.
+      const reopenedPayload: HumanVerdictOutboxPayload = {
+        outcomeId,
+        humanVerdict: 'amended',
+        amendedAfterMs: newDispatchedAtMs - priorCompletedAtMs,
+        source: 'reopened_task'
+      }
+      const reopenedMemberId = db.getDispatchMember(reopened.priorDispatchId)?.memberId
+      if (reopenedMemberId) {
+        reopenedPayload.memberId = reopenedMemberId
+        reopenedPayload.ruleContext = {
+          files: db.getDispatchLedgerEntry(reopened.priorDispatchId)?.filesModified ?? []
+        }
+      }
       const enqueued = db.enqueueLedgerOutbox({
         kind: 'human_verdict_patch',
         dedupeKey: `human_verdict_patch:${outcomeId}`,
-        payload: {
-          outcomeId,
-          humanVerdict: 'amended',
-          amendedAfterMs: newDispatchedAtMs - priorCompletedAtMs,
-          source: 'reopened_task'
-        }
+        payload: reopenedPayload
       })
       if (!enqueued.duplicate) {
         result.corrections += 1

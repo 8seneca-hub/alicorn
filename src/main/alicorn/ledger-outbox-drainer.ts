@@ -10,10 +10,12 @@ import type { LedgerWriter } from './ledger/ledger-writer'
 import type { GateAgreementOutboxPayload } from './gates/gate-agreement'
 import type {
   ContextCaptureInput,
-  HumanVerdictPatch,
   InterruptionInput,
   SpendPatch
 } from '../../shared/alicorn/ledger-inputs'
+import type { HumanVerdictOutboxPayload } from './corrections/human-verdict-outbox-payload'
+import type { RuleProposalInput } from '../../shared/alicorn/rule-proposals'
+import { ControlPlaneRequestError } from './control-plane-http'
 
 // Why 60s: transcripts (spend usage) flush after the report lands, not before.
 const SPEND_ATTRIBUTION_DELAY_MS = 60_000
@@ -71,6 +73,11 @@ export type LedgerOutboxDrainerDeps = {
   writer: LedgerWriter | null
   // Why null for now: C5 (attributeDispatchUsage) isn't written yet.
   spendAttributor: SpendAttributor | null
+  /**
+   * RB1's second consumer of the same verdict event. Null leaves the ledger patch untouched and
+   * simply proposes nothing — the Rulebook is never allowed to hold up a measurement write.
+   */
+  proposeRule?: ((input: RuleProposalInput) => Promise<unknown>) | null
   intervalMs: number
   excludeKinds?: LedgerOutboxKind[]
 }
@@ -82,6 +89,18 @@ export type LedgerOutboxDrainer = {
 
 /** Marker thrown to short-circuit a pass without bumping attempts or logging as a failure. */
 class RowUntouched extends Error {}
+
+// 401/403 excluded deliberately: those mean auth is misconfigured, not that this payload is bad —
+// the same split `classifyOutboxFailure` makes for the row as a whole.
+function isPermanentlyRejected(error: unknown): boolean {
+  return (
+    error instanceof ControlPlaneRequestError &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    error.status !== 401 &&
+    error.status !== 403
+  )
+}
 
 export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerOutboxDrainer {
   let lastUnavailableLogAt = 0
@@ -227,15 +246,50 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
+  /**
+   * RB1. A rejected or amended step is a finding a human paid for by hand, so the same row that
+   * records the verdict also proposes a standing rule on the member that earned it. Both calls are
+   * idempotent (`already_set`; unique on the outcome id), so a retry after either one lands is safe.
+   */
+  async function proposeRuleForVerdict(payload: HumanVerdictOutboxPayload): Promise<void> {
+    if (!deps.proposeRule || !payload.memberId) {
+      return
+    }
+    if (payload.humanVerdict !== 'amended' && payload.humanVerdict !== 'rejected') {
+      return
+    }
+    try {
+      await deps.proposeRule({
+        memberId: payload.memberId,
+        outcomeId: payload.outcomeId,
+        verdict: payload.humanVerdict,
+        context: payload.ruleContext ?? {}
+      })
+    } catch (error) {
+      // A permanently rejected proposal (a deleted member, a payload this server will never take)
+      // must not dead-letter the verdict row: the measurement already landed, and the ledger is
+      // what this row exists for. Anything transient still throws and is retried with it.
+      if (isPermanentlyRejected(error)) {
+        warn('[ledger-outbox] rule proposal rejected', {
+          outcomeId: payload.outcomeId,
+          memberId: payload.memberId,
+          code: (error as ControlPlaneRequestError).code
+        })
+        return
+      }
+      throw error
+    }
+  }
+
   async function handleHumanVerdictPatch(
     db: OrchestrationDb,
     row: LedgerOutboxRow,
     writer: LedgerWriter
   ): Promise<void> {
-    const { outcomeId, ...patch } = JSON.parse(row.payload) as {
-      outcomeId: string
-    } & HumanVerdictPatch
+    const payload = JSON.parse(row.payload) as HumanVerdictOutboxPayload
+    const { outcomeId, memberId: _memberId, ruleContext: _ruleContext, ...patch } = payload
     await writer.patchHumanVerdict(outcomeId, patch)
+    await proposeRuleForVerdict(payload)
     settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
