@@ -229,7 +229,7 @@ describe('ledger outbox-requeue CLI', () => {
 
     await expect(
       LEDGER_OUTBOX_HANDLERS['ledger outbox-requeue']({
-        flags: new Map([
+        flags: new Map<string, string | boolean>([
           ['id', 'lob_1'],
           ['all', true]
         ]),
@@ -246,7 +246,7 @@ describe('ledger outbox-requeue CLI', () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {})
 
     await LEDGER_OUTBOX_HANDLERS['ledger outbox-requeue']({
-      flags: new Map([
+      flags: new Map<string, string | boolean>([
         ['all', true],
         ['kind', 'interruption']
       ]),
