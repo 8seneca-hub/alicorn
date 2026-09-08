@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 
 import {
   BARE_ORCA_INVOCATION,
   compareAgainstBaseline,
   findBareOrcaInvocations,
-  readBaseline
+  normalizeInvocationText,
+  readBaseline,
+  renderBaseline
 } from './verify-rebrand-cli-gate.mjs'
 
 describe('bare orca invocation pattern', () => {
@@ -36,8 +40,16 @@ describe('bare orca invocation pattern', () => {
   })
 })
 
+describe('normalizeInvocationText', () => {
+  it('collapses indentation and interior runs so a reflow is not a new call site', () => {
+    expect(normalizeInvocationText('\t  - run `orca  status`\t--json  ')).toBe(
+      '- run `orca status` --json'
+    )
+  })
+})
+
 describe('findBareOrcaInvocations', () => {
-  it('reports each hit with its 1-based line and trimmed text', () => {
+  it('reports each hit with its 1-based line and normalised text', () => {
     const files = new Map([
       ['skill-guides/a.md', 'intro\n  orca status\nend'],
       ['skill-guides/b.md', 'nothing here']
@@ -62,19 +74,38 @@ describe('findBareOrcaInvocations', () => {
   })
 })
 
+const baselineOf = (rows) => readBaseline(renderBaseline(rows))
+
 describe('compareAgainstBaseline', () => {
-  const baseline = ['skill-guides/a.md:2', 'skill-guides/a.md:5']
+  const original = [
+    { path: 'skill-guides/a.md', line: 2, text: 'orca status' },
+    { path: 'skill-guides/a.md', line: 5, text: 'orca run' }
+  ]
+  const baseline = baselineOf(original)
 
   it('passes an unchanged corpus', () => {
-    const findings = [
-      { path: 'skill-guides/a.md', line: 2, text: 'orca status' },
-      { path: 'skill-guides/a.md', line: 5, text: 'orca run' }
-    ]
-
-    const result = compareAgainstBaseline(findings, baseline)
+    const result = compareAgainstBaseline(original, baseline)
     expect(result.newFindings).toEqual([])
     expect(result.allowedCount).toBe(2)
     expect(result.baselineCount).toBe(2)
+    expect(result.retiredCount).toBe(0)
+  })
+
+  // The whole point of the ticket: inserting prose above a baselined invocation
+  // shifted every entry below it and each shifted line reported as new. Twenty-six
+  // false findings from two commits, of which exactly one was real.
+  it('stays silent when every baselined invocation moves down the file', () => {
+    const shifted = original.map((finding) => ({ ...finding, line: finding.line + 40 }))
+
+    expect(compareAgainstBaseline(shifted, baseline).newFindings).toEqual([])
+  })
+
+  it('flags a genuinely new invocation added to a baselined file', () => {
+    const findings = [...original, { path: 'skill-guides/a.md', line: 7, text: 'orca doctor' }]
+
+    expect(compareAgainstBaseline(findings, baseline).newFindings).toEqual([
+      { path: 'skill-guides/a.md', line: 7, text: 'orca doctor' }
+    ])
   })
 
   it('flags an entry in a file the baseline never listed', () => {
@@ -83,37 +114,81 @@ describe('compareAgainstBaseline', () => {
     expect(compareAgainstBaseline(findings, baseline).newFindings).toEqual(findings)
   })
 
-  // A moved line is a new call site as far as the ratchet can tell, and saying so
-  // is what stops a delete-plus-add from sneaking past a flat total.
-  it('flags a moved line even though the count is unchanged', () => {
+  // Content keying is not a free pass to edit the invocation itself: a reworded
+  // call site is a call site nobody has read against the rename.
+  it('flags a baselined invocation whose text changed', () => {
     const findings = [
-      { path: 'skill-guides/a.md', line: 2, text: 'orca status' },
-      { path: 'skill-guides/a.md', line: 9, text: 'orca run' }
-    ]
-
-    expect(compareAgainstBaseline(findings, baseline).newFindings).toEqual([
-      { path: 'skill-guides/a.md', line: 9, text: 'orca run' }
-    ])
-  })
-
-  it('reports a grown total so the caller can fail a shrink-only check', () => {
-    const findings = [
-      { path: 'skill-guides/a.md', line: 2, text: 'orca status' },
-      { path: 'skill-guides/a.md', line: 5, text: 'orca run' },
+      { path: 'skill-guides/a.md', line: 2, text: 'orca status --json' },
       { path: 'skill-guides/a.md', line: 5, text: 'orca run' }
     ]
 
-    const result = compareAgainstBaseline(findings, baseline)
-    expect(result.newFindings).toEqual([])
+    expect(compareAgainstBaseline(findings, baseline).newFindings).toEqual([
+      { path: 'skill-guides/a.md', line: 2, text: 'orca status --json' }
+    ])
+  })
+
+  // Duplicates need a count, not a set: two allowances, three occurrences, one new.
+  it('allows only as many copies of a line as the baseline counted', () => {
+    const twice = baselineOf([
+      { path: 'skill-guides/a.md', line: 1, text: 'orca status' },
+      { path: 'skill-guides/a.md', line: 9, text: 'orca status' }
+    ])
+    expect(twice).toEqual([{ path: 'skill-guides/a.md', text: 'orca status', count: 2 }])
+
+    const thrice = [1, 9, 12].map((line) => ({
+      path: 'skill-guides/a.md',
+      line,
+      text: 'orca status'
+    }))
+    const result = compareAgainstBaseline(thrice, twice)
+    expect(result.newFindings).toEqual([
+      { path: 'skill-guides/a.md', line: 12, text: 'orca status' }
+    ])
     expect(result.allowedCount).toBeGreaterThan(result.baselineCount)
+  })
+
+  // Deleting call sites is the direction R3 goes; it reports, it must not fail.
+  it('counts an unused allowance as retired rather than new', () => {
+    const result = compareAgainstBaseline([original[0]], baseline)
+    expect(result.newFindings).toEqual([])
+    expect(result.retiredCount).toBe(1)
   })
 })
 
 describe('readBaseline', () => {
   it('drops comments and blank lines', () => {
-    expect(readBaseline('# header\n\nskill-guides/a.md:2\n  skill-guides/b.md:3  \n')).toEqual([
-      'skill-guides/a.md:2',
-      'skill-guides/b.md:3'
+    expect(readBaseline('# header\n\n2\tskill-guides/a.md\torca status\n')).toEqual([
+      { path: 'skill-guides/a.md', text: 'orca status', count: 2 }
     ])
+  })
+
+  // A stale `path:line` baseline must fail loudly; read as text it would silently
+  // allow nothing and bury the real corpus in false findings.
+  it('rejects the old path:line format instead of reading it as an invocation', () => {
+    expect(() => readBaseline('skill-guides/a.md:2\n')).toThrow(/Malformed baseline row/)
+  })
+})
+
+describe('the checked-in baseline', () => {
+  // Why the real script and the real corpus: this gate was verified with `pnpm tc` and
+  // `pnpm test config/scripts` and is in neither, so main sat red on a check nothing ran.
+  it('passes the gate against the tree as it stands', () => {
+    const output = execFileSync(process.execPath, ['config/scripts/verify-rebrand-cli-gate.mjs'], {
+      encoding: 'utf8'
+    })
+
+    expect(output).toMatch(/Rebrand CLI gate passed/)
+  })
+
+  it('is what --write would produce, so nobody has hand-edited a row', () => {
+    const onDisk = readFileSync('config/rebrand-cli-baseline.txt', 'utf8')
+    const parsed = readBaseline(onDisk)
+
+    expect(parsed.length).toBeGreaterThan(0)
+    expect(parsed.every((entry) => entry.count > 0 && entry.text.includes('orca'))).toBe(true)
+    const rerendered = parsed.flatMap((entry) =>
+      Array.from({ length: entry.count }, () => ({ path: entry.path, text: entry.text }))
+    )
+    expect(`${renderBaseline(rerendered)}\n`).toBe(onDisk)
   })
 })
