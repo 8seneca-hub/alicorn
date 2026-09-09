@@ -122,6 +122,7 @@ async function planWithFiles(runId: string, files: Record<string, string[]>): Pr
     })),
     waves: [],
     contractRegistry: { entries: [], gaps: [], notes: '' },
+    team: null,
     log: [],
     notDone: []
   }

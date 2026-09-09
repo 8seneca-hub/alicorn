@@ -4,6 +4,7 @@ import {
   buildForemanReportSection,
   buildTeamRulesSection
 } from './preamble-foreman-sections'
+import type { ComposedTeam } from '../../alicorn/foreman/team-composer'
 import type { Member } from '../../../shared/alicorn/members'
 
 export type PreambleParams = {
@@ -53,6 +54,8 @@ export type PreambleParams = {
    * own rules, not the team's, and reading someone else's constraints is context it cannot act on.
    */
   teamRules?: readonly Pick<Member, 'name' | 'systemRules'>[]
+  /** AT1: the roster a human approved at a composition gate. Lead dispatches only. */
+  approvedTeam?: ComposedTeam | null
 }
 
 // Why: 5 minutes is frequent enough that the coordinator's stale-heartbeat
@@ -168,7 +171,7 @@ ${postDoneInstructions}`
   // A lead reports nothing bounded — it receives reports. So the two sections are exclusive.
   const foreman =
     params.foremanRole === 'lead'
-      ? buildForemanJournalSection(params.runId ?? params.taskId) +
+      ? buildForemanJournalSection(params.runId ?? params.taskId, params.approvedTeam) +
         buildTeamRulesSection(params.teamRules ?? [])
       : params.foremanRole === 'orchestrated-worker'
         ? buildForemanReportSection(cli)

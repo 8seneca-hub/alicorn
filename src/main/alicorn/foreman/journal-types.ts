@@ -4,6 +4,7 @@ import type {
   ForemanRunStatus
 } from '../../../shared/alicorn/foreman-run'
 import type { ContractRegistry } from './contract-registry'
+import type { JournalTeam } from './team-composer'
 
 // The Feature Journal is the source of truth for an orchestrated run; the lead's context is a cache
 // of it (docs/alicorn/foreman-templates.md §3). It lives on disk so a run survives the session that
@@ -64,6 +65,8 @@ export type Journal = {
   waves: JournalWave[]
   /** The typed interfaces crossing between nodes — never a "ledger", see contract-registry.ts. */
   contractRegistry: ContractRegistry
+  /** AT1's composed roster and the gate that asks a human about it. Null on a run with no team. */
+  team: JournalTeam | null
   log: JournalLogEntry[]
   notDone: string[]
 }

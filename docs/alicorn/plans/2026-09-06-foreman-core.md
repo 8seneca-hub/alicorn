@@ -176,7 +176,77 @@ export function leadLaunchOptions(backend: MemberBackend): { disallowedTools: st
 ### Task 8 (AT1, v2.0): Agent-composed teams — gated composition
 
 **Files:** `src/main/alicorn/foreman/team-composer.ts` (+ test): `composeTeam(goal: string, members: Member[], history: Array<{ memberId; stageKey; acceptRate }>): TeamProposal` — picks one member per required role (`developer`, `reviewer` on a different backend, `qa`) preferring the highest windowed accept rate; the proposal is a decision gate (`question: 'Run with this team?'`) the human resolves; on accept the lead is dispatched with the proposal in its brief. **This is the thin, gated form; automatic composition without a gate is not in scope until evidence exists (CLAUDE.md sequencing rule 1).**
-- [ ] Tests: role coverage, backend separation for the reviewer, gate created. Commit `feat(foreman): agent-composed team proposal behind a decision gate`.
+- [x] Tests: role coverage, backend separation for the reviewer, gate created. Commit `feat(foreman): agent-composed team proposal behind a decision gate`.
+
+**As built (2026-09-09).** Where the line between *design* and *thin implementation* was drawn: the
+composer is a pure ranking function with a full test matrix, and everything around it is the
+shortest wiring that makes one composition reach one lead through one human. No autonomous team
+builder, no re-composition on failure, no enforcement that the lead actually dispatches the approved
+roster — the launch path already enforces what matters, and enforcing membership as well would need
+evidence nobody has yet.
+
+Five decisions worth keeping:
+
+- **Seats name their stage key, and that is the whole SK1 dependency.** `TEAM_SEAT_STAGE_KEYS` maps
+  `developer → build`, `reviewer → review`, `qa → verify`, and each candidate is ranked on *its own*
+  seat's window. Ranking a reviewer on its `build` accept rate compares a member to work it never
+  did — which is exactly why AT1 waited for stable stage keys rather than for members.
+- **A zero-run window is unmeasured, not a zero accept rate.** An accept rate over no runs is
+  unknown, so such a member sorts with the unproven rather than below a member with a genuinely poor
+  record. Getting this backwards would have made a fresh member permanently unpickable, and evidence
+  only accumulates by running.
+- **The reviewer rule is enforced by *declining to propose*, never by relaxing.** `composeTeam`
+  reuses `evaluateReviewBackend` with `enforce: true` regardless of org policy: the documented
+  opt-out exists so a human can knowingly bypass, and a proposal that quietly seats a same-backend
+  reviewer would spend that bypass on the human's behalf. If no eligible reviewer exists the seat
+  stays empty and the gap names `--allow-same-backend-review`. This is the answer to "a composed
+  team must not become a way around the criteria": the composer's only power over policy is to
+  refuse.
+- **Roster on disk, verdict on the gate row.** The journal gained an optional `## Team` section
+  (`composed-team-markdown.ts`) holding the roster and the gate id; whether a human said yes stays
+  in `decision_gates.resolution`, which GP3 already treats as the durable record of a human
+  decision. A second copy of the verdict in the journal would be a second answer to one question.
+  `readApprovedTeam` requires both halves to agree, and only the exact `accept` option counts — a
+  resolution a human typed ("yes, but swap the reviewer") is a conversation, and the run then
+  proceeds with no composed team. **`SCHEMA_VERSION` was not touched: v42 is still free.**
+- **No "who would you pick?" read.** `orchestration.teamPropose` composes *and* opens the gate in one
+  call, the same shape as `gateCreate { evaluate }` and for the same reason — a caller must not be
+  able to take the answer and act on it alone. The gate is not only advisory either: `createGate`
+  moves the task to `blocked`, and `worker-dispatch-start` refuses anything but a `ready` task, so
+  the lead for that task *cannot* be dispatched until a human resolves the composition. Gating by
+  construction rather than by convention was free here, so it was taken.
+  `readApprovedTeam` additionally refuses a gate the policy retired: `teamPropose` opens it without
+  `evaluate` so retirement cannot happen today, but a composed team must be approved by a human or
+  not at all, and adding `evaluate` later must not quietly turn that into a track record.
+
+Three things this ticket had to fix or work around, all pre-existing:
+
+- **`foremanRole: 'lead'` was unreachable.** `buildForemanJournalSection` had no production caller —
+  `coordinator-task-dispatch.ts` sets only `'orchestrated-worker'`, and `worker-start --role lead`
+  set neither role nor `runId`. A lead was restricted at the tool boundary (Task 5) and then briefed
+  as an ordinary worker. `leadBriefPreambleFields` now sets it, which is also where the approved
+  roster is resolved. Without this, AT1's brief would have been dead code sitting behind dead code.
+- **Nothing writes the Feature Journal in production.** The only `new Coordinator(...)` outside tests
+  is in the retired `orchestration.run`, and it passes no `worktreePath`, so
+  `CoordinatorForemanJournal` is permanently inert. `teamPropose` is therefore the *first* production
+  journal writer, and it calls `openRunJournal` rather than assuming one exists. Task 4 is marked
+  done but its coordinator wiring never reaches a running app — worth its own ticket.
+- **Ranking needs a project, and a pre-dispatch task has none.** `resolveGateEvaluationInput` reads
+  the project off the latest dispatch's worktree, which by definition does not exist before the team
+  is picked. `--worktree <selector>` supplies it and doubles as the journal's location. With neither,
+  the proposal still composes on role coverage alone and says so as a gap. Resolving the project
+  from the caller's own workspace is the obvious follow-up and was left out.
+
+The interruption is counted for free: `interruption-capture.ts` sweeps `decision_gates` generically,
+so a composition gate lands in the ledger as `kind: 'gate'` with no code here. That is the right
+answer and worth stating — asking a human to approve a roster *is* an interruption, and the whole
+argument for ever automating this composition is that the number goes down without quality
+following it.
+
+Known limits, deliberate: a proposal on an SSH-hosted worktree is not journalled (`path` belongs to
+the execution host), so the gate still asks but the lead is not briefed with the roster — the same
+boundary every other Foreman disk write has. Composition is per run, not per stage, because stages
+do not exist until v1.5.
 
 ---
 

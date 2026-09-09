@@ -9,6 +9,7 @@ let worktree = ''
 
 function journal(overrides: Partial<Journal> = {}): Journal {
   return {
+    team: null,
     runId: 'run_1',
     objective: 'Ship partial refunds.',
     status: 'running',

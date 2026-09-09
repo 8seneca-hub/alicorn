@@ -161,6 +161,18 @@ orca orchestration gate-create \
 orca orchestration gate-resolve --id <gateId> --resolution "yes" --json
 ```
 
+## Composed teams
+
+`team-propose` picks a delivery team out of the organisation's members — one developer, one reviewer on a different backend, one QA — preferring whoever has the highest accept rate in that seat's stage window, and opens a gate asking you to approve it:
+
+```bash
+orca orchestration team-propose --task <taskId> --worktree <selector> --json
+
+orca orchestration gate-resolve --id <gateId> --resolution accept --json
+```
+
+The composition is never applied on its own. Accepting the gate is what puts the roster in the Feature Journal entry a Foreman lead is briefed with; any other resolution leaves the run with no composed team. A seat that has no member who could actually be launched into it — every reviewer sharing the developer's backend, say — is left empty and reported as a gap rather than filled, and nothing about an approved roster waives a required check or the reviewer-backend rule.
+
 ## Recovery
 
 ```bash

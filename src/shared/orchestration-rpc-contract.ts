@@ -31,6 +31,8 @@ const ORCHESTRATION_MUTATION_METHODS = new Set([
   'orchestration.ask',
   'orchestration.gateCreate',
   'orchestration.gateResolve',
+  // AT1: composing a team opens a gate, so the proposal is a mutation like every other gate write.
+  'orchestration.teamPropose',
   'orchestration.verifyRecord',
   // GP2: a control-plane write, so it takes the same contract fence and retry-request recovery
   // as every other mutation. The three reads beside it (policyGet, policyList, evidence) do not.

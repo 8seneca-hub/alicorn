@@ -17,7 +17,8 @@ const FAIL_CLOSED_POLICY: OrgPolicy = { enforceDistinctReviewerBackend: true }
 
 export type MemberDirectory = {
   getMember: (id: string) => Promise<Member | null>
-  /** RB2's read: the team a lead may dispatch. Same cached list `getMember` resolves against. */
+  /** The team a lead may dispatch (RB2) and AT1's candidate pool. Same cached list `getMember`
+   *  resolves against, so both cost no extra call. */
   listMembers: () => Promise<Member[]>
   getOrgPolicy: () => Promise<OrgPolicy>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
@@ -102,6 +103,7 @@ export function createMemberDirectory(
         members = entry
       }
     )
+
 
   return {
     getMember: async (id) => (await readMembers()).find((member) => member.id === id) ?? null,

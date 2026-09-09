@@ -11,6 +11,7 @@ import {
   type JournalWaveOverlap
 } from './journal-types'
 import { parseContractRegistry, renderContractRegistry } from './contract-registry-markdown'
+import { parseJournalTeam, renderJournalTeam } from './composed-team-markdown'
 import { cell, list, renderTable, tableRows, uncell, unlist } from './markdown-table'
 
 const NODE_STATUSES: JournalNodeStatus[] = ['pending', 'dispatched', 'done', 'failed', 'blocked']
@@ -73,6 +74,9 @@ export function renderJournal(journal: Journal): string {
     '',
     '## Objective',
     journal.objective || '—',
+    '',
+    '## Team',
+    renderJournalTeam(journal.team),
     '',
     '## Decisions',
     renderTable(
@@ -259,6 +263,9 @@ export function parseJournal(markdown: string): Journal {
     plan: parsePlan(markdown),
     waves: parseWaves(markdown),
     contractRegistry: parseContractRegistry(registry),
+    // Optional like `Waves`, and for the same reason: every journal written before AT1 has no
+    // Team section, and a run with no composed team is the normal case rather than a broken one.
+    team: parseJournalTeam(sectionBody(markdown, 'Team')),
     log: parseLog(markdown),
     notDone: bulletList(requireSection(markdown, 'Not done, and why'))
   }

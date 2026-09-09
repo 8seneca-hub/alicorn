@@ -17,6 +17,7 @@ import {
   type JournalWaveOverlap
 } from './journal'
 import { planWaves } from './wave-dependency-check'
+import type { JournalTeam } from './team-composer'
 
 export { journalPath }
 
@@ -67,6 +68,7 @@ export async function openRunJournal(
     plan: [],
     waves: [],
     contractRegistry: emptyContractRegistry(),
+    team: null,
     log: [],
     notDone: []
   }
@@ -108,6 +110,20 @@ export function appendJournalLog(journal: Journal, at: string, line: string): vo
 
 export function setJournalStatus(journal: Journal, status: JournalStatus): void {
   journal.status = status
+}
+
+/**
+ * AT1: records the roster a gate is asking a human about, replacing any earlier proposal.
+ *
+ * Replacing rather than appending: a run has one team at a time, and keeping a superseded roster
+ * next to the live one would leave the lead two answers to "who may I dispatch".
+ */
+export function recordComposedTeam(journal: Journal, team: JournalTeam): string {
+  journal.team = team
+  const filled = team.seats.filter((seat) => seat.memberId !== null).length
+  return `team proposed at gate ${team.gateId}: ${filled}/${team.seats.length} seats filled${
+    team.gaps.length > 0 ? `, ${team.gaps.length} gap(s)` : ''
+  }`
 }
 
 function overlapKey(overlap: JournalWaveOverlap): string {

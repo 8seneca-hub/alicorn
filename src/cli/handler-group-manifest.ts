@@ -145,6 +145,7 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
       'orchestration coordinator-stop',
       'orchestration request-show',
       'orchestration gate-create',
+      'orchestration team-propose',
       'orchestration verify-record',
       'orchestration gate-resolve',
       'orchestration gate-list',

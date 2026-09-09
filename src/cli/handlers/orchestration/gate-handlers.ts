@@ -27,6 +27,39 @@ export const ORCHESTRATION_GATE_HANDLERS: Record<string, CommandHandler> = {
     })
   },
 
+  // AT1: composing a team is the same act as opening the gate that asks about it, so there is one
+  // verb and it always leaves a gate behind.
+  'orchestration team-propose': async ({ flags, client, cwd, json }) => {
+    const result = await callOrchestrationMutation<{
+      gate: { id: string; task_id: string; status: string }
+      team: {
+        seats: { role: string; memberName: string | null; backend: string | null; why: string }[]
+        gaps: string[]
+      }
+      journalled: boolean
+    }>(client, flags, 'orchestration.teamPropose', {
+      task: getRequiredStringFlag(flags, 'task'),
+      worktree: getOptionalStringFlag(flags, 'worktree'),
+      goal: getOptionalStringFlag(flags, 'goal'),
+      from: await resolveCoordinatorTerminalHandle(flags, cwd, client)
+    })
+    printResult(result, json, (value) => {
+      const roster = value.team.seats.map(
+        (seat) =>
+          `  ${seat.role}: ${seat.memberName ?? '— unfilled'}${seat.backend ? ` (${seat.backend})` : ''}\n    ${seat.why}`
+      )
+      const gaps = value.team.gaps.map((gap) => `  - ${gap}`)
+      return [
+        `Gate ${value.gate.id} asks task ${value.gate.task_id} to approve this team [${value.gate.status}]`,
+        ...roster,
+        ...(gaps.length > 0 ? ['Gaps:', ...gaps] : []),
+        value.journalled
+          ? 'Recorded in the Feature Journal; resolve the gate with --resolution accept to brief the lead with it.'
+          : 'Not recorded in the Feature Journal — the lead will not be briefed with this roster.'
+      ].join('\n')
+    })
+  },
+
   'orchestration verify-record': async ({ flags, client, cwd, json }) => {
     const result = await callOrchestrationMutation<{
       taskId: string

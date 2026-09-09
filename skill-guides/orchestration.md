@@ -311,11 +311,14 @@ orca orchestration gate-create --task <task_id> --question <text> [--options <js
 orca orchestration gate-resolve --id <gate_id> --resolution <text> [--json]
 orca orchestration gate-list [--task <task_id>] [--status <status>] [--json]
 orca orchestration verify-record --task <task_id> --name <text> --status <passed|failed|skipped|error> [--kind <kind>] [--optional] [--detail <json_object>] [--json]
+orca orchestration team-propose --task <task_id> [--worktree <selector>] [--goal <text>] [--json]
 ```
 
 Use `ask` for worker-to-coordinator questions; it creates a `question` message that the coordinator answers with `reply`. Use `gate-create` only for coordinator-managed task DAG decisions, not for answering a worker's `ask`.
 
 `gate-create --evaluate` runs the project's autonomy policy and records the decision it would have made on the gate; the gate still blocks, so there is no way to ask the policy and act on the answer yourself. `verify-record` stores a named check result the policy reads — a check the project requires and nobody recorded reads as unverified, never as passed.
+
+`team-propose` composes a delivery team from the organisation's members — one developer, one reviewer on a different backend, one QA — preferring the highest accept rate in each seat's stage window, and opens a gate asking a human to approve it. Composing and asking are one act: there is no read that answers "who would you pick?" without leaving a gate behind. A seat with no member that could actually be launched into it is left empty and listed as a gap, never filled with a reviewer on the developer's backend. Resolve the gate with `--resolution accept` and the roster reaches the lead's brief; any other resolution leaves the run with no composed team. The roster waives nothing: required checks stay authored on the stage and the reviewer-backend rule is still enforced at launch.
 
 ## Autonomy Policy
 

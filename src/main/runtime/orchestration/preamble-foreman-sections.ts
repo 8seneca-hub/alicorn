@@ -1,3 +1,4 @@
+import type { ComposedTeam } from '../../alicorn/foreman/team-composer'
 import {
   ALICORN_STRATEGY_ENV,
   FOREMAN_REPORT_MAX_TOKENS,
@@ -58,8 +59,8 @@ orchestrated; pass \`--orchestrated\` explicitly if you are unsure.
  * write first and rely on it second. The coordinator writes node status into the same file, which
  * is why the lead is told which columns are not its own.
  */
-export function buildForemanJournalSection(runId: string): string {
-  return `
+export function buildForemanJournalSection(runId: string, team?: ComposedTeam | null): string {
+  return `${buildForemanTeamSection(team)}
 
 === JOURNAL ===
 You are the lead for this run. You write no code and read no implementation: your job is to plan,
@@ -144,5 +145,43 @@ hand. Plan around them before you write a brief, not after: they constrain how a
 and who it goes to. They are constraints added, never permission granted, and a member never wrote
 its own.
 ${sections.join('')}
+---`
+}
+
+/**
+ * AT1 — the roster a human approved, at the top of the lead's brief.
+ *
+ * Inlined rather than left in the journal for the lead to find: this is the one thing in the run a
+ * human said yes to by name, and a lead that has to open a file to learn who it may dispatch will
+ * get it wrong once. Absent when no team was proposed, or when the gate that proposed one was not
+ * accepted — the lead then briefs the run exactly as it did before AT1.
+ */
+export function buildForemanTeamSection(team: ComposedTeam | null | undefined): string {
+  if (!team) {
+    return ''
+  }
+  const seats = team.seats.map((seat) => {
+    const who = seat.memberId
+      ? `${seat.memberName} — member ${seat.memberId} on ${seat.backend}`
+      : 'NOBODY APPROVED'
+    return `  # ${seat.role} (stage "${seat.stageKey}"): ${who}\n  #   ${seat.why}`
+  })
+  const gaps =
+    team.gaps.length > 0
+      ? `\nLeft open, and approved anyway:\n${team.gaps.map((gap) => `  # ${gap}`).join('\n')}\n`
+      : ''
+  return `
+
+=== TEAM (APPROVED) ===
+A human approved this roster for this run. Dispatch these members for these stages:
+
+${seats.join('\n')}
+${gaps}
+Substituting a member is a decision, not a detail: journal it, and say why. A seat marked NOBODY
+APPROVED has no approved member — ask before filling it rather than picking one yourself, and never
+put the reviewer on the developer's backend to close it. Nothing here waives a check: required
+checks are authored on the stage, and a dispatch that breaks the reviewer-backend rule is refused
+at launch whatever this section says.
+
 ---`
 }

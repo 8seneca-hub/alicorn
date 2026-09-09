@@ -23,6 +23,18 @@ export const ORCHESTRATION_GATE_COMMAND_SPECS: CommandSpec[] = [
     ]
   },
   {
+    path: ['orchestration', 'team-propose'],
+    summary: 'Compose a team from member roles and gate it for approval',
+    usage:
+      'orca orchestration team-propose --task <task_id> [--worktree <selector>] [--goal <text>] [--from <handle>] [--retry-request <id>] [--json]',
+    allowedFlags: [...GLOBAL_FLAGS, 'task', 'worktree', 'goal', 'from', 'retry-request'],
+    notes: [
+      'The proposal always opens a decision gate: there is no read that answers "who would you pick?" without asking a human about the answer.',
+      'A seat is left empty rather than filled with a member that could not be launched into it — a reviewer on the developer backend is refused at launch.',
+      '--worktree names the workspace: it is what ranks candidates on their accept rate in that project, and where the roster is written for the lead.'
+    ]
+  },
+  {
     path: ['orchestration', 'verify-record'],
     summary: 'Record a named check result for a task',
     usage:

@@ -110,6 +110,26 @@ context is a cache of it.
 ## Objective
 One paragraph, from the user.
 
+## Team
+> Composed by Orca from member roles and their accept rate at each seat's stage, then **approved by
+> a human at a gate** — never applied silently. Orca writes this section; the gate row holds the
+> verdict, so nothing here says whether it was accepted.
+
+**Gate:** gate_alc42
+**Goal:** Ship partial refunds end to end.
+
+| Seat | Stage | Member | Id | Backend | Accepted | Runs | Why |
+|---|---|---|---|---|---|---|---|
+| developer | build | Ada | mem_dev1 | claude | 92% | 24 | Best of 3 developer candidates: 92% accepted over 24 run(s) at "build". |
+| reviewer | review | Bo | mem_rev1 | codex | 88% | 11 | Best of 2 reviewer candidates: 88% accepted over 11 run(s) at "review". Not on the developer's backend (claude). |
+| qa | verify | — | — | — | — | — | No qa member exists in this organisation — add one, or run this stage yourself. |
+
+- No qa member exists in this organisation — add one, or run this stage yourself.
+
+Bullets under the table are the composition's **gaps** — what accepting this team leaves open. A
+seat is left empty rather than filled with a member that could not be launched into it: a reviewer
+on the developer's backend is refused at launch, so proposing one would only waste the dispatch.
+
 ## Decisions
 | # | Decision | Chosen | Why | Reversible? |
 |---|---|---|---|---|

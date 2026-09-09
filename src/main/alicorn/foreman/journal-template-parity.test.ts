@@ -88,6 +88,25 @@ describe('the journal template in foreman-templates.md', () => {
     expect(renderJournal(parseJournal(template)).includes(registry.notes)).toBe(true)
   })
 
+  // AT1: the lead reads its approved roster out of this section, so the documented columns have to
+  // be the ones the parser reads — a shifted column would name the wrong member for a seat.
+  it('keeps the documented Team columns in the order the parser reads them', () => {
+    const team = parseJournal(journalTemplate()).team
+    expect(team?.gateId).toBe('gate_alc42')
+    expect(
+      team?.seats.map((seat) => [seat.role, seat.stageKey, seat.memberId, seat.backend])
+    ).toEqual([
+      ['developer', 'build', 'mem_dev1', 'claude'],
+      ['reviewer', 'review', 'mem_rev1', 'codex'],
+      ['qa', 'verify', null, null]
+    ])
+    expect(team?.seats[0]?.acceptRate).toBeCloseTo(0.92)
+    expect(team?.seats[0]?.runs).toBe(24)
+    expect(team?.gaps).toEqual([
+      'No qa member exists in this organisation — add one, or run this stage yourself.'
+    ])
+  })
+
   it('documents a run status the parser accepts', () => {
     const doc = readFileSync(TEMPLATE, 'utf8')
     const statuses = /\*\*Status:\*\* ([^\n]+)/.exec(doc)?.[1] ?? ''

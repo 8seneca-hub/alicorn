@@ -13,6 +13,33 @@ function preamble(overrides: Record<string, unknown> = {}): string {
   })
 }
 
+const TEAM = {
+  goal: 'Ship partial refunds',
+  seats: [
+    {
+      role: 'developer' as const,
+      stageKey: 'build',
+      memberId: 'mem_dev',
+      memberName: 'Ada',
+      backend: 'claude' as const,
+      acceptRate: 0.9,
+      runs: 10,
+      why: 'Best of 2 developers.'
+    },
+    {
+      role: 'reviewer' as const,
+      stageKey: 'review',
+      memberId: null,
+      memberName: null,
+      backend: null,
+      acceptRate: null,
+      runs: null,
+      why: 'Every reviewer runs on claude.'
+    }
+  ],
+  gaps: ['Every reviewer runs on claude.']
+}
+
 describe('foreman preamble sections', () => {
   // `single` is the default and stays the default: the schema is a cost only the runs that need it
   // pay, so an ordinary dispatch must gain nothing.
@@ -99,6 +126,33 @@ describe('foreman preamble sections', () => {
 
     it('does not also hand the lead the worker report schema', () => {
       expect(text).not.toContain('REPORT (ORCHESTRATED RUN)')
+    })
+
+    // AT1: the roster a human approved by name, inline. A lead that has to open a file to learn who
+    // it may dispatch will get it wrong once.
+    describe('with an approved team', () => {
+      const withTeam = preamble({ foremanRole: 'lead', runId: 'run_1', approvedTeam: TEAM })
+
+      it('names each approved member, its stage and the evidence behind it', () => {
+        expect(withTeam).toContain('=== TEAM (APPROVED) ===')
+        expect(withTeam).toContain('developer (stage "build"): Ada — member mem_dev on claude')
+        expect(withTeam).toContain('Best of 2 developers.')
+      })
+
+      it('marks an unfilled seat as approved by nobody rather than leaving it blank', () => {
+        expect(withTeam).toContain('reviewer (stage "review"): NOBODY APPROVED')
+        expect(withTeam).toContain('Left open, and approved anyway:')
+      })
+
+      // The roster is who a human picked, not permission to skip anything they would have enforced.
+      it('says the roster waives no check and no backend rule', () => {
+        expect(withTeam).toContain('required\nchecks are authored on the stage')
+        expect(withTeam).toContain('refused\nat launch')
+      })
+    })
+
+    it('says nothing about a team when no composition was approved', () => {
+      expect(text).not.toContain('=== TEAM (APPROVED) ===')
     })
 
     it('falls back to the task id when no run is named', () => {

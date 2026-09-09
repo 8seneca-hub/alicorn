@@ -14,6 +14,7 @@ import {
 
 function journal(overrides: Partial<Journal> = {}): Journal {
   return {
+    team: null,
     runId: 'run_alc42',
     objective: 'Ship partial refunds end to end.',
     status: 'running',

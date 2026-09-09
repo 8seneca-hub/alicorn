@@ -69,6 +69,7 @@ function journalWith(): Journal {
     plan: [],
     waves: [],
     contractRegistry: emptyContractRegistry(),
+    team: null,
     log: [],
     notDone: []
   }

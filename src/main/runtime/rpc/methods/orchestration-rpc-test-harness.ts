@@ -89,7 +89,8 @@ export function createOrchestrationRpcHarness() {
       } else if (
         name === 'orchestration.gateCreate' ||
         name === 'orchestration.gateResolve' ||
-        name === 'orchestration.gateList'
+        name === 'orchestration.gateList' ||
+        name === 'orchestration.teamPropose'
       ) {
         // Why: gates resolve their Run from the sender's pane binding, so naming the run would skip that check.
         scopedParams.from ??= 'term_coord'

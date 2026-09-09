@@ -29,6 +29,7 @@ function journal(plan: JournalNode[], waves: Journal['waves'] = []): Journal {
     plan,
     waves,
     contractRegistry: { entries: [], gaps: [], notes: '' },
+    team: null,
     log: [],
     notDone: []
   }
