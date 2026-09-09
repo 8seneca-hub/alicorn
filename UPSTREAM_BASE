@@ -1,0 +1,17 @@
+# The upstream cut (R5). Alicorn is a hard fork of Orca; this file records where it forked.
+#
+# After this point upstream is a source to CHERRY-PICK from — security fixes and platform bugs,
+# chosen deliberately, one pull request each — and never a branch to merge. See docs/alicorn/UPSTREAM.md.
+
+tag=v1.4.198
+sha=436ef827dda5941940a072b754ee3162aadcee1b
+date=2026-09-09
+policy=cherry-pick-only
+
+# How `sha` was determined: `git merge-base upstream/main main`. It is the last upstream commit in
+# this fork's history — "fix(browser): present Electron's own user agent so Cloudflare Turnstile
+# clears (#18749)", authored 2026-09-04.
+#
+# `tag` is the first upstream release CONTAINING that commit (`git tag --contains`), not the last one
+# reachable from it. The distinction matters when cherry-picking: a fix present in v1.4.198 may or
+# may not be in this fork, because the cut is mid-release. Compare against the sha, never the tag.

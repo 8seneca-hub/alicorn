@@ -6,5 +6,6 @@ This product is a fork of Orca (https://github.com/stablyai/orca), licensed unde
 the MIT License. The original copyright notice is retained unchanged in LICENSE
 and continues to apply to the inherited code.
 
-Forked at: <UPSTREAM_BASE tag and commit SHA — filled in when the upstream cut is
-recorded; see docs/alicorn/plans/2026-09-06-rebrand-cutover-distribution.md>.
+Forked at: upstream commit 436ef827dda5941940a072b754ee3162aadcee1b, first released
+in v1.4.198. Recorded in UPSTREAM_BASE at the repository root; the cherry-pick
+policy that replaced merging is in docs/alicorn/UPSTREAM.md.
