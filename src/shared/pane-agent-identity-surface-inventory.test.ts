@@ -1,3 +1,4 @@
+import { SOURCE_TREE_RATCHET_TIMEOUT_MS } from './source-tree-ratchet-timeout'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -280,5 +281,5 @@ describe('identity observation rebind audit', () => {
       }
     }
     expect(actual).toEqual(EXPECTED_REBIND_SITES.map((site) => [...site]))
-  }, 30_000)
+  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
 })

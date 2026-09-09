@@ -1,3 +1,4 @@
+import { cancelUnreadResponseBody } from '../lib/unread-response-body'
 import { getAlicornControlPlaneUrls } from './control-plane-urls'
 import { readAlicornBearer } from './control-plane-session'
 
@@ -34,7 +35,9 @@ async function readErrorCode(response: Response): Promise<string> {
       return body.error
     }
   } catch {
-    // A non-JSON error body is normal for a proxy or gateway failure.
+    // A non-JSON error body is normal for a proxy or gateway failure — and it is still a body
+    // nobody read, which is the undici crash this repo audits for (orca#8695).
+    await cancelUnreadResponseBody(response)
   }
   return response.statusText || String(response.status)
 }

@@ -1,3 +1,4 @@
+import { SOURCE_TREE_RATCHET_TIMEOUT_MS } from './source-tree-ratchet-timeout'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -478,7 +479,7 @@ describe('pane agent identity inventory ratchet', () => {
     const byHelperAndPath = (left: (typeof actual)[number], right: (typeof actual)[number]) =>
       left.helper.localeCompare(right.helper) || left.path.localeCompare(right.path)
     expect(actual.sort(byHelperAndPath)).toEqual(expected.sort(byHelperAndPath))
-  }, 30_000)
+  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
 
   it('pins direct single-source identity and action branches outside named helpers', () => {
     for (const site of DIRECT_SINGLE_SOURCE_SURFACES) {

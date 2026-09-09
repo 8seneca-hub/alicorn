@@ -1,3 +1,4 @@
+import { SOURCE_TREE_RATCHET_TIMEOUT_MS } from '../shared/source-tree-ratchet-timeout'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -20,7 +21,10 @@ const AUDITED_NON_NET_FETCH_CALLS = new Map<string, number>([
   ['main/rate-limits/minimax-request-context.ts', 2],
   // Injected HttpClient, not a session: resolves to net.fetch on defaultSession
   // (main/host/electron-http-client.ts) or to the global-fetch-audited Node fallback.
-  ['main/jira/authenticated-request.ts', 1]
+  ['main/jira/authenticated-request.ts', 1],
+  // Same shape as the Jira client above, and for the same reason: an injected HttpClient rather
+  // than a session, resolving to net.fetch on defaultSession or the global-fetch-audited fallback.
+  ['main/plane/plane-request.ts', 1]
 ])
 
 // `globalThis.fetch` / `global.fetch` belong to global-fetch-call-site-audit.test.ts.
@@ -105,7 +109,7 @@ describe('proxy-guarded fetch call-site audit (main)', () => {
         'persisted proxy to it. Either drop the option, or apply the proxy to that session ' +
         'yourself (see main/rate-limits/opencode-go-request-session.ts) and allowlist it here.'
     ).toEqual([])
-  })
+  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
 
   it('keeps every non-default-session fetcher audited with its expected count', () => {
     const found = new Map<string, number>()
@@ -136,5 +140,5 @@ describe('proxy-guarded fetch call-site audit (main)', () => {
 
     const stale = [...AUDITED_NON_NET_FETCH_CALLS.keys()].filter((file) => !found.has(file)).sort()
     expect(stale, 'Remove audited entries whose .fetch( calls are gone.').toEqual([])
-  })
+  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
 })

@@ -1,3 +1,4 @@
+import { SOURCE_TREE_RATCHET_TIMEOUT_MS } from '../shared/source-tree-ratchet-timeout'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -15,6 +16,10 @@ import { describe, expect, it } from 'vitest'
 // and update the count.
 const AUDITED_GLOBAL_FETCH_LINES = new Map<string, number>([
   // HTTP call sites — body consumed or cancelled on every path, including !ok
+  // The control plane's only transport (B1). Every path consumes or cancels: a caller that reads
+  // JSON does so itself, one that ignores the body cancels it, and the error path cancels a
+  // non-JSON body after `readErrorCode` fails to parse it.
+  ['main/alicorn/control-plane-http.ts', 1],
   ['main/artifacts/artifact-cloud-request.ts', 1],
   ['main/azure-devops/azure-devops-api-request.ts', 1],
   ['main/bitbucket/client.ts', 1],
@@ -104,5 +109,5 @@ describe('global fetch call-site audit (main, cli, relay)', () => {
 
     const stale = [...AUDITED_GLOBAL_FETCH_LINES.keys()].filter((file) => !found.has(file)).sort()
     expect(stale, 'Remove audited entries whose global-fetch lines are gone.').toEqual([])
-  })
+  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
 })

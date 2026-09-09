@@ -1,3 +1,4 @@
+import { SOURCE_TREE_RATCHET_TIMEOUT_MS } from './source-tree-ratchet-timeout'
 import type * as NodeFs from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -113,5 +114,5 @@ describe('transient lock removal options', () => {
       findPolicyDeclarations(),
       'declare the retry policy once, in src/shared/windows-transient-lock-removal.ts, and import it'
     ).toEqual([OWNING_MODULE])
-  })
+  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
 })

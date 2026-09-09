@@ -1,3 +1,4 @@
+import { cancelUnreadResponseBody } from '../lib/unread-response-body'
 import type { alicornFetch as AlicornFetch } from './control-plane-http'
 import { alicornFetch } from './control-plane-http'
 import type {
@@ -124,9 +125,9 @@ export function createControlPlaneClient(deps?: {
       return body.member
     },
 
-    // 204 No Content — never parsed, because there is no body to parse.
+    // 204 No Content — nothing to parse, so the body is cancelled rather than left unread.
     deleteMember: async (id) => {
-      await request('control', memberPath(id), { method: 'DELETE' })
+      await cancelUnreadResponseBody(await request('control', memberPath(id), { method: 'DELETE' }))
     },
 
     getOrgPolicy: () => readJson<OrgPolicy>('control', '/v1/policy/review-backend'),

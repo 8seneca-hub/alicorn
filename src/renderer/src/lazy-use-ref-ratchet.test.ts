@@ -1,3 +1,4 @@
+import { SOURCE_TREE_RATCHET_TIMEOUT_MS } from '../../shared/source-tree-ratchet-timeout'
 import { readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -126,5 +127,5 @@ describe('renderer useRef initializers', () => {
   it('never does work in the useRef argument', () => {
     const findings = collectSourceFiles(RENDERER_ROOT).flatMap(findNonLazyUseRefs)
     expect(findings).toEqual([])
-  })
+  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
 })

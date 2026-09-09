@@ -1,3 +1,4 @@
+import { cancelUnreadResponseBody } from '../../lib/unread-response-body'
 import type { alicornFetch as AlicornFetch } from '../control-plane-http'
 import { alicornFetch, ControlPlaneRequestError } from '../control-plane-http'
 import type {
@@ -39,18 +40,22 @@ export function createLedgerWriter(deps?: { fetch?: typeof AlicornFetch }): Ledg
     postStepOutcome: (input) => postJson('/v1/ledger/step-outcomes', input),
 
     patchStepOutcomeSpend: async (id, patch) => {
-      await request('ledger', `/v1/ledger/step-outcomes/${encodeURIComponent(id)}/spend`, {
-        method: 'PATCH',
-        body: JSON.stringify(patch)
-      })
+      await cancelUnreadResponseBody(
+        await request('ledger', `/v1/ledger/step-outcomes/${encodeURIComponent(id)}/spend`, {
+          method: 'PATCH',
+          body: JSON.stringify(patch)
+        })
+      )
     },
 
     patchHumanVerdict: async (outcomeId, patch) => {
       try {
-        await request(
-          'ledger',
-          `/v1/ledger/step-outcomes/${encodeURIComponent(outcomeId)}/human-verdict`,
-          { method: 'PATCH', body: JSON.stringify(patch) }
+        await cancelUnreadResponseBody(
+          await request(
+            'ledger',
+            `/v1/ledger/step-outcomes/${encodeURIComponent(outcomeId)}/human-verdict`,
+            { method: 'PATCH', body: JSON.stringify(patch) }
+          )
         )
         return 'patched'
       } catch (error) {
@@ -64,10 +69,12 @@ export function createLedgerWriter(deps?: { fetch?: typeof AlicornFetch }): Ledg
 
     patchGateAgreement: async (outcomeId, patch) => {
       try {
-        await request(
-          'ledger',
-          `/v1/ledger/step-outcomes/${encodeURIComponent(outcomeId)}/gate-agreement`,
-          { method: 'PATCH', body: JSON.stringify(patch) }
+        await cancelUnreadResponseBody(
+          await request(
+            'ledger',
+            `/v1/ledger/step-outcomes/${encodeURIComponent(outcomeId)}/gate-agreement`,
+            { method: 'PATCH', body: JSON.stringify(patch) }
+          )
         )
         return 'patched'
       } catch (error) {
