@@ -39,6 +39,35 @@ pnpm alicorn:up && pnpm alicorn:seed                          # Postgres 16 + bo
 pnpm dev
 ```
 
+**Corrections from actually running it on 2026-09-10** — the three lines above were written from
+the plans rather than from a terminal, and two of them were wrong:
+
+- **`alicorn:up` / `alicorn:seed` live in `cloud/package.json`, not the root.** It is
+  `cd cloud && pnpm alicorn:up`.
+- **`cloud/` declares `engines.pnpm >= 10`**, so on a pnpm 9 machine that command refuses to run
+  before it does anything. Either take the corepack line above seriously, or drive compose
+  directly, which has no such gate:
+  ```bash
+  cd cloud
+  docker compose -f dev/compose/alicorn-local.yml up -d --build
+  node dev/scripts/seed-alicorn-local.mjs
+  ```
+- **The ledger API will not start until you give it a signing key.** The compose file defaults
+  `ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID` and `_PEM` to empty, the service validates them as
+  non-empty, and the container exits 1 — leaving three of four services up and one silently gone.
+  Generate a throwaway pair first:
+  ```bash
+  openssl ecparam -name prime256v1 -genkey -noout -out /tmp/alicorn-ledger-dev.pem
+  export ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID=local-dev
+  export ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM="$(cat /tmp/alicorn-ledger-dev.pem)"
+  ```
+  Export it in the shell rather than writing it to `cloud/.env`: compose's `.env` parser does not
+  handle a multi-line PEM, and it fails by passing an empty string rather than by complaining.
+  This key signs provenance exports — a local throwaway is fine, reusing it anywhere real is not.
+
+`docker compose ... ps -a` after starting, not `ps`. A service that exited is invisible in the
+default listing, which is exactly how the missing ledger key reads as a clean startup.
+
 Environment for the desktop, auth mode `local` — one tenant, one shared bearer, no Keycloak:
 
 | Variable | Value |
