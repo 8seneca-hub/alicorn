@@ -1,5 +1,3 @@
-import type { HookReinstallEffect } from './hook-reinstall-sweep'
-
 /**
  * What the managed-script writers did, so the hook reinstall sweep can say whether a host was
  * already current or had a pre-rename script replaced.
@@ -15,12 +13,19 @@ import type { HookReinstallEffect } from './hook-reinstall-sweep'
  * concurrent install elsewhere cannot make a host look reinstalled.
  */
 
-type WriteLog = HookReinstallEffect[]
+/**
+ * What one managed-script write did. Declared here rather than imported from the sweep: the
+ * writers are in the CLI's module graph and the sweep is not, so the dependency points from the
+ * consumer to this file and never back.
+ */
+export type ManagedScriptWriteEffect = 'written' | 'unchanged'
+
+type WriteLog = ManagedScriptWriteEffect[]
 
 let active: WriteLog | null = null
 
 /** Called by the writers. A no-op unless a sweep is collecting, which is the normal case. */
-export function recordManagedScriptWrite(effect: HookReinstallEffect): void {
+export function recordManagedScriptWrite(effect: ManagedScriptWriteEffect): void {
   active?.push(effect)
 }
 
@@ -33,7 +38,7 @@ export function recordManagedScriptWrite(effect: HookReinstallEffect): void {
  */
 export async function recordManagedScriptWritesDuring(
   install: () => Promise<unknown>
-): Promise<HookReinstallEffect> {
+): Promise<ManagedScriptWriteEffect> {
   if (active) {
     throw new Error('managed script write log is already collecting')
   }

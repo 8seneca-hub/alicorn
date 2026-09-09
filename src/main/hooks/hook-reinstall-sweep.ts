@@ -18,6 +18,8 @@
  * (`docs/reference/ssh-execution-boundary.md` makes the same rule for liveness).
  */
 
+import type { ManagedScriptWriteEffect } from './managed-script-write-log'
+
 export type HookReinstallHost =
   | { kind: 'local' }
   | { kind: 'wsl'; distro: string }
@@ -33,7 +35,7 @@ export type HookReinstallOutcome = {
 }
 
 /** What a host's installers did: at least one script rewritten, or every one already current. */
-export type HookReinstallEffect = 'written' | 'unchanged'
+export type HookReinstallEffect = ManagedScriptWriteEffect
 
 export type HookReinstallSweepInput = {
   hosts: readonly HookReinstallHost[]

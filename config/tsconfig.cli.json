@@ -14,6 +14,10 @@
     "../src/main/agent-hooks/managed-agent-hook-controls.ts",
     "../src/main/agent-hooks/managed-agent-hook-registry.ts",
     "../src/main/agent-hooks/managed-hook-script-refresh.ts",
+    // Why: the three managed-script writers report what they wrote so the hook reinstall sweep can
+    // tell a replaced pre-rename script from one already current. Import-free by design — the
+    // sweep imports it, never the other way, so the CLI graph gains this file and nothing else.
+    "../src/main/hooks/managed-script-write-log.ts",
     "../src/main/agent-hooks/posix-hook-command.ts",
     "../src/main/agent-hooks/runtime-home-hook-command.ts",
     "../src/main/agent-hooks/windows-powershell-hook-launcher.ts",

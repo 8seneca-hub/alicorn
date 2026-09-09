@@ -1,4 +1,7 @@
-import { recordManagedScriptWrite } from '../hooks/managed-script-write-log'
+import {
+  recordManagedScriptWrite,
+  type ManagedScriptWriteEffect
+} from '../hooks/managed-script-write-log'
 import {
   existsSync,
   mkdirSync,
@@ -257,7 +260,7 @@ export function hookDefinitionHasManagedCommand(
  * differs even though the version it posts at runtime does not (it reads that from the endpoint
  * file, which now carries both spellings). The hook reinstall sweep is built on this answer.
  */
-export type ManagedScriptWriteEffect = 'written' | 'unchanged'
+export type { ManagedScriptWriteEffect }
 
 // Why: temp+rename so concurrent writers can't leave a torn script for an in-flight /bin/sh to source.
 export function writeManagedScript(scriptPath: string, content: string): ManagedScriptWriteEffect {
