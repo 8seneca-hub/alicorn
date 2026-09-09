@@ -40,6 +40,8 @@ const WINDOWS_SHIM_SPAWN_ALLOWLIST = [
   // Owns the pnpm invocation decision for every other script.
   'config/scripts/pnpm-cli-invocation.mjs',
   'config/scripts/pnpm-cli-invocation.test.mjs',
+  // Lists `.cmd` as a scanned file extension; spawns nothing.
+  'config/scripts/verify-rebrand-env-gate.mjs',
   // Write or assert on shim files rather than spawning one.
   'config/scripts/dev-cli-terminal-wrapper.mjs',
   'config/scripts/dev-cli-terminal-wrapper.test.mjs',

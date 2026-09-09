@@ -175,6 +175,11 @@ jobs:
       - name: Verify rebrand CLI gate
         run: pnpm run verify:rebrand-cli-gate
 
+      # Same reasoning one rename over: R4's codemod drives ~7.3k `ORCA_*` identifiers to zero,
+      # and a shrink-only baseline only shrinks if every PR is measured against it.
+      - name: Verify rebrand env gate
+        run: pnpm run verify:rebrand-env-gate
+
       - name: Verify localization catalog
         run: pnpm run verify:localization-catalog
 
