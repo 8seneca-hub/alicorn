@@ -20,29 +20,29 @@ describe('computer-use skill guidance', () => {
     expect(description).toContain('external browser window')
     expect(description).toContain("Do not use for Orca's embedded browser")
     expect(description).toContain('page-only browser automation')
-    expect(description).toContain("`orca-cli` for Orca's embedded pages")
+    expect(description).toContain("`alicorn-cli` for Orca's embedded pages")
     expect(description).toContain(
       'page-automation tool such as Playwright or CDP for external pages'
     )
     expect(description).not.toContain('read Slack')
     expect(description).not.toContain('get app state')
 
-    const orcaCli = readFileSync(join(projectDir, 'skill-guides', 'orca-cli.md'), 'utf8').replace(
-      /\s+/gu,
-      ' '
-    )
+    const orcaCli = readFileSync(
+      join(projectDir, 'skill-guides', 'alicorn-cli.md'),
+      'utf8'
+    ).replace(/\s+/gu, ' ')
     expect(orcaCli).toContain('browser embedded inside the Orca app')
   })
 
   it('keeps web-app targeting on the computer-use surface', () => {
     const skill = readFileSync(guidePath, 'utf8')
 
-    expect(skill).toContain('Use this skill for desktop UI through `orca computer`')
+    expect(skill).toContain('Use this skill for desktop UI through `alicorn computer`')
     expect(skill).toContain('external desktop browser window that needs desktop-level control')
-    expect(skill).not.toContain('orca goto')
-    expect(skill).not.toContain('orca snapshot')
-    expect(skill).not.toContain('orca click')
-    expect(skill).not.toContain('orca fill')
+    expect(skill).not.toContain('alicorn goto')
+    expect(skill).not.toContain('alicorn snapshot')
+    expect(skill).not.toContain('alicorn click')
+    expect(skill).not.toContain('alicorn fill')
     expect(skill).not.toContain('Routing:')
   })
 
@@ -100,7 +100,7 @@ describe('computer-use install stub', () => {
     // The safe CLI-resolution contract must survive in the stub, never a bare `orca`.
     expect(stub).toContain('ORCA_CLI_COMMAND')
     expect(stub).toContain('orca-dev')
-    expect(stub).toContain('orca-ide')
+    expect(stub).toContain('alicorn-ide')
     expect(stub).toContain('GNOME Orca screen reader')
     expect(stub).not.toMatch(/^orca /mu)
   })

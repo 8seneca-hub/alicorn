@@ -3,15 +3,15 @@ import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const projectDir = resolve(import.meta.dirname, '../..')
-// Why: orca-linear and its legacy linear-tickets alias now ship hybrid discovery stubs, so
+// Why: alicorn-linear and its legacy linear-tickets alias now ship hybrid discovery stubs, so
 // their version-sensitive command guidance lives in the authoritative guide sources — assert
 // that content there. The installable stub projections are checked separately below.
-const canonicalGuidePath = join(projectDir, 'skill-guides', 'orca-linear.md')
+const canonicalGuidePath = join(projectDir, 'skill-guides', 'alicorn-linear.md')
 const legacyGuidePath = join(projectDir, 'skill-guides', 'linear-tickets.md')
-const canonicalStubPath = join(projectDir, 'skills', 'orca-linear', 'SKILL.md')
+const canonicalStubPath = join(projectDir, 'skills', 'alicorn-linear', 'SKILL.md')
 const legacyStubPath = join(projectDir, 'skills', 'linear-tickets', 'SKILL.md')
 const legacyIntro =
-  '`linear-tickets` is the legacy bundled name for `orca-linear`. This copy remains complete; its CLI commands are identical to `orca-linear` and always use `orca linear ...`.'
+  '`linear-tickets` is the legacy bundled name for `alicorn-linear`. This copy remains complete; its CLI commands are identical to `alicorn-linear` and always use `alicorn linear ...`.'
 
 function skillBody(skill) {
   return skill.replace(/^---\n[\s\S]*?\n---\n\n/, '')
@@ -24,12 +24,12 @@ function normalizeLegacyBody(skill) {
   )
 }
 
-describe('orca-linear skill guidance', () => {
+describe('alicorn-linear skill guidance', () => {
   it('keeps canonical and legacy Linear guide bodies from drifting', () => {
     const canonical = readFileSync(canonicalGuidePath, 'utf8')
     const legacy = readFileSync(legacyGuidePath, 'utf8')
 
-    expect(canonical).toContain('name: orca-linear')
+    expect(canonical).toContain('name: alicorn-linear')
     expect(legacy).toContain('name: linear-tickets')
     expect(legacy).toContain('Legacy bundled alias for')
     expect(normalizeLegacyBody(legacy)).toBe(skillBody(canonical))
@@ -52,16 +52,16 @@ describe('orca-linear skill guidance', () => {
     const legacy = readFileSync(legacyGuidePath, 'utf8')
 
     for (const skill of [canonical, legacy]) {
-      expect(skill).toContain('orca linear project list [--query <text>]')
+      expect(skill).toContain('alicorn linear project list [--query <text>]')
       expect(skill).toContain('[--project <projectId-or-exact-name>]')
       expect(skill).toContain('Run only the command for the metadata you need')
     }
   })
 })
 
-describe('orca-linear install stubs', () => {
+describe('alicorn-linear install stubs', () => {
   const cases = [
-    { name: 'orca-linear', stubPath: canonicalStubPath, guidePath: canonicalGuidePath },
+    { name: 'alicorn-linear', stubPath: canonicalStubPath, guidePath: canonicalGuidePath },
     { name: 'linear-tickets', stubPath: legacyStubPath, guidePath: legacyGuidePath }
   ]
 
@@ -74,7 +74,7 @@ describe('orca-linear install stubs', () => {
       // The safe CLI-resolution contract must survive in the stub, never a bare `orca`.
       expect(stub).toContain('ORCA_CLI_COMMAND')
       expect(stub).toContain('orca-dev')
-      expect(stub).toContain('orca-ide')
+      expect(stub).toContain('alicorn-ide')
       expect(stub).toContain('GNOME Orca screen reader')
       expect(stub).not.toMatch(/^orca /mu)
     })
@@ -100,8 +100,8 @@ describe('orca-linear install stubs', () => {
 
       // Version-sensitive command detail lives in the binary-served guide now, not here.
       // (The frontmatter description still names some commands; assert on body-only surface.)
-      expect(stub).not.toContain('orca linear search')
-      expect(stub).not.toContain('orca linear comment')
+      expect(stub).not.toContain('alicorn linear search')
+      expect(stub).not.toContain('alicorn linear comment')
       expect(stub.length).toBeLessThan(readFileSync(guidePath, 'utf8').length)
     })
 

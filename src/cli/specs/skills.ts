@@ -5,49 +5,49 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['skills', 'installed'],
     summary: 'List installed skill selectors',
-    usage: 'orca skills installed [--json]',
+    usage: 'alicorn skills installed [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [
       'Lists discovery IDs and names without reading skill contents into the CLI.',
       'Package metadata is validated when the selected skills are shared.',
-      'Use an exact ID or an unambiguous name with `orca skills share --skill <selector>`.'
+      'Use an exact ID or an unambiguous name with `alicorn skills share --skill <selector>`.'
     ]
   },
   {
     path: ['skills', 'share'],
     summary: 'Publish explicitly selected installed skills behind one unlisted link',
     usage:
-      'orca skills share --skill <selector> [--skill <selector> ...] --bundle-name <name> ' +
+      'alicorn skills share --skill <selector> [--skill <selector> ...] --bundle-name <name> ' +
       '[--release-notes <text>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'skill', 'bundle-name', 'release-notes'],
     notes: [
       'Requires the default-off permission in Settings → Share Skills.',
       'The bundle name may be human-readable; Orca converts it to a portable lowercase package name.',
-      'Selectors are exact discovery IDs or unambiguous names from `orca skills installed`.',
+      'Selectors are exact discovery IDs or unambiguous names from `alicorn skills installed`.',
       'Only discovered skill directories can be selected; arbitrary paths and --all are not supported.',
       'The resulting link is unlisted. Anyone with it can inspect and install the bundle.'
     ],
     examples: [
-      'orca skills share --skill frontend --bundle-name "Frontend Skills"',
-      'orca skills share --skill frontend --skill testing --bundle-name "Team Toolkit" --json'
+      'alicorn skills share --skill frontend --bundle-name "Frontend Skills"',
+      'alicorn skills share --skill frontend --skill testing --bundle-name "Team Toolkit" --json'
     ]
   },
   {
     path: ['skills', 'list'],
     summary: 'List version-matched skill guides bundled with this Orca CLI',
-    usage: 'orca skills list [--json]',
+    usage: 'alicorn skills list [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [
       'Reads bundled guide metadata locally without contacting the Orca runtime.',
       'With --json, prints a topics array of canonical names and one-line descriptions.',
-      'Use `orca skills get <name>` for the full guide, or `orca skills install` to install skills.'
+      'Use `alicorn skills get <name>` for the full guide, or `alicorn skills install` to install skills.'
     ]
   },
   {
     path: ['skills', 'get'],
     aliases: [['skills', 'show']],
     summary: 'Print a version-matched skill guide as Markdown',
-    usage: 'orca skills get <topic> [--full] [--json]',
+    usage: 'alicorn skills get <topic> [--full] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'topic', 'full'],
     positionalArgs: ['topic'],
     notes: [
@@ -55,13 +55,13 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
       'Use --full to include bundled reference documents when the guide provides them.',
       'Use --json for a deterministic object containing canonical topic metadata and content.'
     ],
-    examples: ['orca skills get orca-cli', 'orca skills get orchestration --full']
+    examples: ['alicorn skills get orca-cli', 'alicorn skills get orchestration --full']
   },
   {
     path: ['skills', 'install'],
     summary: 'Install bundled Orca skills via the community skills CLI',
     usage:
-      'orca skills install [--skill <name>]... [--all] [--agent <name>[,<name>]] ' +
+      'alicorn skills install [--skill <name>]... [--all] [--agent <name>[,<name>]] ' +
       '[--local] [--dry-run] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'skill', 'all', 'agent', 'local', 'dry-run'],
     notes: [
@@ -84,17 +84,17 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
       'Intended for headless hosts (SSH, containers, CI) with no desktop Settings UI to copy the install command from.'
     ],
     examples: [
-      'orca skills install',
-      'orca skills install --skill orca-cli --skill orchestration',
-      'orca skills install --skill orca-cli --local',
-      'orca skills install --skill orca-cli --agent claude-code,codex',
-      'orca skills install --all --dry-run'
+      'alicorn skills install',
+      'alicorn skills install --skill orca-cli --skill orchestration',
+      'alicorn skills install --skill orca-cli --local',
+      'alicorn skills install --skill orca-cli --agent claude-code,codex',
+      'alicorn skills install --all --dry-run'
     ]
   },
   {
     path: ['skills', 'update'],
     summary: 'Update already-installed Orca skills via the community skills CLI',
-    usage: 'orca skills update [--skill <name>]... [--all] [--local] [--dry-run] [--json]',
+    usage: 'alicorn skills update [--skill <name>]... [--all] [--local] [--dry-run] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'skill', 'all', 'local', 'dry-run'],
     notes: [
       'Reads the bundled skill registry locally without contacting the Orca runtime.',
@@ -103,7 +103,7 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
         'then runs it and forwards its output and exit code.',
       'Updates the global install (all projects, adds --global) by default. Use --local to ' +
         'update the current project instead.',
-      'Only refreshes skills that are already installed; use `orca skills install` first.',
+      'Only refreshes skills that are already installed; use `alicorn skills install` first.',
       'Use --dry-run to print the resolved command without running it.',
       'With --json, the skill listing and --dry-run emit JSON; a real update streams ' +
         "npx's own non-JSON output live and rejects --json.",
@@ -111,10 +111,10 @@ export const SKILL_COMMAND_SPECS: CommandSpec[] = [
       'Intended for headless hosts (SSH, containers, CI) with no desktop Settings UI to copy the update command from.'
     ],
     examples: [
-      'orca skills update',
-      'orca skills update --skill orca-cli --skill orchestration',
-      'orca skills update --skill orca-cli --local',
-      'orca skills update --all --dry-run'
+      'alicorn skills update',
+      'alicorn skills update --skill orca-cli --skill orchestration',
+      'alicorn skills update --skill orca-cli --local',
+      'alicorn skills update --all --dry-run'
     ]
   }
 ]

@@ -27,7 +27,7 @@ describe('ledger command specs', () => {
 
   it('documents its usage with the filter flags', () => {
     expect(report!.usage).toBe(
-      'orca ledger report [--stage <key>] [--project <id>] [--member <id>] [--run <id>] [--strategy <single|orchestrated>] [--since <iso>] [--until <iso>] [--json]'
+      'alicorn ledger report [--stage <key>] [--project <id>] [--member <id>] [--run <id>] [--strategy <single|orchestrated>] [--since <iso>] [--until <iso>] [--json]'
     )
   })
 })
@@ -56,9 +56,9 @@ describe('ledger outbox command specs', () => {
   })
 
   it('documents usage for both commands', () => {
-    expect(outbox!.usage).toBe('orca ledger outbox [--dead] [--limit <n>] [--json]')
+    expect(outbox!.usage).toBe('alicorn ledger outbox [--dead] [--limit <n>] [--json]')
     expect(requeue!.usage).toBe(
-      'orca ledger outbox-requeue (--id <id> | --all [--kind <kind>]) [--json]'
+      'alicorn ledger outbox-requeue (--id <id> | --all [--kind <kind>]) [--json]'
     )
   })
 })

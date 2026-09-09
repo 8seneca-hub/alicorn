@@ -49,7 +49,7 @@ describe('PLANE_COMMAND_SPECS', () => {
 
   it('gives every verb a usage line and at least one example', () => {
     for (const spec of PLANE_COMMAND_SPECS) {
-      expect(spec.usage).toMatch(/^orca plane /)
+      expect(spec.usage).toMatch(/^alicorn plane /)
       expect(spec.examples?.length ?? 0).toBeGreaterThan(0)
     }
   })

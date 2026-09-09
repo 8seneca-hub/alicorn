@@ -72,7 +72,7 @@ describe('docs-only path classification', () => {
 
   it('still runs PR Checks for product markdown and CI', () => {
     expect(isDocsOnlyPath('skills/computer-use/SKILL.md')).toBe(false)
-    expect(isDocsOnlyPath('skill-guides/orca-cli.md')).toBe(false)
+    expect(isDocsOnlyPath('skill-guides/alicorn-cli.md')).toBe(false)
     expect(isDocsOnlyPath('.github/workflows/pr.yml')).toBe(false)
     expect(isDocsOnlyPath('src/main/index.ts')).toBe(false)
     expect(isDocsOnlyPath('config/scripts/pr-code-change-scope.mjs')).toBe(false)

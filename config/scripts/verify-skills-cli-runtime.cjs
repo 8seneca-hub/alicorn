@@ -179,7 +179,7 @@ function verifySkillsCliRuntime(outDir, artifactRoot = dirname(outDir), options 
   }
   const list = parseJson('skills list', runCli(absoluteOutDir, ['skills', 'list', '--json']))
   const topicNames = new Set(list.topics?.map((topic) => topic.name))
-  for (const topic of ['orca-cli', 'computer-use']) {
+  for (const topic of ['alicorn-cli', 'computer-use']) {
     if (!topicNames.has(topic)) {
       throw new Error(`[verify-skills-cli-runtime] skills list omitted ${topic}`)
     }
@@ -195,7 +195,7 @@ function verifySkillsCliRuntime(outDir, artifactRoot = dirname(outDir), options 
       'skills',
       'install',
       '--skill',
-      'orca-cli',
+      'alicorn-cli',
       '--agent',
       'codex',
       '--dry-run',
@@ -204,13 +204,19 @@ function verifySkillsCliRuntime(outDir, artifactRoot = dirname(outDir), options 
   )
   const update = parseJson(
     'skills update --dry-run',
-    runCli(absoluteOutDir, ['skills', 'update', '--skill', 'orca-cli', '--dry-run', '--json'])
+    runCli(absoluteOutDir, ['skills', 'update', '--skill', 'alicorn-cli', '--dry-run', '--json'])
   )
   if (install.executed !== false || update.executed !== false) {
     throw new Error('[verify-skills-cli-runtime] a dry-run reported execution')
   }
 
-  return { closureFiles: closure.length, commands: 5 }
+  // Why: the rename kept `orca-cli` as a guide alias precisely so an agent that
+  // learned the old name keeps working. An alias nobody exercises is a promise.
+  if (!runCli(absoluteOutDir, ['skills', 'get', 'orca-cli']).includes('name: alicorn-cli')) {
+    throw new Error('[verify-skills-cli-runtime] the orca-cli alias no longer resolves')
+  }
+
+  return { closureFiles: closure.length, commands: 6 }
 }
 
 if (require.main === module) {

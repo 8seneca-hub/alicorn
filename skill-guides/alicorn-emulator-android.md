@@ -1,11 +1,11 @@
 ---
-name: orca-emulator-android
+name: alicorn-emulator-android
 description: >
-  Control an Android emulator / device from inside Orca using the `orca` CLI.
+  Control an Android emulator / device from inside Orca using the `alicorn` CLI.
   Use for listing/booting AVDs, taps, swipes, typing, hardware buttons (incl. Back
   and Recents), rotation, app install/launch, runtime permissions, the accessibility
   tree, and logcat — driving a real adb-connected device or emulator. Cross-platform
-  (Windows, Linux, macOS). Complements the orca-emulator (iOS) and orca-cli skills.
+  (Windows, Linux, macOS). Complements the alicorn-emulator (iOS) and alicorn-cli skills.
 license: Apache-2.0
 ---
 
@@ -14,7 +14,7 @@ license: Apache-2.0
 Drive an Android emulator or adb-connected device **from within Orca** using
 `ORCA emulator ...` commands. The Android backend shells out to the Android SDK
 (`adb`, `emulator`, `avdmanager`) that Android Studio installs, so it works on
-Windows, Linux, and macOS — unlike the iOS backend (`orca-emulator`), which is
+Windows, Linux, and macOS — unlike the iOS backend (`alicorn-emulator`), which is
 macOS-only. Device control uses `adb shell input`, so it works without any extra
 streaming server.
 
@@ -26,8 +26,8 @@ streaming server.
 ## CLI executable
 
 Choose the Orca executable once: use the `ORCA_CLI_COMMAND` environment value when set;
-otherwise use `orca-dev` in a dev session exposing `ORCA_DEV_REPO_ROOT`, `orca-ide` on
-Linux outside an Orca-managed terminal, and `orca` everywhere else. Never try bare
+otherwise use `orca-dev` in a dev session exposing `ORCA_DEV_REPO_ROOT`, `alicorn-ide` on
+Linux outside an Orca-managed terminal, and `alicorn` everywhere else. Never try bare
 `orca` first on unmanaged Linux because it normally resolves to the GNOME screen reader.
 
 In every command example — fenced blocks, tables, and prose — `ORCA` is a documentation
@@ -46,7 +46,7 @@ shell-neutral for POSIX shells, PowerShell, and cmd.exe.
 
 ## When NOT to use
 
-- iOS simulators → use the `orca-emulator` skill (macOS only).
+- iOS simulators → use the `alicorn-emulator` skill (macOS only).
 - Building the app → use Gradle / `./gradlew assembleDebug`, then `install`.
 - Camera/sensor injection → not supported yet (Android virtual-scene is out of
   scope for now).
@@ -69,7 +69,7 @@ Orca returns a clear message when the SDK is missing
 
 ```text
 ┌────────────────────────┐
-│ orca CLI (agents)      │  e.g. ORCA emulator tap 0.5 0.7 --device emulator-5554
+│ alicorn CLI (agents)   │  e.g. ORCA emulator tap 0.5 0.7 --device emulator-5554
 └───────────┬────────────┘
             │ RPC
             ▼
@@ -151,5 +151,5 @@ ORCA emulator logcat --lines 100 --device emulator-5554 --json
 Run `ORCA emulator devices --json` to find a booted device, then drive it with
 `--device <serial>` while watching the emulator window.
 
-See also: `orca-emulator` (iOS, macOS-only), `orca-cli` (terminals, worktrees,
+See also: `alicorn-emulator` (iOS, macOS-only), `alicorn-cli` (terminals, worktrees,
 built-in browser), `computer-use` (desktop UI outside the emulator).

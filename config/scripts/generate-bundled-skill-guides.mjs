@@ -8,45 +8,45 @@ const SCRIPT_DIR = import.meta.dirname
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..', '..')
 
 const CANONICAL_GUIDE_NAMES = [
+  'alicorn-cli',
+  'alicorn-emulator',
+  'alicorn-emulator-android',
+  'alicorn-linear',
+  'alicorn-per-workspace-env',
+  'alicorn-plane',
   'computer-use',
   'linear-tickets',
-  'orca-cli',
-  'orca-emulator',
-  'orca-emulator-android',
-  'orca-linear',
-  'orca-per-workspace-env',
-  'orca-plane',
   'orchestration'
 ]
 
 // Why: old discovery stubs can outlive a rename indefinitely, so aliases are
 // a compatibility ledger: add entries for renames, but never remove them.
 const GUIDE_ALIASES = {
+  'alicorn-cli': ['orca-cli'],
+  'alicorn-emulator': ['orca-emulator'],
+  'alicorn-emulator-android': ['orca-emulator-android'],
+  'alicorn-linear': ['orca-linear'],
+  'alicorn-per-workspace-env': ['orca-per-workspace-env'],
+  'alicorn-plane': ['orca-plane'],
   'computer-use': [],
   'linear-tickets': [],
-  'orca-cli': [],
-  'orca-emulator': [],
-  'orca-emulator-android': [],
-  'orca-linear': [],
-  'orca-per-workspace-env': [],
-  'orca-plane': [],
   orchestration: []
 }
 
 // Why: a stubbed topic ships a hybrid discovery stub as its installable projection while
-// `orca skills get <topic>` still serves the full version-matched guide from the binary.
+// `alicorn skills get <topic>` still serves the full version-matched guide from the binary.
 // Migrating a topic here is effectively one-way — earlier fat installs rely on the stub
 // landing to converge — so entries are added as skills convert, never removed. The stub
 // body lives in skill-stubs/<topic>.md; the projection reuses the guide's own frontmatter.
 const STUB_TOPICS = [
+  'alicorn-cli',
+  'alicorn-emulator',
+  'alicorn-emulator-android',
+  'alicorn-linear',
+  'alicorn-per-workspace-env',
+  'alicorn-plane',
   'computer-use',
   'linear-tickets',
-  'orca-cli',
-  'orca-emulator',
-  'orca-emulator-android',
-  'orca-linear',
-  'orca-per-workspace-env',
-  'orca-plane',
   'orchestration'
 ]
 

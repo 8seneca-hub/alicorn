@@ -522,9 +522,9 @@ describe('skill bundle manifest generator', () => {
   })
 
   it('computes the same Git tree identity as Git', async () => {
-    const packageRoot = path.resolve('skills', 'orca-cli')
+    const packageRoot = path.resolve('skills', 'alicorn-cli')
     const files = await collectPackageFiles(packageRoot)
-    const expected = execFileSync('git', ['ls-tree', 'HEAD:skills', 'orca-cli'], {
+    const expected = execFileSync('git', ['ls-tree', 'HEAD:skills', 'alicorn-cli'], {
       encoding: 'utf8'
     })
       .trim()

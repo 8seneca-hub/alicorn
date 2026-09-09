@@ -7,7 +7,7 @@ export const ORCHESTRATION_GATE_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'gate-create'],
     summary: 'Create a decision gate blocking a task',
     usage:
-      'orca orchestration gate-create --task <task_id> --question <text> [--options <json_array>] [--evaluate] [--stage-key <key>] [--from <handle>] [--retry-request <id>] [--json]',
+      'alicorn orchestration gate-create --task <task_id> --question <text> [--options <json_array>] [--evaluate] [--stage-key <key>] [--from <handle>] [--retry-request <id>] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'task',
@@ -26,7 +26,7 @@ export const ORCHESTRATION_GATE_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'team-propose'],
     summary: 'Compose a team from member roles and gate it for approval',
     usage:
-      'orca orchestration team-propose --task <task_id> [--worktree <selector>] [--goal <text>] [--from <handle>] [--retry-request <id>] [--json]',
+      'alicorn orchestration team-propose --task <task_id> [--worktree <selector>] [--goal <text>] [--from <handle>] [--retry-request <id>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'task', 'worktree', 'goal', 'from', 'retry-request'],
     notes: [
       'The proposal always opens a decision gate: there is no read that answers "who would you pick?" without asking a human about the answer.',
@@ -38,7 +38,7 @@ export const ORCHESTRATION_GATE_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'verify-record'],
     summary: 'Record a named check result for a task',
     usage:
-      'orca orchestration verify-record --task <task_id> --name <text> --status <passed|failed|skipped|error> [--kind <kind>] [--dispatch <dispatch_id>] [--optional] [--detail <json_object>] [--from <handle>] [--retry-request <id>] [--json]',
+      'alicorn orchestration verify-record --task <task_id> --name <text> --status <passed|failed|skipped|error> [--kind <kind>] [--dispatch <dispatch_id>] [--optional] [--detail <json_object>] [--from <handle>] [--retry-request <id>] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'task',
@@ -59,14 +59,14 @@ export const ORCHESTRATION_GATE_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'gate-resolve'],
     summary: 'Resolve a pending decision gate',
     usage:
-      'orca orchestration gate-resolve --id <gate_id> --resolution <text> [--from <handle>] [--retry-request <id>] [--json]',
+      'alicorn orchestration gate-resolve --id <gate_id> --resolution <text> [--from <handle>] [--retry-request <id>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'id', 'resolution', 'from', 'retry-request']
   },
   {
     path: ['orchestration', 'gate-list'],
     summary: 'List decision gates',
     usage:
-      'orca orchestration gate-list [--task <task_id>] [--status <status>] [--run <run_id>] [--from <handle>] [--json]',
+      'alicorn orchestration gate-list [--task <task_id>] [--status <status>] [--run <run_id>] [--from <handle>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'task', 'status', 'run', 'from'],
     notes: ['--run inspects a named Run without binding; otherwise gates are scoped to the caller.']
   }

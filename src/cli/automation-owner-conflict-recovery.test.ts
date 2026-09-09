@@ -35,7 +35,7 @@ describe('automation owner conflicts read as CLI outcomes', () => {
     expect(output).not.toMatch(/run the command again|try again/i)
     expect(output).toContain('retrying will not change that')
     expect(output).toContain('Re-add that SSH host')
-    expect(output).toContain('orca automations remove')
+    expect(output).toContain('alicorn automations remove')
   })
 
   it('keeps the code machine-readable in --json while carrying the same steps', () => {
@@ -109,6 +109,6 @@ describe('automation owner conflicts read as CLI outcomes', () => {
     )
 
     expect(output).not.toContain('automation_destination_invalid')
-    expect(output).toContain('Next step: Run `orca automations show --id <id>`')
+    expect(output).toContain('Next step: Run `alicorn automations show --id <id>`')
   })
 })

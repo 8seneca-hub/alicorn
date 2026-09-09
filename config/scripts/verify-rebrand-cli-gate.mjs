@@ -54,18 +54,31 @@ const SCAN_EXTENSIONS = new Set([
 ])
 
 /**
- * A bare invocation: `orca` (or `orca-dev`) as a command, followed by a
- * subcommand word.
+ * A bare invocation: `orca` as a command, followed by a subcommand word.
  *
  * The leading class excludes the characters that make it something else —
  * `/usr/local/bin/orca` is a path, `orca-ide` is the Linux binary, and an
  * alphanumeric prefix means it is part of a longer word. Case-sensitive on
  * purpose: "GNOME Orca" is a different product and must not be rewritten.
+ *
+ * `orca-dev` is deliberately not matched. It is still the live dev handle
+ * (`package.json` `bin`), so a guide that says `alicorn-dev` today would be
+ * wrong — the rename belongs to the `bin` change, and this pattern regains its
+ * `(?:-dev)?` on the same commit.
  */
 export const BARE_ORCA_INVOCATION = /(^|[^A-Za-z0-9_/-])orca(?:-dev)? [a-z]/
 
 /** The same match, capturing command plus subcommand so a finding names the call site. */
-const BARE_ORCA_INVOCATION_GLOBAL = /(^|[^A-Za-z0-9_/-])(orca(?:-dev)? [a-z][\w-]*)/g
+export const BARE_ORCA_INVOCATION_GLOBAL = /(^|[^A-Za-z0-9_/-])(orca(?:-dev)? [a-z][\w-]*)/g
+
+/**
+ * What the codemod may rewrite — plain `orca` only.
+ *
+ * Deliberately narrower than the detection pattern above: `orca-dev` is still the live dev
+ * handle in `package.json` `bin`, so the gate must *watch* it while the rewriter must *not*
+ * touch it. One regex serving both jobs would either blind the gate or corrupt the corpus.
+ */
+export const REWRITABLE_ORCA_INVOCATION_GLOBAL = /(^|[^A-Za-z0-9_/-])(orca [a-z][\w-]*)/g
 
 /**
  * Trim and collapse runs of whitespace, so re-indenting a list item or a

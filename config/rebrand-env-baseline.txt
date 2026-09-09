@@ -132,6 +132,8 @@
 2	config/scripts/agent-hook-normalizer-roundtrip-benchmark.mjs	ORCA_HOOK_NORM_BENCH_ITERATIONS
 2	config/scripts/agent-hook-normalizer-roundtrip-benchmark.mjs	ORCA_HOOK_NORM_BENCH_WARMUP
 1	config/scripts/agent-status-hot-path-benchmark.test.ts	ORCA_AGENT_STATUS_BENCH_OUTPUT
+1	config/scripts/alicorn-cli-skill-guidance.test.mjs	ORCA_CLI_COMMAND
+1	config/scripts/alicorn-linear-skill-guidance.test.mjs	ORCA_CLI_COMMAND
 2	config/scripts/branch-compare-head-benchmark.mjs	ORCA_BRANCH_COMPARE_BENCH_ITERATIONS
 2	config/scripts/branch-compare-head-benchmark.mjs	ORCA_BRANCH_COMPARE_BENCH_WARMUP
 1	config/scripts/build-computer-macos.mjs	ORCA_COMPUTER_MACOS_BUNDLE_ID
@@ -320,7 +322,6 @@
 2	config/scripts/mjpeg-frame-parser-alloc-benchmark.mjs	ORCA_MJPEG_BENCH_SECONDS
 2	config/scripts/mobile-agent-status-projection-benchmark.mjs	ORCA_AGENT_PROJECTION_BENCH_ITERATIONS
 2	config/scripts/mobile-agent-status-projection-benchmark.mjs	ORCA_AGENT_PROJECTION_BENCH_WARMUP
-1	config/scripts/orca-cli-skill-guidance.test.mjs	ORCA_CLI_COMMAND
 2	config/scripts/orca-dev-bin.test.mjs	ORCA_APP_EXECUTABLE
 1	config/scripts/orca-dev-bin.test.mjs	ORCA_DEV_CLI_ENTRY_PATH
 1	config/scripts/orca-dev-bin.test.mjs	ORCA_DEV_CLI_INVOCATION
@@ -332,7 +333,6 @@
 1	config/scripts/orca-dev.mjs	ORCA_DEV_CLI_INVOCATION
 1	config/scripts/orca-dev.mjs	ORCA_DEV_USER_DATA_PATH
 2	config/scripts/orca-dev.mjs	ORCA_USER_DATA_PATH
-1	config/scripts/orca-linear-skill-guidance.test.mjs	ORCA_CLI_COMMAND
 1	config/scripts/orchestration-skill-guidance.test.mjs	ORCA_CLI_COMMAND
 1	config/scripts/package-electron-runtime-contract.test.mjs	ORCA_E2E_FORWARD_APP_LOGS
 1	config/scripts/package-electron-runtime-contract.test.mjs	ORCA_E2E_OPENCODE_FRAME_COUNT
@@ -594,15 +594,9 @@
 1	config/vitest.config.ts	ORCA_FEATURE_WALL_ENABLED
 1	src/cli/bundled-skill-guides.ts	ORCA_ARTIFACTS_API_URL
 4	src/cli/bundled-skill-guides.ts	ORCA_CLI_COMMAND
-3	src/cli/bundled-skill-guides.ts	ORCA_CLI_MARKDOWN
 1	src/cli/bundled-skill-guides.ts	ORCA_CLOUD_AUTH_TOKEN
 4	src/cli/bundled-skill-guides.ts	ORCA_DEV_REPO_ROOT
-3	src/cli/bundled-skill-guides.ts	ORCA_EMULATOR_ANDROID_MARKDOWN
-3	src/cli/bundled-skill-guides.ts	ORCA_EMULATOR_MARKDOWN
-3	src/cli/bundled-skill-guides.ts	ORCA_LINEAR_MARKDOWN
 2	src/cli/bundled-skill-guides.ts	ORCA_PAIRING_ADDRESS
-3	src/cli/bundled-skill-guides.ts	ORCA_PER_WORKSPACE_ENV_MARKDOWN
-3	src/cli/bundled-skill-guides.ts	ORCA_PLANE_MARKDOWN
 2	src/cli/bundled-skill-guides.ts	ORCA_PORT
 5	src/cli/bundled-skill-guides.ts	ORCA_PROJECT_ROOT
 2	src/cli/bundled-skill-guides.ts	ORCA_RECIPE_ID

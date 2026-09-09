@@ -17,6 +17,8 @@ describe('bare orca invocation pattern', () => {
     '  orca status',
     'Run `orca worktree create` first.',
     'echo $(orca status)',
+    // R3 does not rewrite `orca-dev` — it is still the live dev handle — but the gate keeps
+    // watching it, or a new `orca-dev` call site would land unseen.
     'orca-dev status'
   ])('matches the invocation %j', (line) => {
     expect(BARE_ORCA_INVOCATION.test(line)).toBe(true)
@@ -180,16 +182,26 @@ describe('the checked-in baseline', () => {
     expect(output).toMatch(/Rebrand CLI gate passed/)
   })
 
-  it('is what --write would produce, so nobody has hand-edited a row', () => {
-    const onDisk = readFileSync('config/rebrand-cli-baseline.txt', 'utf8')
-    const parsed = readBaseline(onDisk)
-
+  // R3 rewrote every plain `orca` call site, so what is left is `orca-dev` and nothing else.
+  // A plain `orca` allowance re-appearing is a corpus regression laundered through the
+  // baseline, not a legitimate edit, so the end state is asserted directly.
+  it('holds only `orca-dev`, so a plain `orca` call site has nowhere to hide', () => {
+    const parsed = readBaseline(readFileSync('config/rebrand-cli-baseline.txt', 'utf8'))
     expect(parsed.length).toBeGreaterThan(0)
-    expect(parsed.every((entry) => entry.count > 0 && entry.text.includes('orca'))).toBe(true)
-    const rerendered = parsed.flatMap((entry) =>
-      Array.from({ length: entry.count }, () => ({ path: entry.path, text: entry.text }))
-    )
-    expect(`${renderBaseline(rerendered)}\n`).toBe(onDisk)
+    expect(parsed.every((entry) => entry.text.startsWith('orca-dev '))).toBe(true)
+  })
+
+  it('round-trips a row through render and read, so nobody can hand-edit one undetected', () => {
+    const findings = [
+      { path: 'skill-guides/a.md', text: 'orca status' },
+      { path: 'skill-guides/a.md', text: 'orca status' },
+      { path: 'skill-guides/b.md', text: 'orca serve' }
+    ]
+
+    expect(readBaseline(renderBaseline(findings))).toEqual([
+      { path: 'skill-guides/a.md', text: 'orca status', count: 2 },
+      { path: 'skill-guides/b.md', text: 'orca serve', count: 1 }
+    ])
   })
 })
 

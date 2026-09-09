@@ -9,7 +9,7 @@ export const ORCHESTRATION_POLICY_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'policy-get'],
     summary: 'Show the autonomy policy and stage config that apply to a project stage',
     usage:
-      'orca orchestration policy-get --project <project_id> [--stage-key <key>] [--member <member_id>] [--json]',
+      'alicorn orchestration policy-get --project <project_id> [--stage-key <key>] [--member <member_id>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'project', 'stage-key', 'member'],
     notes: [
       'A project that authored nothing still gets a policy: the shown one is the default, flagged as unauthored.',
@@ -20,7 +20,7 @@ export const ORCHESTRATION_POLICY_COMMAND_SPECS: CommandSpec[] = [
     path: ['orchestration', 'policy-set'],
     summary: 'Author the autonomy policy for a project stage',
     usage:
-      'orca orchestration policy-set --project <project_id> --mode <always_gate|evidence|never_gate> [--stage-key <key>] [--member <member_id>] [--min-runs <n>] [--min-accept-rate <0..1>] [--max-files <n>] [--max-spend-cents <n>] [--expires-at <iso8601>] [--retry-request <id>] [--json]',
+      'alicorn orchestration policy-set --project <project_id> --mode <always_gate|evidence|never_gate> [--stage-key <key>] [--member <member_id>] [--min-runs <n>] [--min-accept-rate <0..1>] [--max-files <n>] [--max-spend-cents <n>] [--expires-at <iso8601>] [--retry-request <id>] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
       'project',
@@ -43,14 +43,14 @@ export const ORCHESTRATION_POLICY_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['orchestration', 'policy-list'],
     summary: 'List authored autonomy policies and standing never_gate exceptions',
-    usage: 'orca orchestration policy-list --project <project_id> [--json]',
+    usage: 'alicorn orchestration policy-list --project <project_id> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'project'],
     notes: ['Lapsed exceptions are listed too — when an exception ended is part of the audit.']
   },
   {
     path: ['orchestration', 'evidence'],
     summary: "Show a task's track record and what the autonomy policy would decide now",
-    usage: 'orca orchestration evidence --task <task_id> [--stage-key <key>] [--json]',
+    usage: 'alicorn orchestration evidence --task <task_id> [--stage-key <key>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'task', 'stage-key'],
     notes: [
       'Advisory only. Reading this never resolves a gate; gate-create is the only place a decision is acted on.'

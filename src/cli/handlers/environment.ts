@@ -31,14 +31,14 @@ export const ENVIRONMENT_HANDLERS: Record<string, CommandHandler> = {
         `Saved environment ${result.environment.name} (${result.environment.id}).`
     )
   },
-  // Why: an agent told "run it on <name>" had nowhere to look. `orca environment list` showed
+  // Why: an agent told "run it on <name>" had nowhere to look. `alicorn environment list` showed
   // paired servers only, and nothing in the CLI listed SSH targets at all, so the wrong-axis
   // guess was the only move available. This is the one place that answers both.
   'host list': async ({ client, flags, json }) => {
     rejectLocalPairingStoreRetargeting(
       flags,
-      '`orca host list`. It answers from this machine\u2019s own pairing store, so a routed answer would name servers paired with a different machine.',
-      'Run `orca host list` on that machine to see the SSH targets registered there.'
+      '`alicorn host list`. It answers from this machine\u2019s own pairing store, so a routed answer would name servers paired with a different machine.',
+      'Run `alicorn host list` on that machine to see the SSH targets registered there.'
     )
     const environments = listEnvironments(getDefaultUserDataPath()).map((environment) => ({
       kind: 'environment' as const,
@@ -62,8 +62,8 @@ export const ENVIRONMENT_HANDLERS: Record<string, CommandHandler> = {
   'environment list': async ({ flags, json }) => {
     rejectLocalPairingStoreRetargeting(
       flags,
-      '`orca environment list`. Paired servers are stored on this machine, so there is no other host to ask.',
-      'Run `orca environment list` on that machine to see the servers paired with it.'
+      '`alicorn environment list`. Paired servers are stored on this machine, so there is no other host to ask.',
+      'Run `alicorn environment list` on that machine to see the servers paired with it.'
     )
     const environments = listEnvironments(getDefaultUserDataPath()).map(redactRuntimeEnvironment)
     printResult(localSuccess({ environments }), json, formatEnvironmentList)

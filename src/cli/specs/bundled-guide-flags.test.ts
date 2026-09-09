@@ -10,8 +10,10 @@ type GuideInvocation = {
   snippet: string
 }
 
-// Why: guides write examples as `orca ...`, `orca-dev ...`, or the `ORCA` placeholder.
-const CLI_INVOCATION = /(?:^|[\s`(])(?:orca|orca-dev|orca-ide|ORCA)\s+([^\n`]*)/g
+// Why: guides write examples as `alicorn ...`, `orca-dev ...`, or the `ORCA` placeholder.
+// The pre-rebrand names stay in the alternation: an old installed guide is still parsed.
+const CLI_INVOCATION =
+  /(?:^|[\s`(])(?:alicorn|alicorn-ide|orca|orca-dev|orca-ide|ORCA)\s+([^\n`]*)/g
 
 // Longest path first so `orchestration worker-start` never resolves as `orchestration worker`.
 const SPECS_BY_DEPTH: CommandSpec[] = [...COMMAND_SPECS].sort(

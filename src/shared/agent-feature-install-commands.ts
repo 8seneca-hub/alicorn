@@ -2,13 +2,21 @@ import { isSkillsCliAgentKeyShaped } from './skills-cli-agent-keys'
 
 export const ORCA_SKILLS_REPOSITORY_URL = 'https://github.com/stablyai/orca'
 
-export const ORCA_CLI_SKILL_NAME = 'orca-cli'
+export const ORCA_CLI_SKILL_NAME = 'alicorn-cli'
 export const COMPUTER_USE_SKILL_NAME = 'computer-use'
 export const ORCHESTRATION_SKILL_NAME = 'orchestration'
-export const EPHEMERAL_VMS_SKILL_NAME = 'orca-per-workspace-env'
-export const ORCA_LINEAR_SKILL_NAME = 'orca-linear'
+export const EPHEMERAL_VMS_SKILL_NAME = 'alicorn-per-workspace-env'
+export const ORCA_LINEAR_SKILL_NAME = 'alicorn-linear'
+export const LEGACY_ORCA_LINEAR_SKILL_NAME = 'orca-linear'
 export const LINEAR_TICKETS_SKILL_NAME = 'linear-tickets'
-export const LINEAR_AGENT_SKILL_NAMES = [ORCA_LINEAR_SKILL_NAME, LINEAR_TICKETS_SKILL_NAME] as const
+// Why all three: the first is what we install, the other two are what an upgraded
+// machine already has on disk. Detection must see them or it re-prompts an install
+// the user has already done.
+export const LINEAR_AGENT_SKILL_NAMES = [
+  ORCA_LINEAR_SKILL_NAME,
+  LEGACY_ORCA_LINEAR_SKILL_NAME,
+  LINEAR_TICKETS_SKILL_NAME
+] as const
 
 // Why: `yes` and `agents` default off so every Settings/onboarding string a human
 // pastes keeps its interactive prompts and the CLI's own agent detection. Only an
