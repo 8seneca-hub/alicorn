@@ -259,7 +259,9 @@ export async function startWorkerForTask({
     const lead = await leadBriefPreambleFields({
       role: params.role,
       runId: run.id,
+      objective: run.objective,
       worktreePath: resolvedWorktree.path,
+      worktreeHostId: resolvedWorktree.hostId ?? null,
       getGate: (id) => db.getGate(id),
       runtime
     })

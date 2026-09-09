@@ -64,6 +64,7 @@ describe('leadBriefPreambleFields', () => {
       await leadBriefPreambleFields({
         role: 'worker',
         runId: 'run_1',
+        objective: 'ship the ticket',
         worktreePath: await journalled(),
         getGate,
         runtime
@@ -76,6 +77,7 @@ describe('leadBriefPreambleFields', () => {
     const fields = await leadBriefPreambleFields({
       role: 'lead',
       runId: 'run_1',
+      objective: 'ship the ticket',
       worktreePath: await journalled(),
       getGate: () => ACCEPTED,
       runtime
@@ -92,6 +94,7 @@ describe('leadBriefPreambleFields', () => {
     const fields = await leadBriefPreambleFields({
       role: 'lead',
       runId: 'run_1',
+      objective: 'ship the ticket',
       worktreePath: await journalled(),
       getGate: () => ({ resolution: null }) as DecisionGateRow,
       runtime

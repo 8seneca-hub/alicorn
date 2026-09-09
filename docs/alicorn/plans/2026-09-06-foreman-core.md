@@ -146,6 +146,26 @@ a test, so it has to be a real example. Split across `journal-types.ts`, `journa
 **Files:** `src/main/alicorn/foreman/journal-writer.ts`, `src/main/runtime/orchestration/coordinator-foreman-journal.ts` (sibling in the existing `coordinator-*.ts` decomposition), `coordinator.ts` (three call sites: run start, dispatch, worker_done/escalation), `preamble.ts` (orchestrated dispatch preamble gains a *Report* section stating the schema, ceiling and spill path, and the lead's preamble gains *Journal* instructions + `ORCA_ALICORN_STRATEGY=orchestrated` in the worker env).
 - [ ] Tests: orchestrated task → journal created at run start, node dispatched/done logged, decisions preserved across a simulated restart (`Coordinator` re-created reads the journal); single task → no `.foreman/`. Commit `feat(foreman): coordinator journals orchestrated runs; resumable from disk`.
 
+**Corrected 2026-09-09 (FJ1).** The coordinator wiring above never reaches a running app and cannot
+be made to: the only non-test `new Coordinator(...)` is inside `orchestration.run`, and
+`orchestrationMigrationFence` refuses that method as `command_retired` before the handler runs
+(`src/shared/orchestration-rpc-contract.ts`). Passing it a `worktreePath` fixes nothing.
+
+**Run start for an orchestrated run is therefore the lead's dispatch**, and that is where the
+journal is opened: `seedRunJournal` (`src/main/alicorn/foreman/run-journal-seed.ts`) called from
+`leadBriefPreambleFields`, which already runs only for `role: 'lead'`, already holds the run id and
+the resolved worktree, and already reads the same file for AT1's roster. It opens the journal and
+fills the Contract Registry once — `isContractRegistryEmpty` short-circuits a re-dispatch, so a
+resumed lead adopts the registry rather than re-scanning over rows the run has since declared. This
+is what gives CR2 a registry to read; before it, `runContractAcknowledgedCheck` answered
+`no_contract_registry` on every production run.
+
+Unchanged, and still coordinator-only: the plan table's Status/Dispatch columns, wave reduction and
+`onRunEnd`. Those are the coordinator's per-event hooks, not run start, and they need the live
+dispatch/settlement paths wired one at a time — a separate ticket, not this one. An SSH-hosted
+worktree is refused (`path` belongs to the execution host, the same rule as `journalComposedTeam`);
+a folder workspace journals normally, since `.foreman/` needs no git.
+
 ---
 
 ### Task 5 (FM3): Lead launch restrictions
