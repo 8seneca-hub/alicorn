@@ -67,7 +67,7 @@ async function makeFixture(): Promise<{ homePath: string; resourcesPath: string 
   const resourcesPath = join(root, 'resources')
   // The bundled orca-ide launcher must exist for the dispatcher to be written.
   await mkdir(join(resourcesPath, 'bin'), { recursive: true })
-  await writeFile(join(resourcesPath, 'bin', 'orca-ide'), '#!/usr/bin/env bash\n', 'utf8')
+  await writeFile(join(resourcesPath, 'bin', 'alicorn-ide'), '#!/usr/bin/env bash\n', 'utf8')
   return { homePath: join(root, 'home'), resourcesPath }
 }
 
@@ -90,7 +90,7 @@ describe('installLinuxBareOrcaDispatcher', () => {
     const result = await installLinuxBareOrcaDispatcher({ resourcesPath, homePath })
 
     expect(result.state).toBe('installed')
-    expect(result.target).toBe(join(resourcesPath, 'bin', 'orca-ide'))
+    expect(result.target).toBe(join(resourcesPath, 'bin', 'alicorn-ide'))
   })
 
   it('writes an executable bare-orca dispatcher that execs the bundled orca-ide launcher', async () => {
@@ -102,7 +102,7 @@ describe('installLinuxBareOrcaDispatcher', () => {
       appImagePath: null
     })
 
-    const expectedTarget = join(resourcesPath, 'bin', 'orca-ide')
+    const expectedTarget = join(resourcesPath, 'bin', 'alicorn-ide')
     expect(result.state).toBe('installed')
     expect(result.target).toBe(expectedTarget)
     expect(result.dispatcherPath).toBe(join(homePath, '.local', 'bin', 'orca'))
@@ -172,7 +172,7 @@ describe('installLinuxBareOrcaDispatcher', () => {
     created.push(root)
     const resourcesPath = join(root, 'App Support', 'resources')
     await mkdir(join(resourcesPath, 'bin'), { recursive: true })
-    await writeFile(join(resourcesPath, 'bin', 'orca-ide'), '#!/usr/bin/env bash\n', 'utf8')
+    await writeFile(join(resourcesPath, 'bin', 'alicorn-ide'), '#!/usr/bin/env bash\n', 'utf8')
 
     const result = await installLinuxBareOrcaDispatcher({
       resourcesPath,
@@ -181,7 +181,7 @@ describe('installLinuxBareOrcaDispatcher', () => {
     })
 
     const content = await readFile(result.dispatcherPath, 'utf8')
-    expect(content).toContain(`exec '${join(resourcesPath, 'bin', 'orca-ide')}' "$@"`)
+    expect(content).toContain(`exec '${join(resourcesPath, 'bin', 'alicorn-ide')}' "$@"`)
   })
 
   // Why: this dispatcher must survive a restart, and an AppImage's resourcesPath
@@ -204,14 +204,14 @@ describe('installLinuxBareOrcaDispatcher', () => {
         appImageExtractRunner: async (_appImagePath, cwd) => {
           const launcherDir = join(cwd, 'squashfs-root', 'resources', 'bin')
           await mkdir(launcherDir, { recursive: true })
-          await writeFile(join(launcherDir, 'orca-ide'), '', { encoding: 'utf8', mode: 0o755 })
+          await writeFile(join(launcherDir, 'alicorn-ide'), '', { encoding: 'utf8', mode: 0o755 })
         }
       })
 
       expect(result.state).toBe('installed')
       expect(relative(cacheRootPath, result.target as string).split(sep)).toEqual([
         'launcher',
-        'orca-ide'
+        'alicorn-ide'
       ])
       const content = await readFile(result.dispatcherPath, 'utf8')
       expect(content).toContain(result.target as string)
@@ -350,5 +350,5 @@ describe('installLinuxBareOrcaDispatcher', () => {
 async function writePayload(cwd: string): Promise<void> {
   const launcherDirectory = join(cwd, 'squashfs-root', 'resources', 'bin')
   await mkdir(launcherDirectory, { recursive: true })
-  await writeFile(join(launcherDirectory, 'orca-ide'), '#!/usr/bin/env bash\n', { mode: 0o755 })
+  await writeFile(join(launcherDirectory, 'alicorn-ide'), '#!/usr/bin/env bash\n', { mode: 0o755 })
 }

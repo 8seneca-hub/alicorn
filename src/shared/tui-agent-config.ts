@@ -1,5 +1,5 @@
 import type { TuiAgent } from './tui-agent'
-import { getOrcaCliCommandNameForPlatform } from './orca-cli-command-name'
+import { getAlicornCliCommandNameForPlatform } from './alicorn-cli-command-name'
 
 export type AgentPromptInjectionMode =
   | 'argv'
@@ -75,16 +75,18 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
   },
   'claude-agent-teams': {
     // Why: an Orca-provided launch mode, not a separate binary; detection follows the Orca CLI.
-    detectCmd: 'orca',
-    detectCmdAliases: ['orca-dev', 'orca-ide'],
+    detectCmd: 'alicorn',
+    // Why: `orca`/`orca-ide` still ship for one release, so a machine registered before the
+    // rename must not report Agent Teams as unavailable.
+    detectCmdAliases: ['alicorn-ide', 'orca', 'orca-dev', 'orca-ide'],
     // Why: require Claude too so fresh installs (Orca shim always present) don't report Agent Teams without an agent CLI.
     detectRequiredCommands: ['claude'],
     // Why: Windows/WSL use Claude's in-process Agent Teams fallback, not this Orca native-pane/tmux-shim wrapper.
     detectUnsupportedRuntimes: ['win32', 'wsl'],
-    launchCmd: 'orca claude-teams',
+    launchCmd: 'alicorn claude-teams',
     launchCmdByPlatform: {
-      linux: `${getOrcaCliCommandNameForPlatform('linux')} claude-teams`,
-      win32: `${getOrcaCliCommandNameForPlatform('win32')} claude-teams`
+      linux: `${getAlicornCliCommandNameForPlatform('linux')} claude-teams`,
+      win32: `${getAlicornCliCommandNameForPlatform('win32')} claude-teams`
     },
     expectedProcess: 'claude',
     promptInjectionMode: 'stdin-after-start'

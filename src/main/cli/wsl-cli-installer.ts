@@ -19,8 +19,16 @@ import { buildWslCliStatus, readWslCliCommandFile, resolveReadyWslCliState } fro
 
 const MANAGED_MARKER = getWslLauncherMarker()
 const BRIDGE_MANAGED_MARKER = getWslBridgeMarker()
-const LEGACY_WSL_COMMAND_NAME = 'orca'
+// Why: three generations of the managed WSL launcher can be on disk — `orca` (pre-`orca-ide`),
+// `orca-ide` (pre-rebrand) and the current `alicorn-ide`. Either older one proves the user
+// opted into WSL registration, and an explicit unregister must take all of them.
+const LEGACY_WSL_COMMAND_NAMES = ['orca-ide', 'orca'] as const
 const WSL_COMMAND_TIMEOUT_MS = 10_000
+
+function legacyWslCommandPaths(commandPath: string): string[] {
+  const directory = getPosixDirname(commandPath)
+  return LEGACY_WSL_COMMAND_NAMES.map((name) => `${directory}/${name}`)
+}
 
 function normalizeManagedScriptContent(content: string): string {
   return content.replace(/\n+$/u, '\n')
@@ -171,17 +179,11 @@ export class WslCliInstaller {
       return { changed: true, managed: true, status: await this.install(status) }
     }
 
-    const legacyCommandPath = status.commandPath
-      ? `${getPosixDirname(status.commandPath)}/${LEGACY_WSL_COMMAND_NAME}`
-      : null
-    if (!legacyCommandPath || !this.distro) {
+    if (!status.commandPath || !this.distro) {
       return { changed: false, managed: status.state === 'installed', status }
     }
 
-    const legacyContent = await this.readCommandFile(this.distro, legacyCommandPath)
-    const legacyManaged =
-      typeof legacyContent === 'string' && legacyContent.includes(MANAGED_MARKER)
-    if (!legacyManaged) {
+    if (!(await this.hasManagedLegacyCommand(this.distro, status.commandPath))) {
       return { changed: false, managed: status.state === 'installed', status }
     }
 
@@ -197,6 +199,16 @@ export class WslCliInstaller {
     // Why: a legacy-only managed command proves the user opted into WSL CLI
     // registration; install the current name before removing that owned script.
     return { changed: true, managed: true, status: await this.install(status) }
+  }
+
+  private async hasManagedLegacyCommand(distro: string, commandPath: string): Promise<boolean> {
+    for (const legacyCommandPath of legacyWslCommandPaths(commandPath)) {
+      const content = await this.readCommandFile(distro, legacyCommandPath)
+      if (typeof content === 'string' && content.includes(MANAGED_MARKER)) {
+        return true
+      }
+    }
+    return false
   }
 
   async install(precomputedStatus?: CliInstallStatus): Promise<CliInstallStatus> {
@@ -228,13 +240,16 @@ export class WslCliInstaller {
     if (!status.supported || !status.commandPath) {
       return status
     }
-    const legacyCommandPath = `${getPosixDirname(status.commandPath)}/${LEGACY_WSL_COMMAND_NAME}`
+    const legacyCommandPaths = legacyWslCommandPaths(status.commandPath)
     if (status.state === 'not_installed') {
-      // Why: a managed legacy `orca` left behind would later be re-adopted by
+      // Why: a managed legacy command left behind would later be re-adopted by
       // startup reconciliation as opt-in proof, silently undoing this removal.
       await this.run(
         this.distro as string,
-        ['set -eu', buildManagedLegacyRemoveCommand(quoteShell(legacyCommandPath))].join('\n')
+        [
+          'set -eu',
+          ...legacyCommandPaths.map((path) => buildManagedLegacyRemoveCommand(quoteShell(path)))
+        ].join('\n')
       )
       return status
     }
@@ -244,7 +259,7 @@ export class WslCliInstaller {
 
     await this.run(
       this.distro as string,
-      buildSafeRemoveCommand(status.commandPath, legacyCommandPath)
+      buildSafeRemoveCommand(status.commandPath, legacyCommandPaths)
     )
     return this.getStatus()
   }

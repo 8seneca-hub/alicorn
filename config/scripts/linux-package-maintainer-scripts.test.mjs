@@ -7,12 +7,14 @@ describe('Linux package maintainer scripts', () => {
       new URL('../../resources/linux/packaging/after-remove.sh', import.meta.url),
       'utf8'
     )
-    const unlinkStart = script.indexOf('link="/usr/bin/orca-ide"')
+    const unlinkStart = script.indexOf('for command_name in alicorn-ide orca-ide; do')
     const upgradeGuard = script.slice(0, unlinkStart)
 
     expect(unlinkStart).toBeGreaterThan(-1)
     expect(upgradeGuard).toContain('case "${1-}" in')
     expect(upgradeGuard).toContain('0 | remove | purge) ;;')
     expect(upgradeGuard).toContain('*) exit 0 ;;')
+    // Why: both command names are linked at install, so both must be removed on uninstall.
+    expect(script).toContain('link="/usr/bin/$command_name"')
   })
 })

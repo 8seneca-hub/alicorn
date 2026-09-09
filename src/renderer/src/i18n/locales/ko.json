@@ -7640,7 +7640,7 @@
           "e49688f67f": "WSL에 `{{value0}}`을(를) 등록하시겠습니까?",
           "61ac55278e": "WSL에서 `{{value0}}`을(를) 제거하시겠습니까?",
           "e2b0ee267f": "오래됨",
-          "7aa456a460": "WSL 내부의 ~/.local/bin에 `orca-ide`를 등록합니다.",
+          "7aa456a460": "WSL 내부의 ~/.local/bin에 `alicorn-ide`를 등록합니다.",
           "0307677bb9": "WSL CLI 등록 확인 중..."
         },
         "accounts": {

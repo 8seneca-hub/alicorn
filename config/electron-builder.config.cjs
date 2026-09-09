@@ -223,10 +223,10 @@ module.exports = {
     // extraResources entry below; keeping them in app.asar would ship every
     // native variant (and duplicate the selected one).
     '!node_modules/sherpa-onnx*{,/**/*}',
-    // Why: the Windows CLI shim ships via extraResources to resources/bin/orca.cmd
-    // (beside the native resources/bin/orca.exe). Packing the source tree into
+    // Why: the Windows CLI shim ships via extraResources to resources/bin/alicorn.cmd
+    // (beside the native resources/bin/alicorn.exe). Packing the source tree into
     // app.asar too lets asarUnpack:['resources/**'] extract a second copy at
-    // app.asar.unpacked/resources/win32/bin/orca.cmd with no adjacent orca.exe,
+    // app.asar.unpacked/resources/win32/bin/alicorn.cmd with no adjacent alicorn.exe,
     // which fails to launch the CLI (#7351).
     '!resources/win32{,/**/*}'
   ],
@@ -418,8 +418,18 @@ module.exports = {
       ...createPackagedRuntimeNodeModuleResources('win32'),
       winSpeechNativeResource,
       {
-        from: 'resources/win32/bin/orca.cmd',
+        from: 'resources/win32/bin/alicorn.cmd',
+        to: 'bin/alicorn.cmd'
+      },
+      // Why: `orca` is on installed users' PATH and in their scripts. The pre-rebrand names
+      // ship one more release as copies of the same launcher (R2 compatibility shim).
+      {
+        from: 'resources/win32/bin/alicorn.cmd',
         to: 'bin/orca.cmd'
+      },
+      {
+        from: 'native/windows-cli-launcher/.build/orca.exe',
+        to: 'bin/alicorn.exe'
       },
       {
         from: 'native/windows-cli-launcher/.build/orca.exe',
@@ -501,7 +511,13 @@ module.exports = {
       ...createPackagedRuntimeNodeModuleResources('darwin'),
       macSpeechNativeResource,
       {
-        from: 'resources/darwin/bin/orca',
+        from: 'resources/darwin/bin/alicorn',
+        to: 'bin/alicorn'
+      },
+      // Why: an upgrading user's /usr/local/bin/orca symlink points at this path; dropping it
+      // would leave them with a dangling command until they re-register (R2 compatibility shim).
+      {
+        from: 'resources/darwin/bin/alicorn',
         to: 'bin/orca'
       },
       {
@@ -569,7 +585,13 @@ module.exports = {
       ...createPackagedRuntimeNodeModuleResources('linux'),
       linuxSpeechNativeResource,
       {
-        from: 'resources/linux/bin/orca-ide',
+        from: 'resources/linux/bin/alicorn-ide',
+        to: 'bin/alicorn-ide'
+      },
+      // Why: ~/.local/bin/orca-ide and /usr/bin/orca-ide from a pre-rebrand install both point
+      // here; keep the old name resolving for one release (R2 compatibility shim).
+      {
+        from: 'resources/linux/bin/alicorn-ide',
         to: 'bin/orca-ide'
       },
       {
@@ -660,7 +682,7 @@ function chmodUnixCliLaunchers(resourcesDir, electronPlatformName) {
   if (electronPlatformName === 'win32') {
     return
   }
-  for (const launcherName of ['orca', 'orca-ide']) {
+  for (const launcherName of ['alicorn', 'alicorn-ide', 'orca', 'orca-ide']) {
     const launcherPath = join(resourcesDir, 'bin', launcherName)
     if (!existsSync(launcherPath)) {
       continue

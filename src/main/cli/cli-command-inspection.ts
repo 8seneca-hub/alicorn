@@ -11,9 +11,17 @@ import { isPathInsideOrEqual, samePathEntry } from './cli-install-path-format'
 import { extractLegacyAppImageCliWrapperTarget } from './legacy-appimage-cli-wrapper'
 
 // Why: electron-builder's /opt directory name varies with productName sanitization, which is why
-// resources/linux/packaging/after-install.sh enumerates all three of these. A symlink into one is a
-// previous packaged Orca and is ours to reclaim; anything else stays a conflict.
-const PACKAGED_LINUX_LAUNCHER_DIRECTORIES = ['/opt/Orca', '/opt/orca-ide', '/opt/orca']
+// resources/linux/packaging/after-install.sh enumerates all of these. A symlink into one is a
+// previous packaged install of ours and is ours to reclaim; anything else stays a conflict. The
+// Orca-era directories stay listed so an in-place upgrade can still reclaim its own command.
+const PACKAGED_LINUX_LAUNCHER_DIRECTORIES = [
+  '/opt/Alicorn',
+  '/opt/alicorn-ide',
+  '/opt/alicorn',
+  '/opt/Orca',
+  '/opt/orca-ide',
+  '/opt/orca'
+]
 
 export class CliCommandInspection extends CliInstallLocation {
   protected async inspectSymlink(

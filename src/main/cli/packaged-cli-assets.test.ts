@@ -17,23 +17,23 @@ const builderConfig = require('../../../config/electron-builder.config.cjs') as 
   linux?: { extraResources?: { from?: string; to?: string }[] }
   win?: { extraResources?: { from?: string; to?: string }[] }
 }
-const linuxLauncherAsset = new URL('../../../resources/linux/bin/orca-ide', import.meta.url)
-const darwinLauncherAsset = new URL('../../../resources/darwin/bin/orca', import.meta.url)
+const linuxLauncherAsset = new URL('../../../resources/linux/bin/alicorn-ide', import.meta.url)
+const darwinLauncherAsset = new URL('../../../resources/darwin/bin/alicorn', import.meta.url)
 const unixLauncherFixtures = [
   {
     name: 'Linux',
     asset: linuxLauncherAsset,
-    appDir: ['Orca'],
-    launcher: ['resources', 'bin', 'orca-ide'],
-    executable: ['orca-ide'],
+    appDir: ['Alicorn'],
+    launcher: ['resources', 'bin', 'alicorn-ide'],
+    executable: ['alicorn-ide'],
     cli: ['resources', 'app.asar.unpacked', 'out', 'cli', 'index.js']
   },
   {
     name: 'macOS',
     asset: darwinLauncherAsset,
-    appDir: ['Orca.app'],
-    launcher: ['Contents', 'Resources', 'bin', 'orca'],
-    executable: ['Contents', 'MacOS', 'Orca'],
+    appDir: ['Alicorn.app'],
+    launcher: ['Contents', 'Resources', 'bin', 'alicorn'],
+    executable: ['Contents', 'MacOS', 'Alicorn'],
     cli: ['Contents', 'Resources', 'app.asar.unpacked', 'out', 'cli', 'index.js']
   }
 ] as const
@@ -196,12 +196,12 @@ server.listen(0, '127.0.0.1', () => {
     async () => {
       const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-'))
       try {
-        const appDir = join(root, 'Orca')
+        const appDir = join(root, 'Alicorn')
         const resourcesDir = join(appDir, 'resources')
         const launcherDir = join(resourcesDir, 'bin')
         const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
-        const launcherPath = join(launcherDir, 'orca-ide')
-        const electronPath = join(appDir, 'orca-ide')
+        const launcherPath = join(launcherDir, 'alicorn-ide')
+        const electronPath = join(appDir, 'alicorn-ide')
         const cliPath = join(cliDir, 'index.js')
 
         await mkdir(launcherDir, { recursive: true })
@@ -227,7 +227,7 @@ printf 'arg=%s\\n' "$@"
 
         const homeDir = join(root, 'home')
         const commandDir = join(homeDir, '.local', 'bin')
-        const commandPath = join(commandDir, 'orca-ide')
+        const commandPath = join(commandDir, 'alicorn-ide')
         await mkdir(commandDir, { recursive: true })
         await mkdir(join(homeDir, 'orca'), { recursive: true })
         await symlink(launcherPath, commandPath)
@@ -251,11 +251,11 @@ printf 'arg=%s\\n' "$@"
   itRunsUnixShell('sanitizes node env and forwards argv verbatim', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-env-'))
     try {
-      const appDir = join(root, 'Orca')
+      const appDir = join(root, 'Alicorn')
       const resourcesDir = join(appDir, 'resources')
       const launcherDir = join(resourcesDir, 'bin')
       const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
-      const launcherPath = join(launcherDir, 'orca-ide')
+      const launcherPath = join(launcherDir, 'alicorn-ide')
       const cliPath = join(cliDir, 'index.js')
 
       await mkdir(launcherDir, { recursive: true })
@@ -263,7 +263,7 @@ printf 'arg=%s\\n' "$@"
       await copyFile(linuxLauncherAsset, launcherPath)
       await writeFile(cliPath, '', 'utf8')
       await writeFile(
-        join(appDir, 'orca-ide'),
+        join(appDir, 'alicorn-ide'),
         `#!/usr/bin/env bash
 node -e 'console.log(JSON.stringify({
   argv: process.argv.slice(1),
@@ -309,13 +309,13 @@ node -e 'console.log(JSON.stringify({
   itRunsUnixShell('keeps Linux serve on the CLI entrypoint in node mode', async () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-linux-cli-serve-'))
     try {
-      const appDir = join(root, 'Orca')
+      const appDir = join(root, 'Alicorn')
       const resourcesDir = join(appDir, 'resources')
       const launcherDir = join(resourcesDir, 'bin')
       const cliDir = join(resourcesDir, 'app.asar.unpacked', 'out', 'cli')
-      const launcherPath = join(launcherDir, 'orca-ide')
+      const launcherPath = join(launcherDir, 'alicorn-ide')
       const appRunPath = join(appDir, 'AppRun')
-      const electronPath = join(appDir, 'orca-ide')
+      const electronPath = join(appDir, 'alicorn-ide')
       const cliPath = join(cliDir, 'index.js')
       const statePath = join(root, 'launch-state.json')
 

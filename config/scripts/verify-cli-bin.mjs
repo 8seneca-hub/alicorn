@@ -26,23 +26,30 @@ export function verifyPackageCliBin({
 } = {}) {
   const packageJsonPath = path.join(projectDir, 'package.json')
   const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
-  const binTarget = packageJson.bin?.orca
-  if (typeof binTarget !== 'string' || binTarget.length === 0) {
-    throw new Error('package.json must declare bin.orca')
-  }
+  // Why: `alicorn` is the shipped command; `orca` is the one-release compatibility shim and
+  // `orca-dev` the developer wrapper. Every declared bin must be a runnable Node entrypoint.
+  const binNames = ['alicorn', 'orca']
+  let primaryBinPath = null
+  for (const binName of binNames) {
+    const binTarget = packageJson.bin?.[binName]
+    if (typeof binTarget !== 'string' || binTarget.length === 0) {
+      throw new Error(`package.json must declare bin.${binName}`)
+    }
 
-  const binPath = path.resolve(projectDir, binTarget)
-  const stats = statSync(binPath)
-  if (!stats.isFile()) {
-    throw new Error(`bin.orca target is not a file: ${binTarget}`)
-  }
-  if (stats.size === 0) {
-    throw new Error(`bin.orca target is empty: ${binTarget}`)
-  }
+    const binPath = path.resolve(projectDir, binTarget)
+    const stats = statSync(binPath)
+    if (!stats.isFile()) {
+      throw new Error(`bin.${binName} target is not a file: ${binTarget}`)
+    }
+    if (stats.size === 0) {
+      throw new Error(`bin.${binName} target is empty: ${binTarget}`)
+    }
 
-  const content = readFileSync(binPath, 'utf8')
-  if (!content.startsWith('#!/usr/bin/env node\n')) {
-    throw new Error(`bin.orca target must start with a Node shebang: ${binTarget}`)
+    const content = readFileSync(binPath, 'utf8')
+    if (!content.startsWith('#!/usr/bin/env node\n')) {
+      throw new Error(`bin.${binName} target must start with a Node shebang: ${binTarget}`)
+    }
+    primaryBinPath ??= binPath
   }
 
   const outPackageJsonPath = path.join(projectDir, 'out', 'package.json')
@@ -70,21 +77,29 @@ export function verifyPackageCliBin({
     )
   }
 
-  if (process.platform !== 'win32' && (stats.mode & 0o111) === 0) {
-    if (!fixExecutable) {
-      throw new Error(`bin.orca target is not executable: ${binTarget}`)
+  for (const binName of binNames) {
+    const binPath = path.resolve(projectDir, packageJson.bin[binName])
+    const stats = statSync(binPath)
+    if (process.platform !== 'win32' && (stats.mode & 0o111) === 0) {
+      if (!fixExecutable) {
+        throw new Error(`bin.${binName} target is not executable: ${packageJson.bin[binName]}`)
+      }
+      chmodSync(binPath, stats.mode | 0o755)
     }
-    chmodSync(binPath, stats.mode | 0o755)
   }
 
   if (runHelp) {
-    execFileSync(process.execPath, [binPath, '--help'], {
+    execFileSync(process.execPath, [primaryBinPath, '--help'], {
       cwd: projectDir,
       stdio: 'ignore'
     })
   }
 
-  return { binPath, outPackageJsonPath, size: statSync(binPath).size }
+  return {
+    binPath: primaryBinPath,
+    outPackageJsonPath,
+    size: statSync(primaryBinPath).size
+  }
 }
 
 /** Runs CLI verification from npm scripts and local release checks. */

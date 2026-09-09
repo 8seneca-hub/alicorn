@@ -332,13 +332,15 @@ sudo systemctl enable --now orca-xvfb.service orca-serve.service
 
 ## CLI Install Note
 
-The registered Linux CLI command is `orca-ide`, not `orca`, to avoid shadowing
-the GNOME Orca screen reader. Desktop-managed terminals receive a
-terminal-scoped bare-`orca` shim. A packaged headless `orca serve` also makes a
+The registered Linux CLI command is `alicorn-ide`, not `alicorn`, to keep the
+`-ide` naming the Linux packages already use. The pre-rebrand `orca-ide` is
+still installed and still points at the same launcher for one release.
+Desktop-managed terminals receive a terminal-scoped bare-command shim providing
+both `alicorn` and `orca`. A packaged headless `orca serve` also makes a
 best-effort dispatcher at `$HOME/.local/bin/orca` for the service user's own
 shell, so the Claude Teams launcher can resolve its bare command; it does not
 replace another user's `orca`. From an ordinary shell outside that service
-user's managed environment, substitute `orca-ide` for `orca` in commands below.
+user's managed environment, substitute `alicorn-ide` for `orca` in commands below.
 
 On a headless host, you do not need to open the desktop UI just to run the
 server. Invoke the AppImage directly:
@@ -357,15 +359,16 @@ the command:
 This disables a security boundary. Prefer a dedicated unprivileged service
 user, especially when the listener is reachable beyond localhost.
 
-The Linux CLI is named `orca-ide`, not `orca`, so it never shadows the GNOME
-Orca screen reader at `/usr/bin/orca`. The `.deb` and `.rpm` packages put
-`orca-ide` on `PATH` themselves at install time; with the AppImage it arrives
-as `~/.local/bin/orca-ide` when the CLI is registered.
+The Linux CLI is named `alicorn-ide`, not `alicorn`, keeping the `-ide` suffix
+that kept the pre-rebrand command clear of the GNOME Orca screen reader at
+`/usr/bin/orca`. The `.deb` and `.rpm` packages put both `alicorn-ide` and the
+pre-rebrand `orca-ide` on `PATH` at install time; with the AppImage the current
+name arrives as `~/.local/bin/alicorn-ide` when the CLI is registered.
 
 A packaged `orca serve` start also writes a bare `orca` into `~/.local/bin`
 that execs the same launcher, which is why the skills commands below can be
 typed as `orca`. It writes it while starting, so it is never the command that
-starts the server — the first launch is `orca-ide serve`, or the AppImage
+starts the server — the first launch is `alicorn-ide serve`, or the AppImage
 invoked directly as above. The write is best-effort: it is gated on a packaged
 build, it is skipped when no bundled launcher resolves, and it is skipped when
 a file Orca does not own already holds that name (ownership is a marker on the
@@ -426,10 +429,10 @@ but its current process and any in-flight command are gone.
 Immediately before stopping the service, obtain a fresh census as the service's
 OS account and home. Use the installer's absolute launcher path so `sudo`'s
 `secure_path` cannot hide a per-user registration:
-`sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json`.
+`sudo -Hu orca /home/orca/.local/bin/alicorn-ide terminal list --json`.
 Replace both `orca` and `/home/orca` with the service account and home used by
-your unit; for an extracted deployment, use its absolute `resources/bin/orca-ide`
-launcher instead. Proceed only when the result is
+your unit; for an extracted deployment, use its absolute
+`resources/bin/alicorn-ide` launcher instead. Proceed only when the result is
 untruncated, has an explicit `hostScope`, covers every execution host affected
 by this service stop, and lists no terminals on those hosts. Every
 `omittedHostIds` entry must be explicitly accounted for outside this service's
@@ -443,9 +446,9 @@ Rolling back is the case that needs care — see [Roll back](#roll-back).
 
 ### Record the version you deploy
 
-The bundled CLI launcher prints the Orca build with `orca-ide --version`. For an
+The bundled CLI launcher prints the build with `alicorn-ide --version`. For an
 extracted deployment, that launcher is
-`squashfs-root/resources/bin/orca-ide`; deb/rpm installs and CLI registration put
+`squashfs-root/resources/bin/alicorn-ide`; deb/rpm installs and CLI registration put
 it on `PATH`. Do not use `orca-linux.AppImage --version` for this audit because
 Electron owns the direct binary's version flags and may report its own runtime
 version. For an AppImage service, choose a release tag explicitly and record it
@@ -959,7 +962,7 @@ profile` and the unit exits `3`: another process already owns the profile, so
   `sudo systemctl reset-failed orca-serve.service` first.
 - Diagnosing other missing libraries: extract the AppImage without launching it
   with `./orca-linux.AppImage --appimage-extract`, then run
-  `ldd squashfs-root/orca-ide` to list any shared libraries the host is missing.
-  The Electron binary is `orca-ide`, not `orca`; `ldd` on a path that does not
+  `ldd squashfs-root/alicorn-ide` to list any shared libraries the host is missing.
+  The Electron binary is `alicorn-ide`, not `alicorn`; `ldd` on a path that does not
   exist prints nothing and exits cleanly, which reads as a clean result in
   exactly the situation where you are hunting a missing library.

@@ -216,7 +216,7 @@ function stageArtifacts() {
         'chown -R orca:orca /artifacts',
         // Use the AppImage runtime's no-FUSE extraction path.
         'cd /artifacts && runuser --user orca -- ./orca-linux.AppImage --appimage-extract >/dev/null',
-        'test -x /artifacts/squashfs-root/resources/bin/orca-ide'
+        'test -x /artifacts/squashfs-root/resources/bin/alicorn-ide'
       ].join(' && ')
     ],
     { timeoutMs: STAGING_TIMEOUT_MS }

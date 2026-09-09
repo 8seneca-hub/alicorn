@@ -8787,7 +8787,7 @@
           "e49688f67f": "Register `{{value0}}` in WSL?",
           "61ac55278e": "Remove `{{value0}}` from WSL?",
           "e2b0ee267f": "stale",
-          "7aa456a460": "Register `orca-ide` in ~/.local/bin inside WSL.",
+          "7aa456a460": "Register `alicorn-ide` in ~/.local/bin inside WSL.",
           "0307677bb9": "Checking WSL CLI registration..."
         },
         "accounts": {

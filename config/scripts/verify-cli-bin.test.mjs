@@ -19,21 +19,27 @@ function makeProjectWithCli(
 ) {
   const projectDir = mkdtempSync(path.join(tmpdir(), 'orca-cli-bin-'))
   const cliPath = path.join(projectDir, 'out', 'cli', 'index.js')
+  const shimPath = path.join(projectDir, 'out', 'cli', 'orca-compat-shim.js')
   const outPackageJsonPath = path.join(projectDir, 'out', 'package.json')
   mkdirSync(path.dirname(cliPath), { recursive: true })
   writeFileSync(
     path.join(projectDir, 'package.json'),
-    JSON.stringify({ bin: { orca: './out/cli/index.js' }, type: rootPackageType }),
+    JSON.stringify({
+      bin: { alicorn: './out/cli/index.js', orca: './out/cli/orca-compat-shim.js' },
+      type: rootPackageType
+    }),
     'utf8'
   )
   if (writeOutPackageJson) {
     writeFileSync(outPackageJsonPath, JSON.stringify({ type: 'commonjs' }), 'utf8')
   }
   writeFileSync(cliPath, content, 'utf8')
+  writeFileSync(shimPath, '#!/usr/bin/env node\nrequire("./index.js")\n', 'utf8')
   if (process.platform !== 'win32') {
     chmodSync(cliPath, mode)
+    chmodSync(shimPath, 0o755)
   }
-  return { projectDir, cliPath, outPackageJsonPath }
+  return { projectDir, cliPath, shimPath, outPackageJsonPath }
 }
 
 describe('verifyPackageCliBin', () => {
@@ -50,7 +56,27 @@ describe('verifyPackageCliBin', () => {
   it('rejects an empty package bin target', () => {
     const { projectDir } = makeProjectWithCli('')
 
-    expect(() => verifyPackageCliBin({ projectDir })).toThrow('bin.orca target is empty')
+    expect(() => verifyPackageCliBin({ projectDir })).toThrow('bin.alicorn target is empty')
+  })
+
+  it('rejects a package that declares no alicorn bin', () => {
+    const { projectDir } = makeProjectWithCli('#!/usr/bin/env node\n')
+    const packageJsonPath = path.join(projectDir, 'package.json')
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
+    delete packageJson.bin.alicorn
+    writeFileSync(packageJsonPath, JSON.stringify(packageJson), 'utf8')
+
+    expect(() => verifyPackageCliBin({ projectDir })).toThrow('must declare bin.alicorn')
+  })
+
+  it('rejects a package that drops the orca compatibility shim', () => {
+    const { projectDir } = makeProjectWithCli('#!/usr/bin/env node\n')
+    const packageJsonPath = path.join(projectDir, 'package.json')
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
+    delete packageJson.bin.orca
+    writeFileSync(packageJsonPath, JSON.stringify(packageJson), 'utf8')
+
+    expect(() => verifyPackageCliBin({ projectDir })).toThrow('must declare bin.orca')
   })
 
   it('rejects package bin targets without a Node shebang', () => {

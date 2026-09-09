@@ -7683,7 +7683,7 @@
           "e49688f67f": "在 WSL 中注册 `{{value0}}`？",
           "61ac55278e": "从 WSL 中删除“{{value0}}”？",
           "e2b0ee267f": "陈旧",
-          "7aa456a460": "在 WSL 内的 ~/.local/bin 中注册 `orca-ide`。",
+          "7aa456a460": "在 WSL 内的 ~/.local/bin 中注册 `alicorn-ide`。",
           "0307677bb9": "正在检查 WSL CLI 注册..."
         },
         "accounts": {

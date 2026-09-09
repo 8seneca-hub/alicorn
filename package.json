@@ -5,7 +5,8 @@
   "homepage": "https://github.com/8seneca-hub/alicorn",
   "author": "8seneca",
   "bin": {
-    "orca": "./out/cli/index.js",
+    "alicorn": "./out/cli/index.js",
+    "orca": "./out/cli/orca-compat-shim.js",
     "orca-dev": "./config/scripts/orca-dev.mjs"
   },
   "main": "./out/main/index.js",

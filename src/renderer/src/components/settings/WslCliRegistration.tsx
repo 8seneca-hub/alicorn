@@ -70,7 +70,7 @@ export function WslCliRegistration({
 
   const isEnabled = status?.state === 'installed'
   const isSupported = status?.supported ?? false
-  const commandName = status?.commandName ?? 'orca-ide'
+  const commandName = status?.commandName ?? 'alicorn-ide'
 
   const handleInstall = async (): Promise<void> => {
     setBusyAction('install')
@@ -162,7 +162,7 @@ export function WslCliRegistration({
                 : (status?.detail ??
                   translate(
                     'auto.components.settings.WslCliRegistration.7aa456a460',
-                    'Register `orca-ide` in ~/.local/bin inside WSL.'
+                    'Register `alicorn-ide` in ~/.local/bin inside WSL.'
                   ))}
             </p>
           </div>

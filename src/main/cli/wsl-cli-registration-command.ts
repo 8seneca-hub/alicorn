@@ -14,6 +14,9 @@ import {
 
 const MANAGED_MARKER = getWslLauncherMarker()
 const BRIDGE_MANAGED_MARKER = getWslBridgeMarker()
+// Why only `orca` here: installing `alicorn-ide` must not delete a managed `orca-ide`, which is
+// the compatibility handle scripts and hooks inside the distro still call this release. The
+// pre-`orca-ide` bare command has no such consumers and is reclaimed on install as before.
 const LEGACY_WSL_COMMAND_NAME = 'orca'
 
 export function buildWslCliInstallCommand(

@@ -42,12 +42,12 @@ async function createPrivilegedFixture() {
   createdRoots.push(root)
   const protectedDirectory = join(root, 'protected')
   protectedDirectories.push(protectedDirectory)
-  const commandPath = join(protectedDirectory, 'orca')
+  const commandPath = join(protectedDirectory, 'alicorn')
   const userDataPath = join(root, 'user-data')
   const appPath = join(root, 'app')
   await mkdir(protectedDirectory)
   await mkdir(join(appPath, 'out', 'cli'), { recursive: true })
-  await writeFile(join(appPath, 'out', 'cli', 'index.js'), 'console.log("orca")\n')
+  await writeFile(join(appPath, 'out', 'cli', 'index.js'), 'console.log("alicorn")\n')
   return { root, protectedDirectory, commandPath, userDataPath, appPath }
 }
 
@@ -103,7 +103,7 @@ describe.skipIf(process.platform !== 'darwin' || process.getuid?.() === 0)(
 
     it('restores a trailing-newline symlink inserted after privileged inspection', async () => {
       const fixture = await createPrivilegedFixture()
-      const staleTarget = join(fixture.userDataPath, 'cli', 'bin', 'old', 'orca')
+      const staleTarget = join(fixture.userDataPath, 'cli', 'bin', 'old', 'alicorn')
       const foreignTarget = `${staleTarget}\n`
       await symlink(staleTarget, fixture.commandPath)
       const original = await lstat(fixture.commandPath, { bigint: true })
@@ -166,7 +166,7 @@ describe.skipIf(process.platform !== 'darwin' || process.getuid?.() === 0)(
 
     it('restores the displaced command when publication setup fails', async () => {
       const fixture = await createPrivilegedFixture()
-      const staleTarget = join(fixture.userDataPath, 'cli', 'bin', 'old', 'orca')
+      const staleTarget = join(fixture.userDataPath, 'cli', 'bin', 'old', 'alicorn')
       await symlink(staleTarget, fixture.commandPath)
       const installer = new CliInstaller({
         ...fixtureInstallerOptions(fixture),

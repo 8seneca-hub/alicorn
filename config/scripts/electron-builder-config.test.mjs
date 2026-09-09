@@ -158,10 +158,10 @@ describe('electron-builder config', () => {
   })
 
   // Why: the Windows CLI shim is delivered only via extraResources to
-  // resources/bin/orca.cmd (beside the native resources/bin/orca.exe). If the
+  // resources/bin/alicorn.cmd (beside the native resources/bin/alicorn.exe). If the
   // source tree is also packed into app.asar it gets extracted by
-  // asarUnpack:['resources/**'] to app.asar.unpacked/resources/win32/bin/orca.cmd,
-  // a duplicate with no adjacent orca.exe that fails to launch (#7351).
+  // asarUnpack:['resources/**'] to app.asar.unpacked/resources/win32/bin/alicorn.cmd,
+  // a duplicate with no adjacent alicorn.exe that fails to launch (#7351).
   it('keeps the Windows CLI shim source tree out of app.asar', () => {
     expect(electronBuilderConfig.files).toEqual(
       expect.arrayContaining(['!resources/win32{,/**/*}'])
@@ -170,8 +170,17 @@ describe('electron-builder config', () => {
     expect(electronBuilderConfig.win.extraResources).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          from: 'resources/win32/bin/orca.cmd',
+          from: 'resources/win32/bin/alicorn.cmd',
+          to: 'bin/alicorn.cmd'
+        }),
+        // R2 compatibility shim: the pre-rebrand command name ships one more release.
+        expect.objectContaining({
+          from: 'resources/win32/bin/alicorn.cmd',
           to: 'bin/orca.cmd'
+        }),
+        expect.objectContaining({
+          from: 'native/windows-cli-launcher/.build/orca.exe',
+          to: 'bin/alicorn.exe'
         })
       ])
     )

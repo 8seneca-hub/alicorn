@@ -8491,7 +8491,7 @@
           "e49688f67f": "Enregistrer `{{value0}}` dans WSL ?",
           "61ac55278e": "Supprimer `{{value0}}` de WSL ?",
           "e2b0ee267f": "périmé",
-          "7aa456a460": "Enregistre `orca-ide` dans ~/.local/bin au sein de WSL.",
+          "7aa456a460": "Enregistre `alicorn-ide` dans ~/.local/bin au sein de WSL.",
           "0307677bb9": "Vérification de l'enregistrement de la CLI WSL..."
         },
         "accounts": {

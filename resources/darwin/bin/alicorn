@@ -14,12 +14,24 @@ function app_realpath() {
 
 APP_PATH="$(app_realpath "${BASH_SOURCE[0]}")"
 if [ -z "$APP_PATH" ]; then
-	echo "Unable to determine Orca.app path from symlink: ${BASH_SOURCE[0]}"
+	echo "Unable to determine the application bundle path from symlink: ${BASH_SOURCE[0]}"
 	exit 1
 fi
 
 CONTENTS="$APP_PATH/Contents"
-ELECTRON="$CONTENTS/MacOS/Orca"
+# Why: the executable is named after productName; accept the pre-rebrand name so this
+# launcher still works inside an installed Orca.app.
+ELECTRON=""
+for candidate in Alicorn Orca; do
+	if [ -f "$CONTENTS/MacOS/$candidate" ] && [ -x "$CONTENTS/MacOS/$candidate" ]; then
+		ELECTRON="$CONTENTS/MacOS/$candidate"
+		break
+	fi
+done
+if [ -z "$ELECTRON" ]; then
+	echo "Unable to locate the Alicorn executable in $CONTENTS/MacOS" >&2
+	exit 1
+fi
 # Why: Orca packages the CLI entrypoint outside app.asar so the public shell
 # command can execute it directly with ELECTRON_RUN_AS_NODE, mirroring VS Code's
 # launcher model instead of requiring a separate npm-distributed binary.

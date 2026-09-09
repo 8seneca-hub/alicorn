@@ -8,7 +8,11 @@ import {
   isDirectClaudeCommand,
   type ClaudeAgentTeamsMode
 } from '../../shared/claude-agent-teams-tmux-compat'
-import { getOrcaCliCommandNameForPlatform } from '../../shared/orca-cli-command-name'
+import {
+  getAlicornCliCommandNameForPlatform,
+  getLegacyOrcaCliCommandNameForPlatform
+} from '../../shared/alicorn-cli-command-name'
+import { getBundledLauncherPath } from '../cli/bundled-cli-launcher-path'
 import { resolvePathEnvKey } from '../pty/windows-path-segment-merge'
 
 export type ClaudeAgentTeamsLaunchPlan = {
@@ -79,7 +83,9 @@ export function resolveClaudeAgentTeamsShimBin(
   }
   return (
     findExecutableOnPath(process.platform === 'win32' ? 'orca-dev.cmd' : 'orca-dev', pathValue) ??
-    findExecutableOnPath(getOrcaCliCommandNameForPlatform(process.platform), pathValue)
+    findExecutableOnPath(getAlicornCliCommandNameForPlatform(process.platform), pathValue) ??
+    // Why: an install that predates the rename only has the `orca` command on PATH.
+    findExecutableOnPath(getLegacyOrcaCliCommandNameForPlatform(process.platform), pathValue)
   )
 }
 
@@ -88,19 +94,9 @@ function defaultShimRoot(): string {
 }
 
 function bundledLauncherPath(): string | null {
-  if (!process.resourcesPath) {
-    return null
-  }
-  if (process.platform === 'darwin') {
-    return join(process.resourcesPath, 'bin', 'orca')
-  }
-  if (process.platform === 'linux') {
-    return join(process.resourcesPath, 'bin', 'orca-ide')
-  }
-  if (process.platform === 'win32') {
-    return join(process.resourcesPath, 'bin', 'orca.exe')
-  }
-  return null
+  return process.resourcesPath
+    ? getBundledLauncherPath(process.platform, process.resourcesPath)
+    : null
 }
 
 function findExecutableOnPath(command: string, pathValue: string | undefined): string | null {

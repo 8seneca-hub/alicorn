@@ -7672,7 +7672,7 @@
           "e49688f67f": "`{{value0}}` を WSL に登録しますか?",
           "61ac55278e": "WSL から {{value0}} を削除しますか?",
           "e2b0ee267f": "古い",
-          "7aa456a460": "WSL 内の~/.local/binに「orca-ide」を登録します。",
+          "7aa456a460": "WSL 内の~/.local/binに「alicorn-ide」を登録します。",
           "0307677bb9": "WSL CLI 登録を確認しています…"
         },
         "accounts": {

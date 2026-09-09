@@ -63,7 +63,7 @@ function createWslRunner(
     interopReady?: boolean
   } = {}
 ) {
-  const commandPath = '/home/alice/.local/bin/orca-ide'
+  const commandPath = '/home/alice/.local/bin/alicorn-ide'
   const legacyCommandPath = '/home/alice/.local/bin/orca'
   const bridgePath = '/home/alice/.local/share/orca/orca-wsl-bridge.ps1'
   const files = new Map<string, string>()
@@ -175,7 +175,7 @@ describe('WslCliInstaller', () => {
 
     await expect(installer.getStatus()).resolves.toMatchObject({
       state: 'not_installed',
-      commandPath: '/home/alice/.local/bin/orca-ide'
+      commandPath: '/home/alice/.local/bin/alicorn-ide'
     })
 
     const installed = await installer.install()
@@ -222,12 +222,12 @@ describe('WslCliInstaller', () => {
     await expect(installer.getStatus()).resolves.toMatchObject({
       supported: true,
       state: 'not_installed',
-      commandPath: '/home/alice/.local/bin/orca-ide'
+      commandPath: '/home/alice/.local/bin/alicorn-ide'
     })
   })
 
   it('derives the shared WSL bridge path for current and legacy command names', () => {
-    expect(_internals.getBridgePathFromCommandPath('/home/alice/.local/bin/orca-ide')).toBe(
+    expect(_internals.getBridgePathFromCommandPath('/home/alice/.local/bin/alicorn-ide')).toBe(
       '/home/alice/.local/share/orca/orca-wsl-bridge.ps1'
     )
     expect(_internals.getBridgePathFromCommandPath('/home/alice/.local/bin/orca')).toBe(
@@ -377,7 +377,7 @@ describe('WslCliInstaller', () => {
 
     await expect(installer.getStatus()).resolves.toMatchObject({
       state: 'not_installed',
-      commandPath: '/home/alice/.local/bin/orca-ide'
+      commandPath: '/home/alice/.local/bin/alicorn-ide'
     })
   })
 
@@ -553,7 +553,7 @@ describe('WslCliInstaller', () => {
     expect(wsl.getFile()).toBe(currentLauncher)
   })
 
-  it('moves a legacy-only managed registration to orca-ide without touching unmanaged names', async () => {
+  it('moves a legacy-only managed registration to alicorn-ide without touching unmanaged names', async () => {
     const nativeLauncher = 'C:\\Orca\\resources\\bin\\orca.exe'
     const managedLegacy = createWslRunner(null, true, {
       initialBridge: _internals.buildWslBridgeScript(),
@@ -692,7 +692,7 @@ describe('WslCliInstaller', () => {
     // Why: the command replace must stay one atomic rename; a mv-based backup
     // would leave a window where a concurrent shell finds no orca-ide at all.
     expect(installCommand).not.toContain('command_backup')
-    expect(installCommand).not.toContain(`mv -f '/home/alice/.local/bin/orca-ide'`)
+    expect(installCommand).not.toContain(`mv -f '/home/alice/.local/bin/alicorn-ide'`)
   })
 
   it.skipIf(process.platform === 'win32')(

@@ -36,12 +36,12 @@ export type LinuxTerminalOrcaCliShimOptions = {
   appImageCacheRootPath?: string
 }
 
-// Why: on Linux the CLI installs as `orca-ide` so it never shadows the GNOME
+// Why: on Linux the CLI installs as `alicorn-ide` so it never shadows the GNOME
 // Orca screen reader at /usr/bin/orca — but agent-facing surfaces (skills,
-// dispatch preambles, CLI hints) all invoke bare `orca`, so on stock Ubuntu an
+// dispatch preambles, CLI hints) invoke the bare command, so on stock Ubuntu an
 // agent inside an Orca terminal would launch the screen reader instead
 // (stablyai/orca#7904). Prepending this userData-scoped shim dir to managed-PTY
-// PATH makes bare `orca` resolve to the Orca CLI inside Orca terminals only,
+// PATH makes the bare command resolve to this app's CLI inside its terminals only,
 // leaving the user's own shells (and their screen reader) untouched.
 export function ensureLinuxTerminalOrcaCliShimDir(
   options: LinuxTerminalOrcaCliShimOptions
@@ -213,15 +213,21 @@ function ensureShimForLauncher(userDataPath: string, launcherPath: string): stri
   return ensureShimForScript(userDataPath, script)
 }
 
+// Why both names: the skill corpus and installed hooks still invoke `orca` this release,
+// while everything written after the rename invokes `alicorn`.
+const SHIM_COMMAND_NAMES = ['alicorn', 'orca'] as const
+
 function ensureShimForScript(userDataPath: string, script: string): string | null {
   const shimDir = join(userDataPath, SHIM_DIR_NAME)
-  const shimPath = join(shimDir, 'orca')
   try {
-    if (readShim(shimPath) !== script) {
-      mkdirSync(shimDir, { recursive: true })
-      writeFileSync(shimPath, script, 'utf8')
+    for (const commandName of SHIM_COMMAND_NAMES) {
+      const shimPath = join(shimDir, commandName)
+      if (readShim(shimPath) !== script) {
+        mkdirSync(shimDir, { recursive: true })
+        writeFileSync(shimPath, script, 'utf8')
+      }
+      chmodSync(shimPath, 0o755)
     }
-    chmodSync(shimPath, 0o755)
   } catch {
     return null
   }

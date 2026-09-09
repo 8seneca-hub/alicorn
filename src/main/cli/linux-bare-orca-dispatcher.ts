@@ -21,7 +21,7 @@ import { quoteShell } from './cli-install-path-format'
 const DISPATCHER_MARKER = '# orca-serve-bare-orca-dispatcher'
 
 export type LinuxBareOrcaDispatcherOptions = {
-  /** Packaged app resources root; the bundled `orca-ide` launcher lives under it. */
+  /** Packaged app resources root; the bundled `alicorn-ide` launcher lives under it. */
   resourcesPath: string
   /** Test seam — defaults to the real home directory. */
   homePath?: string
@@ -41,11 +41,11 @@ export type LinuxBareOrcaDispatcherState =
 export type LinuxBareOrcaDispatcherResult = {
   state: LinuxBareOrcaDispatcherState
   dispatcherPath: string
-  /** The bundled `orca-ide` launcher the dispatcher execs. */
+  /** The bundled `alicorn-ide` launcher the dispatcher execs. */
   target: string | null
 }
 
-// Why: on Linux the CLI installs as `orca-ide`, not bare `orca`, to avoid
+// Why: on Linux the CLI installs as `alicorn-ide`, not bare `orca`, to avoid
 // shadowing GNOME Orca's /usr/bin/orca. But the Claude Team launcher typed into
 // the initial managed terminal invokes the literal `orca claude-teams`, so a
 // headless serve box needs a bare-`orca` dispatcher on the managed-terminal PATH
