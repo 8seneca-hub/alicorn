@@ -6,7 +6,7 @@ import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { recoverPendingSkillTransactions } from './skill-transaction-startup-recovery'
 
-const RUN_REAL_PROCESS = process.env.ORCA_REAL_PROCESS_SKILL_TEST === '1'
+const RUN_REAL_PROCESS = process.env.ALICORN_REAL_PROCESS_SKILL_TEST === '1'
 const require = createRequire(import.meta.url)
 const vitestBin = join(dirname(require.resolve('vitest/package.json')), 'vitest.mjs')
 const childTest = resolve('src/main/skills/skill-bundle-process-termination-child.test.ts')
@@ -126,10 +126,10 @@ async function startChild(root: string): Promise<{ child: ChildProcess; marker: 
       cwd: process.cwd(),
       env: {
         ...process.env,
-        ORCA_REAL_PROCESS_SKILL_TEST: '0',
-        ORCA_SKILL_BUNDLE_PROCESS_CHILD: '1',
-        ORCA_SKILL_BUNDLE_CRASH_ROOT: root,
-        ORCA_SKILL_BUNDLE_CRASH_MARKER: marker
+        ALICORN_REAL_PROCESS_SKILL_TEST: '0',
+        ALICORN_SKILL_BUNDLE_PROCESS_CHILD: '1',
+        ALICORN_SKILL_BUNDLE_CRASH_ROOT: root,
+        ALICORN_SKILL_BUNDLE_CRASH_MARKER: marker
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true

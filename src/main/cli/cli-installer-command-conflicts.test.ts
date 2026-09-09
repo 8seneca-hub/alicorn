@@ -68,7 +68,14 @@ describe('CliInstaller', () => {
       const installPath = join(commandDir, 'alicorn')
       const resourcesPath = join(fixture.root, 'Current.app', 'Contents', 'Resources')
       const launcherPath = join(resourcesPath, 'bin', 'alicorn')
-      const oldLauncherPath = join(fixture.root, 'Old.app', 'Contents', 'Resources', 'bin', 'alicorn')
+      const oldLauncherPath = join(
+        fixture.root,
+        'Old.app',
+        'Contents',
+        'Resources',
+        'bin',
+        'alicorn'
+      )
       await mkdir(commandDir, { recursive: true })
       await mkdir(join(resourcesPath, 'bin'), { recursive: true })
       await writeFile(launcherPath, '#!/usr/bin/env bash\n', 'utf8')
@@ -113,8 +120,8 @@ describe('CliInstaller', () => {
           'set -euo pipefail',
           "ELECTRON='/tmp/Old.app/Contents/MacOS/Electron'",
           `CLI='${oldCliPath}'`,
-          'export ORCA_NODE_OPTIONS="${NODE_OPTIONS-}"',
-          'export ORCA_NODE_REPL_EXTERNAL_MODULE="${NODE_REPL_EXTERNAL_MODULE-}"',
+          'export ALICORN_NODE_OPTIONS="${NODE_OPTIONS-}"',
+          'export ALICORN_NODE_REPL_EXTERNAL_MODULE="${NODE_REPL_EXTERNAL_MODULE-}"',
           'unset NODE_OPTIONS',
           'unset NODE_REPL_EXTERNAL_MODULE',
           'ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" "$@"',

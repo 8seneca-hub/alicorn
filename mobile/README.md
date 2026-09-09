@@ -96,7 +96,7 @@ Use this when terminal output does not render on device and you need to split se
 
 ```bash
 cd mobile
-ORCA_MOBILE_WS_URL=ws://127.0.0.1:6768 pnpm exec tsx scripts/test-subscribe.ts <deviceToken> <serverPublicKeyB64>
+ALICORN_MOBILE_WS_URL=ws://127.0.0.1:6768 pnpm exec tsx scripts/test-subscribe.ts <deviceToken> <serverPublicKeyB64>
 ```
 
 You can pass a worktree selector as the third argument:
@@ -122,7 +122,7 @@ Use this when terminal colors disappear after switching tabs. Open a Claude Code
 
 ```bash
 cd mobile
-ORCA_MOBILE_WS_URL=ws://127.0.0.1:6768 pnpm exec tsx scripts/repro-terminal-colors.ts \
+ALICORN_MOBILE_WS_URL=ws://127.0.0.1:6768 pnpm exec tsx scripts/repro-terminal-colors.ts \
   <deviceToken> <serverPublicKeyB64> "id:<worktreeId>"
 ```
 

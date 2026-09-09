@@ -40,7 +40,7 @@ describe('getLeadToolGateScript (POSIX)', () => {
 
   // Why: a stale port after an Orca restart would fail open and leave the lead unrestricted.
   it('refreshes the endpoint coordinates first', () => {
-    expect(script.indexOf('ORCA_AGENT_HOOK_ENDPOINT')).toBeLessThan(script.indexOf('curl'))
+    expect(script.indexOf('ALICORN_AGENT_HOOK_ENDPOINT')).toBeLessThan(script.indexOf('curl'))
   })
 
   it('sends the cwd, which is the worktree the lead must not read', () => {
@@ -65,9 +65,9 @@ describe('getLeadToolGateScript (Windows)', () => {
       const script = getLeadToolGateScript('local')
 
       expect(script).toContain('curl.exe')
-      expect(script).toContain('-o "%ORCA_LEAD_GATE_OUT%"')
+      expect(script).toContain('-o "%ALICORN_LEAD_GATE_OUT%"')
       expect(script).not.toContain('for /f')
-      expect(script).toContain('del /f /q "%ORCA_LEAD_GATE_OUT%"')
+      expect(script).toContain('del /f /q "%ALICORN_LEAD_GATE_OUT%"')
     })
   })
 
@@ -87,7 +87,9 @@ describe('getLeadToolGateScript (Windows)', () => {
     withPlatform('win32', () => {
       const script = getLeadToolGateScript('local')
 
-      expect(script.indexOf('ORCA_AGENT_HOOK_PORT%"==""')).toBeLessThan(script.indexOf('curl.exe'))
+      expect(script.indexOf('ALICORN_AGENT_HOOK_PORT%"==""')).toBeLessThan(
+        script.indexOf('curl.exe')
+      )
       expect(script.indexOf('more.com')).toBeGreaterThan(script.indexOf('curl.exe'))
     })
   })

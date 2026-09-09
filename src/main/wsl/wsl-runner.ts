@@ -80,7 +80,7 @@ export type WslSpec = WslCommand & {
    * Two limits. Only the root dies, not its process tree -- `runProcess` walks the tree for
    * `terminationBarrier` callers and this is not one. And guest-side teardown, whether the Linux
    * process inside the distro goes with the relay, is covered by no automated test: the real-WSL
-   * suite is gated to win32 plus ORCA_REAL_WSL_RUNNER_TEST and no CI job sets it.
+   * suite is gated to win32 plus ALICORN_REAL_WSL_RUNNER_TEST and no CI job sets it.
    *
    * Applies to the command leg only; the login-PATH probe has its own short budget instead.
    */

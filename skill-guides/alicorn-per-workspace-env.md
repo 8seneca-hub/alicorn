@@ -141,7 +141,7 @@ shape is §7a; key points:
   `orca-e2ee-keypair.json`), `agent-session-authority.key`, and the build box's logs, terminal history
   and orchestration db. Confirmed: two VMs from one such snapshot emitted **identical `deviceToken` and
   `pairedDeviceId`**. Snapshot **before** the runtime has ever run, or delete the resolved user-data
-  directory first: `orca_user_data_path="${ORCA_USER_DATA_PATH:-${XDG_CONFIG_HOME:-$HOME/.config}/orca}"; rm -rf -- "$orca_user_data_path"`.
+  directory first: `orca_user_data_path="${ALICORN_USER_DATA_PATH:-${XDG_CONFIG_HOME:-$HOME/.config}/orca}"; rm -rf -- "$orca_user_data_path"`.
   This matches Orca's Linux precedence for custom and default paths; deleting a named file list will
   drift as Orca adds state.
 - Snapshot the stopped sandbox, parse the snapshot id, and write it + scope/project/port/repo to state.
@@ -286,7 +286,7 @@ set -euo pipefail
 set -euo pipefail
 # read authenticated snapshotId/scope/project/port/repo*/project_root (env→state→fallback)
 # fail clearly if snapshotId is missing (point back to Phases 2–3)
-# name = orca-${ORCA_RECIPE_ID}-${ORCA_VM_INSTANCE_ID} (sanitized, length-capped)
+# name = orca-${ALICORN_RECIPE_ID}-${ALICORN_VM_INSTANCE_ID} (sanitized, length-capped)
 # 1. boot sandbox from snapshotId with a published port; capture the public URL → pairing address
 #    (an externally reachable wss:// URL); trap: remove sandbox on error
 # 2. remote exec: ensure repo at desired commit; rebuild only if commit changed (cache marker)
@@ -393,11 +393,11 @@ set -euo pipefail
 vercel_args=(); [ -n "$scope" ] && vercel_args+=(--scope "$scope"); [ -n "$project" ] && vercel_args+=(--project "$project")
 [ -n "$snapshot_id" ] || { echo "snapshotId missing — run Phases 2–3 first" >&2; exit 1; }
 gh_token="${GH_TOKEN:-${GITHUB_TOKEN:-$(command -v gh >/dev/null 2>&1 && gh auth token 2>/dev/null || true)}}"
-recipe_id="${ORCA_RECIPE_ID:-vercel-sandbox}"
+recipe_id="${ALICORN_RECIPE_ID:-vercel-sandbox}"
 recipe_id="${recipe_id//./-}"  # Vercel names forbid dots.
-instance_id="${ORCA_VM_INSTANCE_ID:-$(date +%s)}"
+instance_id="${ALICORN_VM_INSTANCE_ID:-$(date +%s)}"
 max_recipe_id_length=$((128 - ${#instance_id} - 6))  # Preserve the unique instance suffix.
-[ "$max_recipe_id_length" -gt 0 ] || { echo "ORCA_VM_INSTANCE_ID is too long for a Vercel sandbox name" >&2; exit 1; }
+[ "$max_recipe_id_length" -gt 0 ] || { echo "ALICORN_VM_INSTANCE_ID is too long for a Vercel sandbox name" >&2; exit 1; }
 name="orca-${recipe_id:0:max_recipe_id_length}-${instance_id}"
 
 # Arm cleanup BEFORE create so a failing create can't leak a half-built paid sandbox.
@@ -414,17 +414,17 @@ pairing_ws="${public_url/https:\/\//wss://}"
 
 # 2. (remote) ensure the repo is at the right commit; rebuild only if the commit changed (cache marker)
 vercel sandbox exec "$name" "${vercel_args[@]}" --timeout 20m \
-  --env "GH_TOKEN=$gh_token" --env "ORCA_PROJECT_ROOT=$project_root" \
-  --env "ORCA_REPO_URL=$repo_url" --env "ORCA_REPO_REF=$repo_ref" \
-  -- bash -lc 'set -euo pipefail; cd "$ORCA_PROJECT_ROOT"; \
+  --env "GH_TOKEN=$gh_token" --env "ALICORN_PROJECT_ROOT=$project_root" \
+  --env "ALICORN_REPO_URL=$repo_url" --env "ALICORN_REPO_REF=$repo_ref" \
+  -- bash -lc 'set -euo pipefail; cd "$ALICORN_PROJECT_ROOT"; \
     # Re-establish git auth for the private-repo fetch (why + full rationale: §5); else it hangs on a prompt.
     # Load-bearing escaping: \$1 and \$GH_TOKEN must land LITERALLY and resolve at git-runtime. Test after
     # any edit here — reformatting the nested printf/node quoting silently breaks the fetch or leaks the token.
     if [ -n "${GH_TOKEN:-}" ]; then \
       printf "%s\n" "#!/usr/bin/env bash" "case \"\$1\" in *Username*) echo x-access-token;; *Password*) echo \"\$GH_TOKEN\";; esac" > /tmp/askpass.sh; \
       chmod 700 /tmp/askpass.sh; export GIT_ASKPASS=/tmp/askpass.sh GIT_TERMINAL_PROMPT=0; fi; \
-    git fetch origin "$ORCA_REPO_REF"; \
-    git checkout -B "$ORCA_REPO_REF" FETCH_HEAD; \
+    git fetch origin "$ALICORN_REPO_REF"; \
+    git checkout -B "$ALICORN_REPO_REF" FETCH_HEAD; \
     rm -f /tmp/askpass.sh; \
     c="$(git rev-parse HEAD)"; [ -f .orca-built ] && [ "$(cat .orca-built)" = "$c" ] || { \
       pnpm install --prefer-offline && pnpm run build:cli && \
@@ -433,10 +433,10 @@ vercel sandbox exec "$name" "${vercel_args[@]}" --timeout 20m \
 
 # 3. (remote) start alicorn serve in the background, writing recipe JSON to a file; poll until it parses
 recipe_json="$(vercel sandbox exec "$name" "${vercel_args[@]}" --timeout 60s \
-  --env "ORCA_PORT=$port" --env "ORCA_PROJECT_ROOT=$project_root" --env "ORCA_PAIRING_ADDRESS=$pairing_ws" \
-  -- bash -lc 'set -euo pipefail; cd "$ORCA_PROJECT_ROOT"; rm -f /tmp/orca-recipe.json /tmp/orca-serve.log; \
-    nohup pnpm exec orca-dev serve --port "$ORCA_PORT" --project-root "$ORCA_PROJECT_ROOT" \
-      --pairing-address "$ORCA_PAIRING_ADDRESS" --recipe-json >/tmp/orca-recipe.json 2>/tmp/orca-serve.log </dev/null & \
+  --env "ALICORN_PORT=$port" --env "ALICORN_PROJECT_ROOT=$project_root" --env "ALICORN_PAIRING_ADDRESS=$pairing_ws" \
+  -- bash -lc 'set -euo pipefail; cd "$ALICORN_PROJECT_ROOT"; rm -f /tmp/orca-recipe.json /tmp/orca-serve.log; \
+    nohup pnpm exec orca-dev serve --port "$ALICORN_PORT" --project-root "$ALICORN_PROJECT_ROOT" \
+      --pairing-address "$ALICORN_PAIRING_ADDRESS" --recipe-json >/tmp/orca-recipe.json 2>/tmp/orca-serve.log </dev/null & \
     pid=$!; for _ in $(seq 1 80); do \
       node -e "JSON.parse(require(\"node:fs\").readFileSync(\"/tmp/orca-recipe.json\",\"utf8\"))" >/dev/null 2>&1 && { cat /tmp/orca-recipe.json; exit 0; }; \
       kill -0 "$pid" 2>/dev/null || { cat /tmp/orca-serve.log >&2; exit 1; }; sleep 0.25; \
@@ -487,18 +487,18 @@ SSH mode is **fundamentally different from §7c/§7f**, not a relabeling of them
 `label`, `host`, `port`, `username` are required; the rest are optional — omit any you don't need.
 
 For an explicitly requested one-VM-per-workspace checkout, the create script must read
-`ORCA_RECIPE_RESULT_SCHEMA_VERSION`, `ORCA_REPO_URL`, `ORCA_REPO_REF`, `ORCA_REPO_REF_HEAD`, and
-`ORCA_REPO_BRANCH`. Use `ORCA_REPO_REF` to fetch the selected source, but create
-`ORCA_REPO_BRANCH` at the exact `ORCA_REPO_REF_HEAD` commit; resolving the symbolic ref again can race
-with an upstream update. `ORCA_REPO_URL` and `ORCA_REPO_REF` are a matched fetch pair, including when
+`ALICORN_RECIPE_RESULT_SCHEMA_VERSION`, `ALICORN_REPO_URL`, `ALICORN_REPO_REF`, `ALICORN_REPO_REF_HEAD`, and
+`ALICORN_REPO_BRANCH`. Use `ALICORN_REPO_REF` to fetch the selected source, but create
+`ALICORN_REPO_BRANCH` at the exact `ALICORN_REPO_REF_HEAD` commit; resolving the symbolic ref again can race
+with an upstream update. `ALICORN_REPO_URL` and `ALICORN_REPO_REF` are a matched fetch pair, including when
 the desktop source uses multiple remotes. Return that primary checkout at `projectRoot` and emit the
 same SSH result with:
 
 ```bash
-[ -n "${ORCA_REPO_REF_HEAD:-}" ] || { echo "missing pinned source commit" >&2; exit 1; }
-git fetch origin "$ORCA_REPO_REF"
-git cat-file -e "${ORCA_REPO_REF_HEAD}^{commit}"
-git checkout -B "$ORCA_REPO_BRANCH" "$ORCA_REPO_REF_HEAD"
+[ -n "${ALICORN_REPO_REF_HEAD:-}" ] || { echo "missing pinned source commit" >&2; exit 1; }
+git fetch origin "$ALICORN_REPO_REF"
+git cat-file -e "${ALICORN_REPO_REF_HEAD}^{commit}"
+git checkout -B "$ALICORN_REPO_BRANCH" "$ALICORN_REPO_REF_HEAD"
 ```
 
 ```json
@@ -601,7 +601,7 @@ Validation before wiring/live use:
 
 ```bash
 docker image inspect "$auth_image" --format '{{json .Config.Entrypoint}}'
-docker run -d --name "$name" -p 127.0.0.1::22 -e "ORCA_SSH_PUBLIC_KEY=$pubkey" "$auth_image"
+docker run -d --name "$name" -p 127.0.0.1::22 -e "ALICORN_SSH_PUBLIC_KEY=$pubkey" "$auth_image"
 docker ps -a --filter "name=$name"
 docker logs "$name"
 ssh -i "$key" -p "$port" -o IdentitiesOnly=yes user@127.0.0.1 'codex --version'
@@ -672,8 +672,8 @@ and `userData` are optional.
 worked script in §7g). `pairingCode` is **not** used in SSH mode.
 
 **Optional provisioned root** — only for direct SSH and only when explicitly requested. Add
-`checkoutMode: provisioned-root` to the recipe, require `ORCA_RECIPE_RESULT_SCHEMA_VERSION=2`, create
-the requested `ORCA_REPO_BRANCH` at the pinned `ORCA_REPO_REF_HEAD` commit (use `ORCA_REPO_REF` only
+`checkoutMode: provisioned-root` to the recipe, require `ALICORN_RECIPE_RESULT_SCHEMA_VERSION=2`, create
+the requested `ALICORN_REPO_BRANCH` at the pinned `ALICORN_REPO_REF_HEAD` commit (use `ALICORN_REPO_REF` only
 to fetch that commit) at the returned `projectRoot`, and emit schema version 2 with
 `checkoutMode: "provisioned-root"`. All recipes without this field retain the schema-v1 behavior above.
 

@@ -26,7 +26,7 @@ writeFileSync(
 
 test.afterAll(() => rmSync(scratch, { recursive: true, force: true }))
 test.use({
-  orcaAppExtraEnv: { ORCA_E2E_FORCE_REMOTE_TERMINAL_INITIAL_SNAPSHOT_TRUNCATED: '1' }
+  orcaAppExtraEnv: { ALICORN_E2E_FORCE_REMOTE_TERMINAL_INITIAL_SNAPSHOT_TRUNCATED: '1' }
 })
 
 function shellQuote(value: string): string {

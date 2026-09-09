@@ -38,7 +38,7 @@ function runBootstrap(
     cwd,
     process.env.USERPROFILE ?? cwd,
     undefined,
-    '$env:ORCA_TEST_STARTUP_COUNT = 1 + [int]$env:ORCA_TEST_STARTUP_COUNT'
+    '$env:ALICORN_TEST_STARTUP_COUNT = 1 + [int]$env:ALICORN_TEST_STARTUP_COUNT'
   )
   expect(launch.startupCommandDeliveredInShellArgs).toBe(true)
   const encodedCommandIndex = launch.shellArgs.indexOf('-EncodedCommand')
@@ -54,9 +54,9 @@ function runBootstrap(
       env: {
         ...process.env,
         CODEX_HOME: PROFILE_CODEX_HOME,
-        ORCA_CODEX_HOME: MANAGED_CODEX_HOME,
-        ORCA_TEST_BOOTSTRAP: encodedCommand,
-        ORCA_TEST_LANGUAGE_MODE: languageMode
+        ALICORN_CODEX_HOME: MANAGED_CODEX_HOME,
+        ALICORN_TEST_BOOTSTRAP: encodedCommand,
+        ALICORN_TEST_LANGUAGE_MODE: languageMode
       },
       windowsHide: true
     }
@@ -80,20 +80,20 @@ function isAvailable(shell: (typeof WINDOWS_POWERSHELLS)[number]): boolean {
 
 const harness = encodePowerShellCommand(`
 $initialState = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
-$initialState.LanguageMode = $env:ORCA_TEST_LANGUAGE_MODE
+$initialState.LanguageMode = $env:ALICORN_TEST_LANGUAGE_MODE
 $runspace = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspace($initialState)
 $runspace.Open()
 $runner = [System.Management.Automation.PowerShell]::Create()
 $runner.Runspace = $runspace
 $bootstrap = [Text.Encoding]::Unicode.GetString(
-  [Convert]::FromBase64String($env:ORCA_TEST_BOOTSTRAP)
+  [Convert]::FromBase64String($env:ALICORN_TEST_BOOTSTRAP)
 )
 $null = $runner.AddScript($bootstrap).Invoke()
 $runner.Commands.Clear()
 $null = $runner.AddScript($bootstrap).Invoke()
 $runner.Commands.Clear()
 $runner.AddScript(
-  '"mode=$($ExecutionContext.SessionState.LanguageMode);codexHome=$env:CODEX_HOME;orcaHome=$env:ORCA_CODEX_HOME;startupCount=$env:ORCA_TEST_STARTUP_COUNT;cwd=$($PWD.Path)"'
+  '"mode=$($ExecutionContext.SessionState.LanguageMode);codexHome=$env:CODEX_HOME;orcaHome=$env:ALICORN_CODEX_HOME;startupCount=$env:ALICORN_TEST_STARTUP_COUNT;cwd=$($PWD.Path)"'
 ).Invoke()
 $runner.Dispose()
 $runspace.Dispose()

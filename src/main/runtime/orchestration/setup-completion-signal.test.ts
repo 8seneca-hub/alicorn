@@ -22,7 +22,7 @@ describe('orchestration setup completion signal', () => {
     const script = Buffer.from(encodedCommand ?? '', 'base64').toString('utf16le')
 
     expect(observed.command).toContain('powershell.exe -NoLogo -NoProfile -NonInteractive')
-    expect(observed.env).toEqual({ ORCA_SETUP_RUNNER_PATH: runnerPath })
+    expect(observed.env).toEqual({ ALICORN_SETUP_RUNNER_PATH: runnerPath })
     expect(script).toContain('& $runner')
     expect(script).toContain('__ORCA_SETUP_COMPLETE__:token-windows:')
     expect(script).toContain('exit $status')
@@ -74,7 +74,7 @@ describe('orchestration setup completion signal', () => {
 
     expect(observed.command).toContain('powershell.exe -NoLogo -NoProfile -NonInteractive')
     expect(observed.command).not.toContain('bash ')
-    expect(observed.env).toEqual({ ORCA_SETUP_RUNNER_PATH: runnerPath })
+    expect(observed.env).toEqual({ ALICORN_SETUP_RUNNER_PATH: runnerPath })
   })
 
   it('recognizes one completion signal across output chunk boundaries', () => {

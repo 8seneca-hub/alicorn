@@ -1,10 +1,10 @@
 import {
-  ORCA_APP_RESTART_ABORTED_EVENT,
-  ORCA_APP_RESTART_STARTED_EVENT,
-  ORCA_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT,
-  ORCA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT
+  ALICORN_APP_RESTART_ABORTED_EVENT,
+  ALICORN_APP_RESTART_STARTED_EVENT,
+  ALICORN_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT,
+  ALICORN_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT
 } from '../../../shared/updater-renderer-events'
-import { ORCA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT } from '../../../shared/renderer-shutdown-events'
+import { ALICORN_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT } from '../../../shared/renderer-shutdown-events'
 
 let intentionalAppRestartInProgress = false
 
@@ -24,18 +24,18 @@ export function registerUpdaterBeforeUnloadBypass(): () => void {
     intentionalAppRestartInProgress = false
   }
 
-  window.addEventListener(ORCA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT, markInProgress)
-  window.addEventListener(ORCA_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT, clearInProgress)
-  window.addEventListener(ORCA_APP_RESTART_STARTED_EVENT, markInProgress)
-  window.addEventListener(ORCA_APP_RESTART_ABORTED_EVENT, clearInProgress)
-  window.addEventListener(ORCA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT, clearInProgress)
+  window.addEventListener(ALICORN_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT, markInProgress)
+  window.addEventListener(ALICORN_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT, clearInProgress)
+  window.addEventListener(ALICORN_APP_RESTART_STARTED_EVENT, markInProgress)
+  window.addEventListener(ALICORN_APP_RESTART_ABORTED_EVENT, clearInProgress)
+  window.addEventListener(ALICORN_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT, clearInProgress)
 
   return () => {
-    window.removeEventListener(ORCA_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT, markInProgress)
-    window.removeEventListener(ORCA_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT, clearInProgress)
-    window.removeEventListener(ORCA_APP_RESTART_STARTED_EVENT, markInProgress)
-    window.removeEventListener(ORCA_APP_RESTART_ABORTED_EVENT, clearInProgress)
-    window.removeEventListener(ORCA_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT, clearInProgress)
+    window.removeEventListener(ALICORN_UPDATER_QUIT_AND_INSTALL_STARTED_EVENT, markInProgress)
+    window.removeEventListener(ALICORN_UPDATER_QUIT_AND_INSTALL_ABORTED_EVENT, clearInProgress)
+    window.removeEventListener(ALICORN_APP_RESTART_STARTED_EVENT, markInProgress)
+    window.removeEventListener(ALICORN_APP_RESTART_ABORTED_EVENT, clearInProgress)
+    window.removeEventListener(ALICORN_RENDERER_SHUTDOWN_CHECKPOINT_ABORTED_EVENT, clearInProgress)
     // Why: hot reloads can re-register this listener inside the same renderer.
     // Reset the module flag on cleanup so a failed earlier restart attempt
     // cannot silently suppress future unsaved-change prompts.

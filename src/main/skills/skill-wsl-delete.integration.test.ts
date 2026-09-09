@@ -3,8 +3,8 @@ import { runProcess } from '../../shared/child-process/run-process'
 import { resolveWslExecutablePath } from '../wsl/wsl-executable-path'
 import { WslSkillInstallFilesystem } from './skill-wsl-install-filesystem'
 
-const DISTRO = process.env.ORCA_REAL_WSL_SKILL_DISTRO ?? 'Ubuntu-24.04'
-const RUN_REAL_WSL = process.platform === 'win32' && process.env.ORCA_REAL_WSL_SKILL_TEST === '1'
+const DISTRO = process.env.ALICORN_REAL_WSL_SKILL_DISTRO ?? 'Ubuntu-24.04'
+const RUN_REAL_WSL = process.platform === 'win32' && process.env.ALICORN_REAL_WSL_SKILL_TEST === '1'
 
 async function runWsl(...args: string[]): Promise<string> {
   const result = await runProcess({

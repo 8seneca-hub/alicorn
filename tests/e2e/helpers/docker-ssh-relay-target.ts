@@ -222,10 +222,10 @@ export function copyFileIntoDockerSshRelayTarget(
 }
 
 export function startDockerSshRelayTarget(testInfo: TestInfo): DockerSshRelayTarget {
-  const host = process.env.ORCA_E2E_SSH_TARGET_HOST?.trim() || '127.0.0.1'
+  const host = process.env.ALICORN_E2E_SSH_TARGET_HOST?.trim() || '127.0.0.1'
   if (host === 'localhost' || host === '::1' || host.startsWith('127.')) {
-    if (process.env.ORCA_E2E_SSH_TARGET_HOST) {
-      throw new Error(`ORCA_E2E_SSH_TARGET_HOST must be non-loopback: ${host}`)
+    if (process.env.ALICORN_E2E_SSH_TARGET_HOST) {
+      throw new Error(`ALICORN_E2E_SSH_TARGET_HOST must be non-loopback: ${host}`)
     }
   }
   const bindHost = host === '127.0.0.1' ? host : '0.0.0.0'

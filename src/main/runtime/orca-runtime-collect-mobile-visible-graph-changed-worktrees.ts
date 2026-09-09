@@ -176,7 +176,7 @@ export class OrcaRuntimeWithCollectMobileVisibleGraphChangedWorktrees extends Or
   }
 
   supportsAuthoritativeSessionTabsInventory(): boolean {
-    return process.env.ORCA_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY !== '1'
+    return process.env.ALICORN_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY !== '1'
   }
 
   protected assertSessionTabsInventoryRequestActive(signal?: AbortSignal): void {

@@ -514,8 +514,8 @@ describe('fish never receives a color-scheme report it did not query (#9993)', (
           LANG: 'en_US.UTF-8',
           XDG_CONFIG_HOME: configHome,
           XDG_DATA_HOME: path.join(configHome, 'data'),
-          ORCA_NODE_BIN: process.execPath,
-          ORCA_CHILD_SCRIPT: childScript
+          ALICORN_NODE_BIN: process.execPath,
+          ALICORN_CHILD_SCRIPT: childScript
         }
       })
 
@@ -562,7 +562,7 @@ describe('fish never receives a color-scheme report it did not query (#9993)', (
         term.write('sleep 0.4\r')
         // Withdrawal #1: `sleep` owns the tty now, so the next line is typed ahead.
         expect(await waitUntil(() => countOf(rendered, WITHDRAW_2031) >= 1, 5_000)).toBe(true)
-        term.write('"$ORCA_NODE_BIN" "$ORCA_CHILD_SCRIPT"\r')
+        term.write('"$ALICORN_NODE_BIN" "$ALICORN_CHILD_SCRIPT"\r')
         // Withdrawal #2: fish re-armed for the prompt and accepted the child command.
         expect(await waitUntil(() => countOf(rendered, WITHDRAW_2031) >= 2, 5_000)).toBe(true)
         // DECSET withdrawal precedes fish's child spawn; the child's marker is the ownership signal.

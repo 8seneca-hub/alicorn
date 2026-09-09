@@ -387,7 +387,7 @@ describe('spawn', () => {
 
   it('preserves explicit TERM and forwards final env deletions to the relay', async () => {
     mux.request.mockResolvedValue({ id: 'pty-env-precedence' })
-    const envToDelete = ['TERM_PROGRAM', 'ORCA_STALE_TEST_ENV']
+    const envToDelete = ['TERM_PROGRAM', 'ALICORN_STALE_TEST_ENV']
 
     await provider.spawn({
       cols: 120,
@@ -395,7 +395,7 @@ describe('spawn', () => {
       env: {
         TERM: 'screen-256color',
         TERM_PROGRAM: 'stale-terminal',
-        ORCA_STALE_TEST_ENV: '/tmp/stale-env'
+        ALICORN_STALE_TEST_ENV: '/tmp/stale-env'
       },
       envToDelete
     })
@@ -412,7 +412,7 @@ describe('spawn', () => {
     })
     const spawnCall = mux.request.mock.calls.find((call) => call[0] === 'pty.spawn')
     expect(spawnCall?.[1]?.env).not.toHaveProperty('TERM_PROGRAM')
-    expect(spawnCall?.[1]?.env).not.toHaveProperty('ORCA_STALE_TEST_ENV')
+    expect(spawnCall?.[1]?.env).not.toHaveProperty('ALICORN_STALE_TEST_ENV')
   })
 
   it('forwards provider command delivery to the relay', async () => {
@@ -449,7 +449,7 @@ describe('spawn', () => {
     await provider.spawn({
       cols: 120,
       rows: 40,
-      env: { PATH: '/usr/bin', ORCA_TERMINAL_HANDLE: 'term_ssh' }
+      env: { PATH: '/usr/bin', ALICORN_TERMINAL_HANDLE: 'term_ssh' }
     })
 
     expectRequest(mux.request, 'pty.spawn', {
@@ -458,12 +458,12 @@ describe('spawn', () => {
       cwd: undefined,
       env: {
         PATH: '/home/user/.orca-relay/bin:/usr/bin',
-        ORCA_TERMINAL_HANDLE: 'term_ssh',
+        ALICORN_TERMINAL_HANDLE: 'term_ssh',
         [POWERLEVEL10K_WIZARD_DISABLE_ENV]: 'true',
-        ORCA_REMOTE_CLI_BIN_DIR: '/home/user/.orca-relay/bin',
-        ORCA_RELAY_DIR: '/home/user/.orca-relay/relay-v1',
-        ORCA_RELAY_NODE_PATH: '/usr/bin/node',
-        ORCA_RELAY_SOCKET_PATH: '/home/user/.orca-relay/relay.sock'
+        ALICORN_REMOTE_CLI_BIN_DIR: '/home/user/.orca-relay/bin',
+        ALICORN_RELAY_DIR: '/home/user/.orca-relay/relay-v1',
+        ALICORN_RELAY_NODE_PATH: '/usr/bin/node',
+        ALICORN_RELAY_SOCKET_PATH: '/home/user/.orca-relay/relay.sock'
       }
     })
   })
@@ -480,7 +480,7 @@ describe('spawn', () => {
     await provider.spawn({
       cols: 120,
       rows: 40,
-      env: { ORCA_TERMINAL_HANDLE: 'term_ssh' }
+      env: { ALICORN_TERMINAL_HANDLE: 'term_ssh' }
     })
 
     expectRequest(mux.request, 'pty.spawn', {
@@ -488,12 +488,12 @@ describe('spawn', () => {
       rows: 40,
       cwd: undefined,
       env: {
-        ORCA_TERMINAL_HANDLE: 'term_ssh',
+        ALICORN_TERMINAL_HANDLE: 'term_ssh',
         [POWERLEVEL10K_WIZARD_DISABLE_ENV]: 'true',
-        ORCA_REMOTE_CLI_BIN_DIR: '/home/user/.orca-relay/bin',
-        ORCA_RELAY_DIR: '/home/user/.orca-relay/relay-v1',
-        ORCA_RELAY_NODE_PATH: '/usr/bin/node',
-        ORCA_RELAY_SOCKET_PATH: '/home/user/.orca-relay/relay.sock'
+        ALICORN_REMOTE_CLI_BIN_DIR: '/home/user/.orca-relay/bin',
+        ALICORN_RELAY_DIR: '/home/user/.orca-relay/relay-v1',
+        ALICORN_RELAY_NODE_PATH: '/usr/bin/node',
+        ALICORN_RELAY_SOCKET_PATH: '/home/user/.orca-relay/relay.sock'
       }
     })
   })
@@ -521,10 +521,10 @@ describe('spawn', () => {
       env: {
         Path: 'C:/Users/me/.orca-relay/bin;C:/Windows/System32;C:/Tools',
         [POWERLEVEL10K_WIZARD_DISABLE_ENV]: 'true',
-        ORCA_REMOTE_CLI_BIN_DIR: 'C:/Users/me/.orca-relay/bin',
-        ORCA_RELAY_DIR: 'C:/Users/me/.orca-remote/relay-v1',
-        ORCA_RELAY_NODE_PATH: 'C:/Program Files/nodejs/node.exe',
-        ORCA_RELAY_SOCKET_PATH: '\\\\.\\pipe\\orca-relay-123'
+        ALICORN_REMOTE_CLI_BIN_DIR: 'C:/Users/me/.orca-relay/bin',
+        ALICORN_RELAY_DIR: 'C:/Users/me/.orca-remote/relay-v1',
+        ALICORN_RELAY_NODE_PATH: 'C:/Program Files/nodejs/node.exe',
+        ALICORN_RELAY_SOCKET_PATH: '\\\\.\\pipe\\orca-relay-123'
       }
     })
   })

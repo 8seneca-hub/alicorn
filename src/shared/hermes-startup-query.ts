@@ -14,7 +14,7 @@ const POSIX_QUERY_VARIABLE = '__orca_hermes_startup_query'
 const POWERSHELL_QUERY_VARIABLE = 'orcaHermesStartupQuery'
 const POWERSHELL_NATIVE_QUERY_VARIABLE = 'orcaHermesNativeQuery'
 
-export const ORCA_HERMES_STARTUP_QUERY_ENV = 'ORCA_HERMES_STARTUP_QUERY'
+export const ALICORN_HERMES_STARTUP_QUERY_ENV = 'ALICORN_HERMES_STARTUP_QUERY'
 
 function encodePosixEvalScript(command: string): string {
   return Array.from(
@@ -148,7 +148,7 @@ function buildQueryCommand(argv: string[], shell: AgentStartupShell): string {
     // Why: startup prompts must not remain exported to Hermes tools; the
     // long-lived parent shell retains the transport env for compatibility.
     // PowerShell 5 needs Windows-native quote escaping before building child argv.
-    const script = `$${POWERSHELL_QUERY_VARIABLE} = $env:${ORCA_HERMES_STARTUP_QUERY_ENV}; $${POWERSHELL_NATIVE_QUERY_VARIABLE} = $${POWERSHELL_QUERY_VARIABLE} -replace '(\\\\*)"', '$1$1\\"'; Remove-Item Env:${ORCA_HERMES_STARTUP_QUERY_ENV} -ErrorAction SilentlyContinue; ${invocation}`
+    const script = `$${POWERSHELL_QUERY_VARIABLE} = $env:${ALICORN_HERMES_STARTUP_QUERY_ENV}; $${POWERSHELL_NATIVE_QUERY_VARIABLE} = $${POWERSHELL_QUERY_VARIABLE} -replace '(\\\\*)"', '$1$1\\"'; Remove-Item Env:${ALICORN_HERMES_STARTUP_QUERY_ENV} -ErrorAction SilentlyContinue; ${invocation}`
     return `powershell.exe -NoProfile -EncodedCommand ${encodePowerShellCommand(script)}`
   }
   const invocation = buildShellCommandFromArgv(argv, 'posix').replace(
@@ -158,7 +158,7 @@ function buildQueryCommand(argv: string[], shell: AgentStartupShell): string {
   const encodedInvocation = encodePosixEvalScript(invocation)
   // Why: a fixed single-quote-safe wrapper parses in POSIX shells and pwsh;
   // the dynamic argv is decoded only after entering the known `sh` grammar.
-  const script = `${POSIX_QUERY_VARIABLE}="\${${ORCA_HERMES_STARTUP_QUERY_ENV}}"; unset ${ORCA_HERMES_STARTUP_QUERY_ENV}; eval "$(printf %b "${encodedInvocation}")"`
+  const script = `${POSIX_QUERY_VARIABLE}="\${${ALICORN_HERMES_STARTUP_QUERY_ENV}}"; unset ${ALICORN_HERMES_STARTUP_QUERY_ENV}; eval "$(printf %b "${encodedInvocation}")"`
   // Why `shell` and not 'posix': the body runs under `sh`, but the quoting around
   // it is parsed by the shell that types the line. Today's payload survives sh
   // quoting in fish only because its escapes happen to be `\0NNN` and never `\\`
@@ -187,7 +187,7 @@ export function planHermesStartupQuery(args: {
   const command = buildQueryCommand(argv, args.shell)
   const env = {
     ...args.agentEnv,
-    [ORCA_HERMES_STARTUP_QUERY_ENV]: args.prompt
+    [ALICORN_HERMES_STARTUP_QUERY_ENV]: args.prompt
   }
   const envSize = Object.entries(env).reduce((total, [key, value]) => {
     if (args.platform === 'win32') {

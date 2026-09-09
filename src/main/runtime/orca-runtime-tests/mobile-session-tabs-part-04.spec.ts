@@ -58,9 +58,9 @@ describe('OrcaRuntimeService', () => {
       persistHostSessionBinding: true
     })
     expectStablePaneKeyEnv(spawnedEnv)
-    expect(spawnedEnv.ORCA_WORKSPACE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
-    expect(spawnedEnv.ORCA_PROJECT_GROUP_ID).toBe(TEST_FOLDER_PROJECT_GROUP_ID)
-    expect(spawnedEnv.ORCA_WORKSPACE_ROOT).toBe(folderPath)
+    expect(spawnedEnv.ALICORN_WORKSPACE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
+    expect(spawnedEnv.ALICORN_PROJECT_GROUP_ID).toBe(TEST_FOLDER_PROJECT_GROUP_ID)
+    expect(spawnedEnv.ALICORN_WORKSPACE_ROOT).toBe(folderPath)
     expect(result.tab).toMatchObject({
       type: 'terminal',
       status: 'ready',

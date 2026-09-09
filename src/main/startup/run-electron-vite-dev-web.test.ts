@@ -153,13 +153,13 @@ describe('run-electron-vite-dev web client prepare', () => {
         cwd: resolve('.'),
         env: {
           ...process.env,
-          ORCA_ELECTRON_VITE_CLI: fakeCliPath,
-          ORCA_VITE_CLI: fakeVitePath,
-          ORCA_SKIP_DEV_CLI_PREPARE: '1',
-          ORCA_SKIP_DEV_ELECTRON_APP_PREPARE: '1',
-          ORCA_DEV_WRAPPER_TEST_PID_FILE: pidFile,
-          ORCA_DEV_WRAPPER_TEST_ENV_FILE: envFile,
-          ORCA_DEV_WRAPPER_TEST_VITE_FILE: viteFile
+          ALICORN_ELECTRON_VITE_CLI: fakeCliPath,
+          ALICORN_VITE_CLI: fakeVitePath,
+          ALICORN_SKIP_DEV_CLI_PREPARE: '1',
+          ALICORN_SKIP_DEV_ELECTRON_APP_PREPARE: '1',
+          ALICORN_DEV_WRAPPER_TEST_PID_FILE: pidFile,
+          ALICORN_DEV_WRAPPER_TEST_ENV_FILE: envFile,
+          ALICORN_DEV_WRAPPER_TEST_VITE_FILE: viteFile
         },
         stdio: ['ignore', 'ignore', 'pipe']
       })
@@ -204,14 +204,14 @@ describe('run-electron-vite-dev web client prepare', () => {
         cwd: resolve('.'),
         env: {
           ...process.env,
-          ORCA_ELECTRON_VITE_CLI: fakeCliPath,
-          ORCA_VITE_CLI: fakeVitePath,
-          ORCA_SKIP_DEV_CLI_PREPARE: '1',
-          ORCA_SKIP_DEV_ELECTRON_APP_PREPARE: '1',
-          ORCA_DEV_WEB_PREPARE: '1',
-          ORCA_DEV_WRAPPER_TEST_PID_FILE: pidFile,
-          ORCA_DEV_WRAPPER_TEST_ENV_FILE: envFile,
-          ORCA_DEV_WRAPPER_TEST_VITE_FILE: viteFile
+          ALICORN_ELECTRON_VITE_CLI: fakeCliPath,
+          ALICORN_VITE_CLI: fakeVitePath,
+          ALICORN_SKIP_DEV_CLI_PREPARE: '1',
+          ALICORN_SKIP_DEV_ELECTRON_APP_PREPARE: '1',
+          ALICORN_DEV_WEB_PREPARE: '1',
+          ALICORN_DEV_WRAPPER_TEST_PID_FILE: pidFile,
+          ALICORN_DEV_WRAPPER_TEST_ENV_FILE: envFile,
+          ALICORN_DEV_WRAPPER_TEST_VITE_FILE: viteFile
         },
         stdio: 'ignore'
       })

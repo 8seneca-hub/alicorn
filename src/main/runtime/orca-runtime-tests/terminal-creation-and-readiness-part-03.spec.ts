@@ -148,7 +148,7 @@ describe('OrcaRuntimeService', () => {
       | { command?: string; env?: Record<string, string> }
       | undefined
     expect(spawnCall?.command).toBe('codex exec summarize')
-    expect(spawnCall?.env?.ORCA_AGENT_LAUNCH_TOKEN).toBeUndefined()
+    expect(spawnCall?.env?.ALICORN_AGENT_LAUNCH_TOKEN).toBeUndefined()
   })
 
   it('keeps disabled bare agent command terminal creates unchanged', async () => {
@@ -179,7 +179,7 @@ describe('OrcaRuntimeService', () => {
       | { command?: string; env?: Record<string, string> }
       | undefined
     expect(spawnCall?.command).toBe('codex')
-    expect(spawnCall?.env?.ORCA_AGENT_LAUNCH_TOKEN).toBeUndefined()
+    expect(spawnCall?.env?.ALICORN_AGENT_LAUNCH_TOKEN).toBeUndefined()
   })
 
   it('sends Settings agent defaults through renderer-backed bare agent terminal creates', async () => {
@@ -252,10 +252,10 @@ describe('OrcaRuntimeService', () => {
     const spawn = vi.fn().mockResolvedValue({ id: 'pty-hooked' })
     const runtime = new OrcaRuntimeService(store, undefined, {
       buildAgentHookPtyEnv: () => ({
-        ORCA_AGENT_HOOK_PORT: '5678',
-        ORCA_AGENT_HOOK_TOKEN: 'agent-token',
-        ORCA_AGENT_HOOK_ENV: 'remote',
-        ORCA_AGENT_HOOK_VERSION: '1'
+        ALICORN_AGENT_HOOK_PORT: '5678',
+        ALICORN_AGENT_HOOK_TOKEN: 'agent-token',
+        ALICORN_AGENT_HOOK_ENV: 'remote',
+        ALICORN_AGENT_HOOK_VERSION: '1'
       })
     })
     runtime.setPtyController({
@@ -268,12 +268,12 @@ describe('OrcaRuntimeService', () => {
     await runtime.createTerminal(`path:${TEST_WORKTREE_PATH}`, {
       command: 'codex',
       env: {
-        ORCA_AGENT_HOOK_PORT: '1111',
-        ORCA_AGENT_HOOK_TOKEN: 'stale-token',
-        ORCA_AGENT_HOOK_TRANSPORT: 'stale-transport',
-        ORCA_AGENT_HOOK_ENDPOINT: '/tmp/stale-endpoint.env'
+        ALICORN_AGENT_HOOK_PORT: '1111',
+        ALICORN_AGENT_HOOK_TOKEN: 'stale-token',
+        ALICORN_AGENT_HOOK_TRANSPORT: 'stale-transport',
+        ALICORN_AGENT_HOOK_ENDPOINT: '/tmp/stale-endpoint.env'
       },
-      envToDelete: ['CODEX_HOME', 'ORCA_CODEX_HOME']
+      envToDelete: ['CODEX_HOME', 'ALICORN_CODEX_HOME']
     })
 
     const spawnCall = spawn.mock.calls[0]?.[0] as
@@ -281,18 +281,18 @@ describe('OrcaRuntimeService', () => {
       | undefined
     expect(spawnCall?.env).toEqual(
       expect.objectContaining({
-        ORCA_AGENT_HOOK_PORT: '5678',
-        ORCA_AGENT_HOOK_TOKEN: 'agent-token',
-        ORCA_AGENT_HOOK_ENV: 'remote',
-        ORCA_AGENT_HOOK_VERSION: '1',
-        ORCA_PANE_KEY: expect.any(String),
-        ORCA_TAB_ID: expect.any(String),
-        ORCA_WORKTREE_ID: TEST_WORKTREE_ID
+        ALICORN_AGENT_HOOK_PORT: '5678',
+        ALICORN_AGENT_HOOK_TOKEN: 'agent-token',
+        ALICORN_AGENT_HOOK_ENV: 'remote',
+        ALICORN_AGENT_HOOK_VERSION: '1',
+        ALICORN_PANE_KEY: expect.any(String),
+        ALICORN_TAB_ID: expect.any(String),
+        ALICORN_WORKTREE_ID: TEST_WORKTREE_ID
       })
     )
-    expect(spawnCall?.env?.ORCA_AGENT_HOOK_ENDPOINT).toBeUndefined()
-    expect(spawnCall?.env?.ORCA_AGENT_HOOK_TRANSPORT).toBeUndefined()
-    expect(spawnCall?.envToDelete).toEqual(['CODEX_HOME', 'ORCA_CODEX_HOME'])
+    expect(spawnCall?.env?.ALICORN_AGENT_HOOK_ENDPOINT).toBeUndefined()
+    expect(spawnCall?.env?.ALICORN_AGENT_HOOK_TRANSPORT).toBeUndefined()
+    expect(spawnCall?.envToDelete).toEqual(['CODEX_HOME', 'ALICORN_CODEX_HOME'])
   })
 
   it.each([
@@ -333,10 +333,10 @@ describe('OrcaRuntimeService', () => {
       worktreeId: TEST_FOLDER_WORKSPACE_KEY
     })
     expectStablePaneKeyEnv(spawnedEnv)
-    expect(spawnedEnv.ORCA_WORKSPACE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
-    expect(spawnedEnv.ORCA_PROJECT_GROUP_ID).toBe(TEST_FOLDER_PROJECT_GROUP_ID)
-    expect(spawnedEnv.ORCA_WORKSPACE_ROOT).toBe(folderPath)
-    expect(spawnedEnv.ORCA_WORKTREE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
+    expect(spawnedEnv.ALICORN_WORKSPACE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
+    expect(spawnedEnv.ALICORN_PROJECT_GROUP_ID).toBe(TEST_FOLDER_PROJECT_GROUP_ID)
+    expect(spawnedEnv.ALICORN_WORKSPACE_ROOT).toBe(folderPath)
+    expect(spawnedEnv.ALICORN_WORKTREE_ID).toBe(TEST_FOLDER_WORKSPACE_KEY)
   })
 
   it.each([
@@ -379,10 +379,10 @@ describe('OrcaRuntimeService', () => {
       connectionId: null,
       worktreeId: FLOATING_TERMINAL_WORKTREE_ID
     })
-    expect(spawnCall?.env?.ORCA_WORKTREE_ID).toBe(FLOATING_TERMINAL_WORKTREE_ID)
-    expect(spawnCall?.env?.ORCA_WORKSPACE_ID).toBeUndefined()
-    expect(spawnCall?.env?.ORCA_PROJECT_GROUP_ID).toBeUndefined()
-    expect(spawnCall?.env?.ORCA_WORKSPACE_ROOT).toBeUndefined()
+    expect(spawnCall?.env?.ALICORN_WORKTREE_ID).toBe(FLOATING_TERMINAL_WORKTREE_ID)
+    expect(spawnCall?.env?.ALICORN_WORKSPACE_ID).toBeUndefined()
+    expect(spawnCall?.env?.ALICORN_PROJECT_GROUP_ID).toBeUndefined()
+    expect(spawnCall?.env?.ALICORN_WORKSPACE_ROOT).toBeUndefined()
   })
 
   it('rejects folder workspace terminal creation when the backing path is missing', async () => {
@@ -522,7 +522,7 @@ describe('OrcaRuntimeService', () => {
 
     const spawnCall = spawn.mock.calls[0]?.[0] as { env?: Record<string, string> } | undefined
     const spawnedEnv = spawnCall?.env ?? {}
-    const spawnedLeafId = spawnedEnv.ORCA_PANE_KEY.slice(`${spawnedEnv.ORCA_TAB_ID}:`.length)
+    const spawnedLeafId = spawnedEnv.ALICORN_PANE_KEY.slice(`${spawnedEnv.ALICORN_TAB_ID}:`.length)
     expect(revealTerminalSession).toHaveBeenCalledWith(TEST_WORKTREE_ID, {
       ptyId: 'pty-bg',
       title: null,
@@ -534,10 +534,10 @@ describe('OrcaRuntimeService', () => {
           CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1'
         }
       },
-      launchToken: spawnedEnv.ORCA_AGENT_LAUNCH_TOKEN,
+      launchToken: spawnedEnv.ALICORN_AGENT_LAUNCH_TOKEN,
       launchAgent: 'claude',
       activate: false,
-      tabId: spawnedEnv.ORCA_TAB_ID,
+      tabId: spawnedEnv.ALICORN_TAB_ID,
       leafId: spawnedLeafId
     })
   })

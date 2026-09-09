@@ -396,10 +396,10 @@ describe('OrcaRuntimeService', () => {
       capability: 'browser.headless.v1',
       reason: 'driver_missing',
       message:
-        'ORCA_BROWSER_EXECUTABLE is set, but the bundled agent-browser driver is missing or not executable on this host, so Chromium cannot be driven.'
+        'ALICORN_BROWSER_EXECUTABLE is set, but the bundled agent-browser driver is missing or not executable on this host, so Chromium cannot be driven.'
     })
     // The whole point: never send someone to set a variable they already set.
-    expect(degradation?.message).not.toMatch(/set ORCA_BROWSER_EXECUTABLE/)
+    expect(degradation?.message).not.toMatch(/set ALICORN_BROWSER_EXECUTABLE/)
   })
 
   it('carries the underlying error to the client when a provider failed to start', () => {
@@ -441,7 +441,7 @@ describe('OrcaRuntimeService', () => {
     expect(degradation?.code).toBe('browser_unavailable')
     expect(degradation?.capability).toBe('browser.headless.v1')
     expect(degradation?.message).toBe(
-      'ORCA_BROWSER_EXECUTABLE points at a path that does not exist. (/nope/chromium)'
+      'ALICORN_BROWSER_EXECUTABLE points at a path that does not exist. (/nope/chromium)'
     )
   })
 

@@ -144,11 +144,11 @@ export function evaluateOrcadActivation(
     )
   }
   if (health.buildVersion !== expected.fullVersion) {
-    // Not a rejection: the hash already proved identity, and ORCA_VERSION is whatever the
+    // Not a rejection: the hash already proved identity, and ALICORN_VERSION is whatever the
     // launch command exported. Worth saying, because a mismatch means the launch env is wrong.
     warnings.push(
       `The candidate reports version ${health.buildVersion} but was installed as ` +
-        `${expected.fullVersion}; check ORCA_VERSION in the launch command.`
+        `${expected.fullVersion}; check ALICORN_VERSION in the launch command.`
     )
   }
   return { decision: 'activate', coverage: daemon.selfTest.coverage, warnings }

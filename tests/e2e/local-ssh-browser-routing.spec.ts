@@ -68,8 +68,8 @@ type ReloadOutcome = {
 }
 
 test.skip(
-  process.env.ORCA_E2E_LOCAL_SSH_BROWSER !== '1',
-  'Run with ORCA_E2E_LOCAL_SSH_BROWSER=1 (requires Docker)'
+  process.env.ALICORN_E2E_LOCAL_SSH_BROWSER !== '1',
+  'Run with ALICORN_E2E_LOCAL_SSH_BROWSER=1 (requires Docker)'
 )
 
 // Why: every workspace here is created on the SSH target, so the seeded local repo is dead weight

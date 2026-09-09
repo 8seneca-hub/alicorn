@@ -19,19 +19,19 @@ import {
   type RemoteSkillCloudFixture
 } from './helpers/remote-skill-cloud-fixture'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const REMOTE_FOLDER = '/tmp/orca-skill-folder-workspace'
 
 let cloud: RemoteSkillCloudFixture | null = null
 
 test.use({
   orcaAppExtraEnv: {
-    ORCA_ARTIFACTS_API_URL: REMOTE_SKILL_CLOUD_ORIGIN,
-    ORCA_CLOUD_API_URL: REMOTE_SKILL_CLOUD_ORIGIN,
-    ORCA_CLOUD_CLIENT_ID: 'skills-e2e-client',
-    ORCA_CLOUD_DEV_AUTH: '1',
-    ORCA_CLOUD_ALLOW_PLAINTEXT_SESSION: '1',
-    ORCA_SKILL_PACKAGE_DOWNLOAD_ORIGINS: REMOTE_SKILL_CLOUD_ORIGIN
+    ALICORN_ARTIFACTS_API_URL: REMOTE_SKILL_CLOUD_ORIGIN,
+    ALICORN_CLOUD_API_URL: REMOTE_SKILL_CLOUD_ORIGIN,
+    ALICORN_CLOUD_CLIENT_ID: 'skills-e2e-client',
+    ALICORN_CLOUD_DEV_AUTH: '1',
+    ALICORN_CLOUD_ALLOW_PLAINTEXT_SESSION: '1',
+    ALICORN_SKILL_PACKAGE_DOWNLOAD_ORIGINS: REMOTE_SKILL_CLOUD_ORIGIN
   }
 })
 
@@ -48,7 +48,7 @@ test.afterAll(async () => {
 })
 
 test.describe('SSH skill installation', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH tests use POSIX ssh tooling.')
 
   test('installs and removes global, Git-worktree, and folder copies through the real relay', async ({

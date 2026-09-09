@@ -28,7 +28,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        ALICORN_WSL_HOOK_INSTANCE: 'inst1'
       } as NodeJS.ProcessEnv)
       const source = '// orca opencode status plugin\nexport const Plugin = () => ({})\n'
       const res = install({ opencodePluginSource: source })
@@ -46,7 +46,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        ALICORN_WSL_HOOK_INSTANCE: 'inst1'
       } as NodeJS.ProcessEnv)
       const source = '// v1\n'
       const dir = install({ opencodePluginSource: source }).overlayDirs.opencode as string
@@ -69,14 +69,14 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
       // this branch today; it exists so a plugin-only overlay can't outlive a source
       // dir becoming resolvable. Simulated by mutating the env the factory captured.
       const userConfig = join(home, 'my-opencode')
-      const env = { HOME: home, ORCA_WSL_HOOK_INSTANCE: 'inst1' } as NodeJS.ProcessEnv
+      const env = { HOME: home, ALICORN_WSL_HOOK_INSTANCE: 'inst1' } as NodeJS.ProcessEnv
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), env)
       const source = '// v1\n'
       install({ opencodePluginSource: source })
 
       mkdirSync(userConfig, { recursive: true })
       writeFileSync(join(userConfig, 'opencode.json'), '{"model":"late"}')
-      env.ORCA_OPENCODE_SOURCE_CONFIG_DIR = userConfig
+      env.ALICORN_OPENCODE_SOURCE_CONFIG_DIR = userConfig
 
       const dir = install({ opencodePluginSource: source }).overlayDirs.opencode as string
       expect(readFileSync(join(dir, 'opencode.json'), 'utf8')).toBe('{"model":"late"}')
@@ -87,7 +87,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        ALICORN_WSL_HOOK_INSTANCE: 'inst1'
       } as NodeJS.ProcessEnv)
       const source = '// v1\n'
       const dir = install({ opencodePluginSource: source }).overlayDirs.opencode as string
@@ -104,7 +104,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        ALICORN_WSL_HOOK_INSTANCE: 'inst1'
       } as NodeJS.ProcessEnv)
       install({ opencodePluginSource: '// v1\n' })
       // Why: a mid-session Orca upgrade ships new plugin source; future spawns must see it.
@@ -117,7 +117,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
     withHome((home) => {
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        ALICORN_WSL_HOOK_INSTANCE: 'inst1'
       } as NodeJS.ProcessEnv)
       const source = '// v1\n'
       const dir = install({ opencodePluginSource: source }).overlayDirs.opencode as string
@@ -138,8 +138,8 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
 
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_OPENCODE_SOURCE_CONFIG_DIR: userConfig,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        ALICORN_OPENCODE_SOURCE_CONFIG_DIR: userConfig,
+        ALICORN_WSL_HOOK_INSTANCE: 'inst1'
       } as NodeJS.ProcessEnv)
       const dir = install({ opencodePluginSource: '// v1\n' }).overlayDirs.opencode as string
 
@@ -159,7 +159,7 @@ describe.skipIf(process.platform === 'win32')('createInstallPluginsHandler (gues
 
       const install = createInstallPluginsHandler(new PluginOverlayManager({ homeDir: home }), {
         HOME: home,
-        ORCA_WSL_HOOK_INSTANCE: 'inst1'
+        ALICORN_WSL_HOOK_INSTANCE: 'inst1'
       } as NodeJS.ProcessEnv)
       const dir = install({ opencodePluginSource: '// v1\n' }).overlayDirs.opencode as string
 

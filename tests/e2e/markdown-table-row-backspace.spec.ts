@@ -19,7 +19,7 @@ const TABLE_MARKDOWN = `| Name | Value |
 `
 
 const SCRATCH_DIR =
-  process.env.ORCA_TABLE_ROW_BACKSPACE_SCREENSHOT_DIR ??
+  process.env.ALICORN_TABLE_ROW_BACKSPACE_SCREENSHOT_DIR ??
   path.join(process.cwd(), 'test-results', 'table-row-backspace')
 
 async function selectionCellText(page: {

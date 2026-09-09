@@ -116,7 +116,7 @@ async function main() {
   // FATAL. Teardown in a finally is what keeps a driving hang from pinning the
   // Node process alive until the CI job timeout.
   const ctx = { session: null }
-  const diagDir = process.env.ORCA_E2E_DIAG_DIR || path.join(runDir, 'diag')
+  const diagDir = process.env.ALICORN_E2E_DIAG_DIR || path.join(runDir, 'diag')
   let passed = false
   try {
     passed = await runProof(ctx, runArgs)

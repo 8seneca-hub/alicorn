@@ -143,7 +143,7 @@ describe('rich Markdown HTML superscript links', () => {
 
   it('preserves authored current-key and legacy transport-looking text', () => {
     const transport = createRichMarkdownSourceTransport(TEST_KEY)
-    const authored = `${transport.create('inline-html', '<b>authored</b>')} [[ORCA_RAW_HTML_INLINE:%3Ci%3Ex%3C%2Fi%3E]]`
+    const authored = `${transport.create('inline-html', '<b>authored</b>')} [[ALICORN_RAW_HTML_INLINE:%3Ci%3Ex%3C%2Fi%3E]]`
     const editor = createEditor(authored)
     try {
       editor.commands.insertContentAt(editor.state.doc.content.size - 1, '!')

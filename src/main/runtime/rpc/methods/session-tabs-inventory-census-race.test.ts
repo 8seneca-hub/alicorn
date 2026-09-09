@@ -5,7 +5,7 @@ import type { RuntimeMobileSessionTabsResult } from '../../../../shared/runtime-
 import { OrcaRuntimeService } from '../../orca-runtime'
 import { subscribeSessionTabsInventory } from './session-tabs-inventory'
 
-const runningBaselineOracle = process.env.ORCA_TEST_BASELINE_SESSION_TABS_CENSUS_ORACLE === '1'
+const runningBaselineOracle = process.env.ALICORN_TEST_BASELINE_SESSION_TABS_CENSUS_ORACLE === '1'
 
 type Inventory = {
   snapshots: RuntimeMobileSessionTabsResult[]

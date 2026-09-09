@@ -74,8 +74,8 @@ describe('local POSIX shell startup-command delivery', () => {
             ...process.env,
             ...launch.env,
             HOME: testHome,
-            ORCA_ORIG_ZDOTDIR: testHome,
-            ORCA_ZSHENV_SOURCE_DIR: testHome,
+            ALICORN_ORIG_ZDOTDIR: testHome,
+            ALICORN_ZSHENV_SOURCE_DIR: testHome,
             TERM: 'xterm-256color'
           }
         })

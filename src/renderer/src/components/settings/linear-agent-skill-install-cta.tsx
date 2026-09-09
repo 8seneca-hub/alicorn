@@ -10,8 +10,8 @@ import {
 } from '@/hooks/useInstalledAgentSkills'
 import {
   LINEAR_AGENT_SKILL_NAMES,
-  ORCA_LINEAR_SKILL_INSTALL_COMMAND,
-  ORCA_LINEAR_SKILL_NAME
+  ALICORN_LINEAR_SKILL_INSTALL_COMMAND,
+  ALICORN_LINEAR_SKILL_NAME
 } from '@/lib/agent-feature-install-commands'
 import { getLinearAgentSkillUpdateCommand } from '@/lib/linear-agent-skill-update-command'
 import { cn } from '@/lib/utils'
@@ -59,7 +59,7 @@ export function LinearAgentSkillInstallCta({
       buildSkillCommandForRuntime(
         skill.installed
           ? getLinearAgentSkillUpdateCommand(skill.skills, skill.installed)
-          : ORCA_LINEAR_SKILL_INSTALL_COMMAND,
+          : ALICORN_LINEAR_SKILL_INSTALL_COMMAND,
         agentRuntime
       ),
     [agentRuntime, skill.installed, skill.skills]
@@ -96,7 +96,7 @@ export function LinearAgentSkillInstallCta({
             'auto.components.settings.linear.agent.skill.install.cta.skillLabel',
             'Agent skill:'
           )}{' '}
-          <span className="font-mono text-[11px]">{ORCA_LINEAR_SKILL_NAME}</span>
+          <span className="font-mono text-[11px]">{ALICORN_LINEAR_SKILL_NAME}</span>
         </p>
         {skill.loading ? (
           <IntegrationStatusPill tone="neutral">

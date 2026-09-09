@@ -20,10 +20,10 @@ import {
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import { waitForActiveTerminalManager } from './helpers/terminal'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 
 test.describe('startup exec readiness over live SSH', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH E2E.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH E2E.')
   test.skip(process.platform === 'win32', 'Docker SSH E2E uses POSIX ssh tooling.')
 
   test('survives an SSH reconnect while the replacement shell is not ready @headful', async ({

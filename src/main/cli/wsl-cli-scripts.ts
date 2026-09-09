@@ -9,26 +9,26 @@ export function buildWslLauncher(
   return `#!/usr/bin/env bash
 set -euo pipefail
 ${MANAGED_MARKER}
-# ORCA_WIN_LAUNCHER_B64=${encodedTarget}
-ORCA_WIN_LAUNCHER=${quoteShell(windowsLauncherPath)}
-ORCA_BRIDGE_PS1=${quoteShell(bridgePath)}
+# ALICORN_WIN_LAUNCHER_B64=${encodedTarget}
+ALICORN_WIN_LAUNCHER=${quoteShell(windowsLauncherPath)}
+ALICORN_BRIDGE_PS1=${quoteShell(bridgePath)}
 if command -v powershell.exe >/dev/null 2>&1; then
-  ORCA_POWERSHELL=powershell.exe
+  ALICORN_POWERSHELL=powershell.exe
 elif [ -x /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe ]; then
-  ORCA_POWERSHELL=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+  ALICORN_POWERSHELL=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 else
   echo "Orca WSL CLI requires Windows interop and could not find powershell.exe." >&2
   exit 1
 fi
 # Why: a shell can outlive a deleted worktree; keep explicit CLI selectors and
 # help usable, and repair cwd before any WSL interop tool tries to resolve it.
-ORCA_WSL_CWD=$(pwd -P 2>/dev/null) || {
-  ORCA_WSL_CWD=/
+ALICORN_WSL_CWD=$(pwd -P 2>/dev/null) || {
+  ALICORN_WSL_CWD=/
   cd /
 }
-ORCA_BRIDGE_PS1_WIN=$(wslpath -w "$ORCA_BRIDGE_PS1")
-ORCA_WSL_CWD_WIN=$(wslpath -w "$ORCA_WSL_CWD")
-exec "$ORCA_POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$ORCA_BRIDGE_PS1_WIN" "$ORCA_WIN_LAUNCHER" -WslCwd "$ORCA_WSL_CWD_WIN" "$@"
+ALICORN_BRIDGE_PS1_WIN=$(wslpath -w "$ALICORN_BRIDGE_PS1")
+ALICORN_WSL_CWD_WIN=$(wslpath -w "$ALICORN_WSL_CWD")
+exec "$ALICORN_POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$ALICORN_BRIDGE_PS1_WIN" "$ALICORN_WIN_LAUNCHER" -WslCwd "$ALICORN_WSL_CWD_WIN" "$@"
 `
 }
 
@@ -84,9 +84,9 @@ try {
     $ForwardArgs = @($args[$ForwardArgStart..($args.Count - 1)])
   }
   if ([string]::IsNullOrEmpty($WslCwd)) {
-    Remove-Item Env:ORCA_CLI_CWD -ErrorAction SilentlyContinue
+    Remove-Item Env:ALICORN_CLI_CWD -ErrorAction SilentlyContinue
   } else {
-    $env:ORCA_CLI_CWD = $WslCwd
+    $env:ALICORN_CLI_CWD = $WslCwd
   }
   $LauncherDirectory = Split-Path -Parent $OrcaLauncher
   Push-Location -LiteralPath $LauncherDirectory
@@ -162,7 +162,8 @@ export function buildSafeRemoveCommand(
   commandPath: string,
   legacyCommandPaths: string | readonly string[] = []
 ): string {
-  const legacyPaths = typeof legacyCommandPaths === 'string' ? [legacyCommandPaths] : legacyCommandPaths
+  const legacyPaths =
+    typeof legacyCommandPaths === 'string' ? [legacyCommandPaths] : legacyCommandPaths
   const bridgePath = getBridgePathFromCommandPath(commandPath)
   return [
     // Why -eu not -euo pipefail: this script runs via runWslProcess's `sh -s`,
@@ -179,7 +180,7 @@ export function buildSafeRemoveCommand(
 }
 
 export function parseManagedLauncherTarget(content: string): string | null {
-  const encoded = content.match(/^# ORCA_WIN_LAUNCHER_B64=([A-Za-z0-9+/=]+)$/m)?.[1]
+  const encoded = content.match(/^# ALICORN_WIN_LAUNCHER_B64=([A-Za-z0-9+/=]+)$/m)?.[1]
   if (encoded) {
     try {
       return Buffer.from(encoded, 'base64').toString('utf8')
@@ -188,7 +189,7 @@ export function parseManagedLauncherTarget(content: string): string | null {
     }
   }
 
-  const legacyTarget = content.match(/^ORCA_WIN_LAUNCHER='((?:[^']|'"'"')*)'$/m)?.[1]
+  const legacyTarget = content.match(/^ALICORN_WIN_LAUNCHER='((?:[^']|'"'"')*)'$/m)?.[1]
   return legacyTarget ? legacyTarget.replaceAll(`'"'"'`, "'") : null
 }
 

@@ -20,7 +20,7 @@ export type CodexShellLaunchPreflightCommandOptions = {
 
 /** Absolute path of the Orca CLI the preflight must execute, or null to skip it.
  *
- *  Why absolute: the value rides in ORCA_CODEX_LAUNCH_PREFLIGHT and is invoked
+ *  Why absolute: the value rides in ALICORN_CODEX_LAUNCH_PREFLIGHT and is invoked
  *  from the codex() wrapper, which shell-ready emits *after* the user's profile
  *  scripts run. Those scripts routinely rewrite PATH, so an unqualified name
  *  would be resolved against a PATH Orca neither controls nor can predict —
@@ -72,11 +72,11 @@ export function getPosixCodexShellLaunchPreflight(): string {
 # Why || : twice — zsh alone aborts inside the substitution, but every shell's
 # assignment adopts its exit status, so an absent codex trips set -e in bash too.
 __orca_codex_binary="$(unalias codex 2>/dev/null || :; command -v codex 2>/dev/null || :)"
-if [[ -n "\${ORCA_CODEX_LAUNCH_PREFLIGHT:-}" && -x "\${ORCA_CODEX_LAUNCH_PREFLIGHT}" && -n "\${__orca_codex_binary:-}" && -x "\${__orca_codex_binary}" ]]; then
+if [[ -n "\${ALICORN_CODEX_LAUNCH_PREFLIGHT:-}" && -x "\${ALICORN_CODEX_LAUNCH_PREFLIGHT}" && -n "\${__orca_codex_binary:-}" && -x "\${__orca_codex_binary}" ]]; then
   # Why the function reserved word: it suppresses alias expansion of the name,
   # which otherwise rewrites this header at parse time and aborts the whole file.
   function codex {
-    "\${ORCA_CODEX_LAUNCH_PREFLIGHT}" agent hooks prepare-codex >/dev/null 2>&1 || :
+    "\${ALICORN_CODEX_LAUNCH_PREFLIGHT}" agent hooks prepare-codex >/dev/null 2>&1 || :
     command codex "$@"
   }
 fi
@@ -89,9 +89,9 @@ export function getFishCodexShellLaunchPreflight(): string {
 # absent, leaving "test = file" — fish then errors instead of failing closed.
 # Quoting in place is not the fix; fish never substitutes inside double quotes.
 set -l __orca_codex_type (type -t codex 2>/dev/null)
-if test -x "$ORCA_CODEX_LAUNCH_PREFLIGHT"; and test "$__orca_codex_type" = file
+if test -x "$ALICORN_CODEX_LAUNCH_PREFLIGHT"; and test "$__orca_codex_type" = file
   function codex
-    command "$ORCA_CODEX_LAUNCH_PREFLIGHT" agent hooks prepare-codex >/dev/null 2>&1; or true
+    command "$ALICORN_CODEX_LAUNCH_PREFLIGHT" agent hooks prepare-codex >/dev/null 2>&1; or true
     command codex $argv
   end
 end
@@ -100,11 +100,11 @@ set -e __orca_codex_type`
 
 export function getPowerShellCodexShellLaunchPreflight(): string {
   return `$orcaCodexCommand = Get-Command codex -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($env:ORCA_CODEX_LAUNCH_PREFLIGHT -and $orcaCodexCommand -and
+if ($env:ALICORN_CODEX_LAUNCH_PREFLIGHT -and $orcaCodexCommand -and
     $orcaCodexCommand.CommandType -in @("Application", "ExternalScript")) {
     function Global:codex {
         try {
-            & $env:ORCA_CODEX_LAUNCH_PREFLIGHT agent hooks prepare-codex *> $null
+            & $env:ALICORN_CODEX_LAUNCH_PREFLIGHT agent hooks prepare-codex *> $null
         } catch {
         }
         $orcaCodexExecutable = Get-Command codex -CommandType Application,ExternalScript -ErrorAction SilentlyContinue | Select-Object -First 1

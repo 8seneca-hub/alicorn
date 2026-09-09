@@ -1,4 +1,4 @@
-export const ORCA_CLOUD_CALLBACK_RESPONSE_HEADERS = {
+export const ALICORN_CLOUD_CALLBACK_RESPONSE_HEADERS = {
   'cache-control': 'no-store',
   'content-security-policy':
     "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
@@ -9,7 +9,7 @@ export const ORCA_CLOUD_CALLBACK_RESPONSE_HEADERS = {
 
 // Why: the loopback callback cannot load Orca's renderer bundle, so this
 // standalone page mirrors its canonical light/dark tokens without external assets.
-export const ORCA_CLOUD_CALLBACK_SUCCESS_PAGE = `<!doctype html>
+export const ALICORN_CLOUD_CALLBACK_SUCCESS_PAGE = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">

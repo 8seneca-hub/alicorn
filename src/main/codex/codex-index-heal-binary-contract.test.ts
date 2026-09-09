@@ -22,19 +22,19 @@ import { findNewestCodexStateDbPath } from './codex-state-db'
 // release does not redden it into being disabled.
 
 const execFileAsync = promisify(execFile)
-const binary = process.env.ORCA_CODEX_CONTRACT_BINARY
-const expectedVersion = process.env.ORCA_CODEX_CONTRACT_VERSION
+const binary = process.env.ALICORN_CODEX_CONTRACT_BINARY
+const expectedVersion = process.env.ALICORN_CODEX_CONTRACT_VERSION
 const describeCodexContract = binary ? describe : describe.skip
 
 // Why this guard: skipping is the right local-dev default, but a CI job whose whole
 // purpose is the real binary must not pass by reporting zero assertions. The job sets
-// ORCA_CODEX_CONTRACT_REQUIRED=1, which turns a missing binary into a red test.
-describe.runIf(process.env.ORCA_CODEX_CONTRACT_REQUIRED === '1' && !binary)(
+// ALICORN_CODEX_CONTRACT_REQUIRED=1, which turns a missing binary into a red test.
+describe.runIf(process.env.ALICORN_CODEX_CONTRACT_REQUIRED === '1' && !binary)(
   'codex binary index-heal contract prerequisites',
   () => {
     it('was given a Codex binary to run against', () => {
       expect.fail(
-        'ORCA_CODEX_CONTRACT_REQUIRED=1 but ORCA_CODEX_CONTRACT_BINARY is unset, so the contract would have silently skipped'
+        'ALICORN_CODEX_CONTRACT_REQUIRED=1 but ALICORN_CODEX_CONTRACT_BINARY is unset, so the contract would have silently skipped'
       )
     })
   }

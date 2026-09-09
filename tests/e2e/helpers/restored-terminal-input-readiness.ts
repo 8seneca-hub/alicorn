@@ -18,7 +18,7 @@ export async function waitForRestoredTerminalInputReady(
   let pendingAttempts: readonly ReadinessAttempt[] = []
 
   while (Date.now() < deadline) {
-    const marker = `ORCA_RESTORED_INPUT_READY_${randomUUID().replaceAll('-', '')}`
+    const marker = `ALICORN_RESTORED_INPUT_READY_${randomUUID().replaceAll('-', '')}`
     const [input] = buildFreshShellProbeInputSequence(`echo ${marker}\r`)
     if (!input) {
       return false

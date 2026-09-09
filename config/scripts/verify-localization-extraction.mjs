@@ -89,7 +89,7 @@ async function extractToTemporaryCatalog(root, tempDir) {
       cwd: root,
       env: {
         ...process.env,
-        ORCA_I18N_EXTRACTION_OUTPUT: outputPattern.split(path.sep).join('/')
+        ALICORN_I18N_EXTRACTION_OUTPUT: outputPattern.split(path.sep).join('/')
       }
     }
   )

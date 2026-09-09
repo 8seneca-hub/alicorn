@@ -43,10 +43,10 @@ async function loadModules() {
 beforeEach(() => {
   process.env = { ...OLD_ENV }
   for (const key of [
-    'ORCA_BITBUCKET_ACCESS_TOKEN',
-    'ORCA_BITBUCKET_EMAIL',
-    'ORCA_BITBUCKET_API_TOKEN',
-    'ORCA_BITBUCKET_API_BASE_URL'
+    'ALICORN_BITBUCKET_ACCESS_TOKEN',
+    'ALICORN_BITBUCKET_EMAIL',
+    'ALICORN_BITBUCKET_API_TOKEN',
+    'ALICORN_BITBUCKET_API_BASE_URL'
   ]) {
     delete process.env[key]
   }

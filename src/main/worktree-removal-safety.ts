@@ -14,13 +14,13 @@ import {
 
 type PathOps = typeof posix
 
-const ORCA_CREATION_SOURCES = new Set<NonNullable<WorktreeMeta['orcaCreationSource']>>([
+const ALICORN_CREATION_SOURCES = new Set<NonNullable<WorktreeMeta['orcaCreationSource']>>([
   'desktop',
   'runtime',
   'cli',
   'ssh'
 ])
-const ORCA_OWNED_PROVENANCE_META_KEYS = [
+const ALICORN_OWNED_PROVENANCE_META_KEYS = [
   'orcaCreatedAt',
   'orcaCreationSource',
   'orcaCreationWorkspaceLayout',
@@ -241,7 +241,7 @@ function hasCurrentOrcaCreationProvenance(
   return (
     typeof meta?.orcaCreatedAt === 'number' &&
     !!meta.orcaCreationSource &&
-    ORCA_CREATION_SOURCES.has(meta.orcaCreationSource)
+    ALICORN_CREATION_SOURCES.has(meta.orcaCreationSource)
   )
 }
 
@@ -262,7 +262,7 @@ export function stripOrcaProvenanceMetaUpdates(
   updates: Partial<WorktreeMeta> | null | undefined
 ): Partial<WorktreeMeta> {
   const sanitized = { ...updates }
-  for (const key of ORCA_OWNED_PROVENANCE_META_KEYS) {
+  for (const key of ALICORN_OWNED_PROVENANCE_META_KEYS) {
     delete sanitized[key]
   }
   return sanitized

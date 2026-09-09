@@ -23,13 +23,15 @@ const TELEMETRY_ENABLED = true
 // Eligible to transmit only if CI injected BOTH build-identity and write key; either alone fails closed, with no runtime env-var override (dev/contributor builds get `null`).
 // The `globalThis` reads are for vitest, which skips electron-vite's `define` pass — resolving to `IS_OFFICIAL_BUILD === false` there.
 const BUILD_IDENTITY: 'stable' | 'rc' | null =
-  typeof ORCA_BUILD_IDENTITY !== 'undefined'
-    ? ORCA_BUILD_IDENTITY
-    : ((globalThis as { ORCA_BUILD_IDENTITY?: 'stable' | 'rc' | null }).ORCA_BUILD_IDENTITY ?? null)
+  typeof ALICORN_BUILD_IDENTITY !== 'undefined'
+    ? ALICORN_BUILD_IDENTITY
+    : ((globalThis as { ALICORN_BUILD_IDENTITY?: 'stable' | 'rc' | null }).ALICORN_BUILD_IDENTITY ??
+      null)
 const WRITE_KEY: string | null =
-  typeof ORCA_POSTHOG_WRITE_KEY !== 'undefined'
-    ? ORCA_POSTHOG_WRITE_KEY
-    : ((globalThis as { ORCA_POSTHOG_WRITE_KEY?: string | null }).ORCA_POSTHOG_WRITE_KEY ?? null)
+  typeof ALICORN_POSTHOG_WRITE_KEY !== 'undefined'
+    ? ALICORN_POSTHOG_WRITE_KEY
+    : ((globalThis as { ALICORN_POSTHOG_WRITE_KEY?: string | null }).ALICORN_POSTHOG_WRITE_KEY ??
+      null)
 const IS_OFFICIAL_BUILD: boolean =
   (BUILD_IDENTITY === 'stable' || BUILD_IDENTITY === 'rc') &&
   typeof WRITE_KEY === 'string' &&
@@ -160,7 +162,7 @@ function waitForCaptureEnqueue(client: PostHog, event: EventName, uuid: string):
   })
 }
 
-// No-op in contributor / non-official builds; only official stable/rc builds (CI-injected `ORCA_BUILD_IDENTITY` + `ORCA_POSTHOG_WRITE_KEY`) transmit.
+// No-op in contributor / non-official builds; only official stable/rc builds (CI-injected `ALICORN_BUILD_IDENTITY` + `ALICORN_POSTHOG_WRITE_KEY`) transmit.
 export function track<N extends EventName>(name: N, props: EventProps<N>): void {
   if (!testTransportEnabled && (!IS_OFFICIAL_BUILD || !TELEMETRY_ENABLED)) {
     return

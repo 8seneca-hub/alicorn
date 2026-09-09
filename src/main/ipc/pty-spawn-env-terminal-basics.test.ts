@@ -190,7 +190,7 @@ describe('registerPtyHandlers', () => {
           terminalWindowsWslDistro: 'Ubuntu',
           env: {
             PATH: 'C:\\Orca\\bin;C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps',
-            WSLENV: 'ORCA_TERMINAL_HANDLE/u'
+            WSLENV: 'ALICORN_TERMINAL_HANDLE/u'
           }
         })
         const [file, , options] = spawnMock.mock.calls.at(-1)!
@@ -202,7 +202,7 @@ describe('registerPtyHandlers', () => {
         const forwardedKeys = options.env.WSLENV.split(':').map((entry) =>
           entry.split('/')[0]!.toLowerCase()
         )
-        expect(options.env.WSLENV).toContain('ORCA_TERMINAL_HANDLE/u')
+        expect(options.env.WSLENV).toContain('ALICORN_TERMINAL_HANDLE/u')
         expect(forwardedKeys).not.toContain('path')
       } finally {
         __resetPersistedWindowsPathCacheForTests()
@@ -322,12 +322,12 @@ describe('registerPtyHandlers', () => {
       const env = await spawnAndGetEnv()
       expect(env.FORCE_HYPERLINK).toBe('1')
     })
-    it('surfaces ORCA_APP_VERSION as TERM_PROGRAM_VERSION for TUI feature gating', async () => {
-      const env = await spawnAndGetEnv(undefined, { ORCA_APP_VERSION: '1.2.3-test' })
+    it('surfaces ALICORN_APP_VERSION as TERM_PROGRAM_VERSION for TUI feature gating', async () => {
+      const env = await spawnAndGetEnv(undefined, { ALICORN_APP_VERSION: '1.2.3-test' })
       expect(env.TERM_PROGRAM_VERSION).toBe('1.2.3-test')
     })
-    it('falls back to a placeholder version when ORCA_APP_VERSION is unset', async () => {
-      const env = await spawnAndGetEnv(undefined, { ORCA_APP_VERSION: undefined })
+    it('falls back to a placeholder version when ALICORN_APP_VERSION is unset', async () => {
+      const env = await spawnAndGetEnv(undefined, { ALICORN_APP_VERSION: undefined })
       expect(env.TERM_PROGRAM_VERSION).toBe('0.0.0-dev')
     })
     it('injects the selected Codex home into Orca terminal PTYs', async () => {
@@ -335,10 +335,10 @@ describe('registerPtyHandlers', () => {
         spawnAndGetEnv(undefined, undefined, () => TEST_CODEX_HOME)
       )
       expect(env.CODEX_HOME).toBe(TEST_CODEX_HOME)
-      expect(env.ORCA_CODEX_HOME).toBe(TEST_CODEX_HOME)
+      expect(env.ALICORN_CODEX_HOME).toBe(TEST_CODEX_HOME)
       // Why (STA-4270): a bare name would be resolved by the post-profile PATH the codex()
       // wrapper inherits, so the preflight must carry the CLI's verified absolute path.
-      expect(env.ORCA_CODEX_LAUNCH_PREFLIGHT).toBe(BUNDLED_CLI_PATH)
+      expect(env.ALICORN_CODEX_LAUNCH_PREFLIGHT).toBe(BUNDLED_CLI_PATH)
     })
     it('skips the Codex launch preflight when the bundled CLI is not executable', async () => {
       const env = await withBundledCli(
@@ -347,7 +347,7 @@ describe('registerPtyHandlers', () => {
       )
 
       expect(env.CODEX_HOME).toBe(TEST_CODEX_HOME)
-      expect(env.ORCA_CODEX_LAUNCH_PREFLIGHT).toBeUndefined()
+      expect(env.ALICORN_CODEX_LAUNCH_PREFLIGHT).toBeUndefined()
     })
     // Why (STA-4270): profile scripts run before the codex() wrapper and routinely prepend
     // directories to PATH, so a scratch `orca` there must never become the preflight.
@@ -360,9 +360,9 @@ describe('registerPtyHandlers', () => {
         )
       )
 
-      expect(env.ORCA_CODEX_LAUNCH_PREFLIGHT).toBe(BUNDLED_CLI_PATH)
-      expect(env.ORCA_CODEX_LAUNCH_PREFLIGHT).not.toBe('orca')
-      expect(env.ORCA_CODEX_LAUNCH_PREFLIGHT.startsWith('/tmp/hijack-scratch')).toBe(false)
+      expect(env.ALICORN_CODEX_LAUNCH_PREFLIGHT).toBe(BUNDLED_CLI_PATH)
+      expect(env.ALICORN_CODEX_LAUNCH_PREFLIGHT).not.toBe('orca')
+      expect(env.ALICORN_CODEX_LAUNCH_PREFLIGHT.startsWith('/tmp/hijack-scratch')).toBe(false)
     })
     it('does not install the Codex launch preflight when Codex hooks are disabled', async () => {
       const env = await spawnAndGetEnv(
@@ -373,7 +373,7 @@ describe('registerPtyHandlers', () => {
       )
 
       expect(env.CODEX_HOME).toBe(TEST_CODEX_HOME)
-      expect(env.ORCA_CODEX_LAUNCH_PREFLIGHT).toBeUndefined()
+      expect(env.ALICORN_CODEX_LAUNCH_PREFLIGHT).toBeUndefined()
     })
     it('resumes an automatic Codex session from its prepared originating home', async () => {
       const selectedHome = vi.fn(() => '/managed/current/home')
@@ -412,7 +412,7 @@ describe('registerPtyHandlers', () => {
       )
       expect(selectedHome).not.toHaveBeenCalled()
       expect(env.CODEX_HOME).toBe('/managed/origin/home')
-      expect(env.ORCA_CODEX_HOME).toBe('/managed/origin/home')
+      expect(env.ALICORN_CODEX_HOME).toBe('/managed/origin/home')
     })
     it('blocks a shared-runtime resume when auth reconciliation fails', async () => {
       const selectedHome = vi.fn(() => {
@@ -474,7 +474,7 @@ describe('registerPtyHandlers', () => {
         rows: 24,
         command: 'codex resume session-a',
         env: { CODEX_HOME: '/custom/codex', REMOVE_ME: 'stale' },
-        envToDelete: ['CODEX_HOME', 'ORCA_CODEX_HOME', 'REMOVE_ME'],
+        envToDelete: ['CODEX_HOME', 'ALICORN_CODEX_HOME', 'REMOVE_ME'],
         launchAgent: 'codex',
         resumeProviderSession: {
           key: 'session_id',
@@ -486,7 +486,7 @@ describe('registerPtyHandlers', () => {
       const env = spawnMock.mock.calls.at(-1)![2].env as Record<string, string>
       expect(selectedHome).not.toHaveBeenCalled()
       expect(env.CODEX_HOME).toBe(systemHome)
-      expect(env.ORCA_CODEX_HOME).toBe(systemHome)
+      expect(env.ALICORN_CODEX_HOME).toBe(systemHome)
       expect(env.REMOVE_ME).toBeUndefined()
     })
     it('does not fall back to the selected account when automatic resume provenance is rejected', async () => {

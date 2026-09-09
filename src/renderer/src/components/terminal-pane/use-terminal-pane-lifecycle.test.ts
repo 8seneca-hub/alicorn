@@ -316,7 +316,7 @@ describe('splitPaneWithOneShotStartup', () => {
 
     const createdPane = splitPaneWithOneShotStartup(
       deps,
-      { command: 'orca setup', env: { ORCA_ROLE: 'setup' } },
+      { command: 'orca setup', env: { ALICORN_ROLE: 'setup' } },
       () => {
         seenStartupValues.push(deps.startup ?? null)
         return { id: 2 }
@@ -324,7 +324,7 @@ describe('splitPaneWithOneShotStartup', () => {
     )
 
     expect(createdPane).toEqual({ id: 2 })
-    expect(seenStartupValues).toEqual([{ command: 'orca setup', env: { ORCA_ROLE: 'setup' } }])
+    expect(seenStartupValues).toEqual([{ command: 'orca setup', env: { ALICORN_ROLE: 'setup' } }])
     expect(deps.startup).toBeNull()
   })
 
@@ -336,7 +336,7 @@ describe('splitPaneWithOneShotStartup', () => {
 
     splitPaneWithOneShotStartup(
       deps,
-      { command: 'orca setup', env: { ORCA_ROLE: 'setup' } },
+      { command: 'orca setup', env: { ALICORN_ROLE: 'setup' } },
       () => {
         seenStartupValues.push(deps.startup ?? null)
         return { id: 2 }
@@ -351,7 +351,7 @@ describe('splitPaneWithOneShotStartup', () => {
     })
 
     expect(seenStartupValues).toEqual([
-      { command: 'orca setup', env: { ORCA_ROLE: 'setup' } },
+      { command: 'orca setup', env: { ALICORN_ROLE: 'setup' } },
       { command: 'orca issue' }
     ])
     expect(deps.startup).toBeNull()

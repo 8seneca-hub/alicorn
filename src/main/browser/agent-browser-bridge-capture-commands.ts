@@ -4,7 +4,7 @@ import { BrowserError } from './cdp-bridge'
 import { captureFullPageScreenshot } from './cdp-screenshot'
 import { acquireElectronDebugger } from './electron-debugger-lease'
 import { AgentBrowserBridgeUtilityCommands } from './agent-browser-bridge-utility-commands'
-import { ORCA_TAB_SESSION_PREFIX } from './agent-browser-orphan-sweep'
+import { ALICORN_TAB_SESSION_PREFIX } from './agent-browser-orphan-sweep'
 
 export abstract class AgentBrowserBridgeCaptureCommands extends AgentBrowserBridgeUtilityCommands {
   async screenshot(
@@ -168,7 +168,7 @@ export abstract class AgentBrowserBridgeCaptureCommands extends AgentBrowserBrid
           }
           if (!this.getWebContents(target.webContentsId)) {
             throw this.createPageUnavailableError(
-              `${ORCA_TAB_SESSION_PREFIX}${target.browserPageId}`
+              `${ALICORN_TAB_SESSION_PREFIX}${target.browserPageId}`
             )
           }
           throw new BrowserError(

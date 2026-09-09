@@ -16,8 +16,8 @@ import {
 } from './helpers/docker-ssh-relay-target'
 import { connectDockerSshRelayTarget } from './helpers/docker-ssh-relay-connection'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
-const PARKING_DELAY_MS = Number(process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS) || 500
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
+const PARKING_DELAY_MS = Number(process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS) || 500
 
 async function terminalTailContains(page: Page, marker: string): Promise<boolean> {
   return page.evaluate((expected) => {
@@ -40,14 +40,14 @@ async function terminalTailContains(page: Page, marker: string): Promise<boolean
 
 test.use({
   seedTestRepo: false,
-  orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
+  orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
 })
 
 // C1 slice A: SSH tabs park like local ones and reveal restores content from
 // main's headless model (relay replay is the fallback). This is the SSH
 // park+reveal round-trip fidelity check the design gate required.
 test.describe('SSH terminal hidden view parking', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH parking uses POSIX SSH tooling.')
 
   test('parks a hidden SSH tab and restores its scrollback on reveal', async ({

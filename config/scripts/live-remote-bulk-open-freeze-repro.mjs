@@ -6,8 +6,8 @@
  *
  * Usage:
  *   node config/scripts/live-remote-bulk-open-freeze-repro.mjs
- *   ORCA_FREEZE_ENV=paired-remote ORCA_FREEZE_CREATE=12 ORCA_FREEZE_SWITCH_PASSES=5 \
- *     ORCA_FREEZE_PARALLEL=8 node config/scripts/live-remote-bulk-open-freeze-repro.mjs
+ *   ALICORN_FREEZE_ENV=paired-remote ALICORN_FREEZE_CREATE=12 ALICORN_FREEZE_SWITCH_PASSES=5 \
+ *     ALICORN_FREEZE_PARALLEL=8 node config/scripts/live-remote-bulk-open-freeze-repro.mjs
  */
 import { spawnSync } from 'node:child_process'
 import { mkdirSync, writeFileSync, copyFileSync } from 'node:fs'
@@ -27,17 +27,17 @@ import { createOrcaRpc } from './live-remote-freeze-rpc.mjs'
 
 const root = path.resolve(import.meta.dirname, '../..')
 const reportDir = path.join(root, 'test-results', 'freeze-repro')
-const envName = process.env.ORCA_FREEZE_ENV || 'paired-remote'
-const createCount = Math.max(0, readFreezeNumberEnv('ORCA_FREEZE_CREATE', 0))
-const switchPasses = Math.max(1, readFreezeNumberEnv('ORCA_FREEZE_SWITCH_PASSES', 3))
-const parallel = Math.max(1, readFreezeNumberEnv('ORCA_FREEZE_PARALLEL', 1))
+const envName = process.env.ALICORN_FREEZE_ENV || 'paired-remote'
+const createCount = Math.max(0, readFreezeNumberEnv('ALICORN_FREEZE_CREATE', 0))
+const switchPasses = Math.max(1, readFreezeNumberEnv('ALICORN_FREEZE_SWITCH_PASSES', 3))
+const parallel = Math.max(1, readFreezeNumberEnv('ALICORN_FREEZE_PARALLEL', 1))
 // 0 = no cap (use all live terminals). Only positive env values limit targets.
-const maxSwitchTargets = Math.max(0, readFreezeNumberEnv('ORCA_FREEZE_MAX_SWITCH_TARGETS', 0))
-const softMs = readFreezeNumberEnv('ORCA_FREEZE_SOFT_MS', DEFAULT_SOFT_MS)
-const hardMs = readFreezeNumberEnv('ORCA_FREEZE_HARD_MS', DEFAULT_HARD_MS)
-const createWorktreeSpan = Math.max(1, readFreezeNumberEnv('ORCA_FREEZE_CREATE_WT_SPAN', 16))
-const preFloodMs = Math.max(0, readFreezeNumberEnv('ORCA_FREEZE_PRE_FLOOD_MS', 3000))
-const scratchDir = process.env.ORCA_FREEZE_SCRATCH || ''
+const maxSwitchTargets = Math.max(0, readFreezeNumberEnv('ALICORN_FREEZE_MAX_SWITCH_TARGETS', 0))
+const softMs = readFreezeNumberEnv('ALICORN_FREEZE_SOFT_MS', DEFAULT_SOFT_MS)
+const hardMs = readFreezeNumberEnv('ALICORN_FREEZE_HARD_MS', DEFAULT_HARD_MS)
+const createWorktreeSpan = Math.max(1, readFreezeNumberEnv('ALICORN_FREEZE_CREATE_WT_SPAN', 16))
+const preFloodMs = Math.max(0, readFreezeNumberEnv('ALICORN_FREEZE_PRE_FLOOD_MS', 3000))
+const scratchDir = process.env.ALICORN_FREEZE_SCRATCH || ''
 
 const { orcaJsonSync, orcaJsonAsync } = createOrcaRpc({ envName })
 

@@ -15,8 +15,8 @@ describe('ensureWorktreeHasInitialTerminal', () => {
     ensureWorktreeHasInitialTerminal(store, 'wt-1', undefined, undefined, {
       runnerScriptPath: '/tmp/repo/.git/orca/issue-command-runner.sh',
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/worktrees/wt-1'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/worktrees/wt-1'
       }
     })
 
@@ -28,8 +28,8 @@ describe('ensureWorktreeHasInitialTerminal', () => {
     expect(store.queueTabIssueCommandSplit).toHaveBeenCalledWith('tab-1', {
       command: 'bash /tmp/repo/.git/orca/issue-command-runner.sh',
       env: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/worktrees/wt-1'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/worktrees/wt-1'
       }
     })
   })
@@ -40,12 +40,12 @@ describe('ensureWorktreeHasInitialTerminal', () => {
     ensureWorktreeHasInitialTerminal(store, 'wt-1', undefined, undefined, {
       runnerScriptPath: 'C:\\repo\\.git\\orca\\issue-command-runner.sh',
       shell: { family: 'posix', executable: 'wsl.exe' },
-      envVars: { ORCA_ROOT_PATH: 'C:\\repo' }
+      envVars: { ALICORN_ROOT_PATH: 'C:\\repo' }
     })
 
     expect(store.queueTabIssueCommandSplit).toHaveBeenCalledWith('tab-1', {
       command: 'bash /mnt/c/repo/.git/orca/issue-command-runner.sh',
-      env: { ORCA_ROOT_PATH: 'C:\\repo' }
+      env: { ALICORN_ROOT_PATH: 'C:\\repo' }
     })
   })
 
@@ -59,23 +59,23 @@ describe('ensureWorktreeHasInitialTerminal', () => {
       undefined,
       {
         runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
-        envVars: { ORCA_ROOT_PATH: '/tmp/repo' }
+        envVars: { ALICORN_ROOT_PATH: '/tmp/repo' }
       },
       {
         runnerScriptPath: '/tmp/repo/.git/orca/issue-command-runner.sh',
-        envVars: { ORCA_ROOT_PATH: '/tmp/repo' }
+        envVars: { ALICORN_ROOT_PATH: '/tmp/repo' }
       }
     )
 
     expect(store.queueTabStartupCommand).not.toHaveBeenCalled()
     expect(store.queueTabSetupSplit).toHaveBeenCalledWith('tab-1', {
       command: 'bash /tmp/repo/.git/orca/setup-runner.sh',
-      env: { ORCA_ROOT_PATH: '/tmp/repo' },
+      env: { ALICORN_ROOT_PATH: '/tmp/repo' },
       direction: 'vertical'
     })
     expect(store.queueTabIssueCommandSplit).toHaveBeenCalledWith('tab-1', {
       command: 'bash /tmp/repo/.git/orca/issue-command-runner.sh',
-      env: { ORCA_ROOT_PATH: '/tmp/repo' }
+      env: { ALICORN_ROOT_PATH: '/tmp/repo' }
     })
   })
 

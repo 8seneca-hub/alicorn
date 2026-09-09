@@ -2,15 +2,15 @@ import { describe, expect, it } from 'vitest'
 import {
   buildAgentFeatureSkillInstallArgs,
   buildAgentFeatureSkillInstallCommand,
-  ORCA_CLI_SKILL_INSTALL_COMMAND,
+  ALICORN_CLI_SKILL_INSTALL_COMMAND,
   buildAgentFeatureSkillUpdateArgs,
   buildAgentFeatureSkillUpdateCommand,
   COMPUTER_USE_SKILL_UPDATE_COMMAND,
   EPHEMERAL_VMS_SKILL_UPDATE_COMMAND,
   LINEAR_TICKETS_SKILL_UPDATE_COMMAND,
-  ORCA_LINEAR_SKILL_UPDATE_COMMAND,
-  ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND,
-  ORCA_CLI_SKILL_UPDATE_COMMAND,
+  ALICORN_LINEAR_SKILL_UPDATE_COMMAND,
+  ALICORN_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND,
+  ALICORN_CLI_SKILL_UPDATE_COMMAND,
   ORCHESTRATION_SKILL_UPDATE_COMMAND
 } from './agent-feature-install-commands'
 
@@ -48,8 +48,8 @@ describe('agent feature skill commands', () => {
     // get it; only an unattended spawn opts in.
     expect(buildAgentFeatureSkillInstallCommand(['alicorn-cli'])).not.toContain('-y')
     expect(buildAgentFeatureSkillUpdateCommand('alicorn-cli')).not.toContain('-y')
-    expect(ORCA_CLI_SKILL_INSTALL_COMMAND).not.toContain('-y')
-    expect(ORCA_CLI_SKILL_UPDATE_COMMAND).not.toContain('-y')
+    expect(ALICORN_CLI_SKILL_INSTALL_COMMAND).not.toContain('-y')
+    expect(ALICORN_CLI_SKILL_UPDATE_COMMAND).not.toContain('-y')
   })
 
   it('refuses to skip prompts without an install target', () => {
@@ -122,15 +122,15 @@ describe('agent feature skill commands', () => {
   })
 
   it('exports single-skill update constants without changing install bundles', () => {
-    expect(ORCA_CLI_SKILL_UPDATE_COMMAND).toBe('npx skills update alicorn-cli --global')
+    expect(ALICORN_CLI_SKILL_UPDATE_COMMAND).toBe('npx skills update alicorn-cli --global')
     expect(COMPUTER_USE_SKILL_UPDATE_COMMAND).toBe('npx skills update computer-use --global')
     expect(ORCHESTRATION_SKILL_UPDATE_COMMAND).toBe('npx skills update orchestration --global')
     expect(EPHEMERAL_VMS_SKILL_UPDATE_COMMAND).toBe(
       'npx skills update alicorn-per-workspace-env --global'
     )
-    expect(ORCA_LINEAR_SKILL_UPDATE_COMMAND).toBe('npx skills update alicorn-linear --global')
+    expect(ALICORN_LINEAR_SKILL_UPDATE_COMMAND).toBe('npx skills update alicorn-linear --global')
     expect(LINEAR_TICKETS_SKILL_UPDATE_COMMAND).toBe('npx skills update linear-tickets --global')
-    expect(ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND).toBe(
+    expect(ALICORN_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND).toBe(
       buildAgentFeatureSkillInstallCommand(['alicorn-cli', 'orchestration'])
     )
   })

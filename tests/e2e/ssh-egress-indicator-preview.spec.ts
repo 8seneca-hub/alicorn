@@ -1,6 +1,6 @@
 // Throwaway interactive preview (untracked): a REAL routed SSH-workspace page
 // (docker sshd) with the egress indicator chip visible, held open for review.
-// Run: ORCA_SSH_INDICATOR_PREVIEW=1 ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test \
+// Run: ALICORN_SSH_INDICATOR_PREVIEW=1 ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test \
 //   --config tests/playwright.config.ts --project electron-headless --workers=1 \
 //   tests/e2e/ssh-egress-indicator-preview.spec.ts
 import { expect, test } from './helpers/orca-app'
@@ -17,8 +17,8 @@ import {
 } from './helpers/ssh-remote-only-browser-fixture'
 
 test.skip(
-  process.env.ORCA_SSH_INDICATOR_PREVIEW !== '1',
-  'Preview only; run with ORCA_SSH_INDICATOR_PREVIEW=1 (requires Docker)'
+  process.env.ALICORN_SSH_INDICATOR_PREVIEW !== '1',
+  'Preview only; run with ALICORN_SSH_INDICATOR_PREVIEW=1 (requires Docker)'
 )
 
 const HOLD_MINUTES = 20

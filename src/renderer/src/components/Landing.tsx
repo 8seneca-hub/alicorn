@@ -25,7 +25,7 @@ type ShortcutItem = {
 }
 
 // Do not deep-link to /stargazers: GitHub 404s that page for users without repo write access.
-const ORCA_GITHUB_URL = 'https://github.com/stablyai/orca'
+const ALICORN_GITHUB_URL = 'https://github.com/stablyai/orca'
 
 type StarButtonProps = {
   hasRepos: boolean
@@ -61,7 +61,7 @@ function GitHubStarButton({
       return
     }
     if (state === 'web-fallback') {
-      await window.api.shell.openUrl(ORCA_GITHUB_URL)
+      await window.api.shell.openUrl(ALICORN_GITHUB_URL)
       return
     }
     if (state !== 'not-starred') {

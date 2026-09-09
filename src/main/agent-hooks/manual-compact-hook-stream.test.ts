@@ -104,8 +104,8 @@ describe('manual Claude compact hook stream', () => {
     servers.push(server)
     await server.start({ env: 'production' })
     const env = server.buildPtyEnv()
-    const port = Number(env.ORCA_AGENT_HOOK_PORT)
-    const token = env.ORCA_AGENT_HOOK_TOKEN
+    const port = Number(env.ALICORN_AGENT_HOOK_PORT)
+    const token = env.ALICORN_AGENT_HOOK_TOKEN
     const events: string[] = []
     const unsubscribe = server.subscribeEnrichedStatus((event) => {
       events.push(`${event.hookEventName}:${event.payload.state}`)
@@ -145,8 +145,8 @@ describe('manual Claude compact hook stream', () => {
     servers.push(server)
     await server.start({ env: 'production' })
     const env = server.buildPtyEnv()
-    const port = Number(env.ORCA_AGENT_HOOK_PORT)
-    const token = env.ORCA_AGENT_HOOK_TOKEN!
+    const port = Number(env.ALICORN_AGENT_HOOK_PORT)
+    const token = env.ALICORN_AGENT_HOOK_TOKEN!
     seedHydratedStuckPane(server, Date.now() - 60_000)
     expect(server.getStatusSnapshot()[0]).toMatchObject({ state: 'working' })
 
@@ -176,8 +176,8 @@ describe('manual Claude compact hook stream', () => {
     servers.push(server)
     await server.start({ env: 'production' })
     const env = server.buildPtyEnv()
-    const port = Number(env.ORCA_AGENT_HOOK_PORT)
-    const token = env.ORCA_AGENT_HOOK_TOKEN!
+    const port = Number(env.ALICORN_AGENT_HOOK_PORT)
+    const token = env.ALICORN_AGENT_HOOK_TOKEN!
     seedHydratedStuckPane(server, Date.now() - 60_000)
     // A child THIS runtime observed: real agent work in flight, which a compact may not retire.
     await postHook(

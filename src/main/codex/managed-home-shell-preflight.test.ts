@@ -46,7 +46,7 @@ describe('managed Codex shell preflight', () => {
 
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: home, ORCA_CODEX_HOME: home },
+        { CODEX_HOME: home, ALICORN_CODEX_HOME: home },
         userDataPath
       )
     ).toBe(home)
@@ -64,7 +64,7 @@ describe('managed Codex shell preflight', () => {
       managedHooksPresent: true,
       detail: null
     }))
-    const env = { CODEX_HOME: home, ORCA_CODEX_HOME: home }
+    const env = { CODEX_HOME: home, ALICORN_CODEX_HOME: home }
 
     expect(
       await prepareManagedCodexHomeBeforeShellLaunch({
@@ -96,19 +96,19 @@ describe('managed Codex shell preflight', () => {
 
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: userHome, ORCA_CODEX_HOME: userHome },
+        { CODEX_HOME: userHome, ALICORN_CODEX_HOME: userHome },
         userDataPath
       )
     ).toBeNull()
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: userHome, ORCA_CODEX_HOME: managedHome },
+        { CODEX_HOME: userHome, ALICORN_CODEX_HOME: managedHome },
         userDataPath
       )
     ).toBeNull()
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: managedHome, ORCA_CODEX_HOME: undefined },
+        { CODEX_HOME: managedHome, ALICORN_CODEX_HOME: undefined },
         userDataPath
       )
     ).toBeNull()
@@ -123,7 +123,7 @@ describe('managed Codex shell preflight', () => {
 
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: candidate, ORCA_CODEX_HOME: candidate },
+        { CODEX_HOME: candidate, ALICORN_CODEX_HOME: candidate },
         userDataPath
       )
     ).toBeNull()
@@ -140,7 +140,7 @@ describe('managed Codex shell preflight', () => {
 
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: candidate, ORCA_CODEX_HOME: candidate },
+        { CODEX_HOME: candidate, ALICORN_CODEX_HOME: candidate },
         userDataPath
       )
     ).toBeNull()
@@ -155,7 +155,7 @@ describe('managed Codex shell preflight', () => {
 
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: candidate, ORCA_CODEX_HOME: candidate },
+        { CODEX_HOME: candidate, ALICORN_CODEX_HOME: candidate },
         userDataPath
       )
     ).toBeNull()
@@ -171,7 +171,7 @@ describe('managed Codex shell preflight', () => {
 
     expect(
       resolveManagedCodexShellPreflightHome(
-        { CODEX_HOME: candidate, ORCA_CODEX_HOME: candidate },
+        { CODEX_HOME: candidate, ALICORN_CODEX_HOME: candidate },
         userDataPath
       )
     ).toBeNull()
@@ -184,7 +184,7 @@ describe('managed WSL Codex shell preflight', () => {
     '\\\\wsl.localhost\\Ubuntu-24.04\\home\\jin\\.local\\share\\orca\\codex-runtime-home\\home'
   const env = {
     CODEX_HOME: home,
-    ORCA_CODEX_HOME: home,
+    ALICORN_CODEX_HOME: home,
     WSL_DISTRO_NAME: 'Ubuntu-24.04'
   }
 
@@ -231,15 +231,15 @@ describe('managed WSL Codex shell preflight', () => {
   it.each([
     [
       'a user home',
-      { ...env, CODEX_HOME: '/home/jin/.codex', ORCA_CODEX_HOME: '/home/jin/.codex' }
+      { ...env, CODEX_HOME: '/home/jin/.codex', ALICORN_CODEX_HOME: '/home/jin/.codex' }
     ],
-    ['unequal routing markers', { ...env, ORCA_CODEX_HOME: `${home}-other` }],
+    ['unequal routing markers', { ...env, ALICORN_CODEX_HOME: `${home}-other` }],
     [
       'a parent traversal',
       {
         ...env,
         CODEX_HOME: `/home/jin/../jin${home.slice('/home/jin'.length)}`,
-        ORCA_CODEX_HOME: `/home/jin/../jin${home.slice('/home/jin'.length)}`
+        ALICORN_CODEX_HOME: `/home/jin/../jin${home.slice('/home/jin'.length)}`
       }
     ],
     [
@@ -247,12 +247,12 @@ describe('managed WSL Codex shell preflight', () => {
       {
         ...env,
         CODEX_HOME: `/home/./jin${home.slice('/home/jin'.length)}`,
-        ORCA_CODEX_HOME: `/home/./jin${home.slice('/home/jin'.length)}`
+        ALICORN_CODEX_HOME: `/home/./jin${home.slice('/home/jin'.length)}`
       }
     ],
     [
       'a host path',
-      { ...env, CODEX_HOME: 'C:\\Users\\jin\\.codex', ORCA_CODEX_HOME: 'C:\\Users\\jin\\.codex' }
+      { ...env, CODEX_HOME: 'C:\\Users\\jin\\.codex', ALICORN_CODEX_HOME: 'C:\\Users\\jin\\.codex' }
     ],
     ['a missing distro', { ...env, WSL_DISTRO_NAME: '' }],
     ['a distro path escape', { ...env, WSL_DISTRO_NAME: 'Ubuntu\\..\\host' }],
@@ -261,7 +261,7 @@ describe('managed WSL Codex shell preflight', () => {
       {
         ...env,
         CODEX_HOME: home.replace('/jin/', '/jin//'),
-        ORCA_CODEX_HOME: home.replace('/jin/', '/jin//')
+        ALICORN_CODEX_HOME: home.replace('/jin/', '/jin//')
       }
     ]
   ])('rejects %s', (_label, candidate) => {
@@ -278,7 +278,7 @@ describe('managed WSL Codex shell preflight', () => {
     expect(
       resolveManagedWslCodexShellPreflightTarget({
         CODEX_HOME: directHome,
-        ORCA_CODEX_HOME: directHome,
+        ALICORN_CODEX_HOME: directHome,
         WSL_DISTRO_NAME: 'ubuntu-24.04'
       })
     ).toEqual({ runtimeHomePath: directRuntimeHome, wslDistro: 'ubuntu-24.04' })
@@ -291,7 +291,7 @@ describe('managed WSL Codex shell preflight', () => {
     expect(
       resolveManagedWslCodexShellPreflightTarget({
         CODEX_HOME: systemHome,
-        ORCA_CODEX_HOME: systemHome,
+        ALICORN_CODEX_HOME: systemHome,
         WSL_DISTRO_NAME: 'Ubuntu-24.04'
       })
     ).toBeNull()

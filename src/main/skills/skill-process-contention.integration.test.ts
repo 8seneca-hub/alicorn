@@ -6,7 +6,7 @@ import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createSkillPackageArchive } from './skill-package-creation'
 
-const RUN_REAL_PROCESS = process.env.ORCA_REAL_PROCESS_SKILL_TEST === '1'
+const RUN_REAL_PROCESS = process.env.ALICORN_REAL_PROCESS_SKILL_TEST === '1'
 const require = createRequire(import.meta.url)
 const vitestBin = join(dirname(require.resolve('vitest/package.json')), 'vitest.mjs')
 const childTest = resolve('src/main/skills/skill-process-contention-child.test.ts')
@@ -63,14 +63,14 @@ function startChild(input: {
       cwd: process.cwd(),
       env: {
         ...process.env,
-        ORCA_REAL_PROCESS_SKILL_TEST: '0',
-        ORCA_SKILL_CONTENTION_CHILD: '1',
-        ORCA_SKILL_CONTENTION_ROOT: input.root,
-        ORCA_SKILL_CONTENTION_ARCHIVE: input.archivePath,
-        ORCA_SKILL_CONTENTION_ROLE: input.role,
-        ORCA_SKILL_CONTENTION_READY: input.readyPath,
-        ORCA_SKILL_CONTENTION_RELEASE: input.releasePath,
-        ORCA_SKILL_CONTENTION_RESULT: input.resultPath
+        ALICORN_REAL_PROCESS_SKILL_TEST: '0',
+        ALICORN_SKILL_CONTENTION_CHILD: '1',
+        ALICORN_SKILL_CONTENTION_ROOT: input.root,
+        ALICORN_SKILL_CONTENTION_ARCHIVE: input.archivePath,
+        ALICORN_SKILL_CONTENTION_ROLE: input.role,
+        ALICORN_SKILL_CONTENTION_READY: input.readyPath,
+        ALICORN_SKILL_CONTENTION_RELEASE: input.releasePath,
+        ALICORN_SKILL_CONTENTION_RESULT: input.resultPath
       },
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true

@@ -5,8 +5,8 @@ import { createRoot, type Root } from 'react-dom/client'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  ORCA_LINEAR_SKILL_INSTALL_COMMAND,
-  ORCA_LINEAR_SKILL_NAME
+  ALICORN_LINEAR_SKILL_INSTALL_COMMAND,
+  ALICORN_LINEAR_SKILL_NAME
 } from '@/lib/agent-feature-install-commands'
 import { getLinearUsageExamples } from '@/lib/linear-usage-examples'
 import { LinearAgentSkillPane } from './LinearAgentSkillPane'
@@ -225,9 +225,9 @@ describe('LinearAgentSkillPane', () => {
 
     expect(mocks.panelProps.at(-1)).toEqual(
       expect.objectContaining({
-        command: ORCA_LINEAR_SKILL_INSTALL_COMMAND,
+        command: ALICORN_LINEAR_SKILL_INSTALL_COMMAND,
         installedCommand: UPDATE_COMMAND,
-        freshnessSkillName: ORCA_LINEAR_SKILL_NAME
+        freshnessSkillName: ALICORN_LINEAR_SKILL_NAME
       })
     )
   })

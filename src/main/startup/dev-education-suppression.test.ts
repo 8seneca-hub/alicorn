@@ -83,7 +83,7 @@ describe('shouldSuppressDevEducation', () => {
     expect(
       shouldSuppressDevEducation({
         isDev: true,
-        env: { ORCA_E2E_USER_DATA_DIR: '/tmp/orca-e2e' }
+        env: { ALICORN_E2E_USER_DATA_DIR: '/tmp/orca-e2e' }
       })
     ).toBe(false)
   })

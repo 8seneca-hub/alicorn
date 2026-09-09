@@ -277,14 +277,14 @@ index 7b4b9e1f990fbf95b51528bb56dc9717f5b87532..2ae787c5bd4f3eba470584dc658a01a5
 + * those aliases are actually loaded on the target. */
 +#if defined(__linux__)
 +#  if defined(__x86_64__)
-+#    define ORCA_GLIBC_COMPAT_VERSION "GLIBC_2.2.5"
++#    define ALICORN_GLIBC_COMPAT_VERSION "GLIBC_2.2.5"
 +#  elif defined(__aarch64__)
-+#    define ORCA_GLIBC_COMPAT_VERSION "GLIBC_2.17"
++#    define ALICORN_GLIBC_COMPAT_VERSION "GLIBC_2.17"
 +#  endif
-+#  ifdef ORCA_GLIBC_COMPAT_VERSION
-+__asm__(".symver openpty,openpty@" ORCA_GLIBC_COMPAT_VERSION);
-+__asm__(".symver forkpty,forkpty@" ORCA_GLIBC_COMPAT_VERSION);
-+__asm__(".symver pthread_sigmask,pthread_sigmask@" ORCA_GLIBC_COMPAT_VERSION);
++#  ifdef ALICORN_GLIBC_COMPAT_VERSION
++__asm__(".symver openpty,openpty@" ALICORN_GLIBC_COMPAT_VERSION);
++__asm__(".symver forkpty,forkpty@" ALICORN_GLIBC_COMPAT_VERSION);
++__asm__(".symver pthread_sigmask,pthread_sigmask@" ALICORN_GLIBC_COMPAT_VERSION);
 +#  endif
 +#endif
 +

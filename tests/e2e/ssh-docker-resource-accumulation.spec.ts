@@ -11,7 +11,7 @@
  *  - #17817/#17821/#17831: repeated disconnect/reconnect must not accumulate
  *    relay processes, orphan PTYs, or fds.
  *
- * Requires: ORCA_E2E_SSH_DOCKER=1 and Docker available.
+ * Requires: ALICORN_E2E_SSH_DOCKER=1 and Docker available.
  */
 import { expect, test } from './helpers/orca-app'
 import {
@@ -35,7 +35,7 @@ import {
   waitForTerminalOutput
 } from './helpers/terminal'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const TERMINAL_COUNT = 6
 const RECONNECT_CYCLES = 5
 
@@ -101,7 +101,7 @@ function sampleRemoteResources(target: DockerSshRelayTarget): RemoteResourceSamp
 }
 
 test.describe('Docker SSH relay resource accumulation', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Uses POSIX /proc and /dev/pts probes.')
 
   test('does not accumulate pts devices, relay fds, or relay processes @resource-accumulation', async ({

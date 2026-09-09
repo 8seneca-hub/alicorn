@@ -101,7 +101,7 @@ describe('prepareMobileAiVaultSessionResume', () => {
     expect(launch.command).toBe(
       "cd '/Users/ada/repo' && codex '--dangerously-bypass-approvals-and-sandbox' 'resume' 'legacy-1'"
     )
-    expect(launch.envToDelete).toEqual(['CODEX_HOME', 'ORCA_CODEX_HOME'])
+    expect(launch.envToDelete).toEqual(['CODEX_HOME', 'ALICORN_CODEX_HOME'])
   })
 
   it('preserves the legacy resume path when a supported desktop declines real-home use', async () => {

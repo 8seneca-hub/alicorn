@@ -233,7 +233,7 @@ describe('PR E2E gate contract', () => {
   })
 
   it('maps SSH source edits onto the Docker-backed specs they can break', () => {
-    // Why: the Docker-SSH specs self-skip without ORCA_E2E_SSH_DOCKER, and the only
+    // Why: the Docker-SSH specs self-skip without ALICORN_E2E_SSH_DOCKER, and the only
     // trigger used to be "someone edited a spec" — four pane-restore regressions shipped
     // through that hole. Each mapped spec must exist, or the lane runs an empty file list.
     const sshSourceAuthorities = [
@@ -278,7 +278,9 @@ describe('PR E2E gate contract', () => {
       expect(existsSync(join(projectDir, spec)), spec).toBe(true)
       // Why: a spec that stops reading the flag would silently run without Docker.
       if (spec !== 'tests/e2e/ssh-startup-exec-readiness.spec.ts') {
-        expect(readFileSync(join(projectDir, spec), 'utf8'), spec).toContain('ORCA_E2E_SSH_DOCKER')
+        expect(readFileSync(join(projectDir, spec), 'utf8'), spec).toContain(
+          'ALICORN_E2E_SSH_DOCKER'
+        )
       }
     }
 
@@ -371,7 +373,7 @@ describe('PR E2E gate contract', () => {
   })
 
   it('gives every Docker-gated SSH spec a lane that runs it', () => {
-    // Why this shape: the sharded lanes set no ORCA_E2E_SSH_DOCKER, so a Docker-gated spec
+    // Why this shape: the sharded lanes set no ALICORN_E2E_SSH_DOCKER, so a Docker-gated spec
     // that no runner names runs nowhere and still reports green — the silent skip this file
     // exists to prevent. Asserting reachability rather than a literal keeps that true when
     // the lanes move.
@@ -398,7 +400,7 @@ describe('PR E2E gate contract', () => {
     // "how to run me" comment without gating on it. Why a regex rather than one literal: an
     // equally-valid spelling (double quotes, or a `!==` guard) would escape a fixed-string scan
     // and the spec would silently leave the contract.
-    const dockerGateExpression = /ORCA_E2E_SSH_DOCKER\s*[!=]==\s*['"]1['"]/
+    const dockerGateExpression = /ALICORN_E2E_SSH_DOCKER\s*[!=]==\s*['"]1['"]/
     const dockerGatedSpecs = readdirSync(join(projectDir, 'tests/e2e'))
       .filter((file) => file.endsWith('.spec.ts'))
       .map((file) => `tests/e2e/${file}`)
@@ -629,7 +631,8 @@ describe('PR E2E gate contract', () => {
     // Why this shape: a spec gated on a native-IME env var that no runner sets is a skip that
     // reports as a pass. This repo already carries such specs; the point is that they are named
     // as gaps rather than counted as coverage.
-    const nativeGateExpression = /ORCA_E2E_NATIVE_(?:IBUS_HANGUL|MACOS_KOREAN)\s*[!=]==\s*['"]1['"]/
+    const nativeGateExpression =
+      /ALICORN_E2E_NATIVE_(?:IBUS_HANGUL|MACOS_KOREAN)\s*[!=]==\s*['"]1['"]/
     const nativeGatedSpecs = readdirSync(join(projectDir, 'tests/e2e'))
       .filter((file) => file.endsWith('.spec.ts'))
       .map((file) => `tests/e2e/${file}`)

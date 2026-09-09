@@ -196,8 +196,8 @@ async function waitForCodexComposer(page: Page): Promise<string> {
 test.describe('local Codex terminal typing latency', () => {
   test('keeps Codex prompt typing responsive @local-real-codex', async ({ orcaPage }, testInfo) => {
     test.skip(
-      process.env.ORCA_E2E_REAL_CODEX !== '1',
-      'Set ORCA_E2E_REAL_CODEX=1 to exercise the locally installed Codex TUI'
+      process.env.ALICORN_E2E_REAL_CODEX !== '1',
+      'Set ALICORN_E2E_REAL_CODEX=1 to exercise the locally installed Codex TUI'
     )
     test.skip(process.platform === 'win32', 'local Codex command is POSIX-shell oriented')
 

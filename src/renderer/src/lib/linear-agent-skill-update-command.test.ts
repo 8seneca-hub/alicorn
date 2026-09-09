@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { DiscoveredSkill } from '../../../shared/skills'
 import {
   LINEAR_TICKETS_SKILL_UPDATE_COMMAND,
-  ORCA_LINEAR_SKILL_UPDATE_COMMAND
+  ALICORN_LINEAR_SKILL_UPDATE_COMMAND
 } from './agent-feature-install-commands'
 import { getLinearAgentSkillUpdateTarget } from './linear-agent-skill-update-command'
 
@@ -26,17 +26,17 @@ describe('getLinearAgentSkillUpdateTarget', () => {
   it('targets the canonical skill for missing, canonical, and dual-name installs', () => {
     expect(getLinearAgentSkillUpdateTarget([], false)).toEqual({
       skillName: 'alicorn-linear',
-      command: ORCA_LINEAR_SKILL_UPDATE_COMMAND
+      command: ALICORN_LINEAR_SKILL_UPDATE_COMMAND
     })
     expect(getLinearAgentSkillUpdateTarget([skill('alicorn-linear')], true)).toEqual({
       skillName: 'alicorn-linear',
-      command: ORCA_LINEAR_SKILL_UPDATE_COMMAND
+      command: ALICORN_LINEAR_SKILL_UPDATE_COMMAND
     })
     expect(
       getLinearAgentSkillUpdateTarget([skill('alicorn-linear'), skill('linear-tickets')], true)
     ).toEqual({
       skillName: 'alicorn-linear',
-      command: ORCA_LINEAR_SKILL_UPDATE_COMMAND
+      command: ALICORN_LINEAR_SKILL_UPDATE_COMMAND
     })
   })
 

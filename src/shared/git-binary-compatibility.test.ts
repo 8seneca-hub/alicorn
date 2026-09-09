@@ -25,9 +25,9 @@ import {
 } from './review-head-tracking-ref'
 
 const execFileAsync = promisify(execFile)
-const image = process.env.ORCA_GIT_COMPAT_IMAGE
-const binary = process.env.ORCA_GIT_COMPAT_BINARY
-const expectedVersion = process.env.ORCA_GIT_COMPAT_VERSION
+const image = process.env.ALICORN_GIT_COMPAT_IMAGE
+const binary = process.env.ALICORN_GIT_COMPAT_BINARY
+const expectedVersion = process.env.ALICORN_GIT_COMPAT_VERSION
 const describeBinaryCompatibility = image || binary ? describe : describe.skip
 
 type GitResult = { stdout: string; stderr: string }

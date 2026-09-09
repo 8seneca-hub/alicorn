@@ -36,11 +36,11 @@ function fixtureImage(root: string): string {
 }
 
 export function getDockerSshRelayImage(): string {
-  return process.env.ORCA_E2E_SSH_DOCKER_IMAGE ?? fixtureImage(process.cwd())
+  return process.env.ALICORN_E2E_SSH_DOCKER_IMAGE ?? fixtureImage(process.cwd())
 }
 
 export function prepareDockerSshRelayImage(root: string): void {
-  if (process.env.ORCA_E2E_SSH_DOCKER_IMAGE) {
+  if (process.env.ALICORN_E2E_SSH_DOCKER_IMAGE) {
     return
   }
   const fixtureDir = path.join(root, 'tests', 'e2e', 'fixtures', 'docker-ssh-relay')
@@ -53,7 +53,7 @@ export function prepareDockerSshRelayImage(root: string): void {
 }
 
 export function ensureDockerSshRelayImage(root: string): void {
-  if (process.env.ORCA_E2E_SSH_DOCKER_IMAGE) {
+  if (process.env.ALICORN_E2E_SSH_DOCKER_IMAGE) {
     return
   }
   const image = fixtureImage(root)

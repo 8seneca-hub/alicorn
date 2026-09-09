@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 export function resolveMacOSComputerUseAppPath(): string | null {
-  const override = process.env.ORCA_COMPUTER_MACOS_HELPER_APP_PATH
+  const override = process.env.ALICORN_COMPUTER_MACOS_HELPER_APP_PATH
   if (override && existsSync(override)) {
     return override
   }

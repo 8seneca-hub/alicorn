@@ -50,8 +50,8 @@ type HubSshState = {
 type RenderedClientPage = { marker: string; partition: string }
 
 test.skip(
-  process.env.ORCA_E2E_SSH_CLIENT_HOSTED_BROWSER !== '1',
-  'Run with ORCA_E2E_SSH_CLIENT_HOSTED_BROWSER=1 (requires Docker)'
+  process.env.ALICORN_E2E_SSH_CLIENT_HOSTED_BROWSER !== '1',
+  'Run with ALICORN_E2E_SSH_CLIENT_HOSTED_BROWSER=1 (requires Docker)'
 )
 
 async function readHubSshState(page: Page, targetId: string): Promise<HubSshState> {

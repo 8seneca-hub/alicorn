@@ -1,5 +1,5 @@
 // Manual benchmark for the `worktree.remove.git_remove` stage on a large checkout.
-// Opt in (it builds ~100k files): ORCA_WORKTREE_REMOVAL_BENCH=1 pnpm exec vitest run \
+// Opt in (it builds ~100k files): ALICORN_WORKTREE_REMOVAL_BENCH=1 pnpm exec vitest run \
 //   --config config/vitest.config.ts src/main/git/worktree-removal-large-tree.bench.test.ts
 import { execFile } from 'node:child_process'
 import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
@@ -12,7 +12,7 @@ import { removeWorktree } from './worktree'
 import { getWorktreeTrashRoot, whenWorktreeTrashDeletionsSettled } from '../worktree-trash'
 
 const execFileAsync = promisify(execFile)
-const describeBench = process.env.ORCA_WORKTREE_REMOVAL_BENCH ? describe : describe.skip
+const describeBench = process.env.ALICORN_WORKTREE_REMOVAL_BENCH ? describe : describe.skip
 
 const FIXTURE_DIRECTORIES = 200
 const FIXTURE_FILES_PER_DIRECTORY = 500

@@ -84,7 +84,7 @@ test('preserves a live daemon PTY when the daemon is too slow for the startup he
     const secondLaunch = await session.launch({
       extraEnv: {
         [E2E_FORCE_DAEMON_HEALTH_UNREACHABLE_ENV]: '1',
-        ORCA_E2E_DAEMON_INIT_DELAY_MS: String(GUARD_DECISION_DELAY_MS)
+        ALICORN_E2E_DAEMON_INIT_DELAY_MS: String(GUARD_DECISION_DELAY_MS)
       },
       onStderr: (chunk) => stderrLines.push(chunk)
     })

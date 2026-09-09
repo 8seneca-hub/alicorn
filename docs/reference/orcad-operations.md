@@ -49,7 +49,7 @@ loopback is the correct default and the pairing credential travels over SSH.
 
 ## Data root and the instance lock
 
-The data root is `$ORCA_USER_DATA`, else `$XDG_DATA_HOME/Orca`, else `~/.orca`.
+The data root is `$ALICORN_USER_DATA`, else `$XDG_DATA_HOME/Orca`, else `~/.orca`.
 
 Before the profile index or the store is touched, orcad takes `<data-root>/orcad.lock`.
 It refuses to start when:
@@ -124,7 +124,7 @@ An external supervisor (systemd, launchd, a process manager). orcad conforms to 
 - **Logs.** orcad writes human-readable diagnostics to **stderr** and its readiness contract
   to **stdout**; the supervisor owns capture and rotation. The daemon, being detached, writes
   its own NDJSON lifecycle log to `<data-root>/logs/daemon.log` (suppressed by
-  `ORCA_DIAGNOSTICS_DISABLED=1`). Rotation of that file is not implemented — see
+  `ALICORN_DIAGNOSTICS_DISABLED=1`). Rotation of that file is not implemented — see
   [What is not covered](#what-is-not-covered).
 
 ### orcad supervising the daemon
@@ -161,7 +161,7 @@ The readiness payload carries a `health` object:
 ```
 buildHash    sha256 (16 hex) of the running orcad bundle — build identity that a version
              string cannot give, so a rollback that did not replace the file is visible
-buildVersion ORCA_VERSION
+buildVersion ALICORN_VERSION
 nodeVersion  / nodeAbi   process.versions.node / .modules — the ABI native addons must match
 platform / arch / pid
 terminalDaemon:

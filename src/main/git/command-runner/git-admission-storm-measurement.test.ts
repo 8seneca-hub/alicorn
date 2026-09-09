@@ -34,13 +34,13 @@ type InteractiveQueueSnapshot = {
 }
 
 const tempRoots: string[] = []
-const originalAdmissionDisabled = process.env.ORCA_GIT_ADMISSION_DISABLED
+const originalAdmissionDisabled = process.env.ALICORN_GIT_ADMISSION_DISABLED
 
 afterEach(async () => {
   if (originalAdmissionDisabled === undefined) {
-    delete process.env.ORCA_GIT_ADMISSION_DISABLED
+    delete process.env.ALICORN_GIT_ADMISSION_DISABLED
   } else {
-    process.env.ORCA_GIT_ADMISSION_DISABLED = originalAdmissionDisabled
+    process.env.ALICORN_GIT_ADMISSION_DISABLED = originalAdmissionDisabled
   }
   _resetGitAdmissionForTests()
   await Promise.all(tempRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })))
@@ -66,10 +66,10 @@ async function createStubGit(root: string): Promise<string> {
     stubPath,
     `#!/bin/sh
 set -eu
-live="$ORCA_STUB_STATE_DIR/$ORCA_STUB_ID.live"
+live="$ALICORN_STUB_STATE_DIR/$ALICORN_STUB_ID.live"
 : > "$live"
 trap 'rm -f "$live"' EXIT HUP INT TERM
-sleep "$(awk "BEGIN { print $ORCA_STUB_SLEEP_MS / 1000 }")"
+sleep "$(awk "BEGIN { print $ALICORN_STUB_SLEEP_MS / 1000 }")"
 printf 'stub:%s\\n' "$*"
 `
   )
@@ -79,9 +79,9 @@ printf 'stub:%s\\n' "$*"
 
 function setAdmissionMode(mode: StormMeasurement['mode']): void {
   if (mode === 'disabled') {
-    process.env.ORCA_GIT_ADMISSION_DISABLED = '1'
+    process.env.ALICORN_GIT_ADMISSION_DISABLED = '1'
   } else {
-    delete process.env.ORCA_GIT_ADMISSION_DISABLED
+    delete process.env.ALICORN_GIT_ADMISSION_DISABLED
   }
 }
 
@@ -128,9 +128,9 @@ async function measureStorm(mode: StormMeasurement['mode']): Promise<StormMeasur
       cwd: repoDirs[index % repoDirs.length],
       env: {
         ...baseEnv,
-        ORCA_STUB_ID: `background-${index}`,
-        ORCA_STUB_SLEEP_MS: index % 10 === 0 ? '5000' : '200',
-        ORCA_STUB_STATE_DIR: stateDir
+        ALICORN_STUB_ID: `background-${index}`,
+        ALICORN_STUB_SLEEP_MS: index % 10 === 0 ? '5000' : '200',
+        ALICORN_STUB_STATE_DIR: stateDir
       },
       admissionTier: 'background'
     })
@@ -157,9 +157,9 @@ async function measureStorm(mode: StormMeasurement['mode']): Promise<StormMeasur
                   cwd: repoDirs[index % repoDirs.length],
                   env: {
                     ...baseEnv,
-                    ORCA_STUB_ID: `interactive-${index}`,
-                    ORCA_STUB_SLEEP_MS: String(Math.max(10, concurrentAtInjection * 12)),
-                    ORCA_STUB_STATE_DIR: stateDir
+                    ALICORN_STUB_ID: `interactive-${index}`,
+                    ALICORN_STUB_SLEEP_MS: String(Math.max(10, concurrentAtInjection * 12)),
+                    ALICORN_STUB_STATE_DIR: stateDir
                   },
                   admissionTier: 'interactive'
                 })

@@ -94,7 +94,7 @@ describe('ensureWorktreeHasInitialTerminal', () => {
       undefined,
       {
         runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
-        envVars: { ORCA_WORKTREE_PATH: '/tmp/worktrees/wt-1' }
+        envVars: { ALICORN_WORKTREE_PATH: '/tmp/worktrees/wt-1' }
       },
       undefined,
       {
@@ -121,7 +121,7 @@ describe('ensureWorktreeHasInitialTerminal', () => {
     expect(store.queueTabStartupCommand).toHaveBeenCalledWith('tab-1', { command: 'pnpm dev' })
     expect(store.queueTabStartupCommand).toHaveBeenCalledWith('tab-2', {
       command: 'bash /tmp/repo/.git/orca/setup-runner.sh',
-      env: { ORCA_WORKTREE_PATH: '/tmp/worktrees/wt-1' }
+      env: { ALICORN_WORKTREE_PATH: '/tmp/worktrees/wt-1' }
     })
   })
 

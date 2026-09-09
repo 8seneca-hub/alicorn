@@ -56,7 +56,7 @@ test('cmd+p quick open prioritizes the filename and reveals the full path on hov
     orcaPage.locator('[data-slot="tooltip-content"]').filter({ hasText: relativeFilePath })
   ).toBeVisible()
 
-  const proofPath = process.env.ORCA_QUICK_OPEN_PROOF_PATH
+  const proofPath = process.env.ALICORN_QUICK_OPEN_PROOF_PATH
   if (proofPath) {
     await orcaPage.screenshot({ path: proofPath })
   }

@@ -16,18 +16,18 @@ import {
 import { connectDockerSshRelayTarget } from './helpers/docker-ssh-relay-connection'
 import { createAndActivateDockerSshRelayWorktree } from './helpers/docker-ssh-relay-worktree-activation'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
-const PARKING_DELAY_MS = Number(process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS) || 500
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
+const PARKING_DELAY_MS = Number(process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS) || 500
 
 test.use({
   // Why no seeded local repo: matching every green Docker SSH spec — the same
   // mid-session repo-add misroute hits a remote repo added beside a local one.
   seedTestRepo: false,
   orcaAppExtraEnv: {
-    ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS),
+    ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS),
     // Why limit=1: two hidden un-parkable worktrees then exceed the budget while
     // the last-active exemption still spares exactly one — the smallest live proof.
-    ORCA_E2E_TERMINAL_RETENTION_LIMIT: '1'
+    ALICORN_E2E_TERMINAL_RETENTION_LIMIT: '1'
   }
 })
 
@@ -35,7 +35,7 @@ test.use({
 // slice A's terminalSshViewParking off) force-park beyond the retention budget,
 // least-recently-hidden first, and reveal restores content from the relay replay.
 test.describe('terminal hidden-worktree retention budget', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH parking uses POSIX SSH tooling.')
 
   test('force-parks the older hidden un-parkable worktree and spares the newest', async ({

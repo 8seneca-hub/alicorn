@@ -49,3 +49,23 @@ export function withLegacyEnvAliases(env: Record<string, string>): Record<string
   }
   return withAliases
 }
+
+/**
+ * Expand a list of key names to both spellings, for lists we *delete* from an inherited env.
+ *
+ * The asymmetry that makes this necessary: aliasing covers values we export, but a stale value
+ * in an inherited environment was written by the previous build under the old name, so a
+ * strip list that names only `ALICORN_X` stops stripping anything real. Same for a retired
+ * feature's keys, which never had an `ALICORN_` spelling at all — deleting an absent key costs
+ * nothing, so both go in the list rather than a special case per call site.
+ */
+export function withLegacyEnvKeys(names: readonly string[]): string[] {
+  return names.flatMap((name) =>
+    name.startsWith(ALICORN_PREFIX) ? [name, legacyNameOf(name)] : [name]
+  )
+}
+
+/** True for either spelling of an Orca/Alicorn-owned env name, for "strip our own vars" filters. */
+export function isAlicornOwnedEnvName(name: string): boolean {
+  return name.startsWith(ALICORN_PREFIX) || name.startsWith(LEGACY_PREFIX)
+}

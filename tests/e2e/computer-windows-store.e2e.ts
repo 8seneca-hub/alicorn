@@ -9,7 +9,7 @@ import {
 } from './helpers/computer-driver'
 
 const isWindows = process.platform === 'win32'
-const e2eOptIn = process.env.ORCA_COMPUTER_E2E === '1'
+const e2eOptIn = process.env.ALICORN_COMPUTER_E2E === '1'
 
 describe.skipIf(!isWindows || !e2eOptIn)('computer-use Windows e2e (Calculator)', () => {
   test('Calculator windows are discoverable by title and clickable', async () => {

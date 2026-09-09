@@ -36,8 +36,8 @@ export async function startHeadlessPairingRuntime({
       cwd,
       env: {
         ...process.env,
-        ORCA_E2E_USER_DATA_DIR: userData,
-        ORCA_E2E_HOME_DIR: homeDir,
+        ALICORN_E2E_USER_DATA_DIR: userData,
+        ALICORN_E2E_HOME_DIR: homeDir,
         HOME: homeDir,
         USERPROFILE: homeDir
       },
@@ -85,11 +85,11 @@ async function waitForPairingRuntime({ child, userData, pairingAddress, logSucce
     process: child,
     env: {
       ...process.env,
-      ORCA_USER_DATA_PATH: userData,
-      // Why: `orca-dev` derives its own profile and ignores ORCA_USER_DATA_PATH, so
-      // without this an ORCA_CLI=orca-dev run would address the dev profile instead
+      ALICORN_USER_DATA_PATH: userData,
+      // Why: `orca-dev` derives its own profile and ignores ALICORN_USER_DATA_PATH, so
+      // without this an ALICORN_CLI=orca-dev run would address the dev profile instead
       // of this disposable runtime. Plain `orca` ignores it.
-      ORCA_DEV_USER_DATA_PATH: userData
+      ALICORN_DEV_USER_DATA_PATH: userData
     },
     stop
   })

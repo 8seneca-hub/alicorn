@@ -216,10 +216,10 @@ describe('WslHookRelayManager', () => {
       platform: () => 'win32',
       remoteHooksEnabled: () => true,
       hookCoordsEnv: () => ({
-        ORCA_AGENT_HOOK_PORT: '43117',
-        ORCA_AGENT_HOOK_TOKEN: 'tok',
-        ORCA_AGENT_HOOK_ENV: 'production',
-        ORCA_AGENT_HOOK_VERSION: '1'
+        ALICORN_AGENT_HOOK_PORT: '43117',
+        ALICORN_AGENT_HOOK_TOKEN: 'tok',
+        ALICORN_AGENT_HOOK_ENV: 'production',
+        ALICORN_AGENT_HOOK_VERSION: '1'
       }),
       instanceKey: () => 'testinstance',
       resolveBundle: () => ({ jsPath: '/fake/wsl-agent-hook-relay.js', version: '0.1.0+abc' }),

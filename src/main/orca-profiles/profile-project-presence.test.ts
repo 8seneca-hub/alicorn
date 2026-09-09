@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getDefaultPersistedState } from '../../shared/constants'
 import {
-  ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+  ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
   type OrcaProfileIndex,
   type OrcaProfileKind
 } from '../../shared/orca-profiles'
@@ -42,7 +42,7 @@ function profile(
 
 function writeIndex(activeProfileId = 'personal'): void {
   const index: OrcaProfileIndex = {
-    schemaVersion: ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+    schemaVersion: ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
     activeProfileId,
     profiles: [profile('personal', 'Personal'), profile('work', 'Work')]
   }

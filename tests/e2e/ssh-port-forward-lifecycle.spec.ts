@@ -39,14 +39,14 @@ import {
   trustDockerSshHost
 } from './helpers/ssh-port-forward-transport-evidence'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
-const FORCE_SYSTEM_SSH = process.env.ORCA_SSH_FORCE_SYSTEM_TRANSPORT === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
+const FORCE_SYSTEM_SSH = process.env.ALICORN_SSH_FORCE_SYSTEM_TRANSPORT === '1'
 const REMOTE_PORT = 7860
 const REFRESH_BARRIER_PORT = 7861
 const SCAN_REFRESH_PORT = 7862
 
 test.describe('Docker SSH port-forward lifecycle', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH lifecycle uses POSIX process inspection.')
 
   test('keeps a user-forwarded listener live across scan refresh @headful', async ({
@@ -59,7 +59,7 @@ test.describe('Docker SSH port-forward lifecycle', () => {
     const unrelatedLocalPortReservation = await reserveLocalPort()
     const localPort = localPortReservation.port
     const unrelatedLocalPort = unrelatedLocalPortReservation.port
-    const marker = `ORCA_FORWARD_${Date.now()}`
+    const marker = `ALICORN_FORWARD_${Date.now()}`
     const unrelatedMarker = `${marker}_UNRELATED`
     try {
       target = startDockerSshRelayTarget(testInfo)

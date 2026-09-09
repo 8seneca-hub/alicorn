@@ -1,3 +1,4 @@
+import { isAlicornOwnedEnvName } from '../../shared/alicorn-env-compat'
 // Why: 1.4.184 registered `conhost.exe --headless <cmd> /d /c <script>` as the Windows
 // launcher. conhost is the ConPTY server, not a no-window wrapper: it re-hosts the child
 // on a pseudoconsole, so the JSON Claude Code pipes in never reaches the script and the
@@ -124,7 +125,7 @@ function runHookCommand(
 
 function hookEnvironment(extra: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const base = Object.fromEntries(
-    Object.entries(process.env).filter(([key]) => !key.startsWith('ORCA_'))
+    Object.entries(process.env).filter(([key]) => !isAlicornOwnedEnvName(key))
   )
   return { ...base, ...extra }
 }
@@ -172,9 +173,9 @@ describe.skipIf(process.platform !== 'win32')('Windows managed hook payload deli
     const env = hookEnvironment({
       USERPROFILE: home,
       HOME: home,
-      ORCA_AGENT_HOOK_PORT: String(listener.port),
-      ORCA_AGENT_HOOK_TOKEN: HOOK_TOKEN,
-      ORCA_PANE_KEY: PANE_KEY
+      ALICORN_AGENT_HOOK_PORT: String(listener.port),
+      ALICORN_AGENT_HOOK_TOKEN: HOOK_TOKEN,
+      ALICORN_PANE_KEY: PANE_KEY
     })
 
     const shells = [

@@ -113,11 +113,11 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
       mkdirSync(npxBin)
       writeFileSync(
         join(tools, 'getent'),
-        '#!/bin/sh\nprintf \'%s\\n\' "user:x:1000:1000::/home/user:$ORCA_TEST_LOGIN_SHELL"\n'
+        '#!/bin/sh\nprintf \'%s\\n\' "user:x:1000:1000::/home/user:$ALICORN_TEST_LOGIN_SHELL"\n'
       )
       writeFileSync(
         loginShell,
-        '#!/bin/sh\nexport PATH="$ORCA_TEST_NPX_BIN:/usr/bin:/bin"\nexec /bin/sh -c "$2"\n'
+        '#!/bin/sh\nexport PATH="$ALICORN_TEST_NPX_BIN:/usr/bin:/bin"\nexec /bin/sh -c "$2"\n'
       )
       writeFileSync(
         join(npxBin, 'npx'),
@@ -144,8 +144,8 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
             env: {
               ...process.env,
               PATH: `${tools}:/usr/bin:/bin`,
-              ORCA_TEST_LOGIN_SHELL: loginShell,
-              ORCA_TEST_NPX_BIN: npxBin
+              ALICORN_TEST_LOGIN_SHELL: loginShell,
+              ALICORN_TEST_NPX_BIN: npxBin
             }
           })
         ).toBe('skills update orchestration --global:terminal-input')

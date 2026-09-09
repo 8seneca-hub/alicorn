@@ -48,7 +48,7 @@ import { PROTOCOL_VERSION } from '../../src/main/daemon/types'
 import { PTY_SESSION_ID_SEPARATOR } from '../../src/shared/pty-session-id-format'
 
 const REQUIRE_WINDOWS_TERMINAL_RESTART_E2E =
-  process.env.ORCA_REQUIRE_WINDOWS_TERMINAL_RESTART_E2E === '1'
+  process.env.ALICORN_REQUIRE_WINDOWS_TERMINAL_RESTART_E2E === '1'
 
 function readDaemonPid(userDataDir: string): number {
   const raw = readFileSync(

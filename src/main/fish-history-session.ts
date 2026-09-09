@@ -23,7 +23,7 @@ const SAFE_SESSION_NAME = /^orca_(?:relay_)?[0-9a-f]{1,64}$/
  *  the same machine, whose live set knows nothing of those ids — so an
  *  attributable name is the only thing keeping that sweep off remote history.
  *  Relay files are removed by exact name when their worktree goes away. */
-const ORCA_HISTORY_FILE = /^orca_([0-9a-f]{1,64})_history$/
+const ALICORN_HISTORY_FILE = /^orca_([0-9a-f]{1,64})_history$/
 
 export function isSafeFishHistorySession(session: unknown): session is string {
   return typeof session === 'string' && SAFE_SESSION_NAME.test(session)
@@ -125,7 +125,7 @@ export function sweepOrphanedFishHistoryFiles(
       continue
     }
     for (const entry of entries) {
-      const hash = ORCA_HISTORY_FILE.exec(entry)?.[1]
+      const hash = ALICORN_HISTORY_FILE.exec(entry)?.[1]
       if (!hash || liveWorktreeHashes.has(hash)) {
         continue
       }

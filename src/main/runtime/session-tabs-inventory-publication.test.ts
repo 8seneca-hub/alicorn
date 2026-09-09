@@ -409,7 +409,7 @@ describe('authoritative session tab inventory publication', () => {
   })
 
   it('reports no authoritative support behind the e2e disable override', () => {
-    vi.stubEnv('ORCA_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY', '1')
+    vi.stubEnv('ALICORN_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY', '1')
     try {
       expect(createInventoryRuntime().supportsAuthoritativeSessionTabsInventory()).toBe(false)
     } finally {

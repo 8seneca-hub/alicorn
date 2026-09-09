@@ -95,7 +95,7 @@ export class RelayRegionPreferenceResolver {
 
   async resolve(): Promise<RelayRegion | undefined> {
     const override = RelayRegionSchema.safeParse(
-      this.options.diagnosticOverride ?? process.env.ORCA_RELAY_REGION_OVERRIDE
+      this.options.diagnosticOverride ?? process.env.ALICORN_RELAY_REGION_OVERRIDE
     )
     if (override.success) {
       return override.data

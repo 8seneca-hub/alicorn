@@ -318,11 +318,11 @@ describe('Copilot hook normalization', () => {
       const env = server.buildPtyEnv()
       const listener = vi.fn()
       server.setListener(listener)
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/copilot`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/copilot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(
           buildBody({ hook_event_name: 'Notification', notificationType: 'permission_prompt' })
@@ -352,11 +352,11 @@ describe('Copilot hook normalization', () => {
       const listener = vi.fn()
       server.setListener(listener)
 
-      await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/copilot`, {
+      await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/copilot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(
           buildBody({
@@ -365,11 +365,11 @@ describe('Copilot hook normalization', () => {
           })
         )
       })
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/copilot`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/copilot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(
           buildBody({ hook_event_name: 'Stop', transcript_path: transcriptPath })
@@ -377,11 +377,11 @@ describe('Copilot hook normalization', () => {
       })
 
       expect(response.status).toBe(204)
-      await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/copilot`, {
+      await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/copilot`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(buildBody({ hook_event_name: 'SessionEnd', reason: 'complete' }))
       })
@@ -435,19 +435,19 @@ describe('Copilot hook normalization', () => {
       const listener = vi.fn()
       server.setListener(listener)
 
-      await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/grok`, {
+      await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/grok`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(buildBody({ hookEventName: 'user_prompt_submit', prompt: 'hihi' }))
       })
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/grok`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/grok`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(buildBody({ hookEventName: 'Stop', sessionId, cwd }))
       })

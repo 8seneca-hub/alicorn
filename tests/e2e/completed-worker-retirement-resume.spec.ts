@@ -342,7 +342,7 @@ for (const closeMode of ['terminal-close-cli', 'worker-release'] as const) {
 
     await client.call('terminal.send', {
       terminal: workerHandle,
-      text: 'ORCA_E2E_EXIT_AFTER_DONE',
+      text: 'ALICORN_E2E_EXIT_AFTER_DONE',
       enter: true
     })
     await expect

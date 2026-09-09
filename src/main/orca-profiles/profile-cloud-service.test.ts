@@ -76,8 +76,8 @@ const organizations: OrcaCloudOrgSummary[] = [
 ]
 
 function configureCloudEnv(): void {
-  vi.stubEnv('ORCA_CLOUD_API_URL', 'https://orca-cloud.example')
-  vi.stubEnv('ORCA_CLOUD_CLIENT_ID', 'desktop-client')
+  vi.stubEnv('ALICORN_CLOUD_API_URL', 'https://orca-cloud.example')
+  vi.stubEnv('ALICORN_CLOUD_CLIENT_ID', 'desktop-client')
 }
 
 function futureExpiresAt(): number {
@@ -118,8 +118,8 @@ describe('Orca cloud profile service', () => {
     safeStorageMock.isEncryptionAvailable.mockReturnValue(true)
     revokeOrcaCloudSessionMock.mockResolvedValue(undefined)
     vi.unstubAllEnvs()
-    vi.stubEnv('ORCA_CLOUD_API_URL', '')
-    vi.stubEnv('ORCA_CLOUD_CLIENT_ID', '')
+    vi.stubEnv('ALICORN_CLOUD_API_URL', '')
+    vi.stubEnv('ALICORN_CLOUD_CLIENT_ID', '')
   })
 
   afterEach(() => {
@@ -182,8 +182,8 @@ describe('Orca cloud profile service', () => {
     configureCloudEnv()
     mockSuccessfulConnect()
     await connectCurrentOrcaProfile(userDataPath)
-    vi.stubEnv('ORCA_CLOUD_API_URL', '')
-    vi.stubEnv('ORCA_CLOUD_CLIENT_ID', '')
+    vi.stubEnv('ALICORN_CLOUD_API_URL', '')
+    vi.stubEnv('ALICORN_CLOUD_CLIENT_ID', '')
 
     expect(getCurrentOrcaProfileAuthStatus(userDataPath)).toMatchObject({
       configured: false,

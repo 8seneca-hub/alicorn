@@ -38,7 +38,7 @@ describe('OrcaRuntimeService', () => {
         ptyId: 'pty-bg',
         source: 'pty-record',
         paneKey,
-        tabId: spawnedEnv.ORCA_TAB_ID,
+        tabId: spawnedEnv.ALICORN_TAB_ID,
         worktreeId: TEST_WORKTREE_ID,
         connectionId: null,
         payload: {

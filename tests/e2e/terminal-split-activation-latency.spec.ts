@@ -38,9 +38,9 @@ import {
   type SplitLatencySample
 } from './terminal-split-activation-latency-phases'
 
-const BENCH_ENABLED = process.env.ORCA_TERMINAL_SPLIT_LATENCY_BENCH === '1'
-const BENCH_LABEL = process.env.ORCA_TERMINAL_SPLIT_LATENCY_LABEL?.trim() || 'local'
-const BENCH_OUTPUT_PATH = process.env.ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT?.trim() || null
+const BENCH_ENABLED = process.env.ALICORN_TERMINAL_SPLIT_LATENCY_BENCH === '1'
+const BENCH_LABEL = process.env.ALICORN_TERMINAL_SPLIT_LATENCY_LABEL?.trim() || 'local'
+const BENCH_OUTPUT_PATH = process.env.ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT?.trim() || null
 const WARMUP_CYCLES = 3
 const MIN_MEASURED_CYCLES = 20
 const MAX_MEASURED_CYCLES = 200
@@ -50,7 +50,7 @@ const CONFIRM_CLICK_TIMEOUT_MS = 2_000
 const BENCH_SETUP_TIMEOUT_MS = 5 * 60 * 1000
 // Why: process-cwd caches each pid for 1500ms; this wait isolates cold lookups, not correctness.
 const PROCESS_CWD_CACHE_EXPIRY_WAIT_MS = 1_650
-const SOURCE_READY_MARKER = 'ORCA_SPLIT_LATENCY_SOURCE_READY'
+const SOURCE_READY_MARKER = 'ALICORN_SPLIT_LATENCY_SOURCE_READY'
 const IS_MAC = process.platform === 'darwin'
 const SPLIT_CHORD = IS_MAC ? 'Meta+d' : 'Control+Shift+d'
 const CLOSE_CHORD = IS_MAC ? 'Meta+w' : 'Control+w'
@@ -64,7 +64,7 @@ const MEASURED_CYCLES = Math.min(
   MAX_MEASURED_CYCLES,
   Math.max(
     MIN_MEASURED_CYCLES,
-    readPositiveInt('ORCA_TERMINAL_SPLIT_LATENCY_CYCLES', MIN_MEASURED_CYCLES)
+    readPositiveInt('ALICORN_TERMINAL_SPLIT_LATENCY_CYCLES', MIN_MEASURED_CYCLES)
   )
 )
 const BENCH_TIMEOUT_MS =
@@ -440,7 +440,7 @@ async function runSplitCycle(
     iteration: number
   }
 ): Promise<{ sample: SplitLatencySample; closeCompletedAt: number; fatalError: Error | null }> {
-  const marker = `ORCA_SPLIT_ECHO_${args.phase}_${args.iteration}_${randomUUID().replaceAll('-', '')}`
+  const marker = `ALICORN_SPLIT_ECHO_${args.phase}_${args.iteration}_${randomUUID().replaceAll('-', '')}`
   await focusActiveTerminalInput(page)
   // Prevent an ID reused by a later PTY lifetime from matching an earlier exit.
   await resetPtyExitProbe(page)
@@ -575,7 +575,7 @@ async function attachReport(testInfo: TestInfo, report: Record<string, unknown>)
 }
 
 test.describe('Terminal split activation latency benchmark @headful', () => {
-  test.skip(!BENCH_ENABLED, 'One-off benchmark: set ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1')
+  test.skip(!BENCH_ENABLED, 'One-off benchmark: set ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1')
   test.skip(process.platform === 'win32', 'Deterministic echo-shell fixture is POSIX-only')
   test.setTimeout(BENCH_TIMEOUT_MS)
 
@@ -585,7 +585,8 @@ test.describe('Terminal split activation latency benchmark @headful', () => {
     testRepoPath
   }, testInfo) => {
     const headfulRun =
-      process.env.ORCA_E2E_FORCE_HEADFUL === '1' || testInfo.project.metadata.orcaHeadful === true
+      process.env.ALICORN_E2E_FORCE_HEADFUL === '1' ||
+      testInfo.project.metadata.orcaHeadful === true
     const windowState: BrowserWindowState = {
       browserWindowVisible: false,
       windowCount: 0

@@ -34,7 +34,7 @@ const HISTORY_FILE = '(?:zsh|bash)_history'
 // Why a leading `/` rather than `(?:^|/)`: every minted value is absolute (or a
 // Windows path normalized to forward slashes), so a relative path of the same
 // shape is the user's, not Orca's.
-const ORCA_MINTED_HISTFILE = new RegExp(
+const ALICORN_MINTED_HISTFILE = new RegExp(
   '/(?:' +
     // Desktop: <userData>/terminal-history/<hash>/<file>
     `terminal-history/${WORKTREE_HASH}/${HISTORY_FILE}` +
@@ -49,7 +49,7 @@ const ORCA_MINTED_HISTFILE = new RegExp(
 )
 
 export function isOrcaMintedHistFile(value: string | undefined): boolean {
-  return typeof value === 'string' && ORCA_MINTED_HISTFILE.test(value.replace(/\\/g, '/'))
+  return typeof value === 'string' && ALICORN_MINTED_HISTFILE.test(value.replace(/\\/g, '/'))
 }
 
 /** Drop a `HISTFILE` this process inherited from an outer Orca pane. */

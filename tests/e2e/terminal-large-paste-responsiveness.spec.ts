@@ -23,7 +23,7 @@ function keyboardPasteChord(): string {
 }
 
 function largePastePayload(runId: string): string {
-  return `ORCA_LARGE_PASTE_${runId}_0123456789abcdef`.repeat(4096)
+  return `ALICORN_LARGE_PASTE_${runId}_0123456789abcdef`.repeat(4096)
 }
 
 function sha256(text: string): string {

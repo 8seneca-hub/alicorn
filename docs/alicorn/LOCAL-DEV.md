@@ -119,16 +119,16 @@ else reads these variables directly.
 | `ALICORN_TENANT_ID` | Constant tenant for auth mode `local`. Optional; defaults to `local`. Ignored in `keycloak` mode. |
 
 Keycloak mode reads the desktop's existing Orca Cloud sign-in, so it also uses that flow's
-pre-rebrand `ORCA_CLOUD_*` variables (`profile-cloud-auth-config.ts`), of which three matter here:
+pre-rebrand `ALICORN_CLOUD_*` variables (`profile-cloud-auth-config.ts`), of which three matter here:
 
 | Variable | Meaning |
 |---|---|
-| `ORCA_CLOUD_API_URL` | Where `/v1/desktop/auth/*` lives — the Control API, which brokers Keycloak. |
-| `ORCA_CLOUD_CLIENT_ID` | The public PKCE client, `alicorn-desktop`. |
-| `ORCA_CLOUD_AUTHORIZE_URL` | Keycloak's own realm authorize endpoint. The broker does not serve `/authorize`, so leaving this unset points the browser at a route that does not exist. |
+| `ALICORN_CLOUD_API_URL` | Where `/v1/desktop/auth/*` lives — the Control API, which brokers Keycloak. |
+| `ALICORN_CLOUD_CLIENT_ID` | The public PKCE client, `alicorn-desktop`. |
+| `ALICORN_CLOUD_AUTHORIZE_URL` | Keycloak's own realm authorize endpoint. The broker does not serve `/authorize`, so leaving this unset points the browser at a route that does not exist. |
 
 Both control-plane URLs must parse as `http(s)`, and trailing slashes are stripped so paths append
-cleanly. Loopback HTTP `ORCA_CLOUD_*` endpoints are accepted only in unpackaged builds.
+cleanly. Loopback HTTP `ALICORN_CLOUD_*` endpoints are accepted only in unpackaged builds.
 
 ## Which mode the desktop picks
 

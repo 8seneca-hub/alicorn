@@ -14,9 +14,9 @@ import {
   type StartupTerminalCapture
 } from './repro-worktree-startup-output'
 
-const WS_URL = process.env.ORCA_MOBILE_WS_URL ?? 'ws://127.0.0.1:6768'
+const WS_URL = process.env.ALICORN_MOBILE_WS_URL ?? 'ws://127.0.0.1:6768'
 const USER_DATA =
-  process.env.ORCA_USER_DATA ?? `${process.env.HOME}/Library/Application Support/orca-dev`
+  process.env.ALICORN_USER_DATA ?? `${process.env.HOME}/Library/Application Support/orca-dev`
 const repoSelector = process.argv[2]
 const worktreeName = process.argv[3]
 const startupCommand = process.argv[4] || 'claude'

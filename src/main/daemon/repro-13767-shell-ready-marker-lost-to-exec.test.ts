@@ -9,7 +9,7 @@ import { Session } from './session'
 const describePosix = process.platform === 'win32' ? describe.skip : describe
 const hasZsh = process.platform !== 'win32' && spawnSync('/bin/zsh', ['--version']).status === 0
 const hasBash = process.platform !== 'win32' && spawnSync('/bin/bash', ['--version']).status === 0
-const COMMAND_OUTPUT = 'ORCA_STARTUP_COMMAND_RAN'
+const COMMAND_OUTPUT = 'ALICORN_STARTUP_COMMAND_RAN'
 const READ_STARTED_FILE = '.orca-read-started'
 
 type ShellFixture = {
@@ -29,7 +29,7 @@ const FIXTURES: ShellFixture[] = [
     shellPath: '/bin/zsh',
     startupFile: '.zprofile',
     replacement: 'exec -a kiro-cli-term /bin/zsh -o noglobalrcs -l -i',
-    command: `printf 'ORCA_STARTUP_%s:PF=%s\\n' COMMAND_RAN "\${(j:,:)precmd_functions}"\r`,
+    command: `printf 'ALICORN_STARTUP_%s:PF=%s\\n' COMMAND_RAN "\${(j:,:)precmd_functions}"\r`,
     instrumentationOutput: `${COMMAND_OUTPUT}:PF=`,
     secretRead: `: > "$HOME/${READ_STARTED_FILE}"; read -sk 1\n`,
     childRead: `/bin/zsh -fc ': > "$HOME/${READ_STARTED_FILE}"; read -sk 1'\n`
@@ -39,7 +39,7 @@ const FIXTURES: ShellFixture[] = [
     shellPath: '/bin/zsh',
     startupFile: '.zshenv',
     replacement: 'exec /bin/zsh -o noglobalrcs -l -i',
-    command: `printf 'ORCA_STARTUP_%s:PF=%s\\n' COMMAND_RAN "\${(j:,:)precmd_functions}"\r`,
+    command: `printf 'ALICORN_STARTUP_%s:PF=%s\\n' COMMAND_RAN "\${(j:,:)precmd_functions}"\r`,
     instrumentationOutput: `${COMMAND_OUTPUT}:PF=`,
     secretRead: `: > "$HOME/${READ_STARTED_FILE}"; read -sk 1\n`,
     childRead: `/bin/zsh -fc ': > "$HOME/${READ_STARTED_FILE}"; read -sk 1'\n`
@@ -49,7 +49,7 @@ const FIXTURES: ShellFixture[] = [
     shellPath: '/bin/bash',
     startupFile: '.bash_profile',
     replacement: 'exec -a figterm-test /bin/bash --noprofile --norc -l -i',
-    command: `printf 'ORCA_STARTUP_%s:PC=%s\\n' COMMAND_RAN "$PROMPT_COMMAND"\r`,
+    command: `printf 'ALICORN_STARTUP_%s:PC=%s\\n' COMMAND_RAN "$PROMPT_COMMAND"\r`,
     instrumentationOutput: `${COMMAND_OUTPUT}:PC=`,
     secretRead: `: > "$HOME/${READ_STARTED_FILE}"; read -s -n 1\n`,
     childRead: `/bin/bash --noprofile --norc -c ': > "$HOME/${READ_STARTED_FILE}"; read -s -n 1'\n`
@@ -127,7 +127,7 @@ async function startFixture(
   const tempHome = mkdtempSync(join(tmpdir(), 'orca-shell-ready-exec-'))
   const previousHome = process.env.HOME
   const previousZdotdir = process.env.ZDOTDIR
-  const previousOrigZdotdir = process.env.ORCA_ORIG_ZDOTDIR
+  const previousOrigZdotdir = process.env.ALICORN_ORIG_ZDOTDIR
   let subprocess: Awaited<ReturnType<typeof createPtySubprocess>> | undefined
   let session: Session | undefined
   let consoleWarnSpy: { mockRestore: () => void } | undefined
@@ -138,7 +138,7 @@ async function startFixture(
     }
     process.env.HOME = tempHome
     delete process.env.ZDOTDIR
-    delete process.env.ORCA_ORIG_ZDOTDIR
+    delete process.env.ALICORN_ORIG_ZDOTDIR
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     subprocess = await createPtySubprocess({
@@ -154,7 +154,7 @@ async function startFixture(
         SHELL: fixture.shellPath,
         TERM: 'xterm-256color'
       },
-      envToDelete: ['ORCA_EXEC_REPRO_DONE', 'ORCA_ORIG_ZDOTDIR', 'ZDOTDIR']
+      envToDelete: ['ALICORN_EXEC_REPRO_DONE', 'ALICORN_ORIG_ZDOTDIR', 'ZDOTDIR']
     })
     session = new Session({
       sessionId: `repro-13767-${fixture.startupFile}`,
@@ -221,7 +221,7 @@ function restoreEnvironment(
 ): void {
   setEnvironmentValue('HOME', home)
   setEnvironmentValue('ZDOTDIR', zdotdir)
-  setEnvironmentValue('ORCA_ORIG_ZDOTDIR', originalZdotdir)
+  setEnvironmentValue('ALICORN_ORIG_ZDOTDIR', originalZdotdir)
 }
 
 function setEnvironmentValue(key: string, value: string | undefined): void {
@@ -235,8 +235,8 @@ function setEnvironmentValue(key: string, value: string | undefined): void {
 async function runExecOracle(fixture: ShellFixture): Promise<void> {
   const running = await startFixture(
     fixture,
-    `if [[ -z "\${ORCA_EXEC_REPRO_DONE:-}" ]]; then
-  export ORCA_EXEC_REPRO_DONE=1
+    `if [[ -z "\${ALICORN_EXEC_REPRO_DONE:-}" ]]; then
+  export ALICORN_EXEC_REPRO_DONE=1
   ${fixture.replacement}
 fi
 `
@@ -311,8 +311,8 @@ describePosix('#13767 shell-ready marker loss across exec', () => {
     async () => {
       const running = await startFixture(
         zshFixture,
-        `if [[ -z "\${ORCA_EXEC_REPRO_DONE:-}" ]]; then
-  export ORCA_EXEC_REPRO_DONE=1
+        `if [[ -z "\${ALICORN_EXEC_REPRO_DONE:-}" ]]; then
+  export ALICORN_EXEC_REPRO_DONE=1
   exec env ZDOTDIR="$HOME" /bin/zsh -o noglobalrcs -l -i
 fi
 `,
@@ -394,8 +394,8 @@ zle -N zle-line-init
     async () => {
       const running = await startFixture(
         zshFixture,
-        `if [[ -z "\${ORCA_EXEC_REPRO_DONE:-}" ]]; then
-  export ORCA_EXEC_REPRO_DONE=1
+        `if [[ -z "\${ALICORN_EXEC_REPRO_DONE:-}" ]]; then
+  export ALICORN_EXEC_REPRO_DONE=1
   exec env ZDOTDIR="$HOME" /bin/zsh -o noglobalrcs -l -i
 fi
 `,

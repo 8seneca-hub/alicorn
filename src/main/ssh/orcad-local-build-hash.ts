@@ -5,7 +5,7 @@
  * sha256 of `orcad.js`, first 16 hex characters — or the activation gate would reject every
  * healthy candidate. Keeping the two in one comment is deliberate: they are one contract
  * split across a network, and the version string cannot stand in for it, because
- * `ORCA_VERSION` is whatever the launch command exported and two builds can carry one value.
+ * `ALICORN_VERSION` is whatever the launch command exported and two builds can carry one value.
  */
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'

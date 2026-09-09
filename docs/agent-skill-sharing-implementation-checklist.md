@@ -831,7 +831,7 @@ does not mean the surrounding phase is complete.
 - [x] Define criteria for splitting finalization into a worker service if it harms existing API
       traffic.
 - [x] Make immutable API candidates atomically replace the complete Terraform-owned literal
-      environment and the exact `ORCA_SKILLS_DATABASE_URL` Secret Manager reference.
+      environment and the exact `ALICORN_SKILLS_DATABASE_URL` Secret Manager reference.
 - [x] Reject serving or candidate drift in the runtime service account, Cloud SQL attachment,
       scaling, CPU, memory, volumes, mounts, ports, and probes before moving traffic.
 - [x] Keep all four skill controls explicit in both deploy workflows. Staging changed to `true`

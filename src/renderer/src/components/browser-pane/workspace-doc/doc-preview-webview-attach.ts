@@ -1,5 +1,5 @@
 import { DOC_PREVIEW_PARTITION } from '../../../../../shared/doc-preview-scheme'
-import { ORCA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE } from '../../../../../shared/browser-guest-web-preferences'
+import { ALICORN_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE } from '../../../../../shared/browser-guest-web-preferences'
 import { isWebviewDragPassthroughActive } from '@/components/browser-pane/host-guest/webview-drag-passthrough'
 import { moveFocusToRendererBeforeWebviewDetach } from '@/components/browser-pane/host-guest/webview-registry'
 
@@ -26,7 +26,7 @@ export function attachDocPreviewWebview({
   // Why no allowpopups: the guest's preload intercepts a trusted click on a link before Chromium
   // considers a popup at all, so target="_blank" needs no popup path and every one stays denied.
   webview.setAttribute('partition', DOC_PREVIEW_PARTITION)
-  webview.setAttribute('webpreferences', ORCA_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE)
+  webview.setAttribute('webpreferences', ALICORN_BROWSER_GUEST_WEB_PREFERENCES_ATTRIBUTE)
   webview.setAttribute('aria-label', ariaLabel)
   // Browsers paint an undeclared page canvas white; the guest is transparent, so without this the
   // editor's dark surface shows through and default black text becomes unreadable.

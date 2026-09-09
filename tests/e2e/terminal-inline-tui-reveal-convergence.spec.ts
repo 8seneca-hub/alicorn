@@ -32,10 +32,10 @@ import { waitForTabParked } from './helpers/terminal-hidden-parking'
 //  3. still following (frame number advances on screen) after convergence,
 //  4. xterm grid == fit proposal == PTY-applied size (no stale 80x24 PTY).
 
-const PARKING_DELAY_MS = Number(process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS) || 500
+const PARKING_DELAY_MS = Number(process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS) || 500
 
 test.use({
-  orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
+  orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
 })
 
 const FIXTURE_PATH = path.join(__dirname, 'fixtures', 'codex-inline-live-block-fixture.cjs')

@@ -11,7 +11,7 @@ import {
 } from './agent-browser-bridge-process'
 import { translateResult } from './agent-browser-bridge-result'
 import { AgentBrowserBridgeTabs } from './agent-browser-bridge-tabs'
-import { ORCA_TAB_SESSION_PREFIX } from './agent-browser-orphan-sweep'
+import { ALICORN_TAB_SESSION_PREFIX } from './agent-browser-orphan-sweep'
 import {
   STALE_SESSION_CLOSE_TIMEOUT_MS,
   type AgentBrowserExecOptions,
@@ -34,7 +34,7 @@ export abstract class AgentBrowserBridgeExecution extends AgentBrowserBridgeTabs
   protected requireTargetWebContents(target: ResolvedBrowserCommandTarget): WebContents {
     const wc = this.getWebContents(target.webContentsId)
     if (!wc || wc.isDestroyed()) {
-      throw this.createPageUnavailableError(`${ORCA_TAB_SESSION_PREFIX}${target.browserPageId}`)
+      throw this.createPageUnavailableError(`${ALICORN_TAB_SESSION_PREFIX}${target.browserPageId}`)
     }
     return wc
   }

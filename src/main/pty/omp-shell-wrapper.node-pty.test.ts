@@ -37,7 +37,7 @@ function writeFakeOmp(binDir: string): void {
   writeFileSync(
     ompPath,
     `#!/bin/sh
-agent_dir="\${PI_CODING_AGENT_DIR:-\${ORCA_FAKE_OMP_DEFAULT_DIR:-}}"
+agent_dir="\${PI_CODING_AGENT_DIR:-\${ALICORN_FAKE_OMP_DEFAULT_DIR:-}}"
 if [ "\${1:-}" = "config" ] && [ -n "$agent_dir" ]; then
   mkdir -p "$agent_dir"
   printf 'updated-by-omp-config\\n' > "$agent_dir/config.yml"
@@ -51,8 +51,8 @@ fi
     i=$((i + 1))
     printf 'ARG%s=%s\\n' "$i" "$arg"
   done
-} > "$ORCA_CAPTURE_FILE"
-exit "\${ORCA_TEST_FAKE_OMP_EXIT_CODE:-0}"
+} > "$ALICORN_CAPTURE_FILE"
+exit "\${ALICORN_TEST_FAKE_OMP_EXIT_CODE:-0}"
 `,
     { mode: 0o755 }
   )
@@ -76,7 +76,7 @@ async function runInteractivePosixPty(args: {
     cols: 100,
     rows: 30,
     cwd: args.cwd,
-    env: { ...args.env, ORCA_TEST_RCFILE: rcfile }
+    env: { ...args.env, ALICORN_TEST_RCFILE: rcfile }
   })
 
   let output = ''
@@ -97,7 +97,7 @@ async function runInteractivePosixPty(args: {
   })
 
   try {
-    const input = shell === 'zsh' ? `source "$ORCA_TEST_RCFILE"\n${args.input}` : args.input
+    const input = shell === 'zsh' ? `source "$ALICORN_TEST_RCFILE"\n${args.input}` : args.input
     proc.write(input.replace(/\n/g, '\r'))
     const { exitCode } = await Promise.race([exitPromise, timeoutPromise])
     expect(exitCode).toBe(0)
@@ -139,12 +139,12 @@ describePosix('OMP shell wrapper node-pty reproduction', () => {
       HOME: tempDir,
       PATH: `${binDir}:${process.env.PATH ?? ''}`,
       PI_CODING_AGENT_DIR: '',
-      ORCA_PI_CODING_AGENT_DIR: '',
-      ORCA_OMP_CODING_AGENT_DIR: '',
-      ORCA_OMP_STATUS_EXTENSION: statusExtension,
-      ORCA_FAKE_OMP_DEFAULT_DIR: ompDir,
-      ORCA_CAPTURE_FILE: captureFile,
-      ORCA_AFTER_PI_FILE: afterPiFile,
+      ALICORN_PI_CODING_AGENT_DIR: '',
+      ALICORN_OMP_CODING_AGENT_DIR: '',
+      ALICORN_OMP_STATUS_EXTENSION: statusExtension,
+      ALICORN_FAKE_OMP_DEFAULT_DIR: ompDir,
+      ALICORN_CAPTURE_FILE: captureFile,
+      ALICORN_AFTER_PI_FILE: afterPiFile,
       TERM: process.env.TERM || 'xterm-256color'
     })
 
@@ -155,7 +155,7 @@ describePosix('OMP shell wrapper node-pty reproduction', () => {
       rcfileContent: '',
       env: makeEnv(unwrappedCapture, unwrappedAfterPi),
       input: `omp ask
-printf '%s' "$PI_CODING_AGENT_DIR" > "$ORCA_AFTER_PI_FILE"
+printf '%s' "$PI_CODING_AGENT_DIR" > "$ALICORN_AFTER_PI_FILE"
 exit 0
 `
     })
@@ -174,7 +174,7 @@ exit 0
       env: makeEnv(wrappedCapture, wrappedAfterPi),
       input: `type omp
 omp ask
-printf '%s' "$PI_CODING_AGENT_DIR" > "$ORCA_AFTER_PI_FILE"
+printf '%s' "$PI_CODING_AGENT_DIR" > "$ALICORN_AFTER_PI_FILE"
 exit 0
 `
     })
@@ -210,12 +210,12 @@ exit 0
         HOME: tempDir,
         PATH: `${binDir}:${process.env.PATH ?? ''}`,
         PI_CODING_AGENT_DIR: '',
-        ORCA_PI_CODING_AGENT_DIR: '',
-        ORCA_OMP_CODING_AGENT_DIR: '',
-        ORCA_OMP_SOURCE_AGENT_DIR: sourceDir,
-        ORCA_OMP_STATUS_EXTENSION: statusExtension,
-        ORCA_FAKE_OMP_DEFAULT_DIR: sourceDir,
-        ORCA_CAPTURE_FILE: captureFile,
+        ALICORN_PI_CODING_AGENT_DIR: '',
+        ALICORN_OMP_CODING_AGENT_DIR: '',
+        ALICORN_OMP_SOURCE_AGENT_DIR: sourceDir,
+        ALICORN_OMP_STATUS_EXTENSION: statusExtension,
+        ALICORN_FAKE_OMP_DEFAULT_DIR: sourceDir,
+        ALICORN_CAPTURE_FILE: captureFile,
         TERM: process.env.TERM || 'xterm-256color'
       },
       input: `omp config
@@ -265,12 +265,12 @@ exit 0
         HOME: tempDir,
         PATH: `${binDir}:${process.env.PATH ?? ''}`,
         PI_CODING_AGENT_DIR: '',
-        ORCA_PI_CODING_AGENT_DIR: '',
-        ORCA_OMP_CODING_AGENT_DIR: '',
-        ORCA_OMP_SOURCE_AGENT_DIR: sourceDir,
-        ORCA_OMP_STATUS_EXTENSION: statusExtension,
-        ORCA_FAKE_OMP_DEFAULT_DIR: sourceDir,
-        ORCA_CAPTURE_FILE: captureFile,
+        ALICORN_PI_CODING_AGENT_DIR: '',
+        ALICORN_OMP_CODING_AGENT_DIR: '',
+        ALICORN_OMP_SOURCE_AGENT_DIR: sourceDir,
+        ALICORN_OMP_STATUS_EXTENSION: statusExtension,
+        ALICORN_FAKE_OMP_DEFAULT_DIR: sourceDir,
+        ALICORN_CAPTURE_FILE: captureFile,
         TERM: process.env.TERM || 'xterm-256color'
       },
       input: `omp ${subcommand}
@@ -308,11 +308,11 @@ exit 0
           HOME: tempDir,
           PATH: `${binDir}:${process.env.PATH ?? ''}`,
           PI_CODING_AGENT_DIR: '',
-          ORCA_PI_CODING_AGENT_DIR: '',
-          ORCA_OMP_CODING_AGENT_DIR: '',
-          ORCA_OMP_STATUS_EXTENSION: statusExtension,
-          ORCA_FAKE_OMP_DEFAULT_DIR: defaultOmpDir,
-          ORCA_CAPTURE_FILE: captureFile,
+          ALICORN_PI_CODING_AGENT_DIR: '',
+          ALICORN_OMP_CODING_AGENT_DIR: '',
+          ALICORN_OMP_STATUS_EXTENSION: statusExtension,
+          ALICORN_FAKE_OMP_DEFAULT_DIR: defaultOmpDir,
+          ALICORN_CAPTURE_FILE: captureFile,
           TERM: process.env.TERM || 'xterm-256color'
         },
         input: `omp config
@@ -358,7 +358,7 @@ exit 0
     const scenarioFile = join(tempDir, 'stale-cwd-scenario')
     writeFileSync(
       scenarioFile,
-      `ORCA_CAPTURE_FILE="$ORCA_UNSET_PWD_CAPTURE_FILE"
+      `ALICORN_CAPTURE_FILE="$ALICORN_UNSET_PWD_CAPTURE_FILE"
 unset PWD
 omp
 __orca_test_unset_status=$?
@@ -367,18 +367,18 @@ if [[ -z "\${PWD+x}" ]]; then
 else
   __orca_test_pwd_state=set
 fi
-builtin cd -- "$ORCA_LOGICAL_PROJECT_LINK"
-/bin/rm -- "$ORCA_LOGICAL_PROJECT_LINK"
-ORCA_CAPTURE_FILE="$ORCA_DELETED_LINK_CAPTURE_FILE"
+builtin cd -- "$ALICORN_LOGICAL_PROJECT_LINK"
+/bin/rm -- "$ALICORN_LOGICAL_PROJECT_LINK"
+ALICORN_CAPTURE_FILE="$ALICORN_DELETED_LINK_CAPTURE_FILE"
 omp
 __orca_test_deleted_link_status=$?
-builtin cd -P -- "$ORCA_STALE_PROJECT_DIR"
-ORCA_CAPTURE_FILE="$ORCA_STALE_CAPTURE_FILE"
-/bin/rm -rf -- "$ORCA_STALE_PROJECT_DIR"
-/bin/mkdir -p -- "$ORCA_STALE_PROJECT_DIR"
+builtin cd -P -- "$ALICORN_STALE_PROJECT_DIR"
+ALICORN_CAPTURE_FILE="$ALICORN_STALE_CAPTURE_FILE"
+/bin/rm -rf -- "$ALICORN_STALE_PROJECT_DIR"
+/bin/mkdir -p -- "$ALICORN_STALE_PROJECT_DIR"
 omp
 __orca_test_first_status=$?
-ORCA_CAPTURE_FILE="$ORCA_SKIP_CAPTURE_FILE"
+ALICORN_CAPTURE_FILE="$ALICORN_SKIP_CAPTURE_FILE"
 omp --version
 __orca_test_skip_status=$?
 if [[ "$PWD" -ef . ]]; then
@@ -387,15 +387,15 @@ else
   __orca_test_parent_state=stale
 fi
 unset PWD
-ORCA_CAPTURE_FILE="$ORCA_STALE_UNSET_CAPTURE_FILE"
+ALICORN_CAPTURE_FILE="$ALICORN_STALE_UNSET_CAPTURE_FILE"
 omp
 __orca_test_stale_unset_status=$?
-unset ORCA_WORKTREE_PATH ORCA_ROOT_PATH
-ORCA_CAPTURE_FILE="$ORCA_NO_LOGICAL_CAPTURE_FILE"
+unset ALICORN_WORKTREE_PATH ALICORN_ROOT_PATH
+ALICORN_CAPTURE_FILE="$ALICORN_NO_LOGICAL_CAPTURE_FILE"
 omp
 __orca_test_no_logical_status=$?
-PWD="$ORCA_STALE_PROJECT_DIR"
-/bin/rm -rf -- "$ORCA_STALE_PROJECT_DIR"
+PWD="$ALICORN_STALE_PROJECT_DIR"
+/bin/rm -rf -- "$ALICORN_STALE_PROJECT_DIR"
 omp
 __orca_test_missing_status=$?
 {
@@ -408,7 +408,7 @@ __orca_test_missing_status=$?
   echo "STALE_UNSET=$__orca_test_stale_unset_status"
   echo "NO_LOGICAL=$__orca_test_no_logical_status"
   echo "MISSING=$__orca_test_missing_status"
-} > "$ORCA_RESULT_FILE"
+} > "$ALICORN_RESULT_FILE"
 exit 0
 `
     )
@@ -420,25 +420,25 @@ ${getPosixOmpShellWrapper()}`,
       env: {
         INPUTRC: '/dev/null',
         PROMPT_COMMAND: '',
-        ORCA_STALE_PROJECT_DIR: projectDir,
-        ORCA_LOGICAL_PROJECT_LINK: logicalProjectLink,
-        ORCA_UNSET_PWD_CAPTURE_FILE: unsetPwdCaptureFile,
-        ORCA_DELETED_LINK_CAPTURE_FILE: deletedLinkCaptureFile,
-        ORCA_STALE_CAPTURE_FILE: staleCaptureFile,
-        ORCA_SKIP_CAPTURE_FILE: skipCaptureFile,
-        ORCA_STALE_UNSET_CAPTURE_FILE: staleUnsetCaptureFile,
-        ORCA_NO_LOGICAL_CAPTURE_FILE: noLogicalCaptureFile,
-        ORCA_WORKTREE_PATH: workspaceDir,
+        ALICORN_STALE_PROJECT_DIR: projectDir,
+        ALICORN_LOGICAL_PROJECT_LINK: logicalProjectLink,
+        ALICORN_UNSET_PWD_CAPTURE_FILE: unsetPwdCaptureFile,
+        ALICORN_DELETED_LINK_CAPTURE_FILE: deletedLinkCaptureFile,
+        ALICORN_STALE_CAPTURE_FILE: staleCaptureFile,
+        ALICORN_SKIP_CAPTURE_FILE: skipCaptureFile,
+        ALICORN_STALE_UNSET_CAPTURE_FILE: staleUnsetCaptureFile,
+        ALICORN_NO_LOGICAL_CAPTURE_FILE: noLogicalCaptureFile,
+        ALICORN_WORKTREE_PATH: workspaceDir,
         HOME: homeDir,
         PATH: `${binDir}:/usr/bin:/bin:/usr/sbin:/sbin`,
-        ORCA_OMP_STATUS_EXTENSION: statusExtension,
-        ORCA_CAPTURE_FILE: staleCaptureFile,
-        ORCA_RESULT_FILE: resultFile,
-        ORCA_SCENARIO_FILE: scenarioFile,
-        ORCA_TEST_FAKE_OMP_EXIT_CODE: '23',
+        ALICORN_OMP_STATUS_EXTENSION: statusExtension,
+        ALICORN_CAPTURE_FILE: staleCaptureFile,
+        ALICORN_RESULT_FILE: resultFile,
+        ALICORN_SCENARIO_FILE: scenarioFile,
+        ALICORN_TEST_FAKE_OMP_EXIT_CODE: '23',
         TERM: 'xterm-256color'
       },
-      input: 'source "$ORCA_SCENARIO_FILE"\n'
+      input: 'source "$ALICORN_SCENARIO_FILE"\n'
     })
 
     const unsetPwdCapture = readFileSync(unsetPwdCaptureFile, 'utf8')

@@ -36,10 +36,10 @@ import { parkHiddenTabBehindDecoy } from './helpers/terminal-hidden-parking'
 // the hidden-but-mounted scenario needs the shell exit to land well inside the
 // hot-retain window — 500ms let slow shell teardown race past parking and turn
 // that scenario into the exits-while-parked one.
-const PARKING_DELAY_MS = Number(process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS) || 2_000
+const PARKING_DELAY_MS = Number(process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS) || 2_000
 
 test.use({
-  orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
+  orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
 })
 
 type ParkingDebugWindow = Window & {

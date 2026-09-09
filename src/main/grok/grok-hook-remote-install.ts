@@ -55,7 +55,7 @@ export async function installRemoteGrokHook(
     }
     buildInstalledGrokConfig(
       config,
-      wrapPosixHookCommand(scriptPath, {}, { requiredEnvVar: 'ORCA_PANE_KEY' }),
+      wrapPosixHookCommand(scriptPath, {}, { requiredEnvVar: 'ALICORN_PANE_KEY' }),
       'grok-hook.sh'
     )
     await writeManagedScriptRemote(sftp, scriptPath, script)

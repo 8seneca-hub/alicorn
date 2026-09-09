@@ -36,7 +36,7 @@ const READY_TIMEOUT_MS = 120_000
 const OUTPUT_TIMEOUT_MS = 30_000
 const SHUTDOWN_TIMEOUT_MS = 15_000
 // Why a random high port: a fixed one collides with a developer's own `orca serve`.
-const PORT = 6800 + Math.floor(Number(process.env.ORCA_SMOKE_PORT_OFFSET ?? '0'))
+const PORT = 6800 + Math.floor(Number(process.env.ALICORN_SMOKE_PORT_OFFSET ?? '0'))
 
 function log(message) {
   process.stdout.write(`[serve-terminal-smoke] ${message}\n`)
@@ -171,18 +171,20 @@ function resolveLaunch(userDataDir) {
   // and `FOO=bar cmd` is not portable there.
   const flagIndex = process.argv.indexOf('--target')
   const target =
-    flagIndex !== -1 ? process.argv[flagIndex + 1] : (process.env.ORCA_SMOKE_TARGET ?? 'electron')
+    flagIndex !== -1
+      ? process.argv[flagIndex + 1]
+      : (process.env.ALICORN_SMOKE_TARGET ?? 'electron')
   if (target === 'orcad') {
     return {
       label: `orcad (${ORCAD_ENTRY})`,
       command: process.execPath,
       args: [ORCAD_ENTRY, '--port', String(PORT), '--json'],
-      env: { ORCA_USER_DATA: userDataDir }
+      env: { ALICORN_USER_DATA: userDataDir }
     }
   }
   if (target !== 'electron') {
     throw new Error(
-      `--target (or ORCA_SMOKE_TARGET) must be 'electron' or 'orcad', got '${target}'`
+      `--target (or ALICORN_SMOKE_TARGET) must be 'electron' or 'orcad', got '${target}'`
     )
   }
   const serveArgs = [
@@ -193,7 +195,7 @@ function resolveLaunch(userDataDir) {
     '--serve-json',
     `--user-data-dir=${userDataDir}`
   ]
-  const override = process.env.ORCA_SMOKE_ELECTRON
+  const override = process.env.ALICORN_SMOKE_ELECTRON
   return {
     label: `electron (${serveEntry})`,
     command: override ?? 'npx',
@@ -329,7 +331,7 @@ async function main() {
     log(`created ${terminal.handle}`)
 
     // Why invoke node rather than `echo`: the shell differs per platform, node does not.
-    const nonce = `ORCA_SMOKE_${randomBytes(8).toString('hex')}`
+    const nonce = `ALICORN_SMOKE_${randomBytes(8).toString('hex')}`
     orca(pairingCode, [
       'terminal',
       'send',

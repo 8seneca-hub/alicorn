@@ -889,39 +889,39 @@ jobs:
       - name: Run terminal rendering golden on Linux
         if: runner.os == 'Linux'
         run: |
-          xvfb-run --auto-servernum env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:workspace-session-golden
-          xvfb-run --auto-servernum env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-golden
-          xvfb-run --auto-servernum env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:posix-profile-index-golden
+          xvfb-run --auto-servernum env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:workspace-session-golden
+          xvfb-run --auto-servernum env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-golden
+          xvfb-run --auto-servernum env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:posix-profile-index-golden
 
       - name: Run source-control golden on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run --auto-servernum env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:source-control-golden
+        run: xvfb-run --auto-servernum env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:source-control-golden
 
       - name: Run terminal rendering golden on macOS
         if: runner.os == 'macOS'
         run: |
-          env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:workspace-session-golden
-          env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-golden
-          env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:posix-profile-index-golden
+          env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:workspace-session-golden
+          env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-golden
+          env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:posix-profile-index-golden
 
       - name: Run agent TUI golden on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run --auto-servernum env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:agent-tui-golden
+        run: xvfb-run --auto-servernum env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:agent-tui-golden
 
       - name: Run agent TUI golden on macOS
         if: runner.os == 'macOS'
-        run: env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:agent-tui-golden
+        run: env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:agent-tui-golden
 
       - name: Run source-control golden on macOS
         if: runner.os == 'macOS'
-        run: env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:source-control-golden
+        run: env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run --if-present test:e2e:source-control-golden
 
       - name: Run fresh-startup golden on Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $env:SKIP_BUILD = '1'
-          $env:ORCA_E2E_FORWARD_APP_LOGS = '1'
+          $env:ALICORN_E2E_FORWARD_APP_LOGS = '1'
           pnpm run --if-present test:e2e:windows-fresh-startup-golden
 
       - name: Upload Playwright traces
@@ -976,8 +976,8 @@ jobs:
 
       - name: Run skill package, transaction, and compatibility suites
         env:
-          ORCA_REAL_PROCESS_SKILL_TEST: '1'
-          ORCA_REAL_WINDOWS_SKILL_TEST: ${{ runner.os == 'Windows' && '1' || '0' }}
+          ALICORN_REAL_PROCESS_SKILL_TEST: '1'
+          ALICORN_REAL_WINDOWS_SKILL_TEST: ${{ runner.os == 'Windows' && '1' || '0' }}
         run: pnpm test:skill-sharing:release --reporter=json --outputFile=skill-sharing-release-results.json
 
       - name: Archive bounded skill-sharing results
@@ -1028,7 +1028,7 @@ jobs:
 
       - name: Run skill package, transaction, and compatibility suites
         env:
-          ORCA_REAL_PROCESS_SKILL_TEST: '1'
+          ALICORN_REAL_PROCESS_SKILL_TEST: '1'
         run: pnpm test:skill-sharing:release --reporter=json --outputFile=skill-sharing-release-results.json
 
       - name: Archive bounded skill-sharing results
@@ -1100,18 +1100,18 @@ jobs:
 
       - name: Run terminal rendering evidence on Linux
         if: runner.os == 'Linux'
-        run: xvfb-run --auto-servernum env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-release-evidence
+        run: xvfb-run --auto-servernum env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-release-evidence
 
       - name: Run terminal rendering evidence on macOS
         if: runner.os == 'macOS'
-        run: env SKIP_BUILD=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-release-evidence
+        run: env SKIP_BUILD=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm run test:e2e:terminal-rendering-release-evidence
 
       - name: Run terminal rendering evidence on Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $env:SKIP_BUILD = '1'
-          $env:ORCA_E2E_FORWARD_APP_LOGS = '1'
+          $env:ALICORN_E2E_FORWARD_APP_LOGS = '1'
           pnpm run test:e2e:terminal-rendering-release-evidence
 
       - name: Upload Playwright traces
@@ -1172,7 +1172,7 @@ jobs:
               ~/.cache/electron-builder
           - os: ubuntu-24.04-arm
             platform: linux-arm64
-            release_command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && ORCA_LINUX_ARM64_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --arm64 --publish always
+            release_command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && ALICORN_LINUX_ARM64_RELEASE=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --arm64 --publish always
             unpacked_dir: dist/linux-arm64-unpacked
             eb_cache_path: |
               ~/.cache/electron
@@ -1313,17 +1313,17 @@ jobs:
           echo "identity=$identity" >>"$GITHUB_OUTPUT"
           echo "Classified $TAG as $identity"
 
-      # Why ORCA_POSTHOG_WRITE_KEY here: this is the only build that
+      # Why ALICORN_POSTHOG_WRITE_KEY here: this is the only build that
       # produces a published binary, so this is the only place the secret
       # needs to be in scope. The key is a PostHog *project* API key, not
       # a server secret — it ships in every official binary's app.asar
       # and is therefore extractable from any release. We still keep it
       # in GitHub Actions secrets so the literal stays out of the repo
       # (and out of fork CI runs / log scrapers / casual greps).
-      # Why ORCA_BUILD_IDENTITY here (not in env at the job level): the
+      # Why ALICORN_BUILD_IDENTITY here (not in env at the job level): the
       # value comes from the per-tag classification above and electron-vite
       # reads it from `process.env` during `pnpm build:release` only.
-      # Why ORCA_DIAGNOSTICS_TOKEN_URL here: official builds pin crash
+      # Why ALICORN_DIAGNOSTICS_TOKEN_URL here: official builds pin crash
       # diagnostic uploads to Orca's endpoint at compile time, matching the
       # telemetry gate's "official binary only" behavior.
       - name: Build app
@@ -1332,9 +1332,9 @@ jobs:
           # Why: Vite's web build crossed Node's default old-space ceiling on
           # the macOS release runner, leaving v1.4.2-rc.8 as an incomplete draft.
           NODE_OPTIONS: --max-old-space-size=4096
-          ORCA_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
-          ORCA_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
-          ORCA_POSTHOG_WRITE_KEY: ${{ secrets.ORCA_POSTHOG_WRITE_KEY }}
+          ALICORN_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
+          ALICORN_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
+          ALICORN_POSTHOG_WRITE_KEY: ${{ secrets.ALICORN_POSTHOG_WRITE_KEY || secrets.ORCA_POSTHOG_WRITE_KEY }}
 
       - name: Gate runtime file-watcher process isolation
         if: runner.os == 'Linux'
@@ -1868,16 +1868,16 @@ jobs:
       # Why: evidence gate for inner-binary signing (issue #7785, supersedes
       # PR #7170's Orca.exe-only gate — this covers every staged .exe/.dll/.node
       # by extracting the shipped installer). Warn-only until the flow has been
-      # proven on a real release, then flip ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED
+      # proven on a real release, then flip ALICORN_WINDOWS_INNER_SIGNATURE_REQUIRED
       # to 'true' so unsigned inner binaries block the release.
       - name: Verify Windows inner binary signatures
         if: matrix.platform == 'win' && github.run_attempt == 1
         shell: pwsh
         env:
-          ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED: 'false'
+          ALICORN_WINDOWS_INNER_SIGNATURE_REQUIRED: 'false'
           INNER_SIGNING_COMPLETED: ${{ steps.rebuild-nsis-signed.outcome == 'success' }}
         run: |
-          $required = $env:ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED -eq 'true'
+          $required = $env:ALICORN_WINDOWS_INNER_SIGNATURE_REQUIRED -eq 'true'
 
           # Why: a fail-open gate that writes nothing is indistinguishable from a
           # gate that passed. Always leave a verdict in the evidence artifact and
@@ -1983,7 +1983,7 @@ jobs:
               if ($required) {
                 $policyFailure = $message
               } else {
-                Write-Host "::warning::$message Fail-open until ORCA_WINDOWS_INNER_SIGNATURE_REQUIRED is 'true'."
+                Write-Host "::warning::$message Fail-open until ALICORN_WINDOWS_INNER_SIGNATURE_REQUIRED is 'true'."
               }
               Add-GateEvidence "VERDICT: FAILED — $message"
               Add-GateSummary "FAILED — $message"
@@ -2057,7 +2057,7 @@ jobs:
       # deletes the draft and re-cuts.
       #
       # Why this guards against: a misconfigured CI run where
-      # `ORCA_POSTHOG_WRITE_KEY` is unset or the tag fails to classify
+      # `ALICORN_POSTHOG_WRITE_KEY` is unset or the tag fails to classify
       # would otherwise produce a binary with `BUILD_IDENTITY = null` and
       # `WRITE_KEY = null`, which silently disables transport
       # (`IS_OFFICIAL_BUILD === false`) — the exact failure mode flagged

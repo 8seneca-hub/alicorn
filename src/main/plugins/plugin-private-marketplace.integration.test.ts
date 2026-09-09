@@ -15,7 +15,7 @@ const temporaryRoots: string[] = []
 const savedEnvironment = {
   GIT_SSH_COMMAND: process.env.GIT_SSH_COMMAND,
   GIT_SSH_VARIANT: process.env.GIT_SSH_VARIANT,
-  ORCA_TEST_SSH_REPOSITORIES: process.env.ORCA_TEST_SSH_REPOSITORIES
+  ALICORN_TEST_SSH_REPOSITORIES: process.env.ALICORN_TEST_SSH_REPOSITORIES
 }
 
 async function runGit(cwd: string, args: string[]): Promise<void> {
@@ -113,7 +113,7 @@ describe('private Git marketplace integration', () => {
     )
     process.env.GIT_SSH_COMMAND = `${shellQuote(process.execPath.replaceAll('\\', '/'))} ${shellQuote(sshShim.replaceAll('\\', '/'))}`
     process.env.GIT_SSH_VARIANT = 'ssh'
-    process.env.ORCA_TEST_SSH_REPOSITORIES = JSON.stringify({
+    process.env.ALICORN_TEST_SSH_REPOSITORIES = JSON.stringify({
       '/private/locale.git': pluginRepository,
       '/private/marketplace.git': marketplaceRepository
     })

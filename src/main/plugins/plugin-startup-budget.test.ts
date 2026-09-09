@@ -120,7 +120,7 @@ describe('plugin startup budget', () => {
     }
 
     const p95 = nearestRankP95(samples)
-    if (process.env.ORCA_PLUGIN_STARTUP_BUDGET_REPORT === '1') {
+    if (process.env.ALICORN_PLUGIN_STARTUP_BUDGET_REPORT === '1') {
       process.stdout.write(`plugin startup P95 ${p95.toFixed(2)}ms (${SAMPLE_COUNT} samples)\n`)
     }
     expect(workerFactory).not.toHaveBeenCalled()

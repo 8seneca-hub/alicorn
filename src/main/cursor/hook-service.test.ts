@@ -78,10 +78,10 @@ function runRegisteredCursorHook(
     timeout: HOOK_RUN_TIMEOUT_MS,
     env: {
       ...process.env,
-      ORCA_AGENT_HOOK_ENDPOINT: '',
-      ORCA_AGENT_HOOK_PORT: '',
-      ORCA_AGENT_HOOK_TOKEN: '',
-      ORCA_PANE_KEY: '',
+      ALICORN_AGENT_HOOK_ENDPOINT: '',
+      ALICORN_AGENT_HOOK_PORT: '',
+      ALICORN_AGENT_HOOK_TOKEN: '',
+      ALICORN_PANE_KEY: '',
       ...extraEnv
     }
   })
@@ -272,9 +272,9 @@ describe('CursorHookService', () => {
           command,
           JSON.stringify({ hook_event_name: eventName, tool_name: 'Write' }),
           {
-            ORCA_AGENT_HOOK_PORT: '59999',
-            ORCA_AGENT_HOOK_TOKEN: 'token',
-            ORCA_PANE_KEY: 'tab:leaf'
+            ALICORN_AGENT_HOOK_PORT: '59999',
+            ALICORN_AGENT_HOOK_TOKEN: 'token',
+            ALICORN_PANE_KEY: 'tab:leaf'
           }
         )
         expect(result.status, `${eventName} dead-listener exit`).toBe(0)
@@ -305,10 +305,10 @@ describe('CursorHookService', () => {
             timeout: HOOK_RUN_TIMEOUT_MS,
             env: {
               ...process.env,
-              ORCA_AGENT_HOOK_ENDPOINT: '',
-              ORCA_AGENT_HOOK_PORT: '',
-              ORCA_AGENT_HOOK_TOKEN: '',
-              ORCA_PANE_KEY: '',
+              ALICORN_AGENT_HOOK_ENDPOINT: '',
+              ALICORN_AGENT_HOOK_PORT: '',
+              ALICORN_AGENT_HOOK_TOKEN: '',
+              ALICORN_PANE_KEY: '',
               USERPROFILE: homeDir
             }
           })

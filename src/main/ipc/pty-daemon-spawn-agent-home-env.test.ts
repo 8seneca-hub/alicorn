@@ -93,7 +93,7 @@ describe('registerPtyHandlers', () => {
           rows: 24,
           command: 'codex resume session-a',
           env: { CODEX_HOME: '/custom/codex', REMOVE_ME: 'stale' },
-          envToDelete: ['CODEX_HOME', 'ORCA_CODEX_HOME', 'REMOVE_ME'],
+          envToDelete: ['CODEX_HOME', 'ALICORN_CODEX_HOME', 'REMOVE_ME'],
           launchAgent: 'codex',
           resumeProviderSession: {
             key: 'session_id',
@@ -105,7 +105,7 @@ describe('registerPtyHandlers', () => {
         const env = daemonSpawn.mock.calls.at(-1)![0].env
         expect(selectedHome).not.toHaveBeenCalled()
         expect(env.CODEX_HOME).toBe(systemHome)
-        expect(env.ORCA_CODEX_HOME).toBe(systemHome)
+        expect(env.ALICORN_CODEX_HOME).toBe(systemHome)
         expect(env.REMOVE_ME).toBeUndefined()
       })
       it('keeps the authoritative home for runtime-created daemon resumes', async () => {
@@ -156,7 +156,7 @@ describe('registerPtyHandlers', () => {
           rows: 24,
           command: 'codex resume session-a',
           env: { CODEX_HOME: '/custom/codex', REMOVE_ME: 'stale' },
-          envToDelete: ['CODEX_HOME', 'ORCA_CODEX_HOME', 'REMOVE_ME'],
+          envToDelete: ['CODEX_HOME', 'ALICORN_CODEX_HOME', 'REMOVE_ME'],
           launchAgent: 'codex',
           resumeProviderSession: {
             key: 'session_id',
@@ -167,10 +167,10 @@ describe('registerPtyHandlers', () => {
 
         const spawnOptions = daemonSpawn.mock.calls.at(-1)?.[0] as DaemonSpawnCall
         expect(spawnOptions.env.CODEX_HOME).toBe(systemHome)
-        expect(spawnOptions.env.ORCA_CODEX_HOME).toBe(systemHome)
+        expect(spawnOptions.env.ALICORN_CODEX_HOME).toBe(systemHome)
         expect(spawnOptions.env.REMOVE_ME).toBeUndefined()
         expect(spawnOptions.envToDelete ?? []).not.toContain('CODEX_HOME')
-        expect(spawnOptions.envToDelete ?? []).not.toContain('ORCA_CODEX_HOME')
+        expect(spawnOptions.envToDelete ?? []).not.toContain('ALICORN_CODEX_HOME')
         expect(spawnOptions.envToDelete).toContain('REMOVE_ME')
       })
       it('prepares Codex project trust before a daemon-backed interactive launch', async () => {
@@ -216,7 +216,8 @@ describe('registerPtyHandlers', () => {
             undefined,
             {
               CODEX_HOME: 'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home',
-              ORCA_CODEX_HOME: 'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
+              ALICORN_CODEX_HOME:
+                'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
             },
             {
               cwd: '\\\\wsl.localhost\\Ubuntu\\home\\test\\repo',
@@ -225,9 +226,9 @@ describe('registerPtyHandlers', () => {
           )
           const { env } = spawnOptions
           expect(env.CODEX_HOME).toBeUndefined()
-          expect(env.ORCA_CODEX_HOME).toBeUndefined()
+          expect(env.ALICORN_CODEX_HOME).toBeUndefined()
           expect(spawnOptions.envToDelete).toEqual(
-            expect.arrayContaining(['CODEX_HOME', 'ORCA_CODEX_HOME'])
+            expect.arrayContaining(['CODEX_HOME', 'ALICORN_CODEX_HOME'])
           )
         } finally {
           Object.defineProperty(process, 'platform', {
@@ -249,14 +250,15 @@ describe('registerPtyHandlers', () => {
             undefined,
             {
               CODEX_HOME: 'C:\\Users\\test\\.codex',
-              ORCA_CODEX_HOME: 'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
+              ALICORN_CODEX_HOME:
+                'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
             },
             { shellOverride: 'wsl.exe' }
           )
           expect(spawnOptions.env.CODEX_HOME).toBeUndefined()
-          expect(spawnOptions.env.ORCA_CODEX_HOME).toBeUndefined()
+          expect(spawnOptions.env.ALICORN_CODEX_HOME).toBeUndefined()
           expect(spawnOptions.envToDelete).toEqual(
-            expect.arrayContaining(['CODEX_HOME', 'ORCA_CODEX_HOME'])
+            expect.arrayContaining(['CODEX_HOME', 'ALICORN_CODEX_HOME'])
           )
         } finally {
           Object.defineProperty(process, 'platform', {
@@ -272,8 +274,8 @@ describe('registerPtyHandlers', () => {
           })
           // Why: relay not connected yet → never cross the Windows overlay path into WSL.
           expect(env.OPENCODE_CONFIG_DIR).toBeUndefined()
-          expect(env.ORCA_OPENCODE_CONFIG_DIR).toBeUndefined()
-          expect(env.ORCA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
+          expect(env.ALICORN_OPENCODE_CONFIG_DIR).toBeUndefined()
+          expect(env.ALICORN_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
         })
       })
       it('does not install or inject a Prime extension for an explicit WSL launch', async () => {
@@ -281,7 +283,7 @@ describe('registerPtyHandlers', () => {
           const env = await daemonSpawnAndGetEnv(
             {
               PRIME_AGENT_CODING_AGENT_DIR: 'C:\\Users\\test\\.prime\\agent',
-              ORCA_PRIME_AGENT_STATUS_EXTENSION: 'C:\\stale\\orca-agent-status.ts'
+              ALICORN_PRIME_AGENT_STATUS_EXTENSION: 'C:\\stale\\orca-agent-status.ts'
             },
             undefined,
             undefined,
@@ -290,9 +292,9 @@ describe('registerPtyHandlers', () => {
           )
 
           expect(piBuildPtyEnvMock).not.toHaveBeenCalled()
-          expect(env.ORCA_PRIME_AGENT_SOURCE_AGENT_DIR).toBeUndefined()
-          expect(env.ORCA_PRIME_AGENT_STATUS_EXTENSION).toBeUndefined()
-          expect(env.ORCA_WSL_HOOK_INSTANCE).toBeUndefined()
+          expect(env.ALICORN_PRIME_AGENT_SOURCE_AGENT_DIR).toBeUndefined()
+          expect(env.ALICORN_PRIME_AGENT_STATUS_EXTENSION).toBeUndefined()
+          expect(env.ALICORN_WSL_HOOK_INSTANCE).toBeUndefined()
           expect(env.PRIME_AGENT_CODING_AGENT_DIR).toBe('C:\\Users\\test\\.prime\\agent')
         })
       })
@@ -305,7 +307,7 @@ describe('registerPtyHandlers', () => {
           expect(piBuildPtyEnvMock.mock.calls.some(([, , kind]) => kind === 'prime-agent')).toBe(
             false
           )
-          expect(env.ORCA_PRIME_AGENT_STATUS_EXTENSION).toBeUndefined()
+          expect(env.ALICORN_PRIME_AGENT_STATUS_EXTENSION).toBeUndefined()
           expect(env.PRIME_AGENT_CODING_AGENT_DIR).toBeUndefined()
         })
       })
@@ -315,16 +317,16 @@ describe('registerPtyHandlers', () => {
         try {
           await withWin32Platform(async () => {
             const env = await daemonSpawnAndGetEnv(
-              { ORCA_OPENCODE_SOURCE_CONFIG_DIR: '/home/jin/.config/opencode' },
+              { ALICORN_OPENCODE_SOURCE_CONFIG_DIR: '/home/jin/.config/opencode' },
               undefined,
               undefined,
               undefined,
               { shellOverride: 'wsl.exe' }
             )
             expect(env.OPENCODE_CONFIG_DIR).toBe(guestDir)
-            expect(env.ORCA_OPENCODE_CONFIG_DIR).toBe(guestDir)
+            expect(env.ALICORN_OPENCODE_CONFIG_DIR).toBe(guestDir)
             // The Windows-side source pointer must not cross into the guest.
-            expect(env.ORCA_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
+            expect(env.ALICORN_OPENCODE_SOURCE_CONFIG_DIR).toBeUndefined()
           })
         } finally {
           spy.mockRestore()
@@ -335,11 +337,11 @@ describe('registerPtyHandlers', () => {
           {},
           () => null,
           () => ({ codexSystemDefaultRealHomeEnabled: true }) as never,
-          { CODEX_HOME: '/managed/home', ORCA_CODEX_HOME: '/managed/home' }
+          { CODEX_HOME: '/managed/home', ALICORN_CODEX_HOME: '/managed/home' }
         )
         expect(spawnOptions.env.CODEX_HOME).toBeUndefined()
-        expect(spawnOptions.env.ORCA_CODEX_HOME).toBeUndefined()
-        expect(spawnOptions.envToDelete).toEqual(expect.arrayContaining(['ORCA_CODEX_HOME']))
+        expect(spawnOptions.env.ALICORN_CODEX_HOME).toBeUndefined()
+        expect(spawnOptions.envToDelete).toEqual(expect.arrayContaining(['ALICORN_CODEX_HOME']))
         // The daemon compares its own merged values before deleting CODEX_HOME.
         expect(spawnOptions.envToDelete).not.toContain('CODEX_HOME')
       })
@@ -348,15 +350,15 @@ describe('registerPtyHandlers', () => {
           {},
           () => null,
           () => ({ codexSystemDefaultRealHomeEnabled: true }) as never,
-          { CODEX_HOME: '/home/me/.config/codex', ORCA_CODEX_HOME: undefined }
+          { CODEX_HOME: '/home/me/.config/codex', ALICORN_CODEX_HOME: undefined }
         )
-        expect(spawnOptions.envToDelete).toEqual(expect.arrayContaining(['ORCA_CODEX_HOME']))
+        expect(spawnOptions.envToDelete).toEqual(expect.arrayContaining(['ALICORN_CODEX_HOME']))
         expect(spawnOptions.envToDelete).not.toEqual(expect.arrayContaining(['CODEX_HOME']))
       })
       it('does not strip the daemon-inherited CODEX_HOME when the flag is OFF', async () => {
         const spawnOptions = await daemonSpawnAndGetOptions({}, () => null, undefined, {
           CODEX_HOME: '/managed/home',
-          ORCA_CODEX_HOME: '/managed/home'
+          ALICORN_CODEX_HOME: '/managed/home'
         })
         expect(spawnOptions.envToDelete ?? []).not.toEqual(expect.arrayContaining(['CODEX_HOME']))
       })
@@ -407,7 +409,7 @@ describe('registerPtyHandlers', () => {
           // Why: bare `orca` must resolve to the Orca CLI before /usr/bin/orca (the GNOME screen reader) in Orca terminals (#7904).
           expect(entries.indexOf(shimDir)).toBeGreaterThanOrEqual(0)
           expect(entries.indexOf(shimDir)).toBeLessThan(entries.indexOf('/usr/bin'))
-          expect(env.ORCA_CLI_COMMAND).toBeUndefined()
+          expect(env.ALICORN_CLI_COMMAND).toBeUndefined()
         } finally {
           Object.defineProperty(process, 'platform', {
             configurable: true,
@@ -434,20 +436,20 @@ describe('registerPtyHandlers', () => {
       })
       it('injects the agent-hook receiver env on the daemon path', async () => {
         const env = await daemonSpawnAndGetEnv({})
-        expect(env.ORCA_AGENT_HOOK_PORT).toBe('5678')
-        expect(env.ORCA_AGENT_HOOK_TOKEN).toBe('agent-token')
+        expect(env.ALICORN_AGENT_HOOK_PORT).toBe('5678')
+        expect(env.ALICORN_AGENT_HOOK_TOKEN).toBe('agent-token')
       })
       it('deletes stale Claude scoped settings env from daemon-hosted PTYs', async () => {
         const spawnOptions = await daemonSpawnAndGetOptions({}, undefined, undefined, {
-          ORCA_CLAUDE_AGENT_STATUS_SETTINGS:
+          ALICORN_CLAUDE_AGENT_STATUS_SETTINGS:
             '/tmp/orca/agent-hooks/claude-agent-status-settings.json'
         })
-        expect(spawnOptions.env.ORCA_CLAUDE_AGENT_STATUS_SETTINGS).toBeUndefined()
+        expect(spawnOptions.env.ALICORN_CLAUDE_AGENT_STATUS_SETTINGS).toBeUndefined()
         expect(spawnOptions.envToDelete).toEqual(
-          expect.arrayContaining(['ORCA_CLAUDE_AGENT_STATUS_SETTINGS'])
+          expect.arrayContaining(['ALICORN_CLAUDE_AGENT_STATUS_SETTINGS'])
         )
-        expect(spawnOptions.env.ORCA_AGENT_HOOK_PORT).toBe('5678')
-        expect(spawnOptions.env.ORCA_AGENT_HOOK_TOKEN).toBe('agent-token')
+        expect(spawnOptions.env.ALICORN_AGENT_HOOK_PORT).toBe('5678')
+        expect(spawnOptions.env.ALICORN_AGENT_HOOK_TOKEN).toBe('agent-token')
       })
       it('asks surviving pre-upgrade daemons to delete legacy attribution env', async () => {
         const spawnOptions = await daemonSpawnAndGetOptions({})
@@ -455,8 +457,8 @@ describe('registerPtyHandlers', () => {
         expect(spawnOptions.envToDelete).toEqual(
           expect.arrayContaining([...LEGACY_TERMINAL_SHIM_REMOTE_ENV_KEYS])
         )
-        expect(spawnOptions.envToDelete).not.toContain('ORCA_REAL_GIT')
-        expect(spawnOptions.envToDelete).not.toContain('ORCA_REAL_GH')
+        expect(spawnOptions.envToDelete).not.toContain('ALICORN_REAL_GIT')
+        expect(spawnOptions.envToDelete).not.toContain('ALICORN_REAL_GH')
       })
       it('deletes stale Claude scoped settings env from runtime-created daemon PTYs', async () => {
         type RuntimeSpawnController = {
@@ -478,7 +480,7 @@ describe('registerPtyHandlers', () => {
           onPtyExit: vi.fn(),
           onPtyData: vi.fn()
         }
-        process.env.ORCA_CLAUDE_AGENT_STATUS_SETTINGS =
+        process.env.ALICORN_CLAUDE_AGENT_STATUS_SETTINGS =
           '/tmp/orca/agent-hooks/claude-agent-status-settings.json'
         handlers.clear()
         registerPtyHandlers(mainWindow as never, runtime as never)
@@ -487,12 +489,12 @@ describe('registerPtyHandlers', () => {
         await controller.spawn({ cols: 80, rows: 24, worktreeId: 'wt-runtime', env: {} })
 
         const spawnOptions = daemonSpawn.mock.calls.at(-1)?.[0] as DaemonSpawnCall
-        expect(spawnOptions.env.ORCA_CLAUDE_AGENT_STATUS_SETTINGS).toBeUndefined()
+        expect(spawnOptions.env.ALICORN_CLAUDE_AGENT_STATUS_SETTINGS).toBeUndefined()
         expect(spawnOptions.envToDelete).toEqual(
-          expect.arrayContaining(['ORCA_CLAUDE_AGENT_STATUS_SETTINGS'])
+          expect.arrayContaining(['ALICORN_CLAUDE_AGENT_STATUS_SETTINGS'])
         )
-        expect(spawnOptions.env.ORCA_AGENT_HOOK_PORT).toBe('5678')
-        expect(spawnOptions.env.ORCA_AGENT_HOOK_TOKEN).toBe('agent-token')
+        expect(spawnOptions.env.ALICORN_AGENT_HOOK_PORT).toBe('5678')
+        expect(spawnOptions.env.ALICORN_AGENT_HOOK_TOKEN).toBe('agent-token')
       })
       it('asks surviving pre-upgrade daemons to delete legacy attribution env for runtime PTYs', async () => {
         type RuntimeSpawnController = {
@@ -522,8 +524,8 @@ describe('registerPtyHandlers', () => {
         expect(spawnOptions.envToDelete).toEqual(
           expect.arrayContaining([...LEGACY_TERMINAL_SHIM_REMOTE_ENV_KEYS])
         )
-        expect(spawnOptions.envToDelete).not.toContain('ORCA_REAL_GIT')
-        expect(spawnOptions.envToDelete).not.toContain('ORCA_REAL_GH')
+        expect(spawnOptions.envToDelete).not.toContain('ALICORN_REAL_GIT')
+        expect(spawnOptions.envToDelete).not.toContain('ALICORN_REAL_GH')
       })
       it('strips inherited Claude child-session stamps from runtime-created PTYs', async () => {
         // Why: the runtime controller is the `orca` CLI / automation spawn path and

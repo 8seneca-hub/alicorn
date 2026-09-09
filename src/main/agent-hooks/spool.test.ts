@@ -226,7 +226,7 @@ describe('agent hook spool', () => {
     const endpoint = join(endpointDir, 'endpoint.env')
     writeFileSync(
       endpoint,
-      'ORCA_AGENT_HOOK_PORT=9\nORCA_AGENT_HOOK_TOKEN=stale\nORCA_AGENT_HOOK_ENV=production\nORCA_AGENT_HOOK_VERSION=1\n'
+      'ALICORN_AGENT_HOOK_PORT=9\nALICORN_AGENT_HOOK_TOKEN=stale\nALICORN_AGENT_HOOK_ENV=production\nALICORN_AGENT_HOOK_VERSION=1\n'
     )
     const script = join(dir, 'codex-hook.sh')
     writeFileSync(script, codexInternals.getManagedScript('posix'))
@@ -235,10 +235,10 @@ describe('agent hook spool', () => {
       input: '{"hook_event_name":"SubagentStop","agent_id":"child"}\n',
       env: {
         ...process.env,
-        ORCA_AGENT_HOOK_ENDPOINT: endpoint,
-        ORCA_PANE_KEY: 'tab-failure:0',
-        ORCA_TAB_ID: 'tab-failure',
-        ORCA_AGENT_LAUNCH_TOKEN: 'generation-token'
+        ALICORN_AGENT_HOOK_ENDPOINT: endpoint,
+        ALICORN_PANE_KEY: 'tab-failure:0',
+        ALICORN_TAB_ID: 'tab-failure',
+        ALICORN_AGENT_LAUNCH_TOKEN: 'generation-token'
       },
       timeout: 5000
     })

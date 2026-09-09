@@ -126,7 +126,7 @@ function median(values: readonly number[]): number {
 // oxlint-disable-next-line no-empty-pattern -- Playwright passes fixtures before testInfo.
 test('keeps real Electron launch stable with 20 approved inert plugins', async ({}, testInfo) => {
   test.setTimeout(240_000)
-  const session = createRestartSession(testInfo, { ORCA_STARTUP_DIAGNOSTICS: '1' })
+  const session = createRestartSession(testInfo, { ALICORN_STARTUP_DIAGNOSTICS: '1' })
   const baseline: StartupSample[] = []
   const populated: StartupSample[] = []
   let markerPaths: string[] = []

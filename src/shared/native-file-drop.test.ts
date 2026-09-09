@@ -3,7 +3,7 @@ import {
   NATIVE_FILE_DROP_MAX_PATH_BYTES,
   NATIVE_FILE_DROP_MAX_PATHS,
   NATIVE_FILE_DROP_TARGET,
-  ORCA_INTERNAL_FILE_DRAG_TYPE,
+  ALICORN_INTERNAL_FILE_DRAG_TYPE,
   createNativeFileDropPayload,
   createRejectedNativeFileDropPayload,
   hasNativeFileDragTypes,
@@ -18,7 +18,7 @@ describe('hasNativeFileDragTypes', () => {
   })
 
   it('rejects internal Orca file moves and URL/text drags', () => {
-    expect(hasNativeFileDragTypes(['Files', ORCA_INTERNAL_FILE_DRAG_TYPE])).toBe(false)
+    expect(hasNativeFileDragTypes(['Files', ALICORN_INTERNAL_FILE_DRAG_TYPE])).toBe(false)
     expect(hasNativeFileDragTypes(['text/uri-list'])).toBe(false)
     expect(hasNativeFileDragTypes(['text/plain'])).toBe(false)
   })

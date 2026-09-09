@@ -77,7 +77,7 @@ const NATIVE_MODULES = [
 ]
 const onlyModules = NATIVE_MODULES.filter((m) => !ignoreModules.includes(m))
 const forceRebuild =
-  process.env.ORCA_FORCE_NATIVE_REBUILD === '1' ||
+  process.env.ALICORN_FORCE_NATIVE_REBUILD === '1' ||
   cliOptions.force ||
   rebuildPlatform !== osPlatform() ||
   rebuildArch !== process.arch
@@ -173,7 +173,7 @@ try {
         'Close running Orca/Electron/dev processes for this worktree, then rerun `pnpm install` ' +
         'or `pnpm run rebuild:electron`.'
     )
-    if (isPostinstall() && process.env.ORCA_STRICT_NATIVE_REBUILD !== '1') {
+    if (isPostinstall() && process.env.ALICORN_STRICT_NATIVE_REBUILD !== '1') {
       console.error(
         '[rebuild] Continuing postinstall because the failure is a Windows file lock. ' +
           'The next dev/start command will re-check native modules.'
@@ -300,7 +300,7 @@ function runElectronPackageBinaryInstall() {
 }
 
 function continuePostinstallWithoutElectron() {
-  if (!isPostinstall() || process.env.ORCA_STRICT_ELECTRON_INSTALL === '1') {
+  if (!isPostinstall() || process.env.ALICORN_STRICT_ELECTRON_INSTALL === '1') {
     return false
   }
   console.error(

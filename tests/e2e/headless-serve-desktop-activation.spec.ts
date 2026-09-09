@@ -47,10 +47,10 @@ function createHeadlessLaunchIsolation(userDataDir: string): ElectronHomeIsolati
     inheritedEnv: cleanEnv,
     launchEnv: {
       NODE_ENV: 'development',
-      ORCA_E2E_HEADLESS: '1',
+      ALICORN_E2E_HEADLESS: '1',
       // Why: production builds always use the lock; this opt-in makes the dev
       // E2E bundle exercise the same second-instance ownership path.
-      ORCA_E2E_ENFORCE_SINGLE_INSTANCE_LOCK: '1'
+      ALICORN_E2E_ENFORCE_SINGLE_INSTANCE_LOCK: '1'
     },
     extraEnv: {},
     userDataDir
@@ -202,7 +202,7 @@ test('promotes the headless owner without replacing its daemon terminal', async 
       )
       .toContain(beforeMarker)
 
-    const forwardAppLogs = process.env.ORCA_E2E_FORWARD_APP_LOGS === '1'
+    const forwardAppLogs = process.env.ALICORN_E2E_FORWARD_APP_LOGS === '1'
     activatingProcess = spawn(electronPath, getOrcaElectronLaunchArgs(mainPath, false), {
       env,
       stdio: forwardAppLogs ? 'pipe' : 'ignore'

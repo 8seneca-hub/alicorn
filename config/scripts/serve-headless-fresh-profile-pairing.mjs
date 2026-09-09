@@ -10,7 +10,7 @@ const scriptDir = import.meta.dirname
 const repoRoot = path.resolve(scriptDir, '..', '..')
 const orcaDevScript = path.join(scriptDir, 'orca-dev.mjs')
 const ensureNativeRuntimeScript = path.join(scriptDir, 'ensure-native-runtime.mjs')
-const fixedProfileDir = process.env.ORCA_HEADLESS_PAIRING_PROFILE_DIR
+const fixedProfileDir = process.env.ALICORN_HEADLESS_PAIRING_PROFILE_DIR
 const parsed = parseArgs(process.argv.slice(2))
 
 if (parsed.help) {
@@ -48,11 +48,11 @@ let stopAttempts = 0
 // is only for local headless testing, not packaged production.
 const childEnv = { ...process.env }
 delete childEnv.CODEX_HOME
-delete childEnv.ORCA_CODEX_HOME
+delete childEnv.ALICORN_CODEX_HOME
 Object.assign(childEnv, {
   // Why: a fresh temporary Orca profile must not make the default Codex lane
   // read or mutate the developer profile during a pairing smoke test.
-  ORCA_DEV_USER_DATA_PATH: profileDir,
+  ALICORN_DEV_USER_DATA_PATH: profileDir,
   HOME: isolatedHome,
   USERPROFILE: isolatedHome,
   ...(process.platform === 'linux'
@@ -138,8 +138,8 @@ Forwarded examples:
   node config/scripts/serve-headless-fresh-profile-pairing.mjs --mobile-pairing
 
 Environment:
-  ORCA_HEADLESS_PAIRING_ADDRESS=<host|host:port|ws://...>  Override the auto pairing address.
-  ORCA_HEADLESS_PAIRING_PROFILE_DIR=/path/to/profile       Use a fixed profile directory.
+  ALICORN_HEADLESS_PAIRING_ADDRESS=<host|host:port|ws://...>  Override the auto pairing address.
+  ALICORN_HEADLESS_PAIRING_PROFILE_DIR=/path/to/profile       Use a fixed profile directory.
 `)
 }
 
@@ -177,7 +177,7 @@ function hasForwardedServeFlag(args, name) {
  * Prefers an override, then Tailscale, then the OS hostname over loopback.
  */
 function resolveDefaultPairingAddress() {
-  const configured = process.env.ORCA_HEADLESS_PAIRING_ADDRESS?.trim()
+  const configured = process.env.ALICORN_HEADLESS_PAIRING_ADDRESS?.trim()
   if (configured) {
     return configured
   }

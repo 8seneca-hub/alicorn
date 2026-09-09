@@ -1,7 +1,7 @@
 import { runProcess } from '../../shared/child-process/run-process'
 
 /** Session-name namespace Orca gives one daemon per browser tab. */
-export const ORCA_TAB_SESSION_PREFIX = 'orca-tab-'
+export const ALICORN_TAB_SESSION_PREFIX = 'orca-tab-'
 
 const SWEEP_TIMEOUT_MS = 5_000
 const SWEEP_MAX_OUTPUT_BYTES = 256 * 1024
@@ -40,7 +40,7 @@ function parseSessionNames(stdout: string): string[] {
  * skip the sweep rather than run a `session list` that could close a daemon Orca
  * does not own, and stay bounded by `AGENT_BROWSER_IDLE_TIMEOUT_MS` instead.
  *
- * `ORCA_DISABLE_AGENT_BROWSER_SWEEP=1` turns it off in the field. The other two
+ * `ALICORN_DISABLE_AGENT_BROWSER_SWEEP=1` turns it off in the field. The other two
  * behaviours this PR adds are already recoverable without a build — the idle bound
  * is an env passthrough an operator can raise, and the quit close is bounded by its
  * own timeout — but a sweep that closes the wrong daemon, or spawns one process per
@@ -52,7 +52,7 @@ export async function sweepOrphanedAgentBrowserSessions(options: {
   ownsSocketDirectory: boolean
   isSessionLive?: (sessionName: string) => boolean
 }): Promise<string[]> {
-  if (!options.ownsSocketDirectory || process.env.ORCA_DISABLE_AGENT_BROWSER_SWEEP === '1') {
+  if (!options.ownsSocketDirectory || process.env.ALICORN_DISABLE_AGENT_BROWSER_SWEEP === '1') {
     return []
   }
   let listed: string[]
@@ -71,7 +71,10 @@ export async function sweepOrphanedAgentBrowserSessions(options: {
 
   const closed: string[] = []
   for (const sessionName of listed) {
-    if (!sessionName.startsWith(ORCA_TAB_SESSION_PREFIX) || options.isSessionLive?.(sessionName)) {
+    if (
+      !sessionName.startsWith(ALICORN_TAB_SESSION_PREFIX) ||
+      options.isSessionLive?.(sessionName)
+    ) {
       continue
     }
     try {

@@ -218,7 +218,7 @@ test.describe('terminal reattach mouse mode', () => {
       // Why a screenshot and not the video fixture: this spec quits and relaunches Orca,
       // so the recorder's WebM never flushes. This frame IS the proof — on main the drag
       // paints an xterm row selection across the live TUI; here it must stay clean.
-      const proofShot = process.env.ORCA_E2E_PROOF_SCREENSHOT
+      const proofShot = process.env.ALICORN_E2E_PROOF_SCREENSHOT
       if (proofShot) {
         await secondLaunch.page.screenshot({ path: proofShot })
       }

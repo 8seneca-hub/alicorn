@@ -219,7 +219,7 @@ if (graphErrors.length > 0) {
     {
       encoding: 'utf8',
       timeout: 60_000,
-      env: { ...process.env, ORCA_DAEMON_ENTRY_LOAD_CHECK: '1' }
+      env: { ...process.env, ALICORN_DAEMON_ENTRY_LOAD_CHECK: '1' }
     }
   )
   const daemonSmokeOutput = `${daemonSmoke.stdout ?? ''}${daemonSmoke.stderr ?? ''}`

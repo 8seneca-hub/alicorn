@@ -20,7 +20,7 @@ import {
 import { connectDockerSshRelayTarget } from './helpers/docker-ssh-relay-connection'
 import { createRestartSession } from './helpers/orca-restart'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const TAB_COUNT = 6
 
 test.use({ seedTestRepo: false })
@@ -34,7 +34,7 @@ function readRemoteProof(target: DockerSshRelayTarget, path: string): string | n
 }
 
 test.describe('SSH cold activation restore', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH restore uses POSIX SSH tooling.')
 
   test('eagerly remounts every restored remote terminal after renderer reload', async ({
@@ -233,7 +233,7 @@ test.describe('SSH cold activation restore', () => {
 
       await focusActiveTerminalInput(firstLaunch.page)
       await firstLaunch.page.keyboard.type(
-        `export ORCA_RESTART_TOKEN=${token}; cd /tmp; (while :; do sleep 60; done) & export ORCA_BG_PID=$!; printf '%s|%s|%s|%s\\n' "$$" "$ORCA_BG_PID" "$ORCA_RESTART_TOKEN" "$PWD" > ${beforeProofPath}`
+        `export ALICORN_RESTART_TOKEN=${token}; cd /tmp; (while :; do sleep 60; done) & export ALICORN_BG_PID=$!; printf '%s|%s|%s|%s\\n' "$$" "$ALICORN_BG_PID" "$ALICORN_RESTART_TOKEN" "$PWD" > ${beforeProofPath}`
       )
       await firstLaunch.page.keyboard.press('Enter')
       await expect.poll(() => readRemoteProof(target!, beforeProofPath)).not.toBeNull()
@@ -287,7 +287,7 @@ test.describe('SSH cold activation restore', () => {
       const restoredMarker = `SSH_OWNER_RESTORED_${Date.now()}`
       await focusActiveTerminalInput(secondLaunch.page)
       await secondLaunch.page.keyboard.type(
-        `printf '%s|%s|%s|%s\\n' "$$" "$ORCA_BG_PID" "$ORCA_RESTART_TOKEN" "$PWD" > ${afterProofPath}; printf '${restoredMarker}\\n'`
+        `printf '%s|%s|%s|%s\\n' "$$" "$ALICORN_BG_PID" "$ALICORN_RESTART_TOKEN" "$PWD" > ${afterProofPath}; printf '${restoredMarker}\\n'`
       )
       await secondLaunch.page.keyboard.press('Enter')
       await expect(

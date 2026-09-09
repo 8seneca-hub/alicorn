@@ -1,4 +1,4 @@
-export const ORCA_PI_EXTENSION_FILE = 'orca-titlebar-spinner.ts'
+export const ALICORN_PI_EXTENSION_FILE = 'orca-titlebar-spinner.ts'
 
 export function getPiTitlebarExtensionSource(): string {
   return [
@@ -29,7 +29,7 @@ export function getPiTitlebarExtensionSource(): string {
     '}',
     '',
     'export default function (pi) {',
-    '  if (!process.env.ORCA_PANE_KEY) return',
+    '  if (!process.env.ALICORN_PANE_KEY) return',
     '  let timer = null',
     '  let frameIndex = 0',
     '  // Why: only idle maintenance owns a spinner of its own. A threshold compaction runs',

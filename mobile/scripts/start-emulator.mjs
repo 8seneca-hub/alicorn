@@ -78,7 +78,7 @@ Options:
   }
 }
 
-const ORCA_CLI = process.env.ORCA_CLI || 'orca'
+const ALICORN_CLI = process.env.ALICORN_CLI || 'orca'
 
 // Colors for output
 const colors = {
@@ -121,7 +121,7 @@ function assertIosSimulatorPlatform() {
 
 // Execute orca CLI command
 async function orca(args, options = {}) {
-  const { stdout, stderr } = await execFileAsync(ORCA_CLI, args, {
+  const { stdout, stderr } = await execFileAsync(ALICORN_CLI, args, {
     cwd: options.cwd || process.cwd(),
     env: options.env || process.env,
     encoding: 'utf8',
@@ -579,7 +579,7 @@ async function main() {
 
     pairingRuntime = await startHeadlessPairingRuntime({
       enabled: options.pair,
-      orcaCli: ORCA_CLI,
+      orcaCli: ALICORN_CLI,
       cwd: process.cwd(),
       lanIpCandidates,
       logStep,

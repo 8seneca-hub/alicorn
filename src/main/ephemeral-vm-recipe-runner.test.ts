@@ -54,8 +54,8 @@ describe('runEphemeralVmRecipeStart', () => {
         scriptPath,
         [
           'console.log(JSON.stringify({',
-          '  schemaVersion: Number(process.env.ORCA_RECIPE_RESULT_SCHEMA_VERSION),',
-          '  ...(process.env.ORCA_RECIPE_RESULT_SCHEMA_VERSION === "2"',
+          '  schemaVersion: Number(process.env.ALICORN_RECIPE_RESULT_SCHEMA_VERSION),',
+          '  ...(process.env.ALICORN_RECIPE_RESULT_SCHEMA_VERSION === "2"',
           '    ? { checkoutMode: "provisioned-root" }',
           '    : {}),',
           `  pairingCode: ${JSON.stringify(makePairingCode())},`,
@@ -85,12 +85,12 @@ describe('runEphemeralVmRecipeStart', () => {
       scriptPath,
       [
         'console.error(`cwd:${process.cwd()}`)',
-        'console.error(`instance:${process.env.ORCA_VM_INSTANCE_ID}`)',
+        'console.error(`instance:${process.env.ALICORN_VM_INSTANCE_ID}`)',
         'console.log(JSON.stringify({',
         '  schemaVersion: 1,',
         `  pairingCode: ${JSON.stringify(makePairingCode())},`,
         "  projectRoot: '/workspace/repo',",
-        '  userData: { providerResourceId: process.env.ORCA_VM_INSTANCE_ID }',
+        '  userData: { providerResourceId: process.env.ALICORN_VM_INSTANCE_ID }',
         '}))'
       ].join('\n')
     )
@@ -259,8 +259,8 @@ describe('runEphemeralVmRecipeCleanup', () => {
         '    recipeId: payload.recipeId,',
         '    instanceId: payload.instanceId,',
         '    projectRoot: payload.recipeResult.projectRoot,',
-        '    envMode: process.env.ORCA_VM_MODE,',
-        '    envWorkspace: process.env.ORCA_WORKSPACE_NAME',
+        '    envMode: process.env.ALICORN_VM_MODE,',
+        '    envWorkspace: process.env.ALICORN_WORKSPACE_NAME',
         '  }))',
         '})'
       ].join('\n')
@@ -347,7 +347,7 @@ describe('runEphemeralVmRecipeSuspend and runEphemeralVmRecipeResume', () => {
         "process.stdin.on('data', (chunk) => { input += chunk })",
         "process.stdin.on('end', () => {",
         '  const payload = JSON.parse(input)',
-        '  console.log(JSON.stringify({ mode: payload.mode, envMode: process.env.ORCA_VM_MODE }))',
+        '  console.log(JSON.stringify({ mode: payload.mode, envMode: process.env.ALICORN_VM_MODE }))',
         '})'
       ].join('\n')
     )

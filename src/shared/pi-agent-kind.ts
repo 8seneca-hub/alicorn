@@ -20,9 +20,9 @@ export const PRIMARY_AGENT_DIR_ENV_BY_KIND: Readonly<Record<PiAgentKind, string>
 }
 
 export const SOURCE_AGENT_DIR_ENV_BY_KIND: Readonly<Record<PiAgentKind, string>> = {
-  pi: 'ORCA_PI_SOURCE_AGENT_DIR',
-  omp: 'ORCA_OMP_SOURCE_AGENT_DIR',
-  'prime-agent': 'ORCA_PRIME_AGENT_SOURCE_AGENT_DIR'
+  pi: 'ALICORN_PI_SOURCE_AGENT_DIR',
+  omp: 'ALICORN_OMP_SOURCE_AGENT_DIR',
+  'prime-agent': 'ALICORN_PRIME_AGENT_SOURCE_AGENT_DIR'
 }
 
 /**

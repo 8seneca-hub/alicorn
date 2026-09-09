@@ -347,7 +347,7 @@ describe('registerEphemeralVmHandlers', () => {
         '  schemaVersion: 1,',
         `  pairingCode: ${JSON.stringify(makePairingCode())},`,
         "  projectRoot: '/workspace/repo',",
-        '  userData: { providerResourceId: process.env.ORCA_VM_INSTANCE_ID }',
+        '  userData: { providerResourceId: process.env.ALICORN_VM_INSTANCE_ID }',
         '}))'
       ].join('\n')
     )

@@ -10,7 +10,7 @@ import {
 
 const originalHome = process.env.HOME
 const originalZdotdir = process.env.ZDOTDIR
-const SHELL_ONLY_VARIABLE = 'ORCA_TEST_LOGIN_SHELL_ONLY'
+const SHELL_ONLY_VARIABLE = 'ALICORN_TEST_LOGIN_SHELL_ONLY'
 const originalShellOnlyValue = process.env[SHELL_ONLY_VARIABLE]
 let testHome: string | null = null
 

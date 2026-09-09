@@ -1,5 +1,5 @@
 import { useAppStore } from '@/store'
-import { ORCA_BROWSER_PARTITION } from '../../../../../shared/constants'
+import { ALICORN_BROWSER_PARTITION } from '../../../../../shared/constants'
 import { getOrcaProfileBrowserDefaultPartition } from '../../../../../shared/orca-profiles'
 
 export function useBrowserPageWebviewPartition({
@@ -23,6 +23,6 @@ export function useBrowserPageWebviewPartition({
     sessionProfile?.partition ??
     defaultSessionProfile?.partition ??
     fallbackBrowserPartition ??
-    ORCA_BROWSER_PARTITION
+    ALICORN_BROWSER_PARTITION
   )
 }

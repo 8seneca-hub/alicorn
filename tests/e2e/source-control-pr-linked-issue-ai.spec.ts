@@ -67,7 +67,7 @@ test.describe('Source Control AI pull request linkedIssue', () => {
                 actions: {
                   pullRequest: {
                     agentId: 'custom' as const,
-                    commandInputTemplate: 'ORCA_E2E_ISSUE={linkedIssue}\n\n{basePrompt}'
+                    commandInputTemplate: 'ALICORN_E2E_ISSUE={linkedIssue}\n\n{basePrompt}'
                   }
                 }
               }

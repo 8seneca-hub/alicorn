@@ -10,7 +10,7 @@ import { getShellReadyWrapperRoot } from './local-pty-shell-ready-wrapper-root'
 
 const CODEX_LAUNCH_PREFLIGHT = 'C:\\Program Files\\Orca\\orca.exe'
 const CMD_CODEX_LAUNCH_PREFLIGHT =
-  'if defined ORCA_CODEX_LAUNCH_PREFLIGHT call %ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%%ORCA_CODEX_LAUNCH_PREFLIGHT%%ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE% agent hooks prepare-codex > nul 2>&1'
+  'if defined ALICORN_CODEX_LAUNCH_PREFLIGHT call %ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%%ALICORN_CODEX_LAUNCH_PREFLIGHT%%ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE% agent hooks prepare-codex > nul 2>&1'
 
 function expectedWslArgs(linuxCwd: string, distro?: string): string[] {
   const command = `cd '${linuxCwd}' && export PATH="$HOME/.local/bin:$PATH" && ${buildWslInteractiveLoginShellCommand()}`
@@ -43,16 +43,16 @@ describe('resolveWindowsShellLaunchArgs', () => {
   let userDataPath: string
 
   beforeEach(() => {
-    previousUserDataPath = process.env.ORCA_USER_DATA_PATH
+    previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
     userDataPath = mkdtempSync(join(tmpdir(), 'windows-shell-args-test-'))
-    process.env.ORCA_USER_DATA_PATH = userDataPath
+    process.env.ALICORN_USER_DATA_PATH = userDataPath
   })
 
   afterEach(() => {
     if (previousUserDataPath === undefined) {
-      delete process.env.ORCA_USER_DATA_PATH
+      delete process.env.ALICORN_USER_DATA_PATH
     } else {
-      process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+      process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
     }
     rmSync(userDataPath, { recursive: true, force: true })
   })
@@ -126,23 +126,23 @@ describe('resolveWindowsShellLaunchArgs', () => {
     const command = decodePowerShellCommand(result)
     const outputEncodingIndex = command.indexOf('[Console]::OutputEncoding')
     const opencodeRestoreIndex = command.indexOf(
-      '$env:OPENCODE_CONFIG_DIR = $env:ORCA_OPENCODE_CONFIG_DIR'
+      '$env:OPENCODE_CONFIG_DIR = $env:ALICORN_OPENCODE_CONFIG_DIR'
     )
-    const mimocodeRestoreIndex = command.indexOf('$env:MIMOCODE_HOME = $env:ORCA_MIMOCODE_HOME')
+    const mimocodeRestoreIndex = command.indexOf('$env:MIMOCODE_HOME = $env:ALICORN_MIMOCODE_HOME')
     const duplicateStateGuardIndex = command.indexOf('Test-Path variable:global:__OrcaOsc133State')
     const languageModeGuardIndex = command.indexOf('LanguageMode -eq "FullLanguage"')
     const ompWrapperIndex = command.indexOf('function Global:omp')
-    const ompExtensionIndex = command.indexOf('--extension $env:ORCA_OMP_STATUS_EXTENSION')
-    const codexRestoreIndex = command.indexOf('$env:CODEX_HOME = $env:ORCA_CODEX_HOME')
+    const ompExtensionIndex = command.indexOf('--extension $env:ALICORN_OMP_STATUS_EXTENSION')
+    const codexRestoreIndex = command.indexOf('$env:CODEX_HOME = $env:ALICORN_CODEX_HOME')
     const promptIndex = command.indexOf('function Global:prompt')
     const cwdRestoreIndex = command.indexOf(
       expectedPowerShellRestoreCwdCommand("'C:\\Users\\alice'")
     )
 
     expect(command).not.toContain('$PROFILE')
-    expect(command).not.toContain('ORCA_PI_CODING_AGENT_DIR')
-    expect(command).not.toContain('ORCA_OMP_CODING_AGENT_DIR')
-    expect(command).not.toContain('$env:PI_CODING_AGENT_DIR = $env:ORCA_OMP_SOURCE_AGENT_DIR')
+    expect(command).not.toContain('ALICORN_PI_CODING_AGENT_DIR')
+    expect(command).not.toContain('ALICORN_OMP_CODING_AGENT_DIR')
+    expect(command).not.toContain('$env:PI_CODING_AGENT_DIR = $env:ALICORN_OMP_SOURCE_AGENT_DIR')
     for (const restoreIndex of [opencodeRestoreIndex, mimocodeRestoreIndex, codexRestoreIndex]) {
       expect(restoreIndex).toBeGreaterThanOrEqual(0)
       expect(restoreIndex).toBeLessThan(duplicateStateGuardIndex)
@@ -205,7 +205,7 @@ describe('resolveWindowsShellLaunchArgs', () => {
 
   it('preserves complex PowerShell startup command text through EncodedCommand', () => {
     const startupCommand =
-      '& "C:\\Program Files\\Orca CLI\\orca.exe" "--label" "quoted value"; $env:ORCA_VALUE = "nested"'
+      '& "C:\\Program Files\\Orca CLI\\orca.exe" "--label" "quoted value"; $env:ALICORN_VALUE = "nested"'
     const result = resolveWindowsShellLaunchArgs(
       'powershell.exe',
       'C:\\Users\\alice',
@@ -289,7 +289,7 @@ describe('resolveWindowsShellLaunchArgs', () => {
     expect(result.validationCwd).toBe('C:\\')
 
     const bashRcfile = readFileSync(getGitBashRcfilePath(bashCommand), 'utf8')
-    expect(bashRcfile).toContain('"${ORCA_CODEX_LAUNCH_PREFLIGHT}" agent hooks prepare-codex')
+    expect(bashRcfile).toContain('"${ALICORN_CODEX_LAUNCH_PREFLIGHT}" agent hooks prepare-codex')
     expect(bashRcfile).not.toContain(CODEX_LAUNCH_PREFLIGHT)
   })
 
@@ -327,12 +327,12 @@ describe('resolveWindowsShellLaunchArgs', () => {
     )
 
     expect(cmd.shellArgs[1]).toContain(
-      'call %ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%%ORCA_CODEX_LAUNCH_PREFLIGHT%%ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%'
+      'call %ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%%ALICORN_CODEX_LAUNCH_PREFLIGHT%%ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%'
     )
     expect(cmd.shellArgs[1]).not.toContain('"')
     expect(cmd.shellArgs[1]).not.toContain(CODEX_LAUNCH_PREFLIGHT)
     const rcfilePath = getGitBashRcfilePath(gitBash.shellArgs[1])
-    expect(readFileSync(rcfilePath, 'utf8')).toContain('"${ORCA_CODEX_LAUNCH_PREFLIGHT}"')
+    expect(readFileSync(rcfilePath, 'utf8')).toContain('"${ALICORN_CODEX_LAUNCH_PREFLIGHT}"')
   })
 
   it('does not apply Git Bash launch args to unrelated bash.exe paths', () => {
@@ -389,11 +389,13 @@ describe('resolveWindowsShellLaunchArgs', () => {
     // Why .zshenv: the omp wrapper is part of the epilogue defined there.
     const zshEnv = readFileSync(join(getShellReadyWrapperRoot(), 'zsh', '.zshenv'), 'utf8')
     for (const wrapperFile of [bashRcfile, zshEnv]) {
-      expect(wrapperFile).toContain('command omp --extension "${ORCA_OMP_STATUS_EXTENSION}" "$@"')
+      expect(wrapperFile).toContain(
+        'command omp --extension "${ALICORN_OMP_STATUS_EXTENSION}" "$@"'
+      )
       expect(wrapperFile).toContain('function omp { __orca_omp "$@"; }')
       expect(wrapperFile).not.toContain('prime-agent()')
       expect(wrapperFile).not.toContain('__orca_prime_agent')
-      expect(wrapperFile).not.toContain('ORCA_PRIME_AGENT_STATUS_EXTENSION')
+      expect(wrapperFile).not.toContain('ALICORN_PRIME_AGENT_STATUS_EXTENSION')
       expect(wrapperFile).not.toContain('command prime-agent --extension')
     }
   })

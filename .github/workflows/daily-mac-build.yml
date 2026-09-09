@@ -217,7 +217,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" --limit 100 --exclude-drafts \
             --json tagName --jq '.[].tagName' || true)"
           echo "Highest published tag seen: $(head -1 <<<"$published")"
-          ORCA_PUBLISHED_VERSIONS="$published" ORCA_DAILY_RELEASE_NAMES="$names" \
+          ALICORN_PUBLISHED_VERSIONS="$published" ALICORN_DAILY_RELEASE_NAMES="$names" \
             node config/scripts/daily-build-version.mjs \
             >"$RUNNER_TEMP/daily-identity.txt"
           grep -E '^(version|build_number)=' "$RUNNER_TEMP/daily-identity.txt"
@@ -240,7 +240,7 @@ jobs:
           # Why: daily builds are not an official channel — telemetry's transport
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted dev artifacts.
-          ORCA_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
+          ALICORN_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
 
       # Why a second mint: everything from here on writes to the daily repo, and
       # the notary round trip inside the publish step can be tens of minutes. The
@@ -319,13 +319,13 @@ jobs:
           timeout_minutes: 45
           max_attempts: 2
           retry_wait_seconds: 30
-          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && ORCA_MAC_DAILY=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && ALICORN_MAC_DAILY=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
         env:
           # Why: electron-builder's github publisher targets the repo named in the
           # config; the token must therefore carry write access to orca-daily.
           GH_TOKEN: ${{ steps.app_token_publish.outputs.token }}
-          ORCA_DAILY_BUILD_VERSION: ${{ steps.daily.outputs.version }}
-          ORCA_BUILD_COMMIT: ${{ steps.daily.outputs.commit }}
+          ALICORN_DAILY_BUILD_VERSION: ${{ steps.daily.outputs.version }}
+          ALICORN_BUILD_COMMIT: ${{ steps.daily.outputs.commit }}
           CSC_LINK: ${{ secrets.MAC_CERTS }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
           # Why all three: electron-builder's notarize step authenticates to the

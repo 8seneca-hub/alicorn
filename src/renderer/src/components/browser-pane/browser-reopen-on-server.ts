@@ -1,5 +1,5 @@
 import { normalizeBrowserNavigationUrl } from '../../../../shared/browser-url'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../shared/constants'
+import { ALICORN_BROWSER_BLANK_URL } from '../../../../shared/constants'
 import { createWebRuntimeSessionBrowserTab } from '@/runtime/web-runtime-session'
 
 /**
@@ -19,7 +19,7 @@ export function resolveBrowserReopenOnServerUrl(
   } catch {
     return undefined
   }
-  if (!normalized || normalized === ORCA_BROWSER_BLANK_URL || normalized.startsWith('file:')) {
+  if (!normalized || normalized === ALICORN_BROWSER_BLANK_URL || normalized.startsWith('file:')) {
     return undefined
   }
   return normalized

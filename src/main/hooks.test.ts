@@ -219,8 +219,8 @@ describe('runHook', () => {
           // #7652 regression: the unattended WSL hook branch must carry the
           // credential guard into the guest env.
           env: expect.objectContaining({
-            ORCA_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
-            ORCA_WORKTREE_PATH: '/home/jin/feature',
+            ALICORN_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
+            ALICORN_WORKTREE_PATH: '/home/jin/feature',
             CONDUCTOR_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
             GHOSTX_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
             GIT_TERMINAL_PROMPT: '0',
@@ -279,8 +279,8 @@ describe('runHook', () => {
           script: 'echo hello',
           cwd: '/mnt/c/Users/jinwo/git/orca-feature',
           env: expect.objectContaining({
-            ORCA_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
-            ORCA_WORKTREE_PATH: '/mnt/c/Users/jinwo/git/orca-feature',
+            ALICORN_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
+            ALICORN_WORKTREE_PATH: '/mnt/c/Users/jinwo/git/orca-feature',
             CONDUCTOR_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
             GHOSTX_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca'
           })

@@ -177,7 +177,7 @@ describe('registerPtyHandlers', () => {
       cols: 80,
       rows: 24,
       command: 'codex resume session-a',
-      envToDelete: ['CODEX_HOME', 'ORCA_CODEX_HOME'],
+      envToDelete: ['CODEX_HOME', 'ALICORN_CODEX_HOME'],
       launchAgent: 'codex',
       resumeProviderSession: {
         key: 'session_id',

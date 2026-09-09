@@ -81,7 +81,7 @@ test.describe('editable context paste ownership', () => {
     await expect(renameInput).toBeVisible()
     await renameInput.fill('')
 
-    const payload = `ORCA_E2E_CONTEXT_TEXTBOX_${randomUUID()}`
+    const payload = `ALICORN_E2E_CONTEXT_TEXTBOX_${randomUUID()}`
     await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
     await clearTerminalPtyWriteLog(electronApp)
     await expect(renameInput).toBeFocused()

@@ -234,7 +234,7 @@ jobs:
           published="$(GH_TOKEN="$MAIN_REPO_TOKEN" gh release list \
             --repo "$GITHUB_REPOSITORY" --limit 100 --exclude-drafts \
             --json tagName --jq '.[].tagName' || true)"
-          ORCA_PUBLISHED_VERSIONS="$published" ORCA_ADHOC_LABEL="${LABEL:-$REF}" \
+          ALICORN_PUBLISHED_VERSIONS="$published" ALICORN_ADHOC_LABEL="${LABEL:-$REF}" \
             node config/scripts/adhoc-build-version.mjs \
             >"$RUNNER_TEMP/adhoc-identity.txt"
           if ! grep -q '^name=' "$RUNNER_TEMP/adhoc-identity.txt"; then
@@ -250,7 +250,7 @@ jobs:
           # Why: adhoc builds are not an official channel — telemetry's transport
           # gate accepts only 'stable' or 'rc', so leaving this unset keeps them
           # silent, which is correct for unvetted branch artifacts.
-          ORCA_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
+          ALICORN_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
 
       # Why the token is minted here and not at the top: installation tokens live
       # one hour, everything before this point writes nothing, and the notary round
@@ -319,13 +319,13 @@ jobs:
           timeout_minutes: 45
           max_attempts: 2
           retry_wait_seconds: 30
-          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && ORCA_MAC_ADHOC=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
+          command: node config/scripts/ensure-native-runtime.mjs --runtime=electron && ALICORN_MAC_ADHOC=1 pnpm exec electron-builder --config config/electron-builder.config.cjs --mac --publish always
         env:
           # Why: electron-builder's github publisher targets the repo named in the
           # config; the token must therefore carry write access to orca-adhoc.
           GH_TOKEN: ${{ steps.app_token.outputs.token }}
-          ORCA_ADHOC_BUILD_VERSION: ${{ steps.adhoc.outputs.version }}
-          ORCA_BUILD_COMMIT: ${{ steps.adhoc.outputs.commit }}
+          ALICORN_ADHOC_BUILD_VERSION: ${{ steps.adhoc.outputs.version }}
+          ALICORN_BUILD_COMMIT: ${{ steps.adhoc.outputs.commit }}
           CSC_LINK: ${{ secrets.MAC_CERTS }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
           # Why all three: electron-builder's notarize step authenticates to the

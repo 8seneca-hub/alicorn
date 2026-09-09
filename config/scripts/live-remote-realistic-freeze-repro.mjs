@@ -13,7 +13,7 @@
  *                                  (does NOT kill the desktop; proxies restore work)
  *
  * Usage:
- *   ORCA_FREEZE_ENV=paired-remote ORCA_FREEZE_SCENARIO=idle-backlog-open \
+ *   ALICORN_FREEZE_ENV=paired-remote ALICORN_FREEZE_SCENARIO=idle-backlog-open \
  *     node config/scripts/live-remote-realistic-freeze-repro.mjs
  *
  *   pnpm run repro:live-remote-realistic-freeze
@@ -41,34 +41,37 @@ import {
 
 const root = path.resolve(import.meta.dirname, '../..')
 const reportDir = path.join(root, 'test-results', 'freeze-repro')
-const envName = process.env.ORCA_FREEZE_ENV || 'paired-remote'
-const scenario = process.env.ORCA_FREEZE_SCENARIO || 'idle-backlog-open'
-const createCount = Math.max(0, readFreezeNumberEnv('ORCA_FREEZE_CREATE', 0))
-const openCount = Math.max(2, readFreezeNumberEnv('ORCA_FREEZE_OPEN_COUNT', 20))
-const idleMs = Math.max(0, readFreezeNumberEnv('ORCA_FREEZE_IDLE_MS', 45_000))
-const paceMs = Math.max(0, readFreezeNumberEnv('ORCA_FREEZE_PACE_MS', 250))
-const paceJitterMs = Math.max(0, readFreezeNumberEnv('ORCA_FREEZE_PACE_JITTER_MS', 150))
-const createWorktreeSpan = Math.max(1, readFreezeNumberEnv('ORCA_FREEZE_CREATE_WT_SPAN', 12))
-const softMs = readFreezeNumberEnv('ORCA_FREEZE_SOFT_MS', DEFAULT_SOFT_MS)
-const hardMs = readFreezeNumberEnv('ORCA_FREEZE_HARD_MS', DEFAULT_HARD_MS)
+const envName = process.env.ALICORN_FREEZE_ENV || 'paired-remote'
+const scenario = process.env.ALICORN_FREEZE_SCENARIO || 'idle-backlog-open'
+const createCount = Math.max(0, readFreezeNumberEnv('ALICORN_FREEZE_CREATE', 0))
+const openCount = Math.max(2, readFreezeNumberEnv('ALICORN_FREEZE_OPEN_COUNT', 20))
+const idleMs = Math.max(0, readFreezeNumberEnv('ALICORN_FREEZE_IDLE_MS', 45_000))
+const paceMs = Math.max(0, readFreezeNumberEnv('ALICORN_FREEZE_PACE_MS', 250))
+const paceJitterMs = Math.max(0, readFreezeNumberEnv('ALICORN_FREEZE_PACE_JITTER_MS', 150))
+const createWorktreeSpan = Math.max(1, readFreezeNumberEnv('ALICORN_FREEZE_CREATE_WT_SPAN', 12))
+const softMs = readFreezeNumberEnv('ALICORN_FREEZE_SOFT_MS', DEFAULT_SOFT_MS)
+const hardMs = readFreezeNumberEnv('ALICORN_FREEZE_HARD_MS', DEFAULT_HARD_MS)
 /** Concurrent opens during lockup-storm (wake refresh overlaps fan-out). */
-const stormParallel = Math.max(1, readFreezeNumberEnv('ORCA_FREEZE_STORM_PARALLEL', 16))
+const stormParallel = Math.max(1, readFreezeNumberEnv('ALICORN_FREEZE_STORM_PARALLEL', 16))
 /** Kill a switch if it exceeds this — counts toward permanent lockup. */
-const opTimeoutMs = Math.max(10_000, readFreezeNumberEnv('ORCA_FREEZE_OP_TIMEOUT_MS', 60_000))
-const permanentTimeoutMs = Math.max(15_000, readFreezeNumberEnv('ORCA_FREEZE_PERMANENT_MS', 60_000))
+const opTimeoutMs = Math.max(10_000, readFreezeNumberEnv('ALICORN_FREEZE_OP_TIMEOUT_MS', 60_000))
+const permanentTimeoutMs = Math.max(
+  15_000,
+  readFreezeNumberEnv('ALICORN_FREEZE_PERMANENT_MS', 60_000)
+)
 const foreverWindowMs = Math.max(
   10_000,
-  readFreezeNumberEnv('ORCA_FREEZE_FOREVER_WINDOW_MS', DEFAULT_FOREVER_WINDOW_MS)
+  readFreezeNumberEnv('ALICORN_FREEZE_FOREVER_WINDOW_MS', DEFAULT_FOREVER_WINDOW_MS)
 )
 const statusSlowMs = Math.max(
   5_000,
-  readFreezeNumberEnv('ORCA_FREEZE_STATUS_SLOW_MS', DEFAULT_STATUS_SLOW_MS)
+  readFreezeNumberEnv('ALICORN_FREEZE_STATUS_SLOW_MS', DEFAULT_STATUS_SLOW_MS)
 )
 const watchdogIntervalMs = Math.max(
   500,
-  readFreezeNumberEnv('ORCA_FREEZE_WATCHDOG_INTERVAL_MS', 1500)
+  readFreezeNumberEnv('ALICORN_FREEZE_WATCHDOG_INTERVAL_MS', 1500)
 )
-const scratchDir = process.env.ORCA_FREEZE_SCRATCH || ''
+const scratchDir = process.env.ALICORN_FREEZE_SCRATCH || ''
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -136,7 +139,7 @@ function listLiveTerminalHandles() {
 async function main() {
   if (!REALISTIC_SCENARIOS.includes(scenario)) {
     throw new Error(
-      `Unknown ORCA_FREEZE_SCENARIO=${scenario}. Expected one of: ${REALISTIC_SCENARIOS.join(', ')}`
+      `Unknown ALICORN_FREEZE_SCENARIO=${scenario}. Expected one of: ${REALISTIC_SCENARIOS.join(', ')}`
     )
   }
 

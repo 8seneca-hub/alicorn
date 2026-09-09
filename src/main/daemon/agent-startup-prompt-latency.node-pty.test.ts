@@ -23,7 +23,7 @@ async function launch(
   )
   vi.stubEnv('HOME', root)
   vi.stubEnv('ZDOTDIR', root)
-  vi.stubEnv('ORCA_ORIG_ZDOTDIR', root)
+  vi.stubEnv('ALICORN_ORIG_ZDOTDIR', root)
   let session: Session | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
   let legacyTimer: ReturnType<typeof setTimeout> | undefined
@@ -96,7 +96,7 @@ describe('agent startup at the rendered shell prompt', () => {
     }
   )
 
-  it.skipIf(!process.env.ORCA_STARTUP_BENCH || SHELLS.length === 0)(
+  it.skipIf(!process.env.ALICORN_STARTUP_BENCH || SHELLS.length === 0)(
     'compares legacy input timing with prompt delivery',
     async () => {
       for (const shell of SHELLS) {
@@ -111,8 +111,8 @@ describe('agent startup at the rendered shell prompt', () => {
             current.push(result.ms)
           }
           const result = JSON.stringify({ shell, slow, legacy, current })
-          if (process.env.ORCA_STARTUP_BENCH_OUTPUT) {
-            appendFileSync(process.env.ORCA_STARTUP_BENCH_OUTPUT, `${result}\n`)
+          if (process.env.ALICORN_STARTUP_BENCH_OUTPUT) {
+            appendFileSync(process.env.ALICORN_STARTUP_BENCH_OUTPUT, `${result}\n`)
           }
           console.log(result)
         }

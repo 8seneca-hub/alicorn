@@ -200,7 +200,7 @@ async function runValidation(mode) {
       ELECTRON_RUN_AS_NODE: _unused,
       DISPLAY: _display,
       CODEX_HOME: _codexHome,
-      ORCA_CODEX_HOME: _orcaCodexHome,
+      ALICORN_CODEX_HOME: _orcaCodexHome,
       ...env
     } = process.env
     void _unused
@@ -216,8 +216,8 @@ async function runValidation(mode) {
           env: {
             ...env,
             NODE_ENV: 'development',
-            ORCA_BACKGROUND_LAUNCH: '1',
-            ORCA_DEV_USER_DATA_PATH: userDataPath,
+            ALICORN_BACKGROUND_LAUNCH: '1',
+            ALICORN_DEV_USER_DATA_PATH: userDataPath,
             HOME: isolatedHome,
             USERPROFILE: isolatedHome,
             ELECTRON_ENABLE_LOGGING: '1',
@@ -232,7 +232,7 @@ async function runValidation(mode) {
     app.process().stderr?.on('data', (chunk) => {
       const text = chunk.toString()
       stderrLines.push(...text.split(/\r?\n/).filter(Boolean))
-      if (process.env.ORCA_WAYLAND_GPU_VERBOSE === '1') {
+      if (process.env.ALICORN_WAYLAND_GPU_VERBOSE === '1') {
         process.stderr.write(text)
       }
     })

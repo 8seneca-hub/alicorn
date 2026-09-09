@@ -291,12 +291,12 @@ function DiagnosticsDisabledStateNote({
       : reason === 'orca_telemetry_disabled'
         ? translate(
             'auto.components.settings.PrivacyDiagnosticsRows.63d03261d1',
-            'ORCA_TELEMETRY_DISABLED=1 is set — creating and sending diagnostic files is disabled.'
+            'ALICORN_TELEMETRY_DISABLED=1 is set — creating and sending diagnostic files is disabled.'
           )
         : reason === 'orca_diagnostics_disabled'
           ? translate(
               'auto.components.settings.PrivacyDiagnosticsRows.d37e92a06b',
-              'ORCA_DIAGNOSTICS_DISABLED=1 is set — app diagnostics are off.'
+              'ALICORN_DIAGNOSTICS_DISABLED=1 is set — app diagnostics are off.'
             )
           : reason === 'ci'
             ? translate(

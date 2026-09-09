@@ -14,7 +14,7 @@ import {
   type DockerSshRelayTarget
 } from './helpers/docker-ssh-relay-target'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 
 type RuntimeTerminalStatus = {
   isRunningAgent: boolean
@@ -68,7 +68,7 @@ async function readTerminalAgentStatus(
 }
 
 test.describe('Docker SSH Pi-compatible agent titles', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH relay tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH relay tests.')
   test.skip(process.platform === 'win32', 'Docker SSH relay tests use POSIX ssh tooling.')
 
   test('classifies OMP and Pi title transitions from a remote terminal', async ({

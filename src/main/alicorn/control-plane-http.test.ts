@@ -179,13 +179,15 @@ describe('alicornFetch in keycloak mode', () => {
       ALICORN_TENANT_ID: 'other-org'
     })
     process.env.ALICORN_AUTH_MODE = 'keycloak'
-    process.env.ORCA_CLOUD_API_URL = 'http://127.0.0.1:8081'
-    process.env.ORCA_CLOUD_CLIENT_ID = 'alicorn-desktop'
+    process.env.ALICORN_CLOUD_API_URL = 'http://127.0.0.1:8081'
+    process.env.ALICORN_CLOUD_CLIENT_ID = 'alicorn-desktop'
     vi.mocked(readFreshOrcaCloudSession).mockReset()
     vi.mocked(getProfileUserDataPath).mockReset().mockReturnValue('/tmp/alicorn-profile')
-    vi.mocked(ensureActiveOrcaProfile).mockReset().mockReturnValue({
-      profile: { id: 'profile-1', cloud: { activeOrgId: 'org-1' } }
-    } as unknown as ReturnType<typeof ensureActiveOrcaProfile>)
+    vi.mocked(ensureActiveOrcaProfile)
+      .mockReset()
+      .mockReturnValue({
+        profile: { id: 'profile-1', cloud: { activeOrgId: 'org-1' } }
+      } as unknown as ReturnType<typeof ensureActiveOrcaProfile>)
   }
 
   it('pairs the session token with the org that token proves', async () => {

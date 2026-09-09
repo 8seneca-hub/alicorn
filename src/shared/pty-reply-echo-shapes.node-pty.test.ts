@@ -60,7 +60,7 @@ async function echoOf(reply: string, discipline: 'readline' | 'cooked'): Promise
 
   await waitFor(() => output.includes('ORCA16542> '), 10_000)
   if (discipline === 'cooked') {
-    pty.write('read -r ORCA_LINE\r')
+    pty.write('read -r ALICORN_LINE\r')
     await sleep(400)
   }
   output = ''

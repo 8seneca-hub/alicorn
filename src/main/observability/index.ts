@@ -15,8 +15,8 @@
 //   DO_NOT_TRACK=1            → disable bundle button. KEEP local file.
 //                                Local file writes never leave the machine,
 //                                so they are not "tracking" in the DNT sense.
-//   ORCA_TELEMETRY_DISABLED=1 → identical to DO_NOT_TRACK for this lane.
-//   ORCA_DIAGNOSTICS_DISABLED=1 → ALSO disable local file writes. The escape
+//   ALICORN_TELEMETRY_DISABLED=1 → identical to DO_NOT_TRACK for this lane.
+//   ALICORN_DIAGNOSTICS_DISABLED=1 → ALSO disable local file writes. The escape
 //                                hatch for users on devices where even local
 //                                debug logs are policy-forbidden.
 //   CI detection              → disable everything in this lane.
@@ -93,8 +93,8 @@ export function resolveObservabilityConsent(): ObservabilityConsent {
   // CI and DNT/disabled have different effects on which sub-lanes are gated.
   // Keep the ordering aligned with §Consent boundaries above.
   const dnt = envOn('DO_NOT_TRACK')
-  const orcaDisabled = envOn('ORCA_TELEMETRY_DISABLED')
-  const diagnosticsDisabled = envOn('ORCA_DIAGNOSTICS_DISABLED')
+  const orcaDisabled = envOn('ALICORN_TELEMETRY_DISABLED')
+  const diagnosticsDisabled = envOn('ALICORN_DIAGNOSTICS_DISABLED')
   const ci = inCI()
 
   if (ci) {
@@ -148,7 +148,7 @@ export function initObservability(): ObservabilityConsent {
   const c = resolveObservabilityConsent()
   consent = c
   if (!c.localFileEnabled) {
-    // Disabled at the CI / ORCA_DIAGNOSTICS_DISABLED level — leave the
+    // Disabled at the CI / ALICORN_DIAGNOSTICS_DISABLED level — leave the
     // tracer's active sink unset, so all spans are no-ops.
     return c
   }

@@ -24,7 +24,7 @@ const FIXTURE = {
 } as const
 
 const SCREENSHOT_DIR =
-  process.env.ORCA_GITLAB_CHECKS_JOB_DETAILS_SCREENSHOT_DIR ??
+  process.env.ALICORN_GITLAB_CHECKS_JOB_DETAILS_SCREENSHOT_DIR ??
   path.join(process.cwd(), 'test-results', 'gitlab-checks-job-details')
 
 // contextIsolation makes window.api non-writable, so stub at the IPC boundary in main.

@@ -1,6 +1,6 @@
 import type { BrowserWindow } from 'electron'
 import { join } from 'node:path'
-import { ORCA_BROWSER_GUEST_WEB_PREFERENCES } from '../../shared/browser-guest-web-preferences'
+import { ALICORN_BROWSER_GUEST_WEB_PREFERENCES } from '../../shared/browser-guest-web-preferences'
 import { normalizeBrowserNavigationUrl } from '../../shared/browser-url'
 import { browserManager } from '../browser/browser-manager'
 import { browserSessionRegistry } from '../browser/browser-session-registry'
@@ -12,7 +12,7 @@ import {
   browserRouteSessionRegistry,
   browserRouteWebContentsRegistry
 } from '../browser/browser-route-session-runtime'
-import { ORCA_BROWSER_BLANK_URL } from '../../shared/constants'
+import { ALICORN_BROWSER_BLANK_URL } from '../../shared/constants'
 import { DOC_PREVIEW_PARTITION, parseDocPreviewUrl } from '../../shared/doc-preview-scheme'
 import { setDocPreviewFailureSink } from '../browser/doc-preview-failure-notice'
 import {
@@ -80,7 +80,7 @@ export function installMainWindowWebviewSecurity(mainWindow: BrowserWindow): voi
       !isDocPreviewAttach &&
       (!normalizedSrc ||
         (!isProfilePartition && !isRoutePartition && !isLocalSshPartition) ||
-        (isRoutePartition && normalizedSrc !== ORCA_BROWSER_BLANK_URL))
+        (isRoutePartition && normalizedSrc !== ALICORN_BROWSER_BLANK_URL))
     ) {
       event.preventDefault()
       return
@@ -104,7 +104,7 @@ export function installMainWindowWebviewSecurity(mainWindow: BrowserWindow): voi
     webPreferences.contextIsolation = true
     webPreferences.sandbox = true
     // Why: force the browser guest policy even if host markup omits or misspells a preference.
-    Object.assign(webPreferences, ORCA_BROWSER_GUEST_WEB_PREFERENCES)
+    Object.assign(webPreferences, ALICORN_BROWSER_GUEST_WEB_PREFERENCES)
     // Why: keep the registry-validated partition so isolated session profiles use their own storage while other hardening stays intact.
     webPreferences.partition = partition
   })

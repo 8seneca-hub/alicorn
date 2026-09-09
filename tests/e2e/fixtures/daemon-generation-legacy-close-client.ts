@@ -267,7 +267,7 @@ async function main(): Promise<void> {
         )
         await waitFor(`${session.sessionId} post-close reply`, () =>
           (outputBySessionId.get(session.sessionId) ?? '').includes(
-            `ORCA_GENERATION_CANARY_ACK legacy-close-v${session.protocolVersion}-live ${nonce}`
+            `ALICORN_GENERATION_CANARY_ACK legacy-close-v${session.protocolVersion}-live ${nonce}`
           )
         )
         postClosePing[session.sessionId] = true

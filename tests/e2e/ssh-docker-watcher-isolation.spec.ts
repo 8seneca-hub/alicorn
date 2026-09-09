@@ -30,7 +30,7 @@ import {
   waitForActiveTerminalManager
 } from './helpers/terminal'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`
@@ -101,7 +101,7 @@ async function enableTerminalAccessibilityDom(page: Page, ptyId: string): Promis
 }
 
 test.describe('Docker SSH relay watcher isolation', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH watcher isolation uses POSIX tooling.')
 
   test('keeps the relay, terminal, and explorer alive when only relay-watcher.js crashes', async ({

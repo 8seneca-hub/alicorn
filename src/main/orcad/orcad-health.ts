@@ -66,7 +66,7 @@ export type OrcadHealth = {
 /**
  * Identity of the exact bytes running.
  *
- * Why hash the entry and not read a version string: `ORCA_VERSION` is whatever the deploy
+ * Why hash the entry and not read a version string: `ALICORN_VERSION` is whatever the deploy
  * exported, so two different builds can carry one version. A rollback that did not actually
  * replace the file is precisely what this has to catch.
  */

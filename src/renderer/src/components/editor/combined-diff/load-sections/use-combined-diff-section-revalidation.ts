@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import type { OpenFile } from '@/store/slices/editor'
 import type { GitStatusEntry } from '../../../../../../shared/git-status-types'
 import {
-  ORCA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT,
+  ALICORN_EDITOR_EXTERNAL_FILE_CHANGE_EVENT,
   type EditorPathMutationTarget
 } from '../../editor-autosave'
 import { buildCombinedGitStatusSignature } from '../resolve-changes/combined-diff-git-status-signature'
@@ -94,9 +94,12 @@ export function useCombinedDiffSectionRevalidation({
         }
       }
     }
-    window.addEventListener(ORCA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT, handler as EventListener)
+    window.addEventListener(ALICORN_EDITOR_EXTERNAL_FILE_CHANGE_EVENT, handler as EventListener)
     return () =>
-      window.removeEventListener(ORCA_EDITOR_EXTERNAL_FILE_CHANGE_EVENT, handler as EventListener)
+      window.removeEventListener(
+        ALICORN_EDITOR_EXTERNAL_FILE_CHANGE_EVENT,
+        handler as EventListener
+      )
   }, [
     file.runtimeEnvironmentId,
     file.worktreeId,

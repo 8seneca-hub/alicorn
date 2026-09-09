@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { totalmem } from 'node:os'
 
-const RENDERER_HEAP_ENV_VAR = 'ORCA_RENDERER_HEAP_MB'
+const RENDERER_HEAP_ENV_VAR = 'ALICORN_RENDERER_HEAP_MB'
 const BYTES_PER_GIB = 1024 * 1024 * 1024
 // Why: Chromium sizes the renderer's V8 old-space heap from a physical-memory
 // heuristic (~RAM/4), so an 8 GB machine caps the renderer near ~2.2 GB even

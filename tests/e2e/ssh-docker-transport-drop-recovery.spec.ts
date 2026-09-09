@@ -26,7 +26,7 @@ import {
   withStalledDockerSshRelayTarget
 } from './helpers/docker-ssh-relay-faults'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 
 /**
  * Every existing reconnect spec reconnects by calling ssh.disconnect() then ssh.connect() — a
@@ -112,7 +112,7 @@ function readUserDataDir(electronApp: ElectronApplication): Promise<string> {
  * flaky enough to cost more than it proves.
  */
 test.describe('SSH transport drop recovery', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
 
   test('recovers a live pane after the transport dies under it', async ({ orcaPage }, testInfo) => {
     test.slow()
@@ -216,7 +216,7 @@ test.describe('SSH transport drop recovery', () => {
         ptyId,
         `yes "$(printf 'ORCA_%s' FLOOD_LINE)" | head -c 48000000; echo FLOODED`
       )
-      await waitForTerminalOutput(orcaPage, 'ORCA_FLOOD_LINE', 30_000, 20_000)
+      await waitForTerminalOutput(orcaPage, 'ALICORN_FLOOD_LINE', 30_000, 20_000)
       const dropped = dropDockerSshRelayTransport(target)
       expect(dropped).toBeGreaterThan(0)
 

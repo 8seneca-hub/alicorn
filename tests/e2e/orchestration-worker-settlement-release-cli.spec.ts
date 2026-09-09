@@ -47,12 +47,12 @@ process.stdin.on('data', (chunk) => {
       setTimeout(() => process.stdout.write('\\u001b]0;Codex Ready\\u0007'), 10)
     })
   }
-  const encoded = input.match(/ORCA_E2E_WORKER_DONE:([A-Za-z0-9+/=]+)/)?.[1]
+  const encoded = input.match(/ALICORN_E2E_WORKER_DONE:([A-Za-z0-9+/=]+)/)?.[1]
   if (!encoded || !capability) return
   const request = JSON.parse(Buffer.from(encoded, 'base64').toString('utf8'))
   const args = [
     'orchestration', 'send',
-    '--from', request.mismatch ? 'term_foreign' : process.env.ORCA_TERMINAL_HANDLE,
+    '--from', request.mismatch ? 'term_foreign' : process.env.ALICORN_TERMINAL_HANDLE,
     '--dispatch-capability', capability,
     '--to', request.coordinator,
     '--type', 'worker_done',
@@ -63,12 +63,12 @@ process.stdin.on('data', (chunk) => {
     '--outcome', 'succeeded',
     '--json'
   ]
-  const result = spawnSync(process.execPath, [process.env.ORCA_E2E_CLI_ENTRY, ...args], {
+  const result = spawnSync(process.execPath, [process.env.ALICORN_E2E_CLI_ENTRY, ...args], {
     env: process.env,
     encoding: 'utf8'
   })
   appendFileSync(
-    process.env.ORCA_E2E_CLI_LEDGER,
+    process.env.ALICORN_E2E_CLI_LEDGER,
     JSON.stringify({ mismatch: request.mismatch, args, status: result.status, stdout: result.stdout, stderr: result.stderr }) + '\\n'
   )
 })
@@ -93,8 +93,8 @@ const test = base.extend({
   launchEnv: [
     {
       PATH: `${fakeCliDir}${path.delimiter}${process.env.PATH ?? ''}`,
-      ORCA_E2E_CLI_ENTRY: cliEntry,
-      ORCA_E2E_CLI_LEDGER: cliLedgerPath
+      ALICORN_E2E_CLI_ENTRY: cliEntry,
+      ALICORN_E2E_CLI_LEDGER: cliLedgerPath
     },
     { option: true }
   ]
@@ -119,7 +119,7 @@ function readCliLedger(): CliLedgerEntry[] {
 
 function invokeCompiledCli(userDataDir: string, args: string[]) {
   return spawnSync(process.execPath, [cliEntry, ...args], {
-    env: { ...process.env, ORCA_USER_DATA_PATH: userDataDir, ORCA_DEV_CLI_INVOCATION: '1' },
+    env: { ...process.env, ALICORN_USER_DATA_PATH: userDataDir, ALICORN_DEV_CLI_INVOCATION: '1' },
     encoding: 'utf8'
   })
 }
@@ -227,7 +227,7 @@ test('compiled CLI rejects false completion then reconciles the dead retained wo
   }
   await client.call('terminal.send', {
     terminal: workerHandle,
-    text: `ORCA_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: true })}`,
+    text: `ALICORN_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: true })}`,
     enter: true
   })
   await expect.poll(() => readCliLedger()).toHaveLength(1)
@@ -245,7 +245,7 @@ test('compiled CLI rejects false completion then reconciles the dead retained wo
 
   await client.call('terminal.send', {
     terminal: workerHandle,
-    text: `ORCA_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: false })}`,
+    text: `ALICORN_E2E_WORKER_DONE:${encodeWorkerDone({ ...baseMarker, mismatch: false })}`,
     enter: true
   })
   await expect.poll(() => readCliLedger()).toHaveLength(2)

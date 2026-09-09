@@ -160,7 +160,7 @@ describe('tui agent startup plans', () => {
     expect(plan?.launchCommand).not.toContain(prompt)
     expect(plan?.followupPrompt).toBeNull()
     expect(plan?.launchConfig.agentCommand).toBe('hermes --tui')
-    expect(plan?.env?.ORCA_HERMES_STARTUP_QUERY).toBe(prompt)
+    expect(plan?.env?.ALICORN_HERMES_STARTUP_QUERY).toBe(prompt)
     const script =
       testCase.shell === 'posix'
         ? unwrapPosixShellScript(plan?.launchCommand)
@@ -168,16 +168,16 @@ describe('tui agent startup plans', () => {
     expect(script).toContain("'hermes' 'chat'")
     expect(script).toContain('--query=')
     expect(testCase.shell === 'posix' ? plan?.launchCommand : script).toContain(
-      'ORCA_HERMES_STARTUP_QUERY'
+      'ALICORN_HERMES_STARTUP_QUERY'
     )
     expect(script).toContain("'--yolo' '--tui'")
     expect(script).toContain(
       testCase.shell === 'posix'
         ? '--query=${__orca_hermes_startup_query}'
-        : 'Remove-Item Env:ORCA_HERMES_STARTUP_QUERY'
+        : 'Remove-Item Env:ALICORN_HERMES_STARTUP_QUERY'
     )
     if (testCase.shell === 'posix') {
-      expect(plan?.launchCommand).toContain('unset ORCA_HERMES_STARTUP_QUERY')
+      expect(plan?.launchCommand).toContain('unset ALICORN_HERMES_STARTUP_QUERY')
     }
   })
 
@@ -619,7 +619,7 @@ describe('tui agent startup plans', () => {
         cmdOverrides: {},
         platform: 'win32'
       })?.launchCommand
-    ).toBe('pi; Remove-Item Env:ORCA_PI_PREFILL -ErrorAction SilentlyContinue')
+    ).toBe('pi; Remove-Item Env:ALICORN_PI_PREFILL -ErrorAction SilentlyContinue')
 
     expect(
       buildAgentDraftLaunchPlan({
@@ -629,12 +629,12 @@ describe('tui agent startup plans', () => {
         platform: 'win32',
         shell: 'cmd'
       })?.launchCommand
-    ).toBe('pi & set "ORCA_PI_PREFILL="')
+    ).toBe('pi & set "ALICORN_PI_PREFILL="')
   })
 
-  it('returns an OMP draft plan with ORCA_OMP_PREFILL (OMP-scoped, not Pi-shared)', () => {
+  it('returns an OMP draft plan with ALICORN_OMP_PREFILL (OMP-scoped, not Pi-shared)', () => {
     // Why: OMP owns its own managed prefill extension and env var.
-    // orca-prefill.ts reads ORCA_OMP_PREFILL for OMP launches — see
+    // orca-prefill.ts reads ALICORN_OMP_PREFILL for OMP launches — see
     // src/main/pi/titlebar-extension-service.ts — so a draft plan for OMP
     // MUST emit that name. A regression here would either silently drop the
     // draft (Pi var ignored by OMP) or honor a stale Pi-PTY draft.
@@ -646,10 +646,10 @@ describe('tui agent startup plans', () => {
     })
 
     expect(plan).not.toBeNull()
-    expect(plan?.env).toEqual({ ORCA_OMP_PREFILL: 'fix the omp regression' })
+    expect(plan?.env).toEqual({ ALICORN_OMP_PREFILL: 'fix the omp regression' })
     expect(plan?.expectedProcess).toBe('omp')
     expect(plan?.launchCommand).toBe(
-      `omp; command test -n "$fish_pid" && set --erase -g ORCA_OMP_PREFILL; command test -z "$fish_pid" && unset ORCA_OMP_PREFILL; true`
+      `omp; command test -n "$fish_pid" && set --erase -g ALICORN_OMP_PREFILL; command test -z "$fish_pid" && unset ALICORN_OMP_PREFILL; true`
     )
   })
 
@@ -701,15 +701,15 @@ describe('tui agent startup plans', () => {
       agent: 'pi',
       draft: 'prefill text',
       cmdOverrides: {},
-      agentEnv: { ORCA_AGENT_MODE: 'managed' },
+      agentEnv: { ALICORN_AGENT_MODE: 'managed' },
       platform: 'linux'
     })
 
-    expect(plan?.env).toEqual({ ORCA_AGENT_MODE: 'managed', ORCA_PI_PREFILL: 'prefill text' })
+    expect(plan?.env).toEqual({ ALICORN_AGENT_MODE: 'managed', ALICORN_PI_PREFILL: 'prefill text' })
     expect(plan?.launchConfig).toEqual({
       agentCommand: 'pi',
       agentArgs: '',
-      agentEnv: { ORCA_AGENT_MODE: 'managed' }
+      agentEnv: { ALICORN_AGENT_MODE: 'managed' }
     })
   })
 

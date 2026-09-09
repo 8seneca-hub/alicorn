@@ -12,7 +12,7 @@ import { ANTIGRAVITY_PRE_TOOL_USE_DECISION } from './hook-events'
 // the agent allocates for each hook last long enough to see.
 const WINDOWS_ANTIGRAVITY_HOOK_POST_COMMAND = buildWindowsAgentHookPostCommand('antigravity', [
   // Why: Antigravity alone takes its event name from the wrapper's env, not the piped payload.
-  '  --data-urlencode "hook_event_name=%ORCA_ANTIGRAVITY_EVENT%" ^'
+  '  --data-urlencode "hook_event_name=%ALICORN_ANTIGRAVITY_EVENT%" ^'
 ])
 
 export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
@@ -22,14 +22,14 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       // Why (#9358/#9941): inherited delayed expansion eats `!` out of the percent-expanded
       // curl args, mangling paneKey and dropping worktreeId. `!` is legal in a Windows path.
       'setlocal DisableDelayedExpansion',
-      'if /I "%ORCA_ANTIGRAVITY_EVENT%"=="Stop" (',
+      'if /I "%ALICORN_ANTIGRAVITY_EVENT%"=="Stop" (',
       '  echo {"decision":""}',
-      ') else if /I "%ORCA_ANTIGRAVITY_EVENT%"=="PreToolUse" (',
+      ') else if /I "%ALICORN_ANTIGRAVITY_EVENT%"=="PreToolUse" (',
       `  echo ${ANTIGRAVITY_PRE_TOOL_USE_DECISION}`,
       ') else (',
       '  echo {}',
       ')',
-      'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
+      'if defined ALICORN_AGENT_HOOK_ENDPOINT if exist "%ALICORN_AGENT_HOOK_ENDPOINT%" call "%ALICORN_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
       WINDOWS_ANTIGRAVITY_HOOK_POST_COMMAND,
       'exit /b 0',
@@ -40,7 +40,7 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
 
   return [
     '#!/bin/sh',
-    'case "$ORCA_ANTIGRAVITY_EVENT" in',
+    'case "$ALICORN_ANTIGRAVITY_EVENT" in',
     '  Stop)',
     '    printf \'{"decision":""}\\n\'',
     '    ;;',
@@ -56,11 +56,11 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     // Why: some Antigravity events arrive without stdin but still need a
     // status post, so the shared capture maps empty input to an object.
     ...buildPosixHookPayloadCapture('empty-object'),
-    ...buildPosixHookSpoolLines('antigravity', 'ORCA_ANTIGRAVITY_EVENT'),
-    'if [ -n "$ORCA_AGENT_HOOK_ENDPOINT" ] && [ -r "$ORCA_AGENT_HOOK_ENDPOINT" ]; then',
-    '  . "$ORCA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
+    ...buildPosixHookSpoolLines('antigravity', 'ALICORN_ANTIGRAVITY_EVENT'),
+    'if [ -n "$ALICORN_AGENT_HOOK_ENDPOINT" ] && [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ]; then',
+    '  . "$ALICORN_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
-    'if [ -z "$ORCA_AGENT_HOOK_PORT" ] || [ -z "$ORCA_AGENT_HOOK_TOKEN" ] || [ -z "$ORCA_PANE_KEY" ]; then',
+    'if [ -z "$ALICORN_AGENT_HOOK_PORT" ] || [ -z "$ALICORN_AGENT_HOOK_TOKEN" ] || [ -z "$ALICORN_PANE_KEY" ]; then',
     '  spool_hook_event',
     '  exit 0',
     'fi',
@@ -68,17 +68,17 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     // Why: pipe payload to curl's stdin (`payload@-`) instead of an inline
     // `payload=$VALUE` arg, so tens-of-KB tool output stays off the curl
     // command line (EDR command-line false positives). Wire body is identical.
-    'printf \'%s\' "$payload" | curl -sS -X POST "http://127.0.0.1:${ORCA_AGENT_HOOK_PORT}/hook/antigravity" \\',
+    'printf \'%s\' "$payload" | curl -sS -X POST "http://127.0.0.1:${ALICORN_AGENT_HOOK_PORT}/hook/antigravity" \\',
     '  --connect-timeout 0.5 --max-time 1.5 \\',
     '  -H "Content-Type: application/x-www-form-urlencoded" \\',
-    '  -H "X-Orca-Agent-Hook-Token: ${ORCA_AGENT_HOOK_TOKEN}" \\',
-    '  --data-urlencode "paneKey=${ORCA_PANE_KEY}" \\',
-    '  --data-urlencode "tabId=${ORCA_TAB_ID}" \\',
-    '  --data-urlencode "launchToken=${ORCA_AGENT_LAUNCH_TOKEN}" \\',
-    '  --data-urlencode "worktreeId=${ORCA_WORKTREE_ID}" \\',
-    '  --data-urlencode "env=${ORCA_AGENT_HOOK_ENV}" \\',
-    '  --data-urlencode "version=${ORCA_AGENT_HOOK_VERSION}" \\',
-    '  --data-urlencode "hook_event_name=${ORCA_ANTIGRAVITY_EVENT}" \\',
+    '  -H "X-Orca-Agent-Hook-Token: ${ALICORN_AGENT_HOOK_TOKEN}" \\',
+    '  --data-urlencode "paneKey=${ALICORN_PANE_KEY}" \\',
+    '  --data-urlencode "tabId=${ALICORN_TAB_ID}" \\',
+    '  --data-urlencode "launchToken=${ALICORN_AGENT_LAUNCH_TOKEN}" \\',
+    '  --data-urlencode "worktreeId=${ALICORN_WORKTREE_ID}" \\',
+    '  --data-urlencode "env=${ALICORN_AGENT_HOOK_ENV}" \\',
+    '  --data-urlencode "version=${ALICORN_AGENT_HOOK_VERSION}" \\',
+    '  --data-urlencode "hook_event_name=${ALICORN_ANTIGRAVITY_EVENT}" \\',
     '  --data-urlencode "payload@-" >/dev/null 2>&1 || spool_hook_event',
     'exit 0',
     ''
@@ -89,15 +89,15 @@ export function getWindowsWrapperScript(eventName: string): string {
   return [
     '@echo off',
     'setlocal',
-    `set "ORCA_ANTIGRAVITY_EVENT=${eventName}"`,
-    'set "ORCA_ANTIGRAVITY_CORE=%~dp0antigravity-hook.cmd"',
-    'if exist "%ORCA_ANTIGRAVITY_CORE%" (',
-    '  call "%ORCA_ANTIGRAVITY_CORE%"',
+    `set "ALICORN_ANTIGRAVITY_EVENT=${eventName}"`,
+    'set "ALICORN_ANTIGRAVITY_CORE=%~dp0antigravity-hook.cmd"',
+    'if exist "%ALICORN_ANTIGRAVITY_CORE%" (',
+    '  call "%ALICORN_ANTIGRAVITY_CORE%"',
     '  exit /b 0',
     ')',
-    'if /I "%ORCA_ANTIGRAVITY_EVENT%"=="Stop" (',
+    'if /I "%ALICORN_ANTIGRAVITY_EVENT%"=="Stop" (',
     '  echo {"decision":""}',
-    ') else if /I "%ORCA_ANTIGRAVITY_EVENT%"=="PreToolUse" (',
+    ') else if /I "%ALICORN_ANTIGRAVITY_EVENT%"=="PreToolUse" (',
     `  echo ${ANTIGRAVITY_PRE_TOOL_USE_DECISION}`,
     ') else (',
     '  echo {}',

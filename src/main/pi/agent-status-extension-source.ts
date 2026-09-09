@@ -3,7 +3,7 @@
 // etc.). To get pi panes into the unified agent-hooks pipeline alongside
 // Claude/Codex/Gemini/OpenCode/Cursor, we ship a bundled extension into
 // the selected Pi/OMP extension dir (PiTitlebarExtensionService) that POSTs to
-// /hook/<kind> using the same ORCA_AGENT_HOOK_* + ORCA_PANE_KEY env that every
+// /hook/<kind> using the same ALICORN_AGENT_HOOK_* + ALICORN_PANE_KEY env that every
 // PTY already receives from ipc/pty.ts.
 //
 // Each Pi process gets its own paneKey through env. Like the OpenCode plugin,
@@ -15,7 +15,7 @@ import { getPiAgentStatusHandlerSourceLines } from './agent-status-handler-sourc
 import { getPiAgentStatusRuntimeDetectionSourceLines } from './agent-status-runtime-detection-source'
 import { getPiAgentStatusWslCurlSourceLines } from './agent-status-wsl-curl-source'
 
-export const ORCA_PI_AGENT_STATUS_EXTENSION_FILE = 'orca-agent-status.ts'
+export const ALICORN_PI_AGENT_STATUS_EXTENSION_FILE = 'orca-agent-status.ts'
 
 export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): string {
   // Why: OMP needs the file only to reject ephemeral sessions; disclose just its resume id.
@@ -111,7 +111,7 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     'let cachedEndpointValues: Record<string, string> | null = null',
     '',
     'function readEndpointFile(): Record<string, string> | null {',
-    '  const path = process.env.ORCA_AGENT_HOOK_ENDPOINT',
+    '  const path = process.env.ALICORN_AGENT_HOOK_ENDPOINT',
     '  if (!path) return null',
     '  try {',
     "    const fs = require('fs')",
@@ -151,10 +151,10 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     'function resolveHookCoords() {',
     '  const fileEnv = readEndpointFile() || {}',
     '  return {',
-    '    port: fileEnv.ORCA_AGENT_HOOK_PORT || process.env.ORCA_AGENT_HOOK_PORT,',
-    '    token: fileEnv.ORCA_AGENT_HOOK_TOKEN || process.env.ORCA_AGENT_HOOK_TOKEN,',
-    "    env: fileEnv.ORCA_AGENT_HOOK_ENV || process.env.ORCA_AGENT_HOOK_ENV || '',",
-    "    version: fileEnv.ORCA_AGENT_HOOK_VERSION || process.env.ORCA_AGENT_HOOK_VERSION || '',",
+    '    port: fileEnv.ALICORN_AGENT_HOOK_PORT || process.env.ALICORN_AGENT_HOOK_PORT,',
+    '    token: fileEnv.ALICORN_AGENT_HOOK_TOKEN || process.env.ALICORN_AGENT_HOOK_TOKEN,',
+    "    env: fileEnv.ALICORN_AGENT_HOOK_ENV || process.env.ALICORN_AGENT_HOOK_ENV || '',",
+    "    version: fileEnv.ALICORN_AGENT_HOOK_VERSION || process.env.ALICORN_AGENT_HOOK_VERSION || '',",
     '  }',
     '}',
     '',
@@ -191,14 +191,14 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     '  ompRuntime: boolean',
     '): Promise<void> {',
     '  const coords = resolveHookCoords()',
-    '  const paneKey = process.env.ORCA_PANE_KEY',
+    '  const paneKey = process.env.ALICORN_PANE_KEY',
     '  if (!coords.port || !coords.token || !paneKey) return',
     '  const url = `http://127.0.0.1:${coords.port}${resolveHookPath(ompRuntime)}`',
     '  const body = JSON.stringify({',
     '    paneKey,',
-    "    launchToken: process.env.ORCA_AGENT_LAUNCH_TOKEN || '',",
-    "    tabId: process.env.ORCA_TAB_ID || '',",
-    "    worktreeId: process.env.ORCA_WORKTREE_ID || '',",
+    "    launchToken: process.env.ALICORN_AGENT_LAUNCH_TOKEN || '',",
+    "    tabId: process.env.ALICORN_TAB_ID || '',",
+    "    worktreeId: process.env.ALICORN_WORKTREE_ID || '',",
     '    env: coords.env,',
     '    version: coords.version,',
     payloadLine,

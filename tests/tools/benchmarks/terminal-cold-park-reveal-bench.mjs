@@ -5,7 +5,7 @@
 // was still in the hot-retain working set. The stock terminal-perf-bench
 // workspace-switch scenario cycles 3 worktrees fast enough that parking never
 // fires, so it only ever measures warm reveals. This bench drives the
-// ORCA_E2E_TERMINAL_PARKING_DELAY_MS override to shrink the 30s hysteresis and
+// ALICORN_E2E_TERMINAL_PARKING_DELAY_MS override to shrink the 30s hysteresis and
 // window.__terminalParkingDebug.parkedTabIds() to *confirm* a tab parked before
 // timing its reveal — so the cold vs warm delta is the real cost of parking.
 //
@@ -469,7 +469,7 @@ async function main() {
     userDataDir = createShortUserDataDirectory()
     // Shrink the 30s cold-park hysteresis + 5-min hot-retain so parking is
     // observable in a benchmark run. Inherited by launchDevApp into the app.
-    process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
+    process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
     console.log(
       `[cold-park] fixture=${fixture.baseDir} userData=${userDataDir} cdp=${cdpPort} parkDelay=${PARK_DELAY_MS}ms`
     )

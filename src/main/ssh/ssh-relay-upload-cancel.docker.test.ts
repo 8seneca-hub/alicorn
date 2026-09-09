@@ -17,7 +17,7 @@ import { listRelayBaseDirsCommand } from './ssh-remote-commands'
 import { gcOldRelayVersions } from './ssh-relay-versioned-install'
 import type { SshTarget } from '../../shared/ssh-types'
 
-const RUN_REVIEW_ORACLE = process.env.ORCA_REVIEW_SSH_UPLOAD_CANCEL === '1'
+const RUN_REVIEW_ORACLE = process.env.ALICORN_REVIEW_SSH_UPLOAD_CANCEL === '1'
 const REMOTE_REPO = '/tmp/orca-pr-10207-real-repo'
 
 type TargetFixture = {
@@ -50,9 +50,9 @@ function dockerExec(fixture: TargetFixture, command: string): string {
 }
 
 function startTarget(): TargetFixture {
-  const image = process.env.ORCA_REVIEW_SSH_IMAGE
+  const image = process.env.ALICORN_REVIEW_SSH_IMAGE
   if (!image) {
-    throw new Error('ORCA_REVIEW_SSH_IMAGE is required')
+    throw new Error('ALICORN_REVIEW_SSH_IMAGE is required')
   }
   const tempDir = mkdtempSync(join(tmpdir(), 'orca-pr10207-ssh-'))
   const identityFile = join(tempDir, 'id_ed25519')
@@ -105,7 +105,7 @@ function stopTarget(fixture: TargetFixture | null): void {
 }
 
 function createConnection(fixture: TargetFixture): SshConnection {
-  const host = process.env.ORCA_REVIEW_SSH_TARGET_HOST ?? ''
+  const host = process.env.ALICORN_REVIEW_SSH_TARGET_HOST ?? ''
   if (!host || host === 'localhost' || host === '::1' || host.startsWith('127.')) {
     throw new Error(`Review SSH target must be non-loopback, received ${JSON.stringify(host)}`)
   }
@@ -302,7 +302,7 @@ describe.skipIf(!RUN_REVIEW_ORACLE)('SSH relay upload cancellation recovery', ()
     ).rejects.toBe(unconfirmedCancellation)
     await firstConnection.disconnect()
     const firstInventory = readInventory(activeFixture, remoteRelayDir)
-    const expected = process.env.ORCA_REVIEW_EXPECT_RECOVERY === '1' ? 'recovered' : 'blocked'
+    const expected = process.env.ALICORN_REVIEW_EXPECT_RECOVERY === '1' ? 'recovered' : 'blocked'
     if (expected === 'recovered') {
       const secondAbandonedConnection = createConnection(activeFixture)
       await secondAbandonedConnection.connect()

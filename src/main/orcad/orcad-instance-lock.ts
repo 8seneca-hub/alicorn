@@ -146,7 +146,7 @@ function assertDataRootIsPrivate(dataRoot: string): void {
     throw new OrcadInstanceLockError(
       'orcad_data_root_wrong_owner',
       `The orcad data root ${dataRoot} is owned by uid ${stats.uid}, not by uid ${uid} running ` +
-        'this process. Give orcad its own data root (ORCA_USER_DATA) or chown this one.'
+        'this process. Give orcad its own data root (ALICORN_USER_DATA) or chown this one.'
     )
   }
   if ((stats.mode & 0o077) === 0) {
@@ -171,7 +171,7 @@ function assertDataRootIsPrivate(dataRoot: string): void {
       'orcad_data_root_shared',
       `The orcad data root ${dataRoot} is accessible to other users (mode ` +
         `${(mode & 0o777).toString(8)}) and could not be tightened. orcad stores credentials ` +
-        'there unsealed, so it refuses to start. Run `chmod 700` on it, or point ORCA_USER_DATA ' +
+        'there unsealed, so it refuses to start. Run `chmod 700` on it, or point ALICORN_USER_DATA ' +
         'at a private directory.'
     )
   }
@@ -207,7 +207,7 @@ export function acquireOrcadInstanceLock(
     pid: process.pid,
     startedAtMs: readStartedAt(process.pid),
     identity,
-    version: (hooks.version ?? (() => process.env.ORCA_VERSION ?? 'unknown'))(),
+    version: (hooks.version ?? (() => process.env.ALICORN_VERSION ?? 'unknown'))(),
     acquiredAt: (hooks.now ?? (() => new Date()))().toISOString(),
     nonce: randomUUID()
   }
@@ -238,7 +238,7 @@ export function acquireOrcadInstanceLock(
       'orcad_instance_lock_foreign_identity',
       `The orcad data root ${dataRoot} is locked by identity ${existing.identity} (pid ` +
         `${existing.pid}); this process runs as ${identity}. Two identities sharing one data ` +
-        'root corrupts it. Give each its own ORCA_USER_DATA.'
+        'root corrupts it. Give each its own ALICORN_USER_DATA.'
     )
   }
   if (existing && isAlive(existing.pid) && matchesStartTime(existing.pid, existing.startedAtMs)) {
@@ -246,7 +246,7 @@ export function acquireOrcadInstanceLock(
       'orcad_instance_lock_held',
       `Another orcad (pid ${existing.pid}, started ${existing.acquiredAt || 'unknown'}) already ` +
         `owns the data root ${dataRoot}. Stop it before starting another, or use a different ` +
-        'ORCA_USER_DATA.'
+        'ALICORN_USER_DATA.'
     )
   }
   if (!existing) {

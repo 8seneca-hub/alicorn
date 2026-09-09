@@ -5,7 +5,7 @@ const extraArgs = process.argv.slice(2)
 const { command: pnpm, prefixArgs: pnpmPrefix, shell } = resolvePnpmCliInvocation()
 const env = {
   ...process.env,
-  ORCA_E2E_SSH_DOCKER: '1'
+  ALICORN_E2E_SSH_DOCKER: '1'
 }
 
 const runtime = spawnSync(pnpm, [...pnpmPrefix, 'run', 'ensure:electron-runtime'], {

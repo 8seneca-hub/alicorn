@@ -256,7 +256,7 @@ describe('ClaudeHookService.install', () => {
       // Why: non-subscriber sessions never carry rate_limits; both branches must guard before spawning curl.
       if (process.platform === 'win32') {
         expect(script).toContain('findstr.exe" /c:\\"rate_limits\\"')
-        expect(script).toContain('--data-urlencode "payload@%ORCA_STATUSLINE_PAYLOAD_FILE%"')
+        expect(script).toContain('--data-urlencode "payload@%ALICORN_STATUSLINE_PAYLOAD_FILE%"')
       } else {
         expect(script).toContain('"rate_limits"')
         expect(script).toContain('--data-urlencode "payload@-"')
@@ -425,7 +425,7 @@ describe('ClaudeHookService.install', () => {
 
 describe('backgrounded-session pane guard (#9236)', () => {
   // Why: a `--bg` / `/background` worker runs under the shared daemon and inherits the
-  // env of whichever pane started that daemon, so ORCA_PANE_KEY names a pane the session
+  // env of whichever pane started that daemon, so ALICORN_PANE_KEY names a pane the session
   // does not run in. CLAUDE_JOB_DIR is set only in those workers, so it is the signal to
   // decline rather than post a pane identity the worker cannot prove is current.
   it('declines to post from a daemon worker, before spawning curl', async () => {
@@ -543,7 +543,7 @@ describe('ClaudeHookService.installRemote', () => {
     expect(script).toContain('printf \'%s\' "$payload" | curl')
     expect(script).toContain('-H "Content-Type: application/json"')
     expect(script).toContain('orca_hook_metadata=$(printf')
-    expect(script).toContain('unset ORCA_AGENT_HOOK_TRANSPORT')
+    expect(script).toContain('unset ALICORN_AGENT_HOOK_TRANSPORT')
     expect(script).toContain('-H "X-Orca-Agent-Hook-Meta: ${orca_hook_metadata}"')
     expect(script).toContain('--data-binary @-')
     expect(script).toContain('--data-urlencode "payload@-"')

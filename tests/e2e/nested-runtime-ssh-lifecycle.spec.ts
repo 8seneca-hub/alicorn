@@ -32,11 +32,11 @@ import {
 } from './helpers/nested-runtime-ssh-client-route'
 
 const isDockerNestedRuntimeRun =
-  process.env.ORCA_E2E_NESTED_RUNTIME_SSH === '1' && process.env.ORCA_E2E_WEB_CLIENT === '1'
+  process.env.ALICORN_E2E_NESTED_RUNTIME_SSH === '1' && process.env.ALICORN_E2E_WEB_CLIENT === '1'
 
 test.skip(
   !isDockerNestedRuntimeRun,
-  'Run with ORCA_E2E_NESTED_RUNTIME_SSH=1 and ORCA_E2E_WEB_CLIENT=1'
+  'Run with ALICORN_E2E_NESTED_RUNTIME_SSH=1 and ALICORN_E2E_WEB_CLIENT=1'
 )
 
 test.describe.configure({ mode: 'serial' })
@@ -370,7 +370,7 @@ test('routes nested SSH through a HUB without shared-control capability', async 
 }, testInfo) => {
   test.setTimeout(360_000)
   const hub = createRestartSession(testInfo, {
-    ORCA_E2E_DISABLE_RUNTIME_SHARED_CONTROL: '1'
+    ALICORN_E2E_DISABLE_RUNTIME_SHARED_CONTROL: '1'
   })
   let target: DockerSshRelayTarget | null = null
   let client: PairedElectronClient | null = null
@@ -696,7 +696,7 @@ test('restores a paired nested SSH route after the HUB restarts', async ({
     const shellPidBeforeRestart = await readRemoteShellPid(
       client,
       beforeRestart.ptyId,
-      'ORCA_SHELL_BEFORE_RESTART_'
+      'ALICORN_SHELL_BEFORE_RESTART_'
     )
     const preRestartEnvironmentId = client.environmentId
 
@@ -735,7 +735,11 @@ test('restores a paired nested SSH route after the HUB restarts', async ({
     )
     expect(afterRestartWithoutRepair.runtimeOwnerEnvironmentId).toBe(preRestartEnvironmentId)
     expect(
-      await readRemoteShellPid(client, afterRestartWithoutRepair.ptyId, 'ORCA_SHELL_AFTER_RESTART_')
+      await readRemoteShellPid(
+        client,
+        afterRestartWithoutRepair.ptyId,
+        'ALICORN_SHELL_AFTER_RESTART_'
+      )
     ).toBe(shellPidBeforeRestart)
 
     const restartedOffer = await createRuntimeDesktopPairingOffer(hubLaunch.page)

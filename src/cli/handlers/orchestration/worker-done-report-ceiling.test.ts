@@ -44,12 +44,12 @@ describe('isOrchestratedWorker', () => {
   })
 
   it('reads the environment stamped at dispatch', () => {
-    expect(isOrchestratedWorker(flags(), { ORCA_ALICORN_STRATEGY: 'orchestrated' })).toBe(true)
+    expect(isOrchestratedWorker(flags(), { ALICORN_ALICORN_STRATEGY: 'orchestrated' })).toBe(true)
   })
 
   it('is false for a single-agent run', () => {
     expect(isOrchestratedWorker(flags(), {})).toBe(false)
-    expect(isOrchestratedWorker(flags(), { ORCA_ALICORN_STRATEGY: 'single' })).toBe(false)
+    expect(isOrchestratedWorker(flags(), { ALICORN_ALICORN_STRATEGY: 'single' })).toBe(false)
   })
 })
 

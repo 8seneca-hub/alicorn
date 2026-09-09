@@ -14,13 +14,13 @@
 // Run with:  node config/scripts/hydrate-worktree-lookup-benchmark.mjs
 import { performance } from 'node:perf_hooks'
 
-const ITERATIONS = Number(process.env.ORCA_HYDRATE_BENCH_ITERATIONS ?? '60')
-const WARMUP = Number(process.env.ORCA_HYDRATE_BENCH_WARMUP ?? '10')
+const ITERATIONS = Number(process.env.ALICORN_HYDRATE_BENCH_ITERATIONS ?? '60')
+const WARMUP = Number(process.env.ALICORN_HYDRATE_BENCH_WARMUP ?? '10')
 const ROUNDS = 6
 
 for (const [name, value] of [
-  ['ORCA_HYDRATE_BENCH_ITERATIONS', ITERATIONS],
-  ['ORCA_HYDRATE_BENCH_WARMUP', WARMUP]
+  ['ALICORN_HYDRATE_BENCH_ITERATIONS', ITERATIONS],
+  ['ALICORN_HYDRATE_BENCH_WARMUP', WARMUP]
 ]) {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer, received ${value}`)

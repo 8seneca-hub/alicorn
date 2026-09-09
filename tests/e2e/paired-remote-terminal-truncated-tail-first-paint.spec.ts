@@ -41,8 +41,8 @@ test.afterAll(() => {
 
 test.use({
   orcaAppExtraEnv: {
-    ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(RETENTION_PARK_DELAY_MS),
-    ORCA_E2E_TERMINAL_RETENTION_LIMIT: '1'
+    ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(RETENTION_PARK_DELAY_MS),
+    ALICORN_E2E_TERMINAL_RETENTION_LIMIT: '1'
   }
 })
 
@@ -229,7 +229,7 @@ test('legacy paired hosts retain the lossy hidden-manager budget fallback @headf
   orcaPage
 }) => {
   test.skip(
-    process.env.ORCA_E2E_DISABLE_PAIRED_TERMINAL_PARKING !== '1',
+    process.env.ALICORN_E2E_DISABLE_PAIRED_TERMINAL_PARKING !== '1',
     'The legacy fallback requires a host without terminal.paired-parking.v1.'
   )
   test.setTimeout(120_000)

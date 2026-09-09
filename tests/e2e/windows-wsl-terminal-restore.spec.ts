@@ -16,7 +16,7 @@ import {
   waitForTerminalOutput
 } from './helpers/terminal'
 
-const REQUIRE_WSL_RESTORE = process.env.ORCA_REQUIRE_WSL_RESTORE_E2E === '1'
+const REQUIRE_WSL_RESTORE = process.env.ALICORN_REQUIRE_WSL_RESTORE_E2E === '1'
 
 type WslRestoreSnapshot = {
   hostCwd: string

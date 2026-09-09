@@ -172,7 +172,7 @@ Windows arm64 cross-compiles from the x64 runner — verified on real hardware,
 producing `IMAGE_FILE_MACHINE_ARM64` (0xaa64) against x64's 0x8664. It needs the
 optional _MSVC v143 ARM64 build tools_ component; without it node-gyp fails with
 `MSB8020`, which is why the addon build runs before the long packaging step.
-`ORCA_REQUIRE_RELAY_NATIVE_ADDONS` is a per-arch list so a future arch can be
+`ALICORN_REQUIRE_RELAY_NATIVE_ADDONS` is a per-arch list so a future arch can be
 added best-effort before it is promoted to required.
 
 `windows-process-table.ts` binds the bare addon directly rather than the package

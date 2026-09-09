@@ -25,10 +25,10 @@ export function runInstallScript(projectDir, extraEnv = {}) {
     env: {
       ...process.env,
       ELECTRON_CACHE: undefined,
-      ORCA_ELECTRON_PACKAGE_CACHE_ROOT: undefined,
+      ALICORN_ELECTRON_PACKAGE_CACHE_ROOT: undefined,
       npm_config_platform: 'linux',
       npm_config_arch: 'x64',
-      ORCA_ELECTRON_PACKAGE_EXTRACTOR: join(projectDir, 'fake-extractor.cjs'),
+      ALICORN_ELECTRON_PACKAGE_EXTRACTOR: join(projectDir, 'fake-extractor.cjs'),
       ...extraEnv
     }
   })

@@ -79,7 +79,7 @@ test.afterAll(() => {
 })
 
 // Why: the HOST must park quickly too, so its launch env carries the override.
-test.use({ orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARK_DELAY_MS) } })
+test.use({ orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARK_DELAY_MS) } })
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", `'\\''`)}'`
@@ -151,8 +151,8 @@ test('a cold-parked host pane keeps serving its paired remote viewer', async ({
 }, testInfo) => {
   test.setTimeout(600_000)
   const offer = await createRuntimeDesktopPairingOffer(orcaPage)
-  const previousParkDelay = process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS
-  process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
+  const previousParkDelay = process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS
+  process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
   const client = await launchPairedElectronClient(offer, testInfo, 'host-park-viewer')
   const createdTerminals: string[] = []
   const sinkPath = path.join(scratch, `sink-${randomUUID()}.log`)
@@ -370,9 +370,9 @@ test('a cold-parked host pane keeps serving its paired remote viewer', async ({
     // H+ samples), not a precondition of the invariant.
   } finally {
     if (previousParkDelay === undefined) {
-      delete process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS
+      delete process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS
     } else {
-      process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS = previousParkDelay
+      process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS = previousParkDelay
     }
     for (const terminal of createdTerminals) {
       await callEnvironment(client.page, client.environmentId, 'terminal.closeTab', {

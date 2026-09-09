@@ -28,11 +28,11 @@ import {
   type Grid
 } from './ssh-terminal-stale-grid-probe'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const BASE_VIEWPORT = { width: 1160, height: 760 }
 
 async function startRemoteMonitor(page: Page, ptyId: string): Promise<void> {
-  const marker = `ORCA_SSH_WAKE_READY_${Date.now()}`
+  const marker = `ALICORN_SSH_WAKE_READY_${Date.now()}`
   await execInTerminal(page, ptyId, `printf '${marker}\\n'`)
   await waitForTerminalOutput(page, marker, 20_000, 60_000)
   await execInTerminal(page, ptyId, `node ${REMOTE_MONITOR_PATH} ${REMOTE_STATE_PATH}`)
@@ -46,7 +46,7 @@ function chooseStaleGrid(current: Grid): Grid {
 }
 
 test.describe('SSH terminal window-wake stale PTY grid repro', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH repro.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH repro.')
   test.skip(process.platform === 'win32', 'Docker SSH repro uses POSIX SSH tooling.')
 
   test('window focus heals a remote PTY whose applied grid drifted from xterm', async ({

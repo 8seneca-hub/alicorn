@@ -35,9 +35,9 @@ const writableShellScript = path.join(
 
 test.use({
   launchEnv: {
-    ORCA_REPRO_EXIT_TRIGGER: exitTriggerPath,
-    ORCA_REPRO_INPUT_MARKER: inputMarkerPath,
-    ORCA_REPRO_SPAWN_MARKER: spawnMarkerPath
+    ALICORN_REPRO_EXIT_TRIGGER: exitTriggerPath,
+    ALICORN_REPRO_INPUT_MARKER: inputMarkerPath,
+    ALICORN_REPRO_SPAWN_MARKER: spawnMarkerPath
   }
 })
 

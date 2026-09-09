@@ -27,12 +27,12 @@ import { fileURLToPath } from 'node:url'
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url))
 
-const ROUNDS = Number(process.env.ORCA_CLI_DEFER_BENCH_ROUNDS ?? '30')
-const WARMUP = Number(process.env.ORCA_CLI_DEFER_BENCH_WARMUP ?? '3')
+const ROUNDS = Number(process.env.ALICORN_CLI_DEFER_BENCH_ROUNDS ?? '30')
+const WARMUP = Number(process.env.ALICORN_CLI_DEFER_BENCH_WARMUP ?? '3')
 
 for (const [name, value] of [
-  ['ORCA_CLI_DEFER_BENCH_ROUNDS', ROUNDS],
-  ['ORCA_CLI_DEFER_BENCH_WARMUP', WARMUP]
+  ['ALICORN_CLI_DEFER_BENCH_ROUNDS', ROUNDS],
+  ['ALICORN_CLI_DEFER_BENCH_WARMUP', WARMUP]
 ]) {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer, received ${value}`)
@@ -40,7 +40,7 @@ for (const [name, value] of [
 }
 if (ROUNDS % 2 !== 0) {
   // Why: arms alternate which one leads; an odd count biases one arm.
-  throw new Error(`ORCA_CLI_DEFER_BENCH_ROUNDS must be even, received ${ROUNDS}`)
+  throw new Error(`ALICORN_CLI_DEFER_BENCH_ROUNDS must be even, received ${ROUNDS}`)
 }
 
 const TOUCHED = [
@@ -195,7 +195,7 @@ try {
 
   // Each case is (label, argv, env). The runtime-dependent ones point at an
   // empty user-data dir so both arms get the same deterministic answer.
-  const isolated = { ORCA_USER_DATA_PATH: userDataPath }
+  const isolated = { ALICORN_USER_DATA_PATH: userDataPath }
   /** @type {Array<[string, string[], Record<string, string>]>} */
   const cases = [
     ['orca --help', ['--help'], {}],

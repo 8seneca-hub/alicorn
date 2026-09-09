@@ -119,7 +119,7 @@ async function runNativeScenario(
 
 test.describe('Native macOS 2-Set Korean terminal input @headful', () => {
   test.skip(
-    process.platform !== 'darwin' || process.env.ORCA_E2E_NATIVE_MACOS_KOREAN !== '1',
+    process.platform !== 'darwin' || process.env.ALICORN_E2E_NATIVE_MACOS_KOREAN !== '1',
     'Requires macOS with 2-Set Korean selected and Accessibility access'
   )
 

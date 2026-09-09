@@ -14,7 +14,7 @@ import {
 import { listWorktrees } from './worktree'
 import { resetWslLinkedWorktreeGitRoutingForTests } from './wsl-linked-worktree-git-routing'
 
-const distro = process.env.ORCA_TEST_WSL_DISTRO?.trim()
+const distro = process.env.ALICORN_TEST_WSL_DISTRO?.trim()
 const fixtureRoots: string[] = []
 const wslFixtureRoots: string[] = []
 

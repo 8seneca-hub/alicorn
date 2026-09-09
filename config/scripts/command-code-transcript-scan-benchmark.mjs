@@ -52,12 +52,12 @@ function readMirroredConstant(name) {
 const TRANSCRIPT_CHUNK_BYTES = readMirroredConstant('TRANSCRIPT_CHUNK_BYTES')
 const TRANSCRIPT_MAX_SCAN_BYTES = readMirroredConstant('TRANSCRIPT_MAX_SCAN_BYTES')
 const EMPTY_REGION = Buffer.alloc(0)
-const ITERATIONS = Number.parseInt(process.env.ORCA_CC_SCAN_BENCH_ITERATIONS ?? '150', 10)
-const WARMUP = Number.parseInt(process.env.ORCA_CC_SCAN_BENCH_WARMUP ?? '20', 10)
+const ITERATIONS = Number.parseInt(process.env.ALICORN_CC_SCAN_BENCH_ITERATIONS ?? '150', 10)
+const WARMUP = Number.parseInt(process.env.ALICORN_CC_SCAN_BENCH_WARMUP ?? '20', 10)
 
 for (const [name, value] of [
-  ['ORCA_CC_SCAN_BENCH_ITERATIONS', ITERATIONS],
-  ['ORCA_CC_SCAN_BENCH_WARMUP', WARMUP]
+  ['ALICORN_CC_SCAN_BENCH_ITERATIONS', ITERATIONS],
+  ['ALICORN_CC_SCAN_BENCH_WARMUP', WARMUP]
 ]) {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer, received ${value}`)

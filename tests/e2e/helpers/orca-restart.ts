@@ -111,14 +111,14 @@ function createRestartLaunchIsolation(
     inheritedEnv: cleanEnv,
     launchEnv: {
       NODE_ENV: 'development',
-      ...((process.env.ORCA_E2E_SSH_LOCALHOST === '1' ||
-        process.env.ORCA_E2E_SSH_DOCKER === '1' ||
-        process.env.ORCA_E2E_NESTED_RUNTIME_SSH === '1') &&
-      !cleanEnv.ORCA_RELAY_PATH
-        ? { ORCA_RELAY_PATH: path.join(process.cwd(), 'out', 'relay') }
+      ...((process.env.ALICORN_E2E_SSH_LOCALHOST === '1' ||
+        process.env.ALICORN_E2E_SSH_DOCKER === '1' ||
+        process.env.ALICORN_E2E_NESTED_RUNTIME_SSH === '1') &&
+      !cleanEnv.ALICORN_RELAY_PATH
+        ? { ALICORN_RELAY_PATH: path.join(process.cwd(), 'out', 'relay') }
         : {}),
       ...extraEnv,
-      ...(headful ? { ORCA_E2E_HEADFUL: '1' } : { ORCA_E2E_HEADLESS: '1' })
+      ...(headful ? { ALICORN_E2E_HEADFUL: '1' } : { ALICORN_E2E_HEADLESS: '1' })
     },
     extraEnv: {},
     userDataDir
@@ -179,7 +179,7 @@ export function createRestartSession(
       env: {
         ...homeIsolation.env,
         ...options?.extraEnv,
-        ORCA_E2E_RUNTIME_WS_PORT: String(runtimeWsPort)
+        ALICORN_E2E_RUNTIME_WS_PORT: String(runtimeWsPort)
       }
     })
     // Why: attach before firstWindow — the main-process daemon guard and the
@@ -209,7 +209,7 @@ export function createRestartSession(
 
   const dispose = async (): Promise<void> => {
     await cleanupE2EDaemons(userDataDir)
-    if (process.env.ORCA_E2E_PRESERVE_RESTART_PROFILE === '1') {
+    if (process.env.ALICORN_E2E_PRESERVE_RESTART_PROFILE === '1') {
       console.log(`[e2e] Preserved restart profile at ${userDataDir}`)
       return
     }

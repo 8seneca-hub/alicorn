@@ -10,7 +10,7 @@ import {
 } from './helpers/computer-driver'
 
 const isLinux = process.platform === 'linux'
-const e2eOptIn = process.env.ORCA_COMPUTER_E2E === '1'
+const e2eOptIn = process.env.ALICORN_COMPUTER_E2E === '1'
 
 describe.skipIf(!isLinux || !e2eOptIn)('computer-use Linux e2e (gedit)', () => {
   beforeAll(async () => {

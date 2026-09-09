@@ -66,7 +66,7 @@ test.describe('tab rename paste ownership', () => {
     await expect(renameInput).toBeVisible()
     await renameInput.fill('')
 
-    const payload = `ORCA_E2E_TEXTBOX_PASTE_${randomUUID()}`
+    const payload = `ALICORN_E2E_TEXTBOX_PASTE_${randomUUID()}`
     await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
     await clearTerminalPtyWriteLog(electronApp)
     await expect(renameInput).toBeFocused()

@@ -16,7 +16,7 @@ import { browserPageDocLocationsEqual } from '../../../shared/browser-page-doc-l
 import type { BrowserPageDocLocation } from '../../../shared/browser-workspace-types'
 import { findPage } from '@/store/slices/browser-page-records'
 import type { BrowserPageConversionLeg } from '@/store/slices/browser-page-conversion'
-import { ORCA_BROWSER_BLANK_URL } from '../../../shared/constants'
+import { ALICORN_BROWSER_BLANK_URL } from '../../../shared/constants'
 
 export type PreviewableLanguage = 'html'
 /** Still the answer for flows that need a real `file://` URL (e.g. dropping a file on a browser pane). */
@@ -187,7 +187,7 @@ function openDocPreviewTab(
     }
     return
   }
-  state.createBrowserTab(params.worktreeId, ORCA_BROWSER_BLANK_URL, {
+  state.createBrowserTab(params.worktreeId, ALICORN_BROWSER_BLANK_URL, {
     docLocation,
     title: basename(params.filePath) || params.filePath,
     targetGroupId: params.targetGroupId,

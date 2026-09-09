@@ -318,13 +318,15 @@ describe('OrcaRuntimeService', () => {
       await vi.waitFor(() => expect(spawn).toHaveBeenCalledTimes(2))
       const initialEnv = (spawn.mock.calls[0]![0] as { env?: Record<string, string> }).env ?? {}
       const setupEnv = (spawn.mock.calls[1]![0] as { env?: Record<string, string> }).env ?? {}
-      expect(setupEnv.ORCA_TAB_ID).toBe(initialEnv.ORCA_TAB_ID)
-      const initialLeafId = initialEnv.ORCA_PANE_KEY!.slice(`${initialEnv.ORCA_TAB_ID!}:`.length)
+      expect(setupEnv.ALICORN_TAB_ID).toBe(initialEnv.ALICORN_TAB_ID)
+      const initialLeafId = initialEnv.ALICORN_PANE_KEY!.slice(
+        `${initialEnv.ALICORN_TAB_ID!}:`.length
+      )
       expect(revealTerminalSession).toHaveBeenLastCalledWith(
         result.worktree.id,
         expect.objectContaining({
           ptyId: 'pty-remote-setup-split',
-          tabId: initialEnv.ORCA_TAB_ID,
+          tabId: initialEnv.ALICORN_TAB_ID,
           activate: false,
           splitFromLeafId: initialLeafId,
           splitDirection: 'horizontal'

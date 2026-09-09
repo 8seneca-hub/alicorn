@@ -25,7 +25,7 @@ import { ensureDockerSshRelayImage } from './helpers/docker-ssh-relay-image'
 import { waitForSessionReady } from './helpers/store'
 import { shouldIncludeQuickOpenPath } from '../../src/shared/quick-open-filter'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const REMOTE_REPO_PATH = '/tmp/orca-quick-open-large-listing-repo'
 const REMOTE_PATH_LIST = '/tmp/orca-quick-open-large-listing-paths.txt'
 /** What the desktop client asks for; a full page is what it reads as "there is more". */
@@ -80,7 +80,7 @@ function seedRemoteTree(target: DockerSshRelayTarget, paths: string[]): void {
   )
 }
 
-test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run the Docker SSH relay lane')
+test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run the Docker SSH relay lane')
 
 test('lists a monorepo-sized remote workspace, with and without a client page size (#12547)', async ({
   orcaPage

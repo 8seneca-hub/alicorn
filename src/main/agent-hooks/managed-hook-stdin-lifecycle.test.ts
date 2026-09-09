@@ -1,3 +1,4 @@
+import { isAlicornOwnedEnvName } from '../../shared/alicorn-env-compat'
 // Why: stdin ownership is a cross-agent process contract; one executable
 // matrix catches an unread early exit without duplicating template assertions.
 // Exception (#11549): Windows batch hooks give up stdin ownership on the
@@ -14,18 +15,18 @@ let isolatedUserDataDir = ''
 let previousUserDataPath: string | undefined
 
 beforeEach(() => {
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
+  previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
   isolatedUserDataDir = mkdtempSync(join(tmpdir(), 'orca-hook-stdin-user-data-'))
-  // Why: Orca-managed Codex hooks resolve through ORCA_USER_DATA_PATH before
+  // Why: Orca-managed Codex hooks resolve through ALICORN_USER_DATA_PATH before
   // the mocked home; an inherited live path would let this test rewrite them.
-  process.env.ORCA_USER_DATA_PATH = isolatedUserDataDir
+  process.env.ALICORN_USER_DATA_PATH = isolatedUserDataDir
 })
 
 afterEach(() => {
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.ALICORN_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
   }
   rmSync(isolatedUserDataDir, { recursive: true, force: true })
 })
@@ -177,12 +178,12 @@ function runHookProcess(
 
 function hookEnvironment(extraEnv: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   const env = Object.fromEntries(
-    Object.entries(process.env).filter(([key]) => !key.startsWith('ORCA_'))
+    Object.entries(process.env).filter(([key]) => !isAlicornOwnedEnvName(key))
   )
   return {
     ...env,
     HOME: REMOTE_HOME,
-    ORCA_AGENT_HOOK_ENDPOINT: '',
+    ALICORN_AGENT_HOOK_ENDPOINT: '',
     ...extraEnv
   }
 }
@@ -249,12 +250,12 @@ describe('Windows managed hook stdin structure', () => {
         const script = readFileSync(join(hooksDir, fileName), 'utf8')
         // Why: missing-env path must not touch more.com — hang class from #11549.
         expect(script, `${fileName} port guard`).toContain(
-          'if "%ORCA_AGENT_HOOK_PORT%"=="" exit /b 0'
+          'if "%ALICORN_AGENT_HOOK_PORT%"=="" exit /b 0'
         )
         expect(script, `${fileName} token guard`).toContain(
-          'if "%ORCA_AGENT_HOOK_TOKEN%"=="" exit /b 0'
+          'if "%ALICORN_AGENT_HOOK_TOKEN%"=="" exit /b 0'
         )
-        expect(script, `${fileName} pane guard`).toContain('if "%ORCA_PANE_KEY%"=="" exit /b 0')
+        expect(script, `${fileName} pane guard`).toContain('if "%ALICORN_PANE_KEY%"=="" exit /b 0')
         // Why: pin the rule, not today's three guards — a fourth ORCA_* guard routed to the
         // drain would reintroduce #11549 with this suite green. The pattern spans the guard so
         // it catches both `if "%VAR%"==""` and `if not defined VAR`; the Devin skip names no
@@ -280,20 +281,20 @@ describe('Windows managed hook stdin structure', () => {
       expect(claude, 'claude devin guard present').toContain(
         'if not "%DEVIN_PROJECT_DIR%"=="" goto :orca_agent_hook_drain_stdin'
       )
-      expect(claude.indexOf('if "%ORCA_PANE_KEY%"=="" exit /b 0')).toBeLessThan(
+      expect(claude.indexOf('if "%ALICORN_PANE_KEY%"=="" exit /b 0')).toBeLessThan(
         claude.indexOf('if not "%DEVIN_PROJECT_DIR%"=="" goto :orca_agent_hook_drain_stdin')
       )
 
       // Why (#11549 class): every Windows-local hook now guards before owning stdin —
       // the caller may abandon the pipe, and the payload is discarded on this path anyway.
       const copilot = readFileSync(join(hooksDir, 'copilot-hook.ps1'), 'utf8')
-      expect(copilot.indexOf('if (-not $env:ORCA_AGENT_HOOK_PORT')).toBeGreaterThan(-1)
-      expect(copilot.indexOf('if (-not $env:ORCA_AGENT_HOOK_PORT')).toBeLessThan(
+      expect(copilot.indexOf('if (-not $env:ALICORN_AGENT_HOOK_PORT')).toBeGreaterThan(-1)
+      expect(copilot.indexOf('if (-not $env:ALICORN_AGENT_HOOK_PORT')).toBeLessThan(
         copilot.indexOf('[Console]::In.ReadToEnd()')
       )
       const kimi = readFileSync(join(hooksDir, 'kimi-hook.sh'), 'utf8')
-      expect(kimi.indexOf('if [ -z "$ORCA_AGENT_HOOK_PORT" ]')).toBeGreaterThan(-1)
-      expect(kimi.indexOf('if [ -z "$ORCA_AGENT_HOOK_PORT" ]')).toBeLessThan(
+      expect(kimi.indexOf('if [ -z "$ALICORN_AGENT_HOOK_PORT" ]')).toBeGreaterThan(-1)
+      expect(kimi.indexOf('if [ -z "$ALICORN_AGENT_HOOK_PORT" ]')).toBeLessThan(
         kimi.indexOf(`payload=$(${POSIX_HOOK_STDIN_READER})`)
       )
     } finally {
@@ -420,9 +421,9 @@ describe('Windows managed hook stdin structure', () => {
             name: 'Orca env with dead listener',
             env: hookEnvironment({
               USERPROFILE: home,
-              ORCA_AGENT_HOOK_PORT: '59999',
-              ORCA_AGENT_HOOK_TOKEN: 'token',
-              ORCA_PANE_KEY: 'tab:leaf'
+              ALICORN_AGENT_HOOK_PORT: '59999',
+              ALICORN_AGENT_HOOK_TOKEN: 'token',
+              ALICORN_PANE_KEY: 'tab:leaf'
             })
           },
           {
@@ -476,9 +477,9 @@ describe.skipIf(process.platform === 'win32')('managed hook stdin lifecycle', ()
     for (const [agent, script] of scripts) {
       const extraEnv = agent.startsWith('command-code')
         ? {
-            ORCA_AGENT_HOOK_PORT: '1',
-            ORCA_AGENT_HOOK_TOKEN: 'test-token',
-            ORCA_PANE_KEY: 'test-pane'
+            ALICORN_AGENT_HOOK_PORT: '1',
+            ALICORN_AGENT_HOOK_TOKEN: 'test-token',
+            ALICORN_PANE_KEY: 'test-pane'
           }
         : {}
       const result = await runPosixHook(script, extraEnv)

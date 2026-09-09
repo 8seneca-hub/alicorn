@@ -33,9 +33,9 @@ import { installPrebuiltSlot, type PrebuiltSlotOutcome } from './node-pty-prebui
 // Why every verdict travels on STDOUT: node echoes the whole `-e` source into stderr
 // before the stack trace, so any substring test against stderr also matches this file's
 // own token strings. stdout carries only what the child chose to print.
-const PROBE_OK_TOKEN = 'ORCA_NODE_PTY_LOAD_OK'
-const NO_BINARY_TOKEN = 'ORCA_NODE_PTY_NO_BINARY'
-const LOAD_ERROR_TOKEN = 'ORCA_NODE_PTY_LOAD_ERROR'
+const PROBE_OK_TOKEN = 'ALICORN_NODE_PTY_LOAD_OK'
+const NO_BINARY_TOKEN = 'ALICORN_NODE_PTY_NO_BINARY'
+const LOAD_ERROR_TOKEN = 'ALICORN_NODE_PTY_LOAD_ERROR'
 const PROBE_TIMEOUT_MS = 20_000
 
 /**

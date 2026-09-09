@@ -76,7 +76,7 @@ describe('Claude TUI resume launch', () => {
       SAFE_PARENT: 'kept',
       SELECTED_ACCOUNT: 'one',
       CLAUDE_CONFIG_DIR: '/accounts/claude-one',
-      ORCA_AGENT_LAUNCH_TOKEN: 'spawn-one',
+      ALICORN_AGENT_LAUNCH_TOKEN: 'spawn-one',
       [CLAUDE_SPAWN_TOKEN_ENV]: 'spawn-one',
       ANTHROPIC_AUTH_TOKEN: 'selected-account-token'
     })

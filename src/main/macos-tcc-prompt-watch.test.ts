@@ -14,7 +14,7 @@ const REAL_PROMPT_LINE =
   '2026-07-27 15:35:26.136 Df tccd[79149:c81551c] [com.apple.TCC:access] AUTHREQ_PROMPTING: msgID=80871.81, service=kTCCServiceSystemPolicyDocumentsFolder, subject=Sub:{com.orca.tccprobe.shapecapture}Resp:{TCCDProcess: identifier=com.orca.tccprobe.shapecapture, pid=74171, auid=501, euid=501, binary_path=/private/tmp/tccprobe/TccProbe.app/Contents/MacOS/TccProbe},'
 
 // Same shape, but the #9756 case: an agent CLI accesses, Orca is held responsible.
-const ORCA_APPDATA_LINE =
+const ALICORN_APPDATA_LINE =
   '2026-07-27 15:40:02.001 Df tccd[79149:c81551c] [com.apple.TCC:access] AUTHREQ_PROMPTING: msgID=80871.99, service=kTCCServiceSystemPolicyAppData, subject=Sub:{node-5555494487fbc7467d473fd8b0a397018cbf954b}Resp:{TCCDProcess: identifier=com.stablyai.orca, pid=47548, auid=501, euid=501, binary_path=/opt/homebrew/Cellar/node/26.5.0/bin/node},'
 
 // Preflight checks dominate the TCC subsystem and must never count as a dialog.
@@ -32,7 +32,7 @@ describe('parseTccPromptEvent', () => {
   })
 
   it('separates the accessing binary from the responsible app', () => {
-    const event = parseTccPromptEvent(ORCA_APPDATA_LINE)
+    const event = parseTccPromptEvent(ALICORN_APPDATA_LINE)
     // The whole point of #9756: the dialog says Orca, but node did the access.
     expect(event?.responsibleIdentifier).toBe('com.stablyai.orca')
     expect(event?.accessingIdentifier).toBe('node-5555494487fbc7467d473fd8b0a397018cbf954b')
@@ -152,7 +152,7 @@ describe('MacosTccPromptWatch', () => {
     stdout.write('Filtering the log data using "subsystem == ..."\n')
     stdout.write(`${PREFLIGHT_LINE}\n`)
     stdout.write(`${REAL_PROMPT_LINE}\n`) // another app is responsible
-    stdout.write(`${ORCA_APPDATA_LINE}\n`)
+    stdout.write(`${ALICORN_APPDATA_LINE}\n`)
     await new Promise((resolve) => {
       setImmediate(resolve)
     })

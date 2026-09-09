@@ -69,7 +69,7 @@ export function resolveClaudeAgentTeamsShimBin(
 ): string | null {
   // Why: Windows callers pass an env spelt `Path`; reading only `PATH` there would find no CLI at all.
   const pathValue = env[resolvePathEnvKey(env, process.platform)]
-  const override = env.ORCA_AGENT_TEAMS_SHIM_BIN
+  const override = env.ALICORN_AGENT_TEAMS_SHIM_BIN
   if (override) {
     // Why: a bare override name would be resolved by the shim's shell against its cwd, so qualify it or ignore it.
     const qualified = isAbsolute(override) ? override : findExecutableOnPath(override, pathValue)
@@ -132,11 +132,11 @@ function unixShimScript(): string {
   return [
     '#!/usr/bin/env sh',
     'set -eu',
-    'orca_bin=${ORCA_AGENT_TEAMS_SHIM_BIN:-}',
+    'orca_bin=${ALICORN_AGENT_TEAMS_SHIM_BIN:-}',
     'case $orca_bin in',
     '  /*|[A-Za-z]:[\\\\/]*) ;;',
     '  *)',
-    '    echo "orca agent-teams tmux shim: ORCA_AGENT_TEAMS_SHIM_BIN must be an absolute path" >&2',
+    '    echo "orca agent-teams tmux shim: ALICORN_AGENT_TEAMS_SHIM_BIN must be an absolute path" >&2',
     '    exit 127',
     '    ;;',
     'esac',
@@ -149,17 +149,17 @@ export function windowsClaudeAgentTeamsShimScript(): string {
   return [
     '@echo off',
     'setlocal',
-    'set "ORCA_SHIM_BIN=%ORCA_AGENT_TEAMS_SHIM_BIN%"',
-    'if not defined ORCA_SHIM_BIN goto :unqualified',
-    'if "%ORCA_SHIM_BIN:~1,1%"==":" goto :run',
-    'if "%ORCA_SHIM_BIN:~0,2%"=="\\\\" goto :run',
+    'set "ALICORN_SHIM_BIN=%ALICORN_AGENT_TEAMS_SHIM_BIN%"',
+    'if not defined ALICORN_SHIM_BIN goto :unqualified',
+    'if "%ALICORN_SHIM_BIN:~1,1%"==":" goto :run',
+    'if "%ALICORN_SHIM_BIN:~0,2%"=="\\\\" goto :run',
     'goto :unqualified',
     ':run',
     // Why: no `call` — its extra percent-expansion pass would rewrite tmux pane args such as `%2` into batch parameters.
-    '"%ORCA_SHIM_BIN%" agent-teams-tmux %*',
+    '"%ALICORN_SHIM_BIN%" agent-teams-tmux %*',
     'exit /b %ERRORLEVEL%',
     ':unqualified',
-    'echo orca agent-teams tmux shim: ORCA_AGENT_TEAMS_SHIM_BIN must be an absolute path 1>&2',
+    'echo orca agent-teams tmux shim: ALICORN_AGENT_TEAMS_SHIM_BIN must be an absolute path 1>&2',
     'exit /b 127',
     ''
   ].join('\r\n')

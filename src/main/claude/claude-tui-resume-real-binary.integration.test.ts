@@ -57,7 +57,7 @@ async function installCaptureHook(
       "process.stdin.on('data', (chunk) => { input += chunk })",
       "process.stdin.on('end', () => {",
       '  const payload = JSON.parse(input)',
-      '  payload.launchToken = process.env.ORCA_AGENT_LAUNCH_TOKEN',
+      '  payload.launchToken = process.env.ALICORN_AGENT_LAUNCH_TOKEN',
       '  appendFileSync(process.argv[2], `${JSON.stringify(payload)}\\n`)',
       '})',
       ''
@@ -208,7 +208,7 @@ describe.skipIf(!claudeAuthenticated)('real Claude TUI resume proof', () => {
           body: {
             kind: 'message',
             role: 'user',
-            blocks: [{ type: 'text', text: 'Reply only with ORCA_RESUME_READY.' }]
+            blocks: [{ type: 'text', text: 'Reply only with ALICORN_RESUME_READY.' }]
           }
         })
       ).resolves.toMatchObject({ state: 'accepted' })

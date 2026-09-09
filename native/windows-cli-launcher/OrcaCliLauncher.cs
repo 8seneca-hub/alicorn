@@ -44,13 +44,13 @@ internal static class OrcaCliLauncher
             // packaged batch launcher's Electron-as-Node environment contract.
             // Why: ProcessStartInfo's env copy rejects duplicate PATH/Path keys; mutating this
             // short-lived process preserves the native block for child inheritance (#12046).
-            MoveEnvironmentVariable("NODE_OPTIONS", "ORCA_NODE_OPTIONS");
-            MoveEnvironmentVariable("NODE_REPL_EXTERNAL_MODULE", "ORCA_NODE_REPL_EXTERNAL_MODULE");
+            MoveEnvironmentVariable("NODE_OPTIONS", "ALICORN_NODE_OPTIONS");
+            MoveEnvironmentVariable("NODE_REPL_EXTERNAL_MODULE", "ALICORN_NODE_REPL_EXTERNAL_MODULE");
             Environment.SetEnvironmentVariable("ELECTRON_RUN_AS_NODE", "1");
-            Environment.SetEnvironmentVariable("ORCA_WINDOWS_PACKAGED_CLI_LAUNCHER", "1");
-            string requestedCliCommand = Environment.GetEnvironmentVariable("ORCA_CLI_COMMAND");
+            Environment.SetEnvironmentVariable("ALICORN_WINDOWS_PACKAGED_CLI_LAUNCHER", "1");
+            string requestedCliCommand = Environment.GetEnvironmentVariable("ALICORN_CLI_COMMAND");
             Environment.SetEnvironmentVariable(
-                "ORCA_CLI_COMMAND",
+                "ALICORN_CLI_COMMAND",
                 requestedCliCommand == "orca-ide" ? "orca-ide" : "orca"
             );
 

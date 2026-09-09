@@ -383,8 +383,8 @@ vi.mock('../../worktree-runner-script', () => ({
 
 vi.mock('../../setup-hook-env-vars', () => ({
   getSetupRunnerEnvVars: (_repo: never, worktreePath: string) => ({
-    ORCA_ROOT_PATH: '/remote/repo',
-    ORCA_WORKTREE_PATH: worktreePath
+    ALICORN_ROOT_PATH: '/remote/repo',
+    ALICORN_WORKTREE_PATH: worktreePath
   })
 }))
 

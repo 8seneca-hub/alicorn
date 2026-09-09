@@ -125,7 +125,7 @@ describe('PiTitlebarExtensionService', () => {
     const env = svc.buildPtyEnv('pty-1', piHome, 'pi')
 
     expect(env.PI_CODING_AGENT_DIR).toBeUndefined()
-    expect(env.ORCA_PI_SOURCE_AGENT_DIR).toBe(piHome)
+    expect(env.ALICORN_PI_SOURCE_AGENT_DIR).toBe(piHome)
     const extensions = readdirSync(join(piHome, 'extensions')).sort()
     expect(extensions).toEqual([
       'orca-agent-status.ts',
@@ -150,9 +150,9 @@ describe('PiTitlebarExtensionService', () => {
     expect(statusExtensionSource).toContain('process.title')
     expect(statusExtensionSource).toContain("return '/hook/omp'")
     expect(titlebarExtensionSource).toContain('@orca-managed-pi-extension')
-    expect(titlebarExtensionSource).toContain('process.env.ORCA_PANE_KEY')
+    expect(titlebarExtensionSource).toContain('process.env.ALICORN_PANE_KEY')
     expect(prefillExtensionSource).toContain('@orca-managed-pi-extension')
-    expect(prefillExtensionSource).toContain('process.env.ORCA_PANE_KEY')
+    expect(prefillExtensionSource).toContain('process.env.ALICORN_PANE_KEY')
     expectPiHomeIntact()
   })
 
@@ -169,7 +169,7 @@ describe('PiTitlebarExtensionService', () => {
     const svc = new PiTitlebarExtensionService()
     const env = svc.buildPtyEnv('pty-prime', piHome, 'prime-agent')
 
-    expect(env).toEqual({ ORCA_PRIME_AGENT_SOURCE_AGENT_DIR: piHome })
+    expect(env).toEqual({ ALICORN_PRIME_AGENT_SOURCE_AGENT_DIR: piHome })
     expect(readdirSync(join(piHome, 'extensions')).sort()).toEqual([
       'orca-agent-status.ts',
       'user-ext'
@@ -189,7 +189,7 @@ describe('PiTitlebarExtensionService', () => {
 
     expect(firstEnv.PI_CODING_AGENT_DIR).toBeUndefined()
     expect(secondEnv.PI_CODING_AGENT_DIR).toBeUndefined()
-    expect(secondEnv.ORCA_PI_SOURCE_AGENT_DIR).toBe(firstEnv.ORCA_PI_SOURCE_AGENT_DIR)
+    expect(secondEnv.ALICORN_PI_SOURCE_AGENT_DIR).toBe(firstEnv.ALICORN_PI_SOURCE_AGENT_DIR)
     expect(readFileSync(join(piHome, 'extensions', 'user-ext', 'ext.ts'), 'utf-8')).toBe(
       'user extension'
     )
@@ -204,8 +204,10 @@ describe('PiTitlebarExtensionService', () => {
     const content = 'agent.db credentials'
 
     expect(env.PI_CODING_AGENT_DIR).toBeUndefined()
-    expect(env.ORCA_OMP_SOURCE_AGENT_DIR).toBe(piHome)
-    expect(env.ORCA_OMP_STATUS_EXTENSION).toBe(join(piHome, 'extensions', 'orca-agent-status.ts'))
+    expect(env.ALICORN_OMP_SOURCE_AGENT_DIR).toBe(piHome)
+    expect(env.ALICORN_OMP_STATUS_EXTENSION).toBe(
+      join(piHome, 'extensions', 'orca-agent-status.ts')
+    )
     expect(existsSync(sourcePath)).toBe(false)
     expect(existsSync(join(userDataDir, 'omp-agent-overlays'))).toBe(false)
     expect(existsSync(join(piHome, 'history.db'))).toBe(false)
@@ -511,7 +513,7 @@ describe('PiTitlebarExtensionService', () => {
       'orca-agent-status.ts'
     )
     expect(readFileSync(userStatusPath, 'utf-8')).toBe(userStatusExtension)
-    expect(env.ORCA_OMP_STATUS_EXTENSION).toBe(fallbackStatusPath)
+    expect(env.ALICORN_OMP_STATUS_EXTENSION).toBe(fallbackStatusPath)
     expect(readFileSync(fallbackStatusPath, 'utf-8')).toContain('@orca-managed-pi-extension')
     expect(readFileSync(fallbackStatusPath, 'utf-8')).toContain('/hook/omp')
   })
@@ -559,7 +561,7 @@ describe('PiTitlebarExtensionService', () => {
       const env = svc.buildPtyEnv('pty-4', piHome, 'pi')
 
       expect(env.PI_CODING_AGENT_DIR).toBeUndefined()
-      expect(env.ORCA_PI_SOURCE_AGENT_DIR).toBe(piHome)
+      expect(env.ALICORN_PI_SOURCE_AGENT_DIR).toBe(piHome)
       expect(existsSync(legacyOverlayDir)).toBe(false)
       expectPiHomeIntact()
     }
@@ -590,7 +592,7 @@ describe('PiTitlebarExtensionService', () => {
         const env = svc.buildPtyEnv('pty-pi-both', undefined, 'pi')
 
         expect(env.PI_CODING_AGENT_DIR).toBeUndefined()
-        expect(env.ORCA_PI_SOURCE_AGENT_DIR).toBe(join(fakeHome, '.pi', 'agent'))
+        expect(env.ALICORN_PI_SOURCE_AGENT_DIR).toBe(join(fakeHome, '.pi', 'agent'))
         expect(
           existsSync(join(fakeHome, '.pi', 'agent', 'extensions', 'orca-agent-status.ts'))
         ).toBe(true)
@@ -614,8 +616,8 @@ describe('PiTitlebarExtensionService', () => {
         const env = svc.buildPtyEnv('pty-omp-both', undefined, 'omp')
 
         expect(env.PI_CODING_AGENT_DIR).toBeUndefined()
-        expect(env.ORCA_OMP_SOURCE_AGENT_DIR).toBe(join(fakeHome, '.omp', 'agent'))
-        expect(env.ORCA_OMP_STATUS_EXTENSION).toBe(
+        expect(env.ALICORN_OMP_SOURCE_AGENT_DIR).toBe(join(fakeHome, '.omp', 'agent'))
+        expect(env.ALICORN_OMP_STATUS_EXTENSION).toBe(
           join(fakeHome, '.omp', 'agent', 'extensions', 'orca-agent-status.ts')
         )
         expect(
@@ -648,7 +650,7 @@ describe('PiTitlebarExtensionService', () => {
 
         const ompAgentDir = join(fakeHome, '.omp', 'agent')
         expect(env.PI_CODING_AGENT_DIR).toBeUndefined()
-        expect(env.ORCA_OMP_SOURCE_AGENT_DIR).toBe(ompAgentDir)
+        expect(env.ALICORN_OMP_SOURCE_AGENT_DIR).toBe(ompAgentDir)
         expect(existsSync(join(ompAgentDir, 'auth.json'))).toBe(false)
         const extensions = readdirSync(join(ompAgentDir, 'extensions')).sort()
         expect(extensions).toEqual([
@@ -680,11 +682,11 @@ describe('PiTitlebarExtensionService', () => {
         expect(piEnv).toEqual({})
         expect(existsSync(join(fakeHome, '.pi'))).toBe(false)
         expect(existsSync(join(fakeHome, '.omp'))).toBe(false)
-        expect(ompEnv.ORCA_OMP_SOURCE_AGENT_DIR).toBeUndefined()
-        expect(ompEnv.ORCA_OMP_STATUS_EXTENSION).toEqual(
+        expect(ompEnv.ALICORN_OMP_SOURCE_AGENT_DIR).toBeUndefined()
+        expect(ompEnv.ALICORN_OMP_STATUS_EXTENSION).toEqual(
           expect.stringContaining('omp-managed-status-extension')
         )
-        expect(existsSync(ompEnv.ORCA_OMP_STATUS_EXTENSION!)).toBe(true)
+        expect(existsSync(ompEnv.ALICORN_OMP_STATUS_EXTENSION!)).toBe(true)
       } finally {
         homedirOverride.current = ''
         rmSync(fakeHome, { recursive: true, force: true })

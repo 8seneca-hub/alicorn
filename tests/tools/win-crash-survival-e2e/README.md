@@ -28,11 +28,11 @@ and adds only the crash step + its assertions.
 ## What it does
 
 1. **Launch** the installed `Orca.exe` under an isolated `userData` dir
-   (`ORCA_E2E_USER_DATA_DIR`), seeded with a fresh profile (onboarding dismissed
+   (`ALICORN_E2E_USER_DATA_DIR`), seeded with a fresh profile (onboarding dismissed
    plus one throwaway git repo), then open a plain terminal tab (the seeded
    workspace opens an agent tab, not a bare shell).
 2. **Stamp the interactive shell** — typing DIRECTLY into it (not a nested
-   `powershell`), set a per-shell env sentinel `ORCA_CRASH_SENTINEL=<canary>` and
+   `powershell`), set a per-shell env sentinel `ALICORN_CRASH_SENTINEL=<canary>` and
    record the shell's own `$PID`. The command finishes fast, leaving the shell
    idle at a live PSReadLine prompt — the exact state that FailFasts with `0xE9`
    on a broken build.
@@ -50,7 +50,7 @@ and adds only the crash step + its assertions.
    **unchanged** (the new main **adopts** the surviving daemon instead of forking
    a new one) and that the reattached UI is bound to the **same survivor shell** —
    a bounded, readiness-aware command on the exact restored tab reads back both
-   `ORCA_CRASH_SENTINEL` and the shell's `$PID`, which a freshly re-spawned shell
+   `ALICORN_CRASH_SENTINEL` and the shell's `$PID`, which a freshly re-spawned shell
    would not carry.
 7. **Scan the full crash-to-input window** and require the Windows **Application
    event log** to contain **zero** pwsh `FailFast` / `0xE9` events (matched by

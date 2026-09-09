@@ -13,7 +13,7 @@
  *   - heap growth      JS heap across repeated poll cycles (leak signal)
  *
  * Run a single scenario at a custom scale:
- *   ORCA_LARGE_FILE_COUNT=9500 npx playwright test \
+ *   ALICORN_LARGE_FILE_COUNT=9500 npx playwright test \
  *     tests/e2e/source-control-large-file-count.spec.ts \
  *     --config tests/playwright.config.ts --project electron-headless
  */
@@ -270,11 +270,11 @@ test.describe('Source Control large file count (#8013)', () => {
     registerPostElectronShutdownCleanup
   }) => {
     test.setTimeout(600_000)
-    const untrackedFiles = Number(process.env.ORCA_LARGE_FILE_COUNT ?? '950')
-    // Why: ORCA_LARGE_FILE_BYTES gives untracked files realistic sizes so the
+    const untrackedFiles = Number(process.env.ALICORN_LARGE_FILE_COUNT ?? '950')
+    // Why: ALICORN_LARGE_FILE_BYTES gives untracked files realistic sizes so the
     // per-poll line-stat reads (cache-capped at 2,048 entries) become visible
     // in rescanMs instead of hiding behind ~30-byte fixture files.
-    const untrackedFileBytes = Number(process.env.ORCA_LARGE_FILE_BYTES ?? '0')
+    const untrackedFileBytes = Number(process.env.ALICORN_LARGE_FILE_BYTES ?? '0')
     const fixture = createLargeFileCountRepo({
       trackedFiles: 100,
       untrackedFiles,
@@ -322,7 +322,7 @@ test.describe('Source Control large file count (#8013)', () => {
     registerPostElectronShutdownCleanup
   }) => {
     test.setTimeout(600_000)
-    const modifiedFiles = Number(process.env.ORCA_LARGE_FILE_COUNT ?? '750')
+    const modifiedFiles = Number(process.env.ALICORN_LARGE_FILE_COUNT ?? '750')
     const fixture = createLargeFileCountRepo({ trackedFiles: modifiedFiles, modifiedFiles })
     registerPostElectronShutdownCleanup(() => removeLargeFileCountRepo(fixture.repoPath))
     try {
@@ -415,8 +415,8 @@ test.describe('Source Control large file count (#8013)', () => {
         exact: false
       })
       await expect(tooManyChangesBanner).toBeVisible()
-      if (process.env.ORCA_LARGE_FILE_SCREENSHOT_PATH) {
-        await orcaPage.screenshot({ path: process.env.ORCA_LARGE_FILE_SCREENSHOT_PATH })
+      if (process.env.ALICORN_LARGE_FILE_SCREENSHOT_PATH) {
+        await orcaPage.screenshot({ path: process.env.ALICORN_LARGE_FILE_SCREENSHOT_PATH })
       }
 
       expect(measurement.didHitLimit).toBe(true)
@@ -511,7 +511,7 @@ test.describe('Source Control large file count (#8013)', () => {
     registerPostElectronShutdownCleanup
   }) => {
     test.setTimeout(600_000)
-    const trackedFiles = Number(process.env.ORCA_LARGE_FILE_COUNT ?? '15000')
+    const trackedFiles = Number(process.env.ALICORN_LARGE_FILE_COUNT ?? '15000')
     const fixture = createLargeFileCountRepo({ trackedFiles })
     registerPostElectronShutdownCleanup(() => removeLargeFileCountRepo(fixture.repoPath))
     try {

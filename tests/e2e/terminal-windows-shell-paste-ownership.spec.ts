@@ -210,10 +210,10 @@ test.describe('Windows terminal shell paste ownership', () => {
 
     const ptyId = await waitForActivePanePtyId(orcaPage)
     const runId = randomUUID()
-    const sentinel = `ORCA_E2E_POWERSHELL_DONE_${runId}`
+    const sentinel = `ALICORN_E2E_POWERSHELL_DONE_${runId}`
     const powershellEscape = '`'
     const payload = [
-      `ORCA_E2E_POWERSHELL_PASTE_${runId}`,
+      `ALICORN_E2E_POWERSHELL_PASTE_${runId}`,
       `PowerShell metacharacters: ${powershellEscape} $ " ' ; | & < > @ { } ( )`,
       'quoted Windows path: C:\\Program Files\\Orca Test\\file name.txt',
       'cmd metacharacters preserved as text: %PATH% !PROMPT! ^ & | < >',
@@ -262,9 +262,9 @@ test.describe('Windows terminal shell paste ownership', () => {
 
     const ptyId = await waitForActivePanePtyId(orcaPage)
     const runId = randomUUID()
-    const sentinel = `ORCA_E2E_CMD_DONE_${runId}`
+    const sentinel = `ALICORN_E2E_CMD_DONE_${runId}`
     const payload = [
-      `ORCA_E2E_CMD_PASTE_${runId}`,
+      `ALICORN_E2E_CMD_PASTE_${runId}`,
       'cmd metacharacters: %PATH% !PROMPT! ^ & | < >',
       'quoted Windows path: C:\\Program Files\\Orca Test\\file name.txt',
       'PowerShell metacharacters: ` $ " \' ; @ { } ( )',
@@ -313,9 +313,9 @@ test.describe('Windows terminal shell paste ownership', () => {
 
     const ptyId = await waitForActivePanePtyId(orcaPage)
     const runId = randomUUID()
-    const sentinel = `ORCA_E2E_GIT_BASH_DONE_${runId}`
+    const sentinel = `ALICORN_E2E_GIT_BASH_DONE_${runId}`
     const payload = [
-      `ORCA_E2E_GIT_BASH_PASTE_${runId}`,
+      `ALICORN_E2E_GIT_BASH_PASTE_${runId}`,
       'POSIX shell metacharacters: $ ` " \' ; | & < > * ? [ ] ( )',
       'Windows path with spaces: C:\\Users\\Name\\My Project\\file.txt',
       'POSIX path with spaces: /home/user/my project/file.txt',
@@ -366,9 +366,9 @@ test.describe('Windows terminal shell paste ownership', () => {
 
     const ptyId = await waitForActivePanePtyId(orcaPage)
     const runId = randomUUID()
-    const sentinel = `ORCA_E2E_WSL_DONE_${runId}`
+    const sentinel = `ALICORN_E2E_WSL_DONE_${runId}`
     const payload = [
-      `ORCA_E2E_WSL_PASTE_${runId}`,
+      `ALICORN_E2E_WSL_PASTE_${runId}`,
       'POSIX shell metacharacters: $ ` " \' ; | & < > * ? [ ] ( )',
       'Linux path with spaces: /home/user/my project/file.txt',
       'Windows path preserved as text: C:\\Users\\Name\\My Project\\file.txt',
@@ -428,9 +428,9 @@ test.describe('Windows terminal shell paste ownership', () => {
 
     const ptyId = await waitForActivePanePtyId(orcaPage)
     const runId = randomUUID()
-    const sentinel = `ORCA_E2E_WSL_RETENTION_DONE_${runId}`
+    const sentinel = `ALICORN_E2E_WSL_RETENTION_DONE_${runId}`
     const payload = [
-      `ORCA_E2E_WSL_RETENTION_PASTE_${runId}`,
+      `ALICORN_E2E_WSL_RETENTION_PASTE_${runId}`,
       'Default shell changed to cmd.exe after this WSL PTY was created.',
       'POSIX path remains valid for the existing terminal: /home/user/my project/file.txt',
       'Windows path remains literal text: C:\\Users\\Name\\My Project\\file.txt',

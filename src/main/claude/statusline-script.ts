@@ -20,62 +20,62 @@ export function getManagedStatusLineScript(target: 'local' | 'posix' = 'local'):
       '@echo off',
       'setlocal',
       // Why: a backgrounded session's statusline runs in a daemon worker that inherited the
-      // dispatching pane's env, so ORCA_PANE_KEY names a pane it does not run in (#9236).
+      // dispatching pane's env, so ALICORN_PANE_KEY names a pane it does not run in (#9236).
       // Why exit, not the drain label: a worker is outside an Orca pane, so reading stdin to
       // EOF can block forever (#11549). This gates before stdin is owned, per that contract.
       'if not "%CLAUDE_JOB_DIR%"=="" exit /b 0',
       // Why: pane key is static PTY env (the endpoint file never sets it), so it can gate before stdin is consumed.
-      `if "%ORCA_PANE_KEY%"=="" goto :${WINDOWS_HOOK_STDIN_DRAIN_LABEL}`,
+      `if "%ALICORN_PANE_KEY%"=="" goto :${WINDOWS_HOOK_STDIN_DRAIN_LABEL}`,
       // Why: current keys end in a UUID; replacing the legacy delimiter also keeps surviving numeric-pane keys filename-safe.
-      'set "ORCA_STATUSLINE_PANE_ID=%ORCA_PANE_KEY:~-36%"',
-      'set "ORCA_STATUSLINE_PANE_ID=%ORCA_STATUSLINE_PANE_ID::=_%"',
+      'set "ALICORN_STATUSLINE_PANE_ID=%ALICORN_PANE_KEY:~-36%"',
+      'set "ALICORN_STATUSLINE_PANE_ID=%ALICORN_STATUSLINE_PANE_ID::=_%"',
       // Why: cmd has no builtin stdin capture, so buffer the payload in a per-pane temp file
       // (%RANDOM% collides across same-second cmd spawns) to guard before any curl spawn.
-      'set "ORCA_STATUSLINE_PAYLOAD_FILE=%TEMP%\\orca-claude-statusline-%ORCA_STATUSLINE_PANE_ID%.tmp"',
-      `${WINDOWS_HOOK_STDIN_READER} >"%ORCA_STATUSLINE_PAYLOAD_FILE%" 2>nul`,
+      'set "ALICORN_STATUSLINE_PAYLOAD_FILE=%TEMP%\\orca-claude-statusline-%ALICORN_STATUSLINE_PANE_ID%.tmp"',
+      `${WINDOWS_HOOK_STDIN_READER} >"%ALICORN_STATUSLINE_PAYLOAD_FILE%" 2>nul`,
       // Why: an all-builtin seconds-of-day throttle avoids spawning findstr+curl on every streaming tick.
-      'set "ORCA_STATUSLINE_STAMP_FILE=%TEMP%\\orca-claude-statusline-last-%ORCA_STATUSLINE_PANE_ID%.tmp"',
-      'set "ORCA_STATUSLINE_NOW="',
-      'set "ORCA_STATUSLINE_TIME=%TIME: =0%"',
-      'for /f "tokens=1-3 delims=:.," %%a in ("%ORCA_STATUSLINE_TIME%") do set /a "ORCA_STATUSLINE_NOW=(1%%a %% 100)*3600+(1%%b %% 100)*60+(1%%c %% 100)" 2>nul',
-      'set "ORCA_STATUSLINE_LAST="',
-      'set "ORCA_STATUSLINE_ELAPSED="',
-      'if exist "%ORCA_STATUSLINE_STAMP_FILE%" set /p ORCA_STATUSLINE_LAST=<"%ORCA_STATUSLINE_STAMP_FILE%"',
-      'if defined ORCA_STATUSLINE_LAST for /f "delims=0123456789" %%d in ("%ORCA_STATUSLINE_LAST%") do set "ORCA_STATUSLINE_LAST="',
-      'if defined ORCA_STATUSLINE_NOW if defined ORCA_STATUSLINE_LAST set /a "ORCA_STATUSLINE_ELAPSED=ORCA_STATUSLINE_NOW-ORCA_STATUSLINE_LAST" 2>nul',
-      `if not defined ORCA_STATUSLINE_ELAPSED goto :${STATUSLINE_PROBE_LABEL}`,
-      `if %ORCA_STATUSLINE_ELAPSED% GEQ 0 if %ORCA_STATUSLINE_ELAPSED% LSS ${CLAUDE_STATUSLINE_MIN_POST_INTERVAL_SECONDS} goto :${STATUSLINE_CLEANUP_LABEL}`,
+      'set "ALICORN_STATUSLINE_STAMP_FILE=%TEMP%\\orca-claude-statusline-last-%ALICORN_STATUSLINE_PANE_ID%.tmp"',
+      'set "ALICORN_STATUSLINE_NOW="',
+      'set "ALICORN_STATUSLINE_TIME=%TIME: =0%"',
+      'for /f "tokens=1-3 delims=:.," %%a in ("%ALICORN_STATUSLINE_TIME%") do set /a "ALICORN_STATUSLINE_NOW=(1%%a %% 100)*3600+(1%%b %% 100)*60+(1%%c %% 100)" 2>nul',
+      'set "ALICORN_STATUSLINE_LAST="',
+      'set "ALICORN_STATUSLINE_ELAPSED="',
+      'if exist "%ALICORN_STATUSLINE_STAMP_FILE%" set /p ALICORN_STATUSLINE_LAST=<"%ALICORN_STATUSLINE_STAMP_FILE%"',
+      'if defined ALICORN_STATUSLINE_LAST for /f "delims=0123456789" %%d in ("%ALICORN_STATUSLINE_LAST%") do set "ALICORN_STATUSLINE_LAST="',
+      'if defined ALICORN_STATUSLINE_NOW if defined ALICORN_STATUSLINE_LAST set /a "ALICORN_STATUSLINE_ELAPSED=ALICORN_STATUSLINE_NOW-ALICORN_STATUSLINE_LAST" 2>nul',
+      `if not defined ALICORN_STATUSLINE_ELAPSED goto :${STATUSLINE_PROBE_LABEL}`,
+      `if %ALICORN_STATUSLINE_ELAPSED% GEQ 0 if %ALICORN_STATUSLINE_ELAPSED% LSS ${CLAUDE_STATUSLINE_MIN_POST_INTERVAL_SECONDS} goto :${STATUSLINE_CLEANUP_LABEL}`,
       `:${STATUSLINE_PROBE_LABEL}`,
       // Why: rate_limits appears only for Claude.ai-subscriber sessions after the first API response; the
       // statusline ticks ~3x/sec during streaming, so skip the endpoint call and curl spawn otherwise.
       // Why: \" is the MSVC argv escape — findstr sees the quoted JSON key, so a cwd containing rate_limits can't false-match (POSIX guard parity).
-      '"%SystemRoot%\\System32\\findstr.exe" /c:\\"rate_limits\\" "%ORCA_STATUSLINE_PAYLOAD_FILE%" >nul 2>nul',
+      '"%SystemRoot%\\System32\\findstr.exe" /c:\\"rate_limits\\" "%ALICORN_STATUSLINE_PAYLOAD_FILE%" >nul 2>nul',
       `if errorlevel 1 goto :${STATUSLINE_CLEANUP_LABEL}`,
       // Why: call the endpoint file to refresh port/token — a PTY that survived an Orca restart carries stale env; falls through to PTY env if missing.
-      'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
-      `if "%ORCA_AGENT_HOOK_PORT%"=="" goto :${STATUSLINE_CLEANUP_LABEL}`,
-      `if "%ORCA_AGENT_HOOK_TOKEN%"=="" goto :${STATUSLINE_CLEANUP_LABEL}`,
+      'if defined ALICORN_AGENT_HOOK_ENDPOINT if exist "%ALICORN_AGENT_HOOK_ENDPOINT%" call "%ALICORN_AGENT_HOOK_ENDPOINT%" 2>nul',
+      `if "%ALICORN_AGENT_HOOK_PORT%"=="" goto :${STATUSLINE_CLEANUP_LABEL}`,
+      `if "%ALICORN_AGENT_HOOK_TOKEN%"=="" goto :${STATUSLINE_CLEANUP_LABEL}`,
       // Why: stamp only when a post is certain, so skipped ticks (no rate_limits, missing port/token) never push the next allowed post out.
-      'if defined ORCA_STATUSLINE_NOW (>"%ORCA_STATUSLINE_STAMP_FILE%" echo %ORCA_STATUSLINE_NOW%)',
+      'if defined ALICORN_STATUSLINE_NOW (>"%ALICORN_STATUSLINE_STAMP_FILE%" echo %ALICORN_STATUSLINE_NOW%)',
       // Why: pre-build the field from an always-defined variable so an unset CLAUDE_CONFIG_DIR posts
       // empty (matching POSIX and the null attribution snapshot), never a literal %VAR% token.
-      'set "ORCA_STATUSLINE_CONFIG_DIR_FIELD=configDir="',
-      'if defined CLAUDE_CONFIG_DIR set "ORCA_STATUSLINE_CONFIG_DIR_FIELD=configDir=%CLAUDE_CONFIG_DIR%"',
+      'set "ALICORN_STATUSLINE_CONFIG_DIR_FIELD=configDir="',
+      'if defined CLAUDE_CONFIG_DIR set "ALICORN_STATUSLINE_CONFIG_DIR_FIELD=configDir=%CLAUDE_CONFIG_DIR%"',
       [
         '"%SystemRoot%\\System32\\curl.exe" -sS -X POST',
-        `"http://127.0.0.1:%ORCA_AGENT_HOOK_PORT%${CLAUDE_STATUSLINE_PATHNAME}"`,
+        `"http://127.0.0.1:%ALICORN_AGENT_HOOK_PORT%${CLAUDE_STATUSLINE_PATHNAME}"`,
         '--connect-timeout 0.5 --max-time 1.5',
         '-H "Content-Type: application/x-www-form-urlencoded"',
-        '-H "X-Orca-Agent-Hook-Token: %ORCA_AGENT_HOOK_TOKEN%"',
-        '--data-urlencode "paneKey=%ORCA_PANE_KEY%"',
-        '--data-urlencode "%ORCA_STATUSLINE_CONFIG_DIR_FIELD%"',
-        '--data-urlencode "env=%ORCA_AGENT_HOOK_ENV%"',
-        '--data-urlencode "version=%ORCA_AGENT_HOOK_VERSION%"',
-        '--data-urlencode "payload@%ORCA_STATUSLINE_PAYLOAD_FILE%"',
+        '-H "X-Orca-Agent-Hook-Token: %ALICORN_AGENT_HOOK_TOKEN%"',
+        '--data-urlencode "paneKey=%ALICORN_PANE_KEY%"',
+        '--data-urlencode "%ALICORN_STATUSLINE_CONFIG_DIR_FIELD%"',
+        '--data-urlencode "env=%ALICORN_AGENT_HOOK_ENV%"',
+        '--data-urlencode "version=%ALICORN_AGENT_HOOK_VERSION%"',
+        '--data-urlencode "payload@%ALICORN_STATUSLINE_PAYLOAD_FILE%"',
         '>nul 2>&1'
       ].join(' '),
       `:${STATUSLINE_CLEANUP_LABEL}`,
-      'del "%ORCA_STATUSLINE_PAYLOAD_FILE%" >nul 2>nul',
+      'del "%ALICORN_STATUSLINE_PAYLOAD_FILE%" >nul 2>nul',
       'exit /b 0',
       ...buildWindowsHookStdinDrainEpilogue(),
       ''
@@ -94,7 +94,7 @@ export function getManagedStatusLineScript(target: 'local' | 'posix' = 'local'):
     '  exit 0',
     'fi',
     // Why: a backgrounded session's statusline runs in a daemon worker that inherited the
-    // dispatching pane's env, so ORCA_PANE_KEY names a pane it does not run in (#9236).
+    // dispatching pane's env, so ALICORN_PANE_KEY names a pane it does not run in (#9236).
     // Placed after capture: POSIX hooks own stdin first, or the agent sees EPIPE (#8110).
     'if [ -n "$CLAUDE_JOB_DIR" ]; then',
     '  exit 0',
@@ -104,19 +104,19 @@ export function getManagedStatusLineScript(target: 'local' | 'posix' = 'local'):
     '  *\'"rate_limits"\'*) ;;',
     '  *) exit 0 ;;',
     'esac',
-    'if [ -n "$ORCA_AGENT_HOOK_ENDPOINT" ] && [ -r "$ORCA_AGENT_HOOK_ENDPOINT" ]; then',
-    '  . "$ORCA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
+    'if [ -n "$ALICORN_AGENT_HOOK_ENDPOINT" ] && [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ]; then',
+    '  . "$ALICORN_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
-    'if [ -z "$ORCA_AGENT_HOOK_PORT" ] || [ -z "$ORCA_AGENT_HOOK_TOKEN" ] || [ -z "$ORCA_PANE_KEY" ]; then',
+    'if [ -z "$ALICORN_AGENT_HOOK_PORT" ] || [ -z "$ALICORN_AGENT_HOOK_TOKEN" ] || [ -z "$ALICORN_PANE_KEY" ]; then',
     '  exit 0',
     'fi',
     // Why: the stable leaf UUID avoids path-unsafe and overlong user-supplied tab ids.
-    'orca_statusline_pane_id=${ORCA_PANE_KEY##*:}',
+    'orca_statusline_pane_id=${ALICORN_PANE_KEY##*:}',
     // Why: pre-migration numeric leaf ids were tab-local, so include a safe tab id to avoid cross-pane throttle collisions after upgrade.
     'case "$orca_statusline_pane_id" in',
     "  ''|*[!0-9]*) ;;",
     '  *)',
-    '    orca_statusline_tab_id=${ORCA_PANE_KEY%:*}',
+    '    orca_statusline_tab_id=${ALICORN_PANE_KEY%:*}',
     '    case "$orca_statusline_tab_id" in',
     "      ''|*[!A-Za-z0-9._-]*) ;;",
     '      *) orca_statusline_pane_id="${orca_statusline_tab_id}_${orca_statusline_pane_id}" ;;',
@@ -163,14 +163,14 @@ export function getManagedStatusLineScript(target: 'local' | 'posix' = 'local'):
     'if [ -n "$orca_statusline_now" ]; then',
     '  printf \'%s\' "$orca_statusline_now" >"$orca_statusline_stamp" 2>/dev/null || :',
     'fi',
-    `printf '%s' "$payload" | curl -sS -X POST "http://127.0.0.1:\${ORCA_AGENT_HOOK_PORT}${CLAUDE_STATUSLINE_PATHNAME}" \\`,
+    `printf '%s' "$payload" | curl -sS -X POST "http://127.0.0.1:\${ALICORN_AGENT_HOOK_PORT}${CLAUDE_STATUSLINE_PATHNAME}" \\`,
     '  --connect-timeout 0.5 --max-time 1.5 \\',
     '  -H "Content-Type: application/x-www-form-urlencoded" \\',
-    '  -H "X-Orca-Agent-Hook-Token: ${ORCA_AGENT_HOOK_TOKEN}" \\',
-    '  --data-urlencode "paneKey=${ORCA_PANE_KEY}" \\',
+    '  -H "X-Orca-Agent-Hook-Token: ${ALICORN_AGENT_HOOK_TOKEN}" \\',
+    '  --data-urlencode "paneKey=${ALICORN_PANE_KEY}" \\',
     '  --data-urlencode "configDir=${CLAUDE_CONFIG_DIR}" \\',
-    '  --data-urlencode "env=${ORCA_AGENT_HOOK_ENV}" \\',
-    '  --data-urlencode "version=${ORCA_AGENT_HOOK_VERSION}" \\',
+    '  --data-urlencode "env=${ALICORN_AGENT_HOOK_ENV}" \\',
+    '  --data-urlencode "version=${ALICORN_AGENT_HOOK_VERSION}" \\',
     '  --data-urlencode "payload@-" >/dev/null 2>&1 || true',
     'exit 0',
     ''

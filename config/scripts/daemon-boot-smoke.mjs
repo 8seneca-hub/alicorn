@@ -179,7 +179,7 @@ async function main() {
       // CI, and this is exactly the runtime where a leaked `require("electron")`
       // throws MODULE_NOT_FOUND — the failure this smoke exists to catch.
       stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
-      env: { ...process.env, ORCA_USER_DATA_PATH: userDataDir }
+      env: { ...process.env, ALICORN_USER_DATA_PATH: userDataDir }
     }
   )
 

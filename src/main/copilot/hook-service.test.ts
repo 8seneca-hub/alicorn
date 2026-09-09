@@ -94,12 +94,12 @@ describe('CopilotHookService', () => {
       const decoded = Buffer.from(encoded!, 'base64').toString('utf16le')
       expect(decoded).toContain('agent-hooks')
       expect(decoded).toContain('copilot-hook.ps1')
-      expect(decoded).toContain("$env:ORCA_COPILOT_HOOK_EVENT = 'UserPromptSubmit'")
+      expect(decoded).toContain("$env:ALICORN_COPILOT_HOOK_EVENT = 'UserPromptSubmit'")
     } else {
       expect(firstPromptHook.bash).toContain('if [ -f ')
       expect(firstPromptHook.bash).toContain('] && [ -x ')
       expect(firstPromptHook.bash).toContain('.orca/agent-hooks/copilot-hook.sh')
-      expect(firstPromptHook.bash).toContain("ORCA_COPILOT_HOOK_EVENT='UserPromptSubmit'")
+      expect(firstPromptHook.bash).toContain("ALICORN_COPILOT_HOOK_EVENT='UserPromptSubmit'")
     }
     expect(existsSync(join(tmpDir, '.orca', 'agent-hooks', 'copilot-hook.sh'))).toBe(
       process.platform !== 'win32'

@@ -60,7 +60,7 @@ export async function installCopilotHooksRemote(
       nextHooks[eventName] = [
         ...cleaned,
         getRemoteManagedHookDefinition(
-          wrapPosixHookCommand(remoteScriptPath, { ORCA_COPILOT_HOOK_EVENT: eventName })
+          wrapPosixHookCommand(remoteScriptPath, { ALICORN_COPILOT_HOOK_EVENT: eventName })
         )
       ]
     }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { isAgentHookEndpointFileName, parseAgentHookEndpointFile } from './agent-hook-endpoint-file'
+import { ALICORN_HOOK_PROTOCOL_VERSION } from './agent-hook-types'
 
 describe('agent hook endpoint files', () => {
   it('recognizes POSIX and Windows endpoint file names', () => {
@@ -12,10 +13,10 @@ describe('agent hook endpoint files', () => {
     expect(
       parseAgentHookEndpointFile(
         [
-          'ORCA_AGENT_HOOK_PORT=12345',
-          'ORCA_AGENT_HOOK_TOKEN=token-123',
-          'ORCA_AGENT_HOOK_ENV=production',
-          'ORCA_AGENT_HOOK_VERSION=1'
+          'ALICORN_AGENT_HOOK_PORT=12345',
+          'ALICORN_AGENT_HOOK_TOKEN=token-123',
+          'ALICORN_AGENT_HOOK_ENV=production',
+          'ALICORN_AGENT_HOOK_VERSION=1'
         ].join('\n')
       )
     ).toEqual({
@@ -30,10 +31,10 @@ describe('agent hook endpoint files', () => {
     expect(
       parseAgentHookEndpointFile(
         [
-          'set ORCA_AGENT_HOOK_PORT=54321',
-          'set ORCA_AGENT_HOOK_TOKEN=token-abc',
-          'set ORCA_AGENT_HOOK_ENV=development',
-          'set ORCA_AGENT_HOOK_VERSION=1'
+          'set ALICORN_AGENT_HOOK_PORT=54321',
+          'set ALICORN_AGENT_HOOK_TOKEN=token-abc',
+          'set ALICORN_AGENT_HOOK_ENV=development',
+          'set ALICORN_AGENT_HOOK_VERSION=1'
         ].join('\r\n')
       )
     ).toEqual({
@@ -48,17 +49,60 @@ describe('agent hook endpoint files', () => {
     expect(
       parseAgentHookEndpointFile(
         [
-          'ORCA_AGENT_HOOK_PORT=12345',
-          'ORCA_AGENT_HOOK_TOKEN=token=with=equals',
-          'ORCA_AGENT_HOOK_ENV=production',
-          'ORCA_AGENT_HOOK_VERSION=1'
+          'ALICORN_AGENT_HOOK_PORT=12345',
+          'ALICORN_AGENT_HOOK_TOKEN=token=with=equals',
+          'ALICORN_AGENT_HOOK_ENV=production',
+          'ALICORN_AGENT_HOOK_VERSION=1'
         ].join('\n')
       ).token
     ).toBe('token=with=equals')
   })
 
+  // Why: the file on disk survives the upgrade that renames the env. A PTY started by the
+  // previous release keeps pointing at it, so the pre-rebrand spelling has to keep parsing.
+  it('parses a pre-rebrand endpoint file written under the ORCA_ names', () => {
+    expect(
+      parseAgentHookEndpointFile(
+        [
+          'ORCA_AGENT_HOOK_PORT=12345',
+          'ORCA_AGENT_HOOK_TOKEN=token-123',
+          'ORCA_AGENT_HOOK_ENV=production',
+          'ORCA_AGENT_HOOK_VERSION=1'
+        ].join('\n')
+      )
+    ).toEqual({ port: '12345', token: 'token-123', env: 'production', version: '1' })
+  })
+
+  it('prefers the ALICORN_ value when a file carries both spellings', () => {
+    expect(
+      parseAgentHookEndpointFile(
+        [
+          'ORCA_AGENT_HOOK_PORT=1111',
+          'ALICORN_AGENT_HOOK_PORT=2222',
+          'ALICORN_AGENT_HOOK_TOKEN=token-123',
+          'ALICORN_AGENT_HOOK_ENV=production',
+          'ALICORN_AGENT_HOOK_VERSION=2'
+        ].join('\n')
+      ).port
+    ).toBe('2222')
+  })
+
+  // Why: the version the rename ships under must differ from the one pre-rebrand scripts
+  // report, or a stale ORCA_-only script reads as current and silently never reinstalls.
+  it('reports a pre-rebrand version that no longer matches the protocol version', () => {
+    const parsed = parseAgentHookEndpointFile(
+      [
+        'ORCA_AGENT_HOOK_PORT=12345',
+        'ORCA_AGENT_HOOK_TOKEN=token-123',
+        'ORCA_AGENT_HOOK_ENV=production',
+        'ORCA_AGENT_HOOK_VERSION=1'
+      ].join('\n')
+    )
+    expect(parsed.version).not.toBe(ALICORN_HOOK_PROTOCOL_VERSION)
+  })
+
   it('throws when required endpoint fields are missing', () => {
-    expect(() => parseAgentHookEndpointFile('ORCA_AGENT_HOOK_PORT=12345')).toThrow(
+    expect(() => parseAgentHookEndpointFile('ALICORN_AGENT_HOOK_PORT=12345')).toThrow(
       'Agent hook endpoint file is missing required fields'
     )
   })

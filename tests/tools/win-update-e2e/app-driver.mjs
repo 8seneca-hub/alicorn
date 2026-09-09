@@ -34,9 +34,9 @@ const RESTRICTED_E2E_ENV_KEYS = new Set([
   'HOME',
   'USERPROFILE',
   'CODEX_HOME',
-  'ORCA_CODEX_HOME',
-  'ORCA_E2E_HOME_DIR',
-  'ORCA_E2E_USER_DATA_DIR'
+  'ALICORN_CODEX_HOME',
+  'ALICORN_E2E_HOME_DIR',
+  'ALICORN_E2E_USER_DATA_DIR'
 ])
 
 /**
@@ -56,7 +56,7 @@ export async function launchInstalledApp({
   const {
     ELECTRON_RUN_AS_NODE: _drop,
     CODEX_HOME: _codexHome,
-    ORCA_CODEX_HOME: _orcaCodexHome,
+    ALICORN_CODEX_HOME: _orcaCodexHome,
     ...cleanEnv
   } = process.env
   void _drop
@@ -85,15 +85,15 @@ export async function launchInstalledApp({
     args: [],
     env: {
       ...cleanEnv,
-      // Packaged main honors ORCA_E2E_USER_DATA_DIR to relocate userData
+      // Packaged main honors ALICORN_E2E_USER_DATA_DIR to relocate userData
       // (logs/daemon/terminal-history) under a controlled dir.
       ...extraEnv,
-      ORCA_E2E_USER_DATA_DIR: userDataDir,
+      ALICORN_E2E_USER_DATA_DIR: userDataDir,
       // Why: the driven app stays off the foreground so a local run doesn't steal focus.
-      ORCA_BACKGROUND_LAUNCH: '1',
+      ALICORN_BACKGROUND_LAUNCH: '1',
       HOME: isolatedHome,
       USERPROFILE: isolatedHome,
-      ORCA_E2E_HOME_DIR: isolatedHome
+      ALICORN_E2E_HOME_DIR: isolatedHome
     }
   })
   // If firstWindow times out (the launched main never shows a window), the

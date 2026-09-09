@@ -36,8 +36,8 @@ describe('ensure-native-runtime', () => {
         cwd: projectDir,
         encoding: 'utf8',
         env: envWithPrependedPath(binDir, {
-          ORCA_NATIVE_TEST_LOG: logPath,
-          ORCA_NATIVE_TEST_MARKER: markerPath
+          ALICORN_NATIVE_TEST_LOG: logPath,
+          ALICORN_NATIVE_TEST_MARKER: markerPath
         })
       })
 
@@ -76,8 +76,8 @@ describe('ensure-native-runtime', () => {
           cwd: projectDir,
           encoding: 'utf8',
           env: envWithPrependedPath(binDir, {
-            ORCA_NATIVE_TEST_LOG: logPath,
-            ORCA_NATIVE_TEST_MARKER: markerPath
+            ALICORN_NATIVE_TEST_LOG: logPath,
+            ALICORN_NATIVE_TEST_MARKER: markerPath
           })
         })
 
@@ -111,8 +111,8 @@ describe('ensure-native-runtime', () => {
           cwd: projectDir,
           encoding: 'utf8',
           env: envWithPrependedPath(binDir, {
-            ORCA_NATIVE_TEST_LOG: logPath,
-            ORCA_NATIVE_TEST_MARKER: markerPath
+            ALICORN_NATIVE_TEST_LOG: logPath,
+            ALICORN_NATIVE_TEST_MARKER: markerPath
           })
         })
 
@@ -147,8 +147,8 @@ describe('ensure-native-runtime', () => {
           cwd: projectDir,
           encoding: 'utf8',
           env: envWithPrependedPath(binDir, {
-            ORCA_NATIVE_TEST_LOG: logPath,
-            ORCA_NATIVE_TEST_MARKER: markerPath
+            ALICORN_NATIVE_TEST_LOG: logPath,
+            ALICORN_NATIVE_TEST_MARKER: markerPath
           })
         })
 
@@ -181,8 +181,8 @@ describe('ensure-native-runtime', () => {
           cwd: projectDir,
           encoding: 'utf8',
           env: envWithPrependedPath(binDir, {
-            ORCA_NATIVE_TEST_LOG: logPath,
-            ORCA_NATIVE_TEST_MARKER: markerPath
+            ALICORN_NATIVE_TEST_LOG: logPath,
+            ALICORN_NATIVE_TEST_MARKER: markerPath
           })
         })
 
@@ -235,9 +235,9 @@ function writeFakeNativeModules(projectDir, { windowsRegistryRequiresMarker = fa
 const { appendFileSync, existsSync } = require('node:fs')
 
 exports.loadNativeModule = function loadNativeModule(nativeName) {
-  const markerExists = existsSync(process.env.ORCA_NATIVE_TEST_MARKER)
+  const markerExists = existsSync(process.env.ALICORN_NATIVE_TEST_MARKER)
   appendFileSync(
-    process.env.ORCA_NATIVE_TEST_LOG,
+    process.env.ALICORN_NATIVE_TEST_LOG,
     \`node-pty \${process.argv.includes('--check-only') ? 'child' : 'parent'} \${nativeName} marker=\${markerExists}\\n\`
   )
   if (!markerExists) {
@@ -274,10 +274,10 @@ function writeLoadableNativeModules(projectDir, { nativeDir = null } = {}) {
 const { appendFileSync, existsSync } = require('node:fs')
 
 exports.loadNativeModule = function loadNativeModule(nativeName) {
-  const rebuilt = existsSync(process.env.ORCA_NATIVE_TEST_MARKER)
+  const rebuilt = existsSync(process.env.ALICORN_NATIVE_TEST_MARKER)
   const dir = ${JSON.stringify(nativeDir)} ??
     (rebuilt ? '../build/Release/' : '../prebuilds/' + process.platform + '-' + process.arch + '/')
-  appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`node-pty load \${nativeName} dir=\${dir}\\n\`)
+  appendFileSync(process.env.ALICORN_NATIVE_TEST_LOG, \`node-pty load \${nativeName} dir=\${dir}\\n\`)
   return {
     dir,
     module: {
@@ -303,7 +303,7 @@ function writeFakeWindowsRegistry(projectDir, { requiresMarker = false } = {}) {
     '{"name":"windows-native-registry","version":"3.2.2","main":"index.js"}\n'
   )
   const markerGate = requiresMarker
-    ? `if (!require('node:fs').existsSync(process.env.ORCA_NATIVE_TEST_MARKER)) { throw new Error('registry ABI mismatch sentinel') }`
+    ? `if (!require('node:fs').existsSync(process.env.ALICORN_NATIVE_TEST_MARKER)) { throw new Error('registry ABI mismatch sentinel') }`
     : ''
   writeFileSync(
     join(registryDir, 'index.js'),
@@ -343,17 +343,17 @@ function writeFakePnpm(binDir) {
     `
 const { appendFileSync, writeFileSync } = require('node:fs')
 
-appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`pnpm \${process.argv.slice(2).join(' ')}\\n\`)
-appendFileSync(process.env.ORCA_NATIVE_TEST_LOG, \`cwd=\${process.cwd()}\\n\`)
+appendFileSync(process.env.ALICORN_NATIVE_TEST_LOG, \`pnpm \${process.argv.slice(2).join(' ')}\\n\`)
+appendFileSync(process.env.ALICORN_NATIVE_TEST_LOG, \`cwd=\${process.cwd()}\\n\`)
 appendFileSync(
-  process.env.ORCA_NATIVE_TEST_LOG,
+  process.env.ALICORN_NATIVE_TEST_LOG,
   \`npm_config_build_from_source=\${process.env.npm_config_build_from_source || ''}\\n\`
 )
 appendFileSync(
-  process.env.ORCA_NATIVE_TEST_LOG,
+  process.env.ALICORN_NATIVE_TEST_LOG,
   \`cxxflags=\${process.env.CXXFLAGS || ''}\\n\`
 )
-writeFileSync(process.env.ORCA_NATIVE_TEST_MARKER, 'rebuilt')
+writeFileSync(process.env.ALICORN_NATIVE_TEST_MARKER, 'rebuilt')
 `
   )
 

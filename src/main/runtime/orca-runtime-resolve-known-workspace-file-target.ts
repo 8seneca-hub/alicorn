@@ -110,7 +110,7 @@ export class OrcaRuntimeWithResolveKnownWorkspaceFileTarget extends OrcaRuntimeW
   }
 
   // Why: terminal handles are normally created lazily when first referenced via
-  // RPC, but agents need their own handle at spawn time (via ORCA_TERMINAL_HANDLE
+  // RPC, but agents need their own handle at spawn time (via ALICORN_TERMINAL_HANDLE
   // env var) so they can self-identify in orchestration messages without an
   // extra RPC round-trip. Pre-allocating by ptyId lets issueHandle reuse it.
   preAllocateHandleForPty(ptyId: string): string {
@@ -206,7 +206,7 @@ export class OrcaRuntimeWithResolveKnownWorkspaceFileTarget extends OrcaRuntimeW
       }
     }
     // Why: after an app/runtime restart, the live PTY child still has its
-    // original ORCA_TERMINAL_HANDLE, but the runtime's in-memory map is gone.
+    // original ALICORN_TERMINAL_HANDLE, but the runtime's in-memory map is gone.
     this.registerPreAllocatedHandleForPty(ptyId, trimmed)
   }
 }

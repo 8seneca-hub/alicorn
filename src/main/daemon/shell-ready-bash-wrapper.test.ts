@@ -42,16 +42,16 @@ describePosix('daemon shell-ready bash wrapper', () => {
   let previousUserDataPath: string | undefined
 
   beforeEach(() => {
-    previousUserDataPath = process.env.ORCA_USER_DATA_PATH
+    previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
     userDataPath = mkdtempSync(join(tmpdir(), 'daemon-shell-ready-bash-test-'))
-    process.env.ORCA_USER_DATA_PATH = userDataPath
+    process.env.ALICORN_USER_DATA_PATH = userDataPath
   })
 
   afterEach(() => {
     if (previousUserDataPath === undefined) {
-      delete process.env.ORCA_USER_DATA_PATH
+      delete process.env.ALICORN_USER_DATA_PATH
     } else {
-      process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+      process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
     }
     rmSync(userDataPath, { recursive: true, force: true })
     vi.restoreAllMocks()

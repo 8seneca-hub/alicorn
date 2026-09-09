@@ -44,12 +44,12 @@ function readMirroredConstants(source) {
 
 const { maxCarryLength: MAX_CARRY_LENGTH, httpSchemePrefixes: HTTP_SCHEME_PREFIXES } =
   readMirroredConstants(DETECTOR_SOURCE)
-const ITERATIONS = Number.parseInt(process.env.ORCA_PR_CARRY_BENCH_ITERATIONS ?? '2000', 10)
-const WARMUP = Number.parseInt(process.env.ORCA_PR_CARRY_BENCH_WARMUP ?? '200', 10)
+const ITERATIONS = Number.parseInt(process.env.ALICORN_PR_CARRY_BENCH_ITERATIONS ?? '2000', 10)
+const WARMUP = Number.parseInt(process.env.ALICORN_PR_CARRY_BENCH_WARMUP ?? '200', 10)
 
 for (const [name, value] of [
-  ['ORCA_PR_CARRY_BENCH_ITERATIONS', ITERATIONS],
-  ['ORCA_PR_CARRY_BENCH_WARMUP', WARMUP]
+  ['ALICORN_PR_CARRY_BENCH_ITERATIONS', ITERATIONS],
+  ['ALICORN_PR_CARRY_BENCH_WARMUP', WARMUP]
 ]) {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer, received ${value}`)

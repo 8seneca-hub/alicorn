@@ -5,14 +5,14 @@ const require = createRequire(import.meta.url)
 const electronBuilderConfig = require('../electron-builder.config.cjs')
 
 const MUTABLE_BUILD_ENV = [
-  'ORCA_MAC_HOURLY',
-  'ORCA_MAC_DAILY',
-  'ORCA_MAC_ADHOC',
-  'ORCA_MAC_RELEASE',
-  'ORCA_HOURLY_BUILD_VERSION',
-  'ORCA_DAILY_BUILD_VERSION',
-  'ORCA_ADHOC_BUILD_VERSION',
-  'ORCA_LOCAL_BUILD_VERSION'
+  'ALICORN_MAC_HOURLY',
+  'ALICORN_MAC_DAILY',
+  'ALICORN_MAC_ADHOC',
+  'ALICORN_MAC_RELEASE',
+  'ALICORN_HOURLY_BUILD_VERSION',
+  'ALICORN_DAILY_BUILD_VERSION',
+  'ALICORN_ADHOC_BUILD_VERSION',
+  'ALICORN_LOCAL_BUILD_VERSION'
 ]
 
 /** Re-requires the config under a temporary env, then restores env and module cache. */
@@ -39,9 +39,9 @@ function withEnv(env, assert) {
   }
 }
 
-const withHourlyEnv = (assert) => withEnv({ ORCA_MAC_HOURLY: '1' }, assert)
-const withDailyEnv = (assert) => withEnv({ ORCA_MAC_DAILY: '1' }, assert)
-const withAdhocEnv = (assert) => withEnv({ ORCA_MAC_ADHOC: '1' }, assert)
+const withHourlyEnv = (assert) => withEnv({ ALICORN_MAC_HOURLY: '1' }, assert)
+const withDailyEnv = (assert) => withEnv({ ALICORN_MAC_DAILY: '1' }, assert)
+const withAdhocEnv = (assert) => withEnv({ ALICORN_MAC_ADHOC: '1' }, assert)
 
 describe('electron-builder mac channel config', () => {
   // Why: Squirrel.Mac swaps the .app in place only when the replacement carries the
@@ -65,7 +65,7 @@ describe('electron-builder mac channel config', () => {
     withHourlyEnv((config) => {
       expect(config.mac.notarize).toBe(true)
     })
-    withEnv({ ORCA_MAC_RELEASE: '1' }, (config) => {
+    withEnv({ ALICORN_MAC_RELEASE: '1' }, (config) => {
       expect(config.mac.notarize).toBe(true)
     })
     expect(electronBuilderConfig.mac.notarize).toBe(false)
@@ -86,7 +86,7 @@ describe('electron-builder mac channel config', () => {
 
   it('stamps hourly packages with the hourly version', () => {
     withEnv(
-      { ORCA_MAC_HOURLY: '1', ORCA_HOURLY_BUILD_VERSION: '1.4.160-hourly.202607281400' },
+      { ALICORN_MAC_HOURLY: '1', ALICORN_HOURLY_BUILD_VERSION: '1.4.160-hourly.202607281400' },
       (config) => {
         expect(config.extraMetadata).toEqual({ version: '1.4.160-hourly.202607281400' })
       }
@@ -108,7 +108,7 @@ describe('electron-builder mac channel config', () => {
 
   it('stamps adhoc packages with the adhoc version', () => {
     withEnv(
-      { ORCA_MAC_ADHOC: '1', ORCA_ADHOC_BUILD_VERSION: '1.4.160-adhoc.20260728140533' },
+      { ALICORN_MAC_ADHOC: '1', ALICORN_ADHOC_BUILD_VERSION: '1.4.160-adhoc.20260728140533' },
       (config) => {
         expect(config.extraMetadata).toEqual({ version: '1.4.160-adhoc.20260728140533' })
       }
@@ -127,7 +127,7 @@ describe('electron-builder mac channel config', () => {
 
   it('stamps daily packages with the daily version', () => {
     withEnv(
-      { ORCA_MAC_DAILY: '1', ORCA_DAILY_BUILD_VERSION: '1.4.160-daily.202607281300' },
+      { ALICORN_MAC_DAILY: '1', ALICORN_DAILY_BUILD_VERSION: '1.4.160-daily.202607281300' },
       (config) => {
         expect(config.extraMetadata).toEqual({ version: '1.4.160-daily.202607281300' })
       }

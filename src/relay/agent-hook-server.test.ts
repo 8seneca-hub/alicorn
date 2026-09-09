@@ -7,6 +7,7 @@ import type { AgentHookResultRetryScheduler } from './agent-hook-result-retry-sc
 import { endpointDirForRelaySocket } from './agent-hook-endpoint-coordinates'
 import type { AgentHookRelayEnvelope } from '../shared/agent-hook-relay'
 import { makePaneKey } from '../shared/stable-pane-id'
+import { ALICORN_HOOK_PROTOCOL_VERSION } from '../shared/agent-hook-types'
 import * as agentHookListener from '../shared/agent-hook-listener/grok-result-discovery'
 import { HOOK_REQUEST_MAX_BYTES } from '../shared/agent-hook-listener/request-body'
 
@@ -501,18 +502,18 @@ describe('RelayAgentHookServer', () => {
     }
   })
 
-  it('exposes ORCA_AGENT_HOOK_* env vars after start', async () => {
+  it('exposes ALICORN_AGENT_HOOK_* env vars after start', async () => {
     const forward = vi.fn()
     const server = new RelayAgentHookServer({ endpointDir: dir, forward })
     await server.start()
     try {
       const env = server.buildPtyEnv()
-      expect(env.ORCA_AGENT_HOOK_PORT).toMatch(/^\d+$/)
-      expect(env.ORCA_AGENT_HOOK_TOKEN).toBeTruthy()
-      expect(env.ORCA_AGENT_HOOK_ENV).toBe('remote')
-      expect(env.ORCA_AGENT_HOOK_VERSION).toBe('1')
-      expect(env.ORCA_AGENT_HOOK_TRANSPORT).toBe('raw-json-v1')
-      expect(env.ORCA_AGENT_HOOK_ENDPOINT).toBeTruthy()
+      expect(env.ALICORN_AGENT_HOOK_PORT).toMatch(/^\d+$/)
+      expect(env.ALICORN_AGENT_HOOK_TOKEN).toBeTruthy()
+      expect(env.ALICORN_AGENT_HOOK_ENV).toBe('remote')
+      expect(env.ALICORN_AGENT_HOOK_VERSION).toBe(ALICORN_HOOK_PROTOCOL_VERSION)
+      expect(env.ALICORN_AGENT_HOOK_TRANSPORT).toBe('raw-json-v1')
+      expect(env.ALICORN_AGENT_HOOK_ENDPOINT).toBeTruthy()
     } finally {
       server.stop()
     }
@@ -523,9 +524,9 @@ describe('RelayAgentHookServer', () => {
     const server = new RelayAgentHookServer({ endpointDir: dir, forward })
     await server.start({ publishEndpoint: false })
     try {
-      expect(server.buildPtyEnv().ORCA_AGENT_HOOK_ENDPOINT).toBeUndefined()
+      expect(server.buildPtyEnv().ALICORN_AGENT_HOOK_ENDPOINT).toBeUndefined()
       expect(server.publishEndpointFile()).toBe(true)
-      expect(server.buildPtyEnv().ORCA_AGENT_HOOK_ENDPOINT).toBeTruthy()
+      expect(server.buildPtyEnv().ALICORN_AGENT_HOOK_ENDPOINT).toBeTruthy()
     } finally {
       server.stop()
     }

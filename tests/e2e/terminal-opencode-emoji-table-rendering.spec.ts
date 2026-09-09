@@ -38,7 +38,7 @@ type CursorBlinkSample = {
   paintedCursorCellCount: number
 }
 
-const EMOJI_TABLE_MARKER = 'ORCA_EMOJI_TABLE_RENDER_DONE'
+const EMOJI_TABLE_MARKER = 'ALICORN_EMOJI_TABLE_RENDER_DONE'
 
 function emojiTableScript(marker: string): string {
   const table = [
@@ -304,8 +304,8 @@ test.describe('OpenCode emoji table terminal rendering', () => {
     orcaPage
   }, testInfo) => {
     test.skip(
-      process.env.ORCA_E2E_REAL_OPENCODE !== '1',
-      'Set ORCA_E2E_REAL_OPENCODE=1 to exercise the locally installed OpenCode TUI'
+      process.env.ALICORN_E2E_REAL_OPENCODE !== '1',
+      'Set ALICORN_E2E_REAL_OPENCODE=1 to exercise the locally installed OpenCode TUI'
     )
 
     await waitForSessionReady(orcaPage)

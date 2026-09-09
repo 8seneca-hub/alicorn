@@ -27,27 +27,27 @@ Story: remotes keep streaming while the user is away; user returns (optionally a
 
 ```bash
 # Idle + human-paced open
-ORCA_FREEZE_ENV=paired-remote \
-ORCA_FREEZE_SCENARIO=idle-backlog-open \
-ORCA_FREEZE_CREATE=8 \
-ORCA_FREEZE_IDLE_MS=45000 \
-ORCA_FREEZE_OPEN_COUNT=24 \
+ALICORN_FREEZE_ENV=paired-remote \
+ALICORN_FREEZE_SCENARIO=idle-backlog-open \
+ALICORN_FREEZE_CREATE=8 \
+ALICORN_FREEZE_IDLE_MS=45000 \
+ALICORN_FREEZE_OPEN_COUNT=24 \
 pnpm run repro:live-remote-realistic-freeze
 
 # Wake-like: idle + reconnect metadata storm + open  ← hard freeze in lab
-ORCA_FREEZE_ENV=paired-remote \
-ORCA_FREEZE_SCENARIO=idle-backlog-reconnect-open \
-ORCA_FREEZE_CREATE=10 \
-ORCA_FREEZE_IDLE_MS=60000 \
-ORCA_FREEZE_OPEN_COUNT=40 \
+ALICORN_FREEZE_ENV=paired-remote \
+ALICORN_FREEZE_SCENARIO=idle-backlog-reconnect-open \
+ALICORN_FREEZE_CREATE=10 \
+ALICORN_FREEZE_IDLE_MS=60000 \
+ALICORN_FREEZE_OPEN_COUNT=40 \
 pnpm run repro:live-remote-realistic-freeze
 
 # Restart-proxy: idle + orca open + refresh storm + open (does not kill desktop)
-ORCA_FREEZE_ENV=paired-remote \
-ORCA_FREEZE_SCENARIO=restart-proxy \
-ORCA_FREEZE_CREATE=0 \
-ORCA_FREEZE_IDLE_MS=20000 \
-ORCA_FREEZE_OPEN_COUNT=30 \
+ALICORN_FREEZE_ENV=paired-remote \
+ALICORN_FREEZE_SCENARIO=restart-proxy \
+ALICORN_FREEZE_CREATE=0 \
+ALICORN_FREEZE_IDLE_MS=20000 \
+ALICORN_FREEZE_OPEN_COUNT=30 \
 pnpm run repro:live-remote-realistic-freeze
 ```
 
@@ -55,7 +55,7 @@ Or: `node config/scripts/live-remote-realistic-freeze-repro.mjs`
 
 ### Scenarios
 
-| `ORCA_FREEZE_SCENARIO`        | Models                                                                                        |
+| `ALICORN_FREEZE_SCENARIO`        | Models                                                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------------------- |
 | `idle-backlog-open`           | User away while agents stream; returns and opens sessions                                     |
 | `idle-backlog-reconnect-open` | Same + parallel status/worktree/terminal refresh (wake/reconnect client storm)                |
@@ -66,14 +66,14 @@ Or: `node config/scripts/live-remote-realistic-freeze-repro.mjs`
 
 | Variable                          | Default             | Meaning                                                           |
 | --------------------------------- | ------------------- | ----------------------------------------------------------------- |
-| `ORCA_FREEZE_ENV`                 | `paired-remote`     | Paired remote environment name                                    |
-| `ORCA_FREEZE_SCENARIO`            | `idle-backlog-open` | See table above                                                   |
-| `ORCA_FREEZE_CREATE`              | `0`                 | New flood terminals; mutation requires an explicit positive value |
-| `ORCA_FREEZE_IDLE_MS`             | `45000`             | Time “away” while floods run                                      |
-| `ORCA_FREEZE_OPEN_COUNT`          | `20`                | Sessions to open after return                                     |
-| `ORCA_FREEZE_PACE_MS`             | `250`               | Base delay between opens (human pace)                             |
-| `ORCA_FREEZE_PACE_JITTER_MS`      | `150`               | Random extra delay                                                |
-| `ORCA_FREEZE_SOFT_MS` / `HARD_MS` | 2000 / 5000         | Thresholds                                                        |
+| `ALICORN_FREEZE_ENV`                 | `paired-remote`     | Paired remote environment name                                    |
+| `ALICORN_FREEZE_SCENARIO`            | `idle-backlog-open` | See table above                                                   |
+| `ALICORN_FREEZE_CREATE`              | `0`                 | New flood terminals; mutation requires an explicit positive value |
+| `ALICORN_FREEZE_IDLE_MS`             | `45000`             | Time “away” while floods run                                      |
+| `ALICORN_FREEZE_OPEN_COUNT`          | `20`                | Sessions to open after return                                     |
+| `ALICORN_FREEZE_PACE_MS`             | `250`               | Base delay between opens (human pace)                             |
+| `ALICORN_FREEZE_PACE_JITTER_MS`      | `150`               | Random extra delay                                                |
+| `ALICORN_FREEZE_SOFT_MS` / `HARD_MS` | 2000 / 5000         | Thresholds                                                        |
 
 ### Lab results (2026-07-31, client 1.4.163 / remote 1.4.163-rc.0)
 
@@ -116,9 +116,9 @@ What we **do not**: UI dead forever until Force Quit. That likely needs **real O
 
 ```bash
 # Full-app freeze attempt (watchdog on)
-ORCA_FREEZE_ENV=paired-remote ORCA_FREEZE_SCENARIO=lockup-storm \
-  ORCA_FREEZE_CREATE=12 ORCA_FREEZE_IDLE_MS=30000 ORCA_FREEZE_OPEN_COUNT=80 \
-  ORCA_FREEZE_STORM_PARALLEL=28 ORCA_FREEZE_FOREVER_WINDOW_MS=30000 \
+ALICORN_FREEZE_ENV=paired-remote ALICORN_FREEZE_SCENARIO=lockup-storm \
+  ALICORN_FREEZE_CREATE=12 ALICORN_FREEZE_IDLE_MS=30000 ALICORN_FREEZE_OPEN_COUNT=80 \
+  ALICORN_FREEZE_STORM_PARALLEL=28 ALICORN_FREEZE_FOREVER_WINDOW_MS=30000 \
   pnpm run repro:live-remote-realistic-freeze
 # Expect exit 2 (recovered hard) unless foreverUiLockupObserved becomes true
 ```
@@ -134,10 +134,10 @@ Reports: `test-results/freeze-repro/live-realistic-freeze-<env>-<scenario>.json`
 Artificial concurrency lever; still useful for ceilings / CI stress.
 
 ```bash
-ORCA_FREEZE_ENV=paired-remote \
-ORCA_FREEZE_CREATE=0 \
-ORCA_FREEZE_SWITCH_PASSES=3 \
-ORCA_FREEZE_PARALLEL=16 \
+ALICORN_FREEZE_ENV=paired-remote \
+ALICORN_FREEZE_CREATE=0 \
+ALICORN_FREEZE_SWITCH_PASSES=3 \
+ALICORN_FREEZE_PARALLEL=16 \
 pnpm run repro:live-remote-bulk-open-freeze
 ```
 
@@ -185,19 +185,19 @@ Generation-aware **latest-wins single-flight** for exclusive host focus:
 
 ## Safety
 
-- Both harnesses default to `ORCA_FREEZE_CREATE=0`. A positive value creates persistent, high-output remote terminals; use it only on an isolated target you can clean up.
+- Both harnesses default to `ALICORN_FREEZE_CREATE=0`. A positive value creates persistent, high-output remote terminals; use it only on an isolated target you can clean up.
 - `restart-proxy` does **not** kill Orca; it runs `orca open` + refresh RPCs only.
 - Manual capture if UI fully freezes: `sample Orca 5 -file ~/Desktop/orca-freeze-sample.txt`
 
-The scripts honor `ORCA_CLI_COMMAND`, then use `orca-dev` in a dev runtime, `orca-ide` on Linux, and `orca` elsewhere.
+The scripts honor `ALICORN_CLI_COMMAND`, then use `orca-dev` in a dev runtime, `orca-ide` on Linux, and `orca` elsewhere.
 
 PowerShell equivalent for the first example:
 
 ```powershell
-$env:ORCA_FREEZE_ENV = 'paired-remote'
-$env:ORCA_FREEZE_SCENARIO = 'idle-backlog-open'
-$env:ORCA_FREEZE_CREATE = '8'
-$env:ORCA_FREEZE_IDLE_MS = '45000'
-$env:ORCA_FREEZE_OPEN_COUNT = '24'
+$env:ALICORN_FREEZE_ENV = 'paired-remote'
+$env:ALICORN_FREEZE_SCENARIO = 'idle-backlog-open'
+$env:ALICORN_FREEZE_CREATE = '8'
+$env:ALICORN_FREEZE_IDLE_MS = '45000'
+$env:ALICORN_FREEZE_OPEN_COUNT = '24'
 pnpm run repro:live-remote-realistic-freeze
 ```

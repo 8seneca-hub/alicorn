@@ -19,7 +19,7 @@ const electronBinary = createRequire(import.meta.url)('electron') as string
 const GATE_ENTERED = 'GATE_ENTERED'
 const CONTINUED_INTO_STARTUP = 'CONTINUED_INTO_STARTUP'
 const REACHED_TAIL = 'REACHED_TAIL'
-const MARKER_ENV = 'ORCA_PRE_READY_EXIT_FIXTURE_MARKER'
+const MARKER_ENV = 'ALICORN_PRE_READY_EXIT_FIXTURE_MARKER'
 
 const fixtureRoots: string[] = []
 

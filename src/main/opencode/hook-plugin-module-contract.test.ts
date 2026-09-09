@@ -36,12 +36,12 @@ describe('OpenCode status plugin module contract', () => {
 
   // Why: the plugin resolves hook coords from the endpoint file first and only then from
   // env. Pin every input here so the run does not depend on the developer's Orca session
-  // (an inherited ORCA_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
+  // (an inherited ALICORN_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
   const ENV_KEYS = [
-    'ORCA_PANE_KEY',
-    'ORCA_AGENT_HOOK_ENDPOINT',
-    'ORCA_AGENT_HOOK_PORT',
-    'ORCA_AGENT_HOOK_TOKEN'
+    'ALICORN_PANE_KEY',
+    'ALICORN_AGENT_HOOK_ENDPOINT',
+    'ALICORN_AGENT_HOOK_PORT',
+    'ALICORN_AGENT_HOOK_TOKEN'
   ] as const
 
   let tempDir: string
@@ -55,9 +55,9 @@ describe('OpenCode status plugin module contract', () => {
     for (const key of ENV_KEYS) {
       savedEnv[key] = process.env[key]
     }
-    delete process.env.ORCA_AGENT_HOOK_ENDPOINT
-    process.env.ORCA_AGENT_HOOK_PORT = '59999'
-    process.env.ORCA_AGENT_HOOK_TOKEN = 'test-token'
+    delete process.env.ALICORN_AGENT_HOOK_ENDPOINT
+    process.env.ALICORN_AGENT_HOOK_PORT = '59999'
+    process.env.ALICORN_AGENT_HOOK_TOKEN = 'test-token'
   })
 
   afterEach(() => {
@@ -117,7 +117,7 @@ describe('OpenCode status plugin module contract', () => {
   })
 
   it('reports a session lifecycle event through the hook endpoint when driven via the default export', async () => {
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.ALICORN_PANE_KEY = 'tab-1:leaf-1'
     const posts: { url: string; body: unknown }[] = []
     globalThis.fetch = vi.fn(async (input: unknown, init?: { body?: unknown }) => {
       posts.push({ url: String(input), body: JSON.parse(String(init?.body ?? '{}')) })

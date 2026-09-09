@@ -17,12 +17,12 @@ import {
 } from './helpers/terminal'
 import { compareTerminalScreenshots } from './terminal-screenshot-diff'
 
-const RUN_REPRO = process.env.ORCA_E2E_CODEX_SKILL_PREVIEW_REPRO === '1'
-const EXPECT_NO_ARTIFACTS = process.env.ORCA_E2E_EXPECT_NO_CODEX_SKILL_PREVIEW_ARTIFACTS === '1'
+const RUN_REPRO = process.env.ALICORN_E2E_CODEX_SKILL_PREVIEW_REPRO === '1'
+const EXPECT_NO_ARTIFACTS = process.env.ALICORN_E2E_EXPECT_NO_CODEX_SKILL_PREVIEW_ARTIFACTS === '1'
 const FULLSCREEN_MIN_SIZE = { width: 1200, height: 760 }
 const MIN_REPRO_DIFF_RATIO = 0.006
 const MAX_CLEAN_DIFF_RATIO = 0.0015
-const ORCA_REPO_PATH = realpathSync(process.cwd())
+const ALICORN_REPO_PATH = realpathSync(process.cwd())
 const ARTIFACT_DIR = path.join(process.cwd(), '.tmp', 'codex-skill-preview-real-flow')
 
 const CODEX_READY_RE = /Ask Codex|OpenAI Codex/i
@@ -565,7 +565,7 @@ test.describe('Codex skill preview terminal artifact repro @headful', () => {
 
   const createdWorktreeIds: string[] = []
 
-  test.skip(!RUN_REPRO, 'Set ORCA_E2E_CODEX_SKILL_PREVIEW_REPRO=1 to run this repro.')
+  test.skip(!RUN_REPRO, 'Set ALICORN_E2E_CODEX_SKILL_PREVIEW_REPRO=1 to run this repro.')
 
   test.afterEach(async ({ orcaPage }) => {
     for (const id of createdWorktreeIds) {
@@ -583,7 +583,7 @@ test.describe('Codex skill preview terminal artifact repro @headful', () => {
 
     await setStableFullscreenWindow(electronApp, orcaPage)
     await waitForSessionReady(orcaPage)
-    await addRealOrcaRepo(orcaPage, ORCA_REPO_PATH)
+    await addRealOrcaRepo(orcaPage, ALICORN_REPO_PATH)
     await waitForActiveWorktree(orcaPage)
     await ensureTerminalVisible(orcaPage)
     await waitForActiveTerminalManager(orcaPage, 30_000)
@@ -654,7 +654,7 @@ test.describe('Codex skill preview terminal artifact repro @headful', () => {
         leftPane: evidence.leftPane,
         setupChangesAfterPreview,
         overpaintedSkillRows,
-        repoPath: ORCA_REPO_PATH
+        repoPath: ALICORN_REPO_PATH
       })
     })
 

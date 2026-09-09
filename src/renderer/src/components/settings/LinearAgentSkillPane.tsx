@@ -5,7 +5,7 @@ import { LinearApiKeyDialog } from '@/components/linear-api-key-dialog'
 import { LinearIcon } from '@/components/icons/LinearIcon'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
-import { ORCA_LINEAR_SKILL_NAME } from '@/lib/agent-feature-install-commands'
+import { ALICORN_LINEAR_SKILL_NAME } from '@/lib/agent-feature-install-commands'
 import { getLinearUsageExamples } from '@/lib/linear-usage-examples'
 import type { SkillUsageExample } from '@/lib/skill-usage-example'
 import { useLinearProviderConnected } from '@/hooks/useLinearProviderConnected'
@@ -132,7 +132,7 @@ export function LinearAgentSkillPane(): React.JSX.Element {
         )}
         examples={getLinearUsageExamples()}
         resolveIcon={resolveLinearExampleIcon}
-        slashCommand={`/${ORCA_LINEAR_SKILL_NAME}`}
+        slashCommand={`/${ALICORN_LINEAR_SKILL_NAME}`}
       />
 
       <LinearAgentSkillNotes />

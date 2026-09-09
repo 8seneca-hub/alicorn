@@ -21,7 +21,7 @@ vi.mock('node:os', async (importOriginal) => {
   const actual = await importOriginal<{ homedir: () => string }>()
   return {
     ...actual,
-    homedir: () => process.env.ORCA_TEST_SSH_HOME || actual.homedir()
+    homedir: () => process.env.ALICORN_TEST_SSH_HOME || actual.homedir()
   }
 })
 
@@ -181,7 +181,7 @@ describe('requiresSystemSshForSecurityKey', () => {
     const directory = await createDefaultKeyHome({
       id_ed25519_sk: createOpenSshPrivateKeyFixture([ED25519_SECURITY_KEY])
     })
-    vi.stubEnv('ORCA_TEST_SSH_HOME', directory)
+    vi.stubEnv('ALICORN_TEST_SSH_HOME', directory)
 
     await expect(requiresSystemSshForSecurityKey(createTarget(), null)).resolves.toBe(true)
     await expect(
@@ -194,7 +194,7 @@ describe('requiresSystemSshForSecurityKey', () => {
       id_rsa: createOpenSshPrivateKeyFixture(['ssh-rsa']),
       id_ed25519_sk: createOpenSshPrivateKeyFixture([ED25519_SECURITY_KEY])
     })
-    vi.stubEnv('ORCA_TEST_SSH_HOME', directory)
+    vi.stubEnv('ALICORN_TEST_SSH_HOME', directory)
 
     await expect(requiresSystemSshForSecurityKey(createTarget(), null)).resolves.toBe(true)
 
@@ -206,7 +206,7 @@ describe('requiresSystemSshForSecurityKey', () => {
     const directory = await createDefaultKeyHome({
       id_rsa: createOpenSshPrivateKeyFixture(['ssh-rsa'])
     })
-    vi.stubEnv('ORCA_TEST_SSH_HOME', directory)
+    vi.stubEnv('ALICORN_TEST_SSH_HOME', directory)
 
     await expect(requiresSystemSshForSecurityKey(createTarget(), null)).resolves.toBe(false)
   })
@@ -241,7 +241,7 @@ describe('requiresSystemSshForSecurityKey', () => {
     const directory = await createDefaultKeyHome({
       id_ed25519_sk: createOpenSshPrivateKeyFixture([ED25519_SECURITY_KEY])
     })
-    vi.stubEnv('ORCA_TEST_SSH_HOME', directory)
+    vi.stubEnv('ALICORN_TEST_SSH_HOME', directory)
     findSystemSshMock.mockReturnValue(null)
 
     await expect(requiresSystemSshForSecurityKey(createTarget(), null)).resolves.toBe(false)
@@ -252,7 +252,7 @@ describe('requiresSystemSshForSecurityKey', () => {
       'id_ed25519.pub': createOpenSshPublicKeyFixture('ssh-ed25519'),
       id_ed25519_sk: createOpenSshPrivateKeyFixture([ED25519_SECURITY_KEY])
     })
-    vi.stubEnv('ORCA_TEST_SSH_HOME', directory)
+    vi.stubEnv('ALICORN_TEST_SSH_HOME', directory)
 
     await expect(requiresSystemSshForSecurityKey(createTarget(), null)).resolves.toBe(true)
   })

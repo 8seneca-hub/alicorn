@@ -106,12 +106,12 @@ describe('claude agent teams shim env', () => {
     expect(resolveClaudeAgentTeamsShimBin({ PATH: '.' })).toBeNull()
     expect(resolveClaudeAgentTeamsShimBin({ PATH: '' })).toBeNull()
     expect(
-      resolveClaudeAgentTeamsShimBin({ PATH: '.', ORCA_AGENT_TEAMS_SHIM_BIN: 'orca' })
+      resolveClaudeAgentTeamsShimBin({ PATH: '.', ALICORN_AGENT_TEAMS_SHIM_BIN: 'orca' })
     ).toBeNull()
     // Why: a bare override is still honored when it maps to a real absolute PATH entry.
-    expect(resolveClaudeAgentTeamsShimBin({ PATH: root, ORCA_AGENT_TEAMS_SHIM_BIN: 'orca' })).toBe(
-      join(root, 'orca')
-    )
+    expect(
+      resolveClaudeAgentTeamsShimBin({ PATH: root, ALICORN_AGENT_TEAMS_SHIM_BIN: 'orca' })
+    ).toBe(join(root, 'orca'))
   })
 
   it.skipIf(process.platform !== 'win32')(
@@ -174,7 +174,7 @@ describe('claude agent teams shim env', () => {
       await chmod(cli, 0o755)
       const qualified = spawnSync(join(root, 'tmux'), ['list-panes'], {
         cwd,
-        env: { PATH: `.:${process.env.PATH ?? ''}`, ORCA_AGENT_TEAMS_SHIM_BIN: cli },
+        env: { PATH: `.:${process.env.PATH ?? ''}`, ALICORN_AGENT_TEAMS_SHIM_BIN: cli },
         encoding: 'utf8'
       })
 
@@ -186,10 +186,10 @@ describe('claude agent teams shim env', () => {
   it('writes a Windows shim that rejects an unqualified shim bin', () => {
     const script = windowsClaudeAgentTeamsShimScript()
 
-    expect(script).not.toMatch(/^set "ORCA_AGENT_TEAMS_SHIM_BIN=orca/m)
-    expect(script).toContain('if "%ORCA_SHIM_BIN:~1,1%"==":" goto :run')
+    expect(script).not.toMatch(/^set "ALICORN_AGENT_TEAMS_SHIM_BIN=orca/m)
+    expect(script).toContain('if "%ALICORN_SHIM_BIN:~1,1%"==":" goto :run')
     // Why: `call` would re-expand `%2`-style tmux pane args as batch parameters.
-    expect(script).toContain('\r\n"%ORCA_SHIM_BIN%" agent-teams-tmux %*\r\n')
+    expect(script).toContain('\r\n"%ALICORN_SHIM_BIN%" agent-teams-tmux %*\r\n')
     expect(script).toContain('exit /b 127')
   })
 })

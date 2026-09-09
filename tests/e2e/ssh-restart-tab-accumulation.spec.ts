@@ -11,7 +11,7 @@ import {
 import { connectDockerSshRelayTarget } from './helpers/docker-ssh-relay-connection'
 import { createRestartSession } from './helpers/orca-restart'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const RESTART_CYCLES = 3
 /** Consecutive agreeing samples that count as "the strip stopped changing". */
 const SETTLED_SAMPLES = 3
@@ -236,7 +236,7 @@ async function runRestartCycles(testInfo: TestInfo, initialTabCount: number): Pr
 }
 
 test.describe('SSH restart tab accumulation', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH restore uses POSIX SSH tooling.')
 
   // Why three restarts and not one: a single restart only proves one restore was clean. Users reach

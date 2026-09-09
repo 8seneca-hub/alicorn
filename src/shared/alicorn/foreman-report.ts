@@ -6,7 +6,7 @@ import { z } from 'zod'
 // Stamped into the worker environment when the run's strategy is orchestrated, so a worker that
 // was never told it is part of an orchestrated run is not held to the schema below. Shared because
 // the CLI enforces it and the dispatch preamble teaches it.
-export const ALICORN_STRATEGY_ENV = 'ORCA_ALICORN_STRATEGY'
+export const ALICORN_STRATEGY_ENV = 'ALICORN_ALICORN_STRATEGY'
 
 export const FOREMAN_REPORT_MAX_TOKENS = 1500
 export const FOREMAN_REPORT_MAX_CHARS = FOREMAN_REPORT_MAX_TOKENS * 4

@@ -369,8 +369,8 @@ describe('Codex WSL runtime hook install', () => {
   it('generates a POSIX hook that bridges WSL loopback failures through Windows curl', async () => {
     const script = _internals.getManagedScript('posix')
     expect(script).toContain('load_hook_endpoint()')
-    expect(script).toContain('unset ORCA_AGENT_HOOK_TRANSPORT')
-    expect(script).toContain('"set ORCA_AGENT_HOOK_TOKEN="*)')
+    expect(script).toContain('unset ALICORN_AGENT_HOOK_TRANSPORT')
+    expect(script).toContain('"set ALICORN_AGENT_HOOK_TOKEN="*)')
     expect(script).toContain('post_codex_hook()')
     expect(script).toContain('is_wsl_runtime()')
     expect(script).toContain('WSL_DISTRO_NAME')
@@ -396,18 +396,18 @@ describe('Codex WSL runtime hook install', () => {
       writeFileSync(
         endpointPath,
         [
-          'set ORCA_AGENT_HOOK_PORT=43210',
-          'set ORCA_AGENT_HOOK_TOKEN=fresh-token',
-          'set ORCA_AGENT_HOOK_ENV=development',
-          'set ORCA_AGENT_HOOK_VERSION=1',
-          'set ORCA_AGENT_HOOK_TRANSPORT=raw-json-v1',
+          'set ALICORN_AGENT_HOOK_PORT=43210',
+          'set ALICORN_AGENT_HOOK_TOKEN=fresh-token',
+          'set ALICORN_AGENT_HOOK_ENV=development',
+          'set ALICORN_AGENT_HOOK_VERSION=1',
+          'set ALICORN_AGENT_HOOK_TRANSPORT=raw-json-v1',
           ''
         ].join('\r\n'),
         'utf-8'
       )
       writeFileSync(
         curlPath,
-        '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$ORCA_TEST_CAPTURE"\ncat >> "$ORCA_TEST_CAPTURE"\n',
+        '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$ALICORN_TEST_CAPTURE"\ncat >> "$ALICORN_TEST_CAPTURE"\n',
         'utf-8'
       )
       chmodSync(curlPath, 0o755)
@@ -420,11 +420,11 @@ describe('Codex WSL runtime hook install', () => {
         env: {
           ...process.env,
           PATH: `${binDir}:${process.env.PATH ?? ''}`,
-          ORCA_AGENT_HOOK_ENDPOINT: endpointPath,
-          ORCA_AGENT_HOOK_PORT: '1',
-          ORCA_AGENT_HOOK_TOKEN: 'stale-token',
-          ORCA_PANE_KEY: 'pane-1',
-          ORCA_TEST_CAPTURE: capturePath
+          ALICORN_AGENT_HOOK_ENDPOINT: endpointPath,
+          ALICORN_AGENT_HOOK_PORT: '1',
+          ALICORN_AGENT_HOOK_TOKEN: 'stale-token',
+          ALICORN_PANE_KEY: 'pane-1',
+          ALICORN_TEST_CAPTURE: capturePath
         }
       })
 
@@ -448,7 +448,7 @@ describe('Codex WSL runtime hook install', () => {
       writeFileSync(join(binDir, 'curl'), '#!/bin/sh\nexit 7\n', 'utf-8')
       writeFileSync(
         join(binDir, 'curl.exe'),
-        '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$ORCA_TEST_CAPTURE"\ncat >> "$ORCA_TEST_CAPTURE"\n',
+        '#!/bin/sh\nprintf \'%s\\n\' "$@" > "$ALICORN_TEST_CAPTURE"\ncat >> "$ALICORN_TEST_CAPTURE"\n',
         'utf-8'
       )
       chmodSync(join(binDir, 'curl'), 0o755)
@@ -463,11 +463,11 @@ describe('Codex WSL runtime hook install', () => {
           ...process.env,
           PATH: `${binDir}:${process.env.PATH ?? ''}`,
           WSL_DISTRO_NAME: 'Ubuntu',
-          ORCA_AGENT_HOOK_ENDPOINT: '',
-          ORCA_AGENT_HOOK_PORT: '43210',
-          ORCA_AGENT_HOOK_TOKEN: 'token',
-          ORCA_PANE_KEY: 'pane-1',
-          ORCA_TEST_CAPTURE: capturePath
+          ALICORN_AGENT_HOOK_ENDPOINT: '',
+          ALICORN_AGENT_HOOK_PORT: '43210',
+          ALICORN_AGENT_HOOK_TOKEN: 'token',
+          ALICORN_PANE_KEY: 'pane-1',
+          ALICORN_TEST_CAPTURE: capturePath
         }
       })
 
@@ -550,8 +550,8 @@ describe('Codex WSL runtime hook install app-server grant lane', () => {
   beforeEach(() => {
     userDataDir = mkdtempSync(join(tmpdir(), 'orca-wsl-grant-userdata-'))
     tempRoots.push(userDataDir)
-    previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-    process.env.ORCA_USER_DATA_PATH = userDataDir
+    previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
+    process.env.ALICORN_USER_DATA_PATH = userDataDir
     trustGrantInternals.resetDiagnostics()
     codexAppServerCapabilityCache.clear()
   })
@@ -561,9 +561,9 @@ describe('Codex WSL runtime hook install app-server grant lane', () => {
     trustGrantInternals.resetDiagnostics()
     codexAppServerCapabilityCache.clear()
     if (previousUserDataPath === undefined) {
-      delete process.env.ORCA_USER_DATA_PATH
+      delete process.env.ALICORN_USER_DATA_PATH
     } else {
-      process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+      process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
     }
   })
 

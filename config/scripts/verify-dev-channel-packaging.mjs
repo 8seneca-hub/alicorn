@@ -2,7 +2,7 @@
 // Why this exists: the dev-channel workflows run from main, but they build (and
 // therefore read `config/electron-builder.config.cjs` from) whatever ref was
 // asked for. A branch cut before Windows dev builds landed has a config that
-// ignores ORCA_WIN_*, which would resolve `publish.repo` to the *main* repo and
+// ignores ALICORN_WIN_*, which would resolve `publish.repo` to the *main* repo and
 // leave the release identity signed-looking. Publishing would then fail deep
 // inside electron-builder with a 404 from a token scoped to the dev repo — or,
 // worse, succeed against a repo it was never meant to touch.
@@ -22,9 +22,9 @@ const CHANNEL_REPOS = {
 }
 
 const CHANNEL_VERSION_ENV = {
-  hourly: 'ORCA_HOURLY_BUILD_VERSION',
-  daily: 'ORCA_DAILY_BUILD_VERSION',
-  adhoc: 'ORCA_ADHOC_BUILD_VERSION'
+  hourly: 'ALICORN_HOURLY_BUILD_VERSION',
+  daily: 'ALICORN_DAILY_BUILD_VERSION',
+  adhoc: 'ALICORN_ADHOC_BUILD_VERSION'
 }
 
 export function collectDevChannelPackagingProblems({ channel, platform, config, env }) {

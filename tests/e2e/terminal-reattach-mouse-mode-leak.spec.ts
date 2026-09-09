@@ -87,10 +87,10 @@ test.describe('reattach mouse-mode leak', () => {
       // the expression, not `42`). Some sandboxed CI/dev runners spawn a PTY
       // that echoes input but never execs a shell; skip there rather than fail,
       // matching the pane-manager guard above — there is nothing to arm.
-      await execInTerminal(firstLaunch.page, ptyId, 'echo ORCA_MOUSE_READY_$((21+21))')
+      await execInTerminal(firstLaunch.page, ptyId, 'echo ALICORN_MOUSE_READY_$((21+21))')
       const shellExecutes = await waitForTerminalOutput(
         firstLaunch.page,
-        'ORCA_MOUSE_READY_42',
+        'ALICORN_MOUSE_READY_42',
         15_000
       )
         .then(() => true)

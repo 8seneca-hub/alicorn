@@ -113,7 +113,7 @@ async function connectThroughDesktopDiscovery(
     router.write(session.sessionId, `PING ${session.label} ${nonce}\r`)
     await waitFor(`${session.label} reconnect reply`, () =>
       (outputBySessionId.get(session.sessionId) ?? '').includes(
-        `ORCA_GENERATION_CANARY_ACK ${session.label} ${nonce}`
+        `ALICORN_GENERATION_CANARY_ACK ${session.label} ${nonce}`
       )
     )
   }

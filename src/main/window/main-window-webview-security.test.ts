@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ORCA_BROWSER_GUEST_WEB_PREFERENCES } from '../../shared/browser-guest-web-preferences'
+import { ALICORN_BROWSER_GUEST_WEB_PREFERENCES } from '../../shared/browser-guest-web-preferences'
 
 const mocks = vi.hoisted(() => ({
   attachGuestPolicies: vi.fn(),
@@ -109,7 +109,7 @@ describe('main window webview security', () => {
 
     expect(params).not.toHaveProperty('preload')
     expect(preferences).toMatchObject({
-      ...ORCA_BROWSER_GUEST_WEB_PREFERENCES,
+      ...ALICORN_BROWSER_GUEST_WEB_PREFERENCES,
       partition: 'persist:orca-browser',
       contextIsolation: true,
       nodeIntegration: false,

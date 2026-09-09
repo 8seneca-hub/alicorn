@@ -30,13 +30,14 @@ import { normalizeCompatibleAgentTitleForOwner } from './agent-title-owner'
 import { getPiCompatibleTitleSeparatorStatus } from './pi-compatible-synthetic-title'
 
 // Verbatim from src/main/pi/titlebar-extension-source.ts:44 and oh-my-pi:530-544.
-const ORCA_EXTENSION_WORKING = (frame: string): string => `${frame} π - fixing the sidebar - orca`
+const ALICORN_EXTENSION_WORKING = (frame: string): string =>
+  `${frame} π - fixing the sidebar - orca`
 const OMP_NATIVE_WORKING = (frame: string): string => `π ${frame} fixing the sidebar`
 const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 
 describe('normalizeTerminalTitle keeps the OMP/Pi session label', () => {
   it.each([
-    ['Orca extension (spinner leads)', ORCA_EXTENSION_WORKING],
+    ['Orca extension (spinner leads)', ALICORN_EXTENSION_WORKING],
     ['OMP native (spinner is medial)', OMP_NATIVE_WORKING]
   ])('collapses every %s frame to one value without losing the label', (_name, build) => {
     const normalized = new Set(FRAMES.map((frame) => normalizeTerminalTitle(build(frame))))
@@ -65,7 +66,7 @@ describe('normalizeTerminalTitle keeps the OMP/Pi session label', () => {
   // and the frame churned straight through (#8032).
   it('collapses frames under a multiplexer prefix', () => {
     const normalized = new Set(
-      FRAMES.map((frame) => normalizeTerminalTitle(`zsh | ${ORCA_EXTENSION_WORKING(frame)}`))
+      FRAMES.map((frame) => normalizeTerminalTitle(`zsh | ${ALICORN_EXTENSION_WORKING(frame)}`))
     )
 
     expect(normalized.size).toBe(1)
@@ -93,7 +94,7 @@ describe('detectAgentStatusFromTitle reads the π state separator', () => {
 
 describe('the churn is gone at the suppressor', () => {
   it('treats consecutive animation frames as decoration', () => {
-    for (const build of [ORCA_EXTENSION_WORKING, OMP_NATIVE_WORKING]) {
+    for (const build of [ALICORN_EXTENSION_WORKING, OMP_NATIVE_WORKING]) {
       for (let index = 1; index < FRAMES.length; index += 1) {
         expect(
           isDecorativeAgentTitleFrameChange(
@@ -108,7 +109,7 @@ describe('the churn is gone at the suppressor', () => {
   it('still commits a real working -> attention transition', () => {
     expect(
       isDecorativeAgentTitleFrameChange(
-        normalizeTerminalTitle(ORCA_EXTENSION_WORKING('⠋')),
+        normalizeTerminalTitle(ALICORN_EXTENSION_WORKING('⠋')),
         normalizeTerminalTitle('π ! fixing the sidebar')
       )
     ).toBe(false)

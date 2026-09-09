@@ -7,8 +7,8 @@ import {
   createRemoteClipboardTransferDirectory
 } from './clipboard-remote-file-staging'
 
-const BENCH_ENABLED = process.env.ORCA_CLIPBOARD_CLEANUP_BENCH === '1'
-const FOREIGN_ENTRY_COUNT = Number(process.env.ORCA_CLIPBOARD_CLEANUP_BENCH_ENTRIES ?? 100_000)
+const BENCH_ENABLED = process.env.ALICORN_CLIPBOARD_CLEANUP_BENCH === '1'
+const FOREIGN_ENTRY_COUNT = Number(process.env.ALICORN_CLIPBOARD_CLEANUP_BENCH_ENTRIES ?? 100_000)
 const WARMUP_RUNS = 3
 const SAMPLE_RUNS_PER_ARM = 24
 const FIXTURE_PREFIX = 'orca-clipboard-cleanup-bench-'

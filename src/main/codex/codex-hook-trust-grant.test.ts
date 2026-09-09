@@ -37,8 +37,8 @@ beforeEach(() => {
   // ordering prevents test-only canonical-path drift during ledger setup.
   mkdirSync(runtimeHomeDir, { recursive: true })
   writeFileSync(join(runtimeHomeDir, 'hooks.json'), '{"hooks":{}}\n', 'utf-8')
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
+  process.env.ALICORN_USER_DATA_PATH = userDataDir
   codexAppServerCapabilityCache.clear()
   _internals.resetDiagnostics()
 })
@@ -49,11 +49,11 @@ afterEach(() => {
   setCodexTrustGrantTelemetry(() => {})
   codexAppServerCapabilityCache.clear()
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.ALICORN_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
   }
-  delete process.env.ORCA_DISABLE_CODEX_TRUST_RPC
+  delete process.env.ALICORN_DISABLE_CODEX_TRUST_RPC
   rmSync(userDataDir, { recursive: true, force: true })
 })
 
@@ -307,7 +307,7 @@ describe('grantManagedCodexHookTrust', () => {
     _internals.setGrantSessionRunner(async () => grantedSessionResult(entries))
 
     expect(await grantManagedCodexHookTrust(buildPlan(entries))).toMatchObject({ lane: 'rpc' })
-    process.env.ORCA_DISABLE_CODEX_TRUST_RPC = '1'
+    process.env.ALICORN_DISABLE_CODEX_TRUST_RPC = '1'
     expect(await grantManagedCodexHookTrust(buildPlan(entries))).toMatchObject({
       lane: 'fallback',
       reason: 'disabled'
@@ -353,7 +353,7 @@ describe('grantManagedCodexHookTrust', () => {
   })
 
   it('honors the ops kill switch env flag', async () => {
-    process.env.ORCA_DISABLE_CODEX_TRUST_RPC = '1'
+    process.env.ALICORN_DISABLE_CODEX_TRUST_RPC = '1'
     const entries = [managedEntry('session_start')]
     const runner = vi.fn(async () => grantedSessionResult(entries))
     _internals.setGrantSessionRunner(runner)

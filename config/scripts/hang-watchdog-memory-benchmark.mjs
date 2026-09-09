@@ -13,9 +13,9 @@ import {
   sampleProductionPerformance
 } from './hang-watchdog-process-metrics.mjs'
 
-const INTERNAL_ENV = 'ORCA_HANG_WATCHDOG_BENCH_INTERNAL'
-const BOUNDARY_ENV = 'ORCA_HANG_WATCHDOG_BENCH_BOUNDARY'
-const RESULT_PREFIX = 'ORCA_HANG_WATCHDOG_BENCH_RESULT='
+const INTERNAL_ENV = 'ALICORN_HANG_WATCHDOG_BENCH_INTERNAL'
+const BOUNDARY_ENV = 'ALICORN_HANG_WATCHDOG_BENCH_BOUNDARY'
+const RESULT_PREFIX = 'ALICORN_HANG_WATCHDOG_BENCH_RESULT='
 const DEFAULT_TRIALS = 7
 const SETTLE_MS = 2_000
 const SAMPLE_COUNT = 5
@@ -94,10 +94,10 @@ function startChild(markerPath, timeoutMs, checkIntervalMs) {
     env: {
       ...process.env,
       ELECTRON_RUN_AS_NODE: '1',
-      ORCA_HANG_WATCHDOG_PARENT_PID: String(process.pid),
-      ORCA_HANG_WATCHDOG_MARKER_PATH: markerPath,
-      ORCA_HANG_WATCHDOG_TIMEOUT_MS: String(timeoutMs),
-      ORCA_HANG_WATCHDOG_CHECK_INTERVAL_MS: String(checkIntervalMs)
+      ALICORN_HANG_WATCHDOG_PARENT_PID: String(process.pid),
+      ALICORN_HANG_WATCHDOG_MARKER_PATH: markerPath,
+      ALICORN_HANG_WATCHDOG_TIMEOUT_MS: String(timeoutMs),
+      ALICORN_HANG_WATCHDOG_CHECK_INTERVAL_MS: String(checkIntervalMs)
     }
   })
   const startupMs = Number(process.hrtime.bigint() - startedAt) / 1e6
@@ -366,7 +366,7 @@ function runBenchmark() {
   }
   const options = parseArgs(process.argv.slice(2))
   const builtEntry = readFileSync(entryPath, 'utf8')
-  const hasChildContract = builtEntry.includes('ORCA_HANG_WATCHDOG_PARENT_PID')
+  const hasChildContract = builtEntry.includes('ALICORN_HANG_WATCHDOG_PARENT_PID')
   const hasWorkerContract = builtEntry.includes('workerData') && builtEntry.includes('parentPort')
   if (
     (options.boundary === 'child' && !hasChildContract) ||

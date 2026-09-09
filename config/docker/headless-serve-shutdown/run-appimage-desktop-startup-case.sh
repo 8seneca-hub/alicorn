@@ -19,14 +19,14 @@ if ((EUID == 0)); then
     exit 1
   fi
   exec runuser --user orca --preserve-environment -- env \
-    ORCA_STARTUP_STATE_DIR="$state_dir" \
-    ORCA_STARTUP_STATE_DIR_CLEANUP=1 \
+    ALICORN_STARTUP_STATE_DIR="$state_dir" \
+    ALICORN_STARTUP_STATE_DIR_CLEANUP=1 \
     "$0" "$@"
 fi
 
-remove_state_dir_on_exit=${ORCA_STARTUP_STATE_DIR_CLEANUP:-0}
-if [[ -n "${ORCA_STARTUP_STATE_DIR:-}" ]]; then
-  state_dir=$ORCA_STARTUP_STATE_DIR
+remove_state_dir_on_exit=${ALICORN_STARTUP_STATE_DIR_CLEANUP:-0}
+if [[ -n "${ALICORN_STARTUP_STATE_DIR:-}" ]]; then
+  state_dir=$ALICORN_STARTUP_STATE_DIR
 else
   if ! state_dir=$(mktemp -d /tmp/orca-appimage-startup.XXXXXX); then
     echo 'FAIL: unable to create the AppImage startup state directory' >&2
@@ -205,7 +205,7 @@ export XDG_CONFIG_HOME="$state_dir/config"
 export XDG_CACHE_HOME="$state_dir/cache"
 export XDG_RUNTIME_DIR="$state_dir/runtime"
 export LIBGL_ALWAYS_SOFTWARE=1
-export ORCA_STARTUP_DIAGNOSTICS=1
+export ALICORN_STARTUP_DIAGNOSTICS=1
 ulimit -c 0
 
 [[ -r "$appimage" ]] || { echo "FAIL: AppImage is not readable: $appimage" >&2; exit 1; }

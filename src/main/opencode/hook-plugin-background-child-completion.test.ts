@@ -36,10 +36,10 @@ type RecordedPost = {
 }
 
 const ENV_KEYS = [
-  'ORCA_PANE_KEY',
-  'ORCA_AGENT_HOOK_PORT',
-  'ORCA_AGENT_HOOK_TOKEN',
-  'ORCA_AGENT_HOOK_ENDPOINT'
+  'ALICORN_PANE_KEY',
+  'ALICORN_AGENT_HOOK_PORT',
+  'ALICORN_AGENT_HOOK_TOKEN',
+  'ALICORN_AGENT_HOOK_ENDPOINT'
 ] as const
 
 describe('OpenCode plugin background child completion', () => {
@@ -56,10 +56,10 @@ describe('OpenCode plugin background child completion', () => {
     for (const key of ENV_KEYS) {
       savedEnv[key] = process.env[key]
     }
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
-    process.env.ORCA_AGENT_HOOK_PORT = '45678'
-    process.env.ORCA_AGENT_HOOK_TOKEN = 'test-token'
-    delete process.env.ORCA_AGENT_HOOK_ENDPOINT
+    process.env.ALICORN_PANE_KEY = 'tab-1:leaf-1'
+    process.env.ALICORN_AGENT_HOOK_PORT = '45678'
+    process.env.ALICORN_AGENT_HOOK_TOKEN = 'test-token'
+    delete process.env.ALICORN_AGENT_HOOK_ENDPOINT
     pluginFactory = undefined
     savedFetch = globalThis.fetch
     globalThis.fetch = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {

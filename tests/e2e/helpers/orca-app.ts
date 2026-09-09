@@ -69,17 +69,17 @@ type OrcaWorkerFixtures = {
   testRepoPath: string
 }
 
-// Why: parse + warn at module scope so a bad ORCA_E2E_SLOWMO_MS value logs once
+// Why: parse + warn at module scope so a bad ALICORN_E2E_SLOWMO_MS value logs once
 // per worker instead of once per test (otherwise hundreds of lines per CI run).
-const ORCA_E2E_SLOWMO_MS_RAW = process.env.ORCA_E2E_SLOWMO_MS
-const ORCA_E2E_SLOWMO_MS = ((): number => {
-  if (ORCA_E2E_SLOWMO_MS_RAW === undefined) {
+const ALICORN_E2E_SLOWMO_MS_RAW = process.env.ALICORN_E2E_SLOWMO_MS
+const ALICORN_E2E_SLOWMO_MS = ((): number => {
+  if (ALICORN_E2E_SLOWMO_MS_RAW === undefined) {
     return 0
   }
-  const parsed = Number(ORCA_E2E_SLOWMO_MS_RAW)
+  const parsed = Number(ALICORN_E2E_SLOWMO_MS_RAW)
   if (!Number.isFinite(parsed)) {
     console.warn(
-      `[orca-e2e] ORCA_E2E_SLOWMO_MS="${ORCA_E2E_SLOWMO_MS_RAW}" is not a number; ignoring (using 0).`
+      `[orca-e2e] ALICORN_E2E_SLOWMO_MS="${ALICORN_E2E_SLOWMO_MS_RAW}" is not a number; ignoring (using 0).`
     )
     return 0
   }
@@ -103,9 +103,9 @@ async function removeUserDataDirAfterShutdown(userDataDir: string): Promise<void
 }
 
 function shouldLaunchHeadful(testInfo: TestInfo): boolean {
-  // Why: ORCA_E2E_FORCE_HEADFUL lets a developer watch any spec in a real
+  // Why: ALICORN_E2E_FORCE_HEADFUL lets a developer watch any spec in a real
   // window without retagging it `@headful` or switching projects.
-  if (process.env.ORCA_E2E_FORCE_HEADFUL === '1') {
+  if (process.env.ALICORN_E2E_FORCE_HEADFUL === '1') {
     return true
   }
   return testInfo.project.metadata.orcaHeadful === true
@@ -113,9 +113,9 @@ function shouldLaunchHeadful(testInfo: TestInfo): boolean {
 
 // Why: exported so specs that launch their own ElectronApplication outside
 // this fixture (e.g. multi-instance lifecycle tests) can still opt into the
-// same ORCA_E2E_FORWARD_APP_LOGS-gated stdout/stderr capture.
+// same ALICORN_E2E_FORWARD_APP_LOGS-gated stdout/stderr capture.
 export function forwardElectronProcessLogs(app: ElectronApplication, testInfo: TestInfo): void {
-  if (process.env.ORCA_E2E_FORWARD_APP_LOGS !== '1') {
+  if (process.env.ALICORN_E2E_FORWARD_APP_LOGS !== '1') {
     return
   }
 
@@ -213,17 +213,17 @@ export const test = base.extend<OrcaTestFixtures, OrcaWorkerFixtures>({
       extraEnv: orcaAppExtraEnv,
       userDataDir
     })
-    // Why: ORCA_E2E_SLOWMO_MS adds a pause between every Playwright action so a
-    // developer running with ORCA_E2E_FORCE_HEADFUL=1 can actually watch what
+    // Why: ALICORN_E2E_SLOWMO_MS adds a pause between every Playwright action so a
+    // developer running with ALICORN_E2E_FORCE_HEADFUL=1 can actually watch what
     // the test does. Defaults to 0 (no slowdown) for normal runs.
-    const slowMo = ORCA_E2E_SLOWMO_MS
-    // Why: ORCA_E2E_RECORD_VIDEO=1 captures a webm of the renderer so a
+    const slowMo = ALICORN_E2E_SLOWMO_MS
+    // Why: ALICORN_E2E_RECORD_VIDEO=1 captures a webm of the renderer so a
     // developer can replay the run later — Electron's Playwright trace viewer
     // does not produce DOM snapshots, so video is the only reliable replay.
     // Why: testInfo.outputDir is created lazily by Playwright; on Windows the
     // dir may not exist when the fixture initializes, and Electron silently
     // drops the recording. mkdir up-front so the recorder always has a home.
-    const recordVideoDir = process.env.ORCA_E2E_RECORD_VIDEO === '1' ? testInfo.outputDir : null
+    const recordVideoDir = process.env.ALICORN_E2E_RECORD_VIDEO === '1' ? testInfo.outputDir : null
     if (recordVideoDir) {
       mkdirSync(recordVideoDir, { recursive: true })
     }
@@ -232,13 +232,13 @@ export const test = base.extend<OrcaTestFixtures, OrcaWorkerFixtures>({
       ...(slowMo > 0 ? { slowMo } : {}),
       ...(recordVideoDir ? { recordVideo: { dir: recordVideoDir } } : {}),
       // Why: keep NODE_ENV=development so window.__store is exposed and
-      // dev-only helpers activate. ORCA_E2E_USER_DATA_DIR overrides the usual
+      // dev-only helpers activate. ALICORN_E2E_USER_DATA_DIR overrides the usual
       // shared dev profile so every spec gets a clean persistence root.
-      // Why: ORCA_E2E_HEADLESS suppresses mainWindow.show() so the app
+      // Why: ALICORN_E2E_HEADLESS suppresses mainWindow.show() so the app
       // window stays hidden during test runs, avoiding focus stealing and
       // screen clutter. Playwright interacts via CDP regardless.
-      // Why: ORCA_E2E_HEADLESS suppresses mainWindow.show() for CI/headless
-      // runs. ORCA_E2E_HEADFUL overrides this for tests that need a visible
+      // Why: ALICORN_E2E_HEADLESS suppresses mainWindow.show() for CI/headless
+      // runs. ALICORN_E2E_HEADFUL overrides this for tests that need a visible
       // window (e.g. pointer-capture drag tests).
       // Why: local SSH E2E deploys the relay from the dev build output. The
       // Electron app's getAppPath() points at the compiled main bundle in E2E,
@@ -246,13 +246,13 @@ export const test = base.extend<OrcaTestFixtures, OrcaWorkerFixtures>({
       env: {
         ...homeIsolation.env,
         NODE_ENV: 'development',
-        ...((process.env.ORCA_E2E_SSH_LOCALHOST === '1' ||
-          process.env.ORCA_E2E_SSH_DOCKER === '1' ||
-          process.env.ORCA_E2E_NESTED_RUNTIME_SSH === '1') &&
-        !cleanEnv.ORCA_RELAY_PATH
-          ? { ORCA_RELAY_PATH: path.join(process.cwd(), 'out', 'relay') }
+        ...((process.env.ALICORN_E2E_SSH_LOCALHOST === '1' ||
+          process.env.ALICORN_E2E_SSH_DOCKER === '1' ||
+          process.env.ALICORN_E2E_NESTED_RUNTIME_SSH === '1') &&
+        !cleanEnv.ALICORN_RELAY_PATH
+          ? { ALICORN_RELAY_PATH: path.join(process.cwd(), 'out', 'relay') }
           : {}),
-        ...(headful ? { ORCA_E2E_HEADFUL: '1' } : { ORCA_E2E_HEADLESS: '1' })
+        ...(headful ? { ALICORN_E2E_HEADFUL: '1' } : { ALICORN_E2E_HEADLESS: '1' })
       }
     })
     forwardElectronProcessLogs(app, testInfo)

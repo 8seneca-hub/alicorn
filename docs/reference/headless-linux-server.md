@@ -488,17 +488,17 @@ remain active for the whole operation:
 set -euo pipefail
 
 # Replace this example with the release tag you intend to deploy
-ORCA_VERSION=v1.4.147
+ALICORN_VERSION=v1.4.147
 
 # Select the release asset on the server where Orca runs
 case "$(uname -m)" in
   x86_64)
-    ORCA_ASSET=orca-linux.AppImage
-    ORCA_FILE_MACHINE=x86-64
+    ALICORN_ASSET=orca-linux.AppImage
+    ALICORN_FILE_MACHINE=x86-64
     ;;
   aarch64 | arm64)
-    ORCA_ASSET=orca-linux-arm64.AppImage
-    ORCA_FILE_MACHINE='ARM aarch64'
+    ALICORN_ASSET=orca-linux-arm64.AppImage
+    ALICORN_FILE_MACHINE='ARM aarch64'
     ;;
   *)
     echo "Unsupported architecture: $(uname -m)" >&2
@@ -506,10 +506,10 @@ case "$(uname -m)" in
     ;;
 esac
 
-ORCA_ROLLBACK_NEW=
-ORCA_ROLLBACK=
-ORCA_SERVICE_STOPPED=0
-ORCA_BINARY_PROMOTED=0
+ALICORN_ROLLBACK_NEW=
+ALICORN_ROLLBACK=
+ALICORN_SERVICE_STOPPED=0
+ALICORN_BINARY_PROMOTED=0
 recover_failed_upgrade() {
   exit_status=$?
   trap - EXIT
@@ -518,21 +518,21 @@ recover_failed_upgrade() {
     sudo rm -f /opt/orca/orca-linux.AppImage.new /opt/orca/VERSION.new \
       /opt/orca/orca-linux.AppImage.recovering /opt/orca/VERSION.recovering
   fi
-  if ((exit_status != 0)) && [[ -n "$ORCA_ROLLBACK_NEW" ]] && \
-    sudo test -d "$ORCA_ROLLBACK_NEW"; then
-    sudo rm -rf -- "$ORCA_ROLLBACK_NEW"
+  if ((exit_status != 0)) && [[ -n "$ALICORN_ROLLBACK_NEW" ]] && \
+    sudo test -d "$ALICORN_ROLLBACK_NEW"; then
+    sudo rm -rf -- "$ALICORN_ROLLBACK_NEW"
   fi
-  if ((exit_status != 0 && ORCA_SERVICE_STOPPED)); then
+  if ((exit_status != 0 && ALICORN_SERVICE_STOPPED)); then
     recovery_ok=1
-    if ((ORCA_BINARY_PROMOTED)); then
-      if ! sudo cp -a "$ORCA_ROLLBACK/orca-linux.AppImage" \
+    if ((ALICORN_BINARY_PROMOTED)); then
+      if ! sudo cp -a "$ALICORN_ROLLBACK/orca-linux.AppImage" \
         /opt/orca/orca-linux.AppImage.recovering || \
         ! sudo mv -f /opt/orca/orca-linux.AppImage.recovering \
           /opt/orca/orca-linux.AppImage; then
         recovery_ok=0
       fi
-      if sudo test -f "$ORCA_ROLLBACK/VERSION"; then
-        if ! sudo cp -a "$ORCA_ROLLBACK/VERSION" /opt/orca/VERSION.recovering || \
+      if sudo test -f "$ALICORN_ROLLBACK/VERSION"; then
+        if ! sudo cp -a "$ALICORN_ROLLBACK/VERSION" /opt/orca/VERSION.recovering || \
           ! sudo mv -f /opt/orca/VERSION.recovering /opt/orca/VERSION; then
           recovery_ok=0
         fi
@@ -555,37 +555,37 @@ recover_failed_upgrade() {
 trap recover_failed_upgrade EXIT
 
 # 1. Stage and verify the new build while the server stays online
-sudo curl -fL --retry 3 "https://github.com/stablyai/orca/releases/download/${ORCA_VERSION}/${ORCA_ASSET}" \
+sudo curl -fL --retry 3 "https://github.com/stablyai/orca/releases/download/${ALICORN_VERSION}/${ALICORN_ASSET}" \
   -o /opt/orca/orca-linux.AppImage.new
 sudo chown root:root /opt/orca/orca-linux.AppImage.new
 sudo chmod 755 /opt/orca/orca-linux.AppImage.new
 
 # Both checks must match; either grep stops this fail-fast block otherwise
-ORCA_FILE_INFO=$(LC_ALL=C file /opt/orca/orca-linux.AppImage.new)
-grep 'ELF .* executable' <<<"$ORCA_FILE_INFO"
-grep -F "$ORCA_FILE_MACHINE" <<<"$ORCA_FILE_INFO"
+ALICORN_FILE_INFO=$(LC_ALL=C file /opt/orca/orca-linux.AppImage.new)
+grep 'ELF .* executable' <<<"$ALICORN_FILE_INFO"
+grep -F "$ALICORN_FILE_MACHINE" <<<"$ALICORN_FILE_INFO"
 
 # 2. Assemble the prior binary and version in a root-only rollback bundle
-ORCA_ROLLBACK_BASE=/opt/orca/orca-rollback-$(date +%F-%H%M%S-%N)
-ORCA_ROLLBACK_NEW=${ORCA_ROLLBACK_BASE}.new
-ORCA_ROLLBACK=${ORCA_ROLLBACK_BASE}.ready
-sudo install -d -m 700 "$ORCA_ROLLBACK_NEW"
-sudo cp -a /opt/orca/orca-linux.AppImage "$ORCA_ROLLBACK_NEW/orca-linux.AppImage"
+ALICORN_ROLLBACK_BASE=/opt/orca/orca-rollback-$(date +%F-%H%M%S-%N)
+ALICORN_ROLLBACK_NEW=${ALICORN_ROLLBACK_BASE}.new
+ALICORN_ROLLBACK=${ALICORN_ROLLBACK_BASE}.ready
+sudo install -d -m 700 "$ALICORN_ROLLBACK_NEW"
+sudo cp -a /opt/orca/orca-linux.AppImage "$ALICORN_ROLLBACK_NEW/orca-linux.AppImage"
 if sudo test -f /opt/orca/VERSION; then
-  sudo cp -a /opt/orca/VERSION "$ORCA_ROLLBACK_NEW/VERSION"
+  sudo cp -a /opt/orca/VERSION "$ALICORN_ROLLBACK_NEW/VERSION"
 fi
 
 # Stage the new version record before the stop window
-printf '%s\n' "$ORCA_VERSION" | sudo tee /opt/orca/VERSION.new >/dev/null
+printf '%s\n' "$ALICORN_VERSION" | sudo tee /opt/orca/VERSION.new >/dev/null
 sudo chown root:root /opt/orca/VERSION.new
 sudo chmod 644 /opt/orca/VERSION.new
 
 # 3. Stop the server so the profile backup is consistent
-ORCA_SERVICE_STOPPED=1
+ALICORN_SERVICE_STOPPED=1
 sudo systemctl stop orca-serve.service
 
 # Add only Orca-owned profile directories, then publish the complete bundle
-ORCA_PROFILE_DIRS=()
+ALICORN_PROFILE_DIRS=()
 for profile_dir in orca Orca; do
   if sudo test -L "/home/orca/.config/$profile_dir"; then
     echo "Refusing symlinked Orca profile: /home/orca/.config/$profile_dir" >&2
@@ -596,26 +596,26 @@ for profile_dir in orca Orca; do
       sudo test /home/orca/.config/orca -ef /home/orca/.config/Orca; then
       continue
     fi
-    ORCA_PROFILE_DIRS+=("$profile_dir")
+    ALICORN_PROFILE_DIRS+=("$profile_dir")
   fi
 done
-if ((${#ORCA_PROFILE_DIRS[@]} == 0)); then
+if ((${#ALICORN_PROFILE_DIRS[@]} == 0)); then
   echo 'No Orca profile directory found under /home/orca/.config' >&2
   exit 1
 fi
-sudo tar czf "$ORCA_ROLLBACK_NEW/profile.tgz" \
-  -C /home/orca/.config "${ORCA_PROFILE_DIRS[@]}"
-sudo chmod 600 "$ORCA_ROLLBACK_NEW/profile.tgz"
-sudo mv "$ORCA_ROLLBACK_NEW" "$ORCA_ROLLBACK"
+sudo tar czf "$ALICORN_ROLLBACK_NEW/profile.tgz" \
+  -C /home/orca/.config "${ALICORN_PROFILE_DIRS[@]}"
+sudo chmod 600 "$ALICORN_ROLLBACK_NEW/profile.tgz"
+sudo mv "$ALICORN_ROLLBACK_NEW" "$ALICORN_ROLLBACK"
 
 # 4. Atomically replace the binary and version record, then start
-ORCA_BINARY_PROMOTED=1
+ALICORN_BINARY_PROMOTED=1
 sudo mv -f /opt/orca/orca-linux.AppImage.new /opt/orca/orca-linux.AppImage
 sudo mv -f /opt/orca/VERSION.new /opt/orca/VERSION
 # Clears a start-limit hit left by the version being replaced
 sudo systemctl reset-failed orca-serve.service
 sudo systemctl start orca-serve.service
-ORCA_SERVICE_STOPPED=0
+ALICORN_SERVICE_STOPPED=0
 trap - EXIT
 ```
 
@@ -641,12 +641,12 @@ removing it:
 
 ```bash
 shopt -s nullglob
-ORCA_ROLLBACK_SETS=(/opt/orca/orca-rollback-*.ready)
-((${#ORCA_ROLLBACK_SETS[@]} > 0))
-ORCA_ROLLBACK=${ORCA_ROLLBACK_SETS[${#ORCA_ROLLBACK_SETS[@]} - 1]}
-printf 'Removing rollback bundle: %s\n' "$ORCA_ROLLBACK"
-sudo test -d "$ORCA_ROLLBACK"
-sudo rm -rf -- "$ORCA_ROLLBACK"
+ALICORN_ROLLBACK_SETS=(/opt/orca/orca-rollback-*.ready)
+((${#ALICORN_ROLLBACK_SETS[@]} > 0))
+ALICORN_ROLLBACK=${ALICORN_ROLLBACK_SETS[${#ALICORN_ROLLBACK_SETS[@]} - 1]}
+printf 'Removing rollback bundle: %s\n' "$ALICORN_ROLLBACK"
+sudo test -d "$ALICORN_ROLLBACK"
+sudo rm -rf -- "$ALICORN_ROLLBACK"
 ```
 
 Each `.ready` directory is a self-contained rollback generation; never combine
@@ -667,52 +667,52 @@ set -euo pipefail
 
 # Select and validate one complete generation before taking the service offline
 shopt -s nullglob
-ORCA_ROLLBACK_SETS=(/opt/orca/orca-rollback-*.ready)
-((${#ORCA_ROLLBACK_SETS[@]} > 0))
-ORCA_ROLLBACK=${ORCA_ROLLBACK_SETS[${#ORCA_ROLLBACK_SETS[@]} - 1]}
-sudo test -f "$ORCA_ROLLBACK/orca-linux.AppImage"
-sudo tar tzf "$ORCA_ROLLBACK/profile.tgz" >/dev/null
+ALICORN_ROLLBACK_SETS=(/opt/orca/orca-rollback-*.ready)
+((${#ALICORN_ROLLBACK_SETS[@]} > 0))
+ALICORN_ROLLBACK=${ALICORN_ROLLBACK_SETS[${#ALICORN_ROLLBACK_SETS[@]} - 1]}
+sudo test -f "$ALICORN_ROLLBACK/orca-linux.AppImage"
+sudo tar tzf "$ALICORN_ROLLBACK/profile.tgz" >/dev/null
 
 # Extract and validate the old profile while the current server stays online
 sudo test ! -L /home
-ORCA_HOME_OWNER=$(sudo stat -c %u /home)
-ORCA_HOME_MODE=$(sudo stat -c %a /home)
-if [[ "$ORCA_HOME_OWNER" != 0 ]] || ((8#$ORCA_HOME_MODE & 0022)) || \
+ALICORN_HOME_OWNER=$(sudo stat -c %u /home)
+ALICORN_HOME_MODE=$(sudo stat -c %a /home)
+if [[ "$ALICORN_HOME_OWNER" != 0 ]] || ((8#$ALICORN_HOME_MODE & 0022)) || \
   sudo -u orca test -w /home; then
   echo 'Refusing rollback because /home is not root-controlled' >&2
   exit 1
 fi
-ORCA_RESTORE=$(sudo mktemp -d /home/.orca-restore.XXXXXX)
-ORCA_SERVICE_STOPPED=0
-ORCA_MOVED_CURRENT_DIRS=()
-ORCA_INSTALLED_RESTORE_DIRS=()
-ORCA_CURRENT_BINARY_MOVED=0
-ORCA_CURRENT_VERSION_MOVED=0
-ORCA_VERSION_REPLACEMENT_STARTED=0
-ORCA_POST_UPGRADE=
-ORCA_ROLLBACK_BINARY_STAGED=
-ORCA_ROLLBACK_VERSION_STAGED=
-ORCA_ROLLBACK_HAS_VERSION=0
+ALICORN_RESTORE=$(sudo mktemp -d /home/.orca-restore.XXXXXX)
+ALICORN_SERVICE_STOPPED=0
+ALICORN_MOVED_CURRENT_DIRS=()
+ALICORN_INSTALLED_RESTORE_DIRS=()
+ALICORN_CURRENT_BINARY_MOVED=0
+ALICORN_CURRENT_VERSION_MOVED=0
+ALICORN_VERSION_REPLACEMENT_STARTED=0
+ALICORN_POST_UPGRADE=
+ALICORN_ROLLBACK_BINARY_STAGED=
+ALICORN_ROLLBACK_VERSION_STAGED=
+ALICORN_ROLLBACK_HAS_VERSION=0
 restart_after_rollback_error() {
   exit_status=$?
   trap - EXIT
   set +e
-  if ((exit_status != 0 && ORCA_SERVICE_STOPPED)); then
+  if ((exit_status != 0 && ALICORN_SERVICE_STOPPED)); then
     recovery_ok=1
-    if ((${#ORCA_INSTALLED_RESTORE_DIRS[@]})); then
-      for profile_dir in "${ORCA_INSTALLED_RESTORE_DIRS[@]}"; do
+    if ((${#ALICORN_INSTALLED_RESTORE_DIRS[@]})); then
+      for profile_dir in "${ALICORN_INSTALLED_RESTORE_DIRS[@]}"; do
         if sudo test -d "/home/orca/.config/$profile_dir"; then
           if ! sudo mv "/home/orca/.config/$profile_dir" \
-            "$ORCA_RESTORE/$profile_dir.failed"; then
+            "$ALICORN_RESTORE/$profile_dir.failed"; then
             recovery_ok=0
           fi
         fi
       done
     fi
-    if ((${#ORCA_MOVED_CURRENT_DIRS[@]})); then
-      for profile_dir in "${ORCA_MOVED_CURRENT_DIRS[@]}"; do
-        if sudo test -d "$ORCA_POST_UPGRADE/$profile_dir"; then
-          if ! sudo mv "$ORCA_POST_UPGRADE/$profile_dir" /home/orca/.config/; then
+    if ((${#ALICORN_MOVED_CURRENT_DIRS[@]})); then
+      for profile_dir in "${ALICORN_MOVED_CURRENT_DIRS[@]}"; do
+        if sudo test -d "$ALICORN_POST_UPGRADE/$profile_dir"; then
+          if ! sudo mv "$ALICORN_POST_UPGRADE/$profile_dir" /home/orca/.config/; then
             recovery_ok=0
           fi
         elif ! sudo test -d "/home/orca/.config/$profile_dir"; then
@@ -720,27 +720,27 @@ restart_after_rollback_error() {
         fi
       done
     fi
-    if [[ -n "$ORCA_POST_UPGRADE" ]]; then
-      sudo rmdir "$ORCA_POST_UPGRADE" 2>/dev/null || true
+    if [[ -n "$ALICORN_POST_UPGRADE" ]]; then
+      sudo rmdir "$ALICORN_POST_UPGRADE" 2>/dev/null || true
     fi
-    if ((ORCA_CURRENT_BINARY_MOVED)); then
-      if sudo test -f "$ORCA_CURRENT_BINARY"; then
-        if ! sudo mv -f "$ORCA_CURRENT_BINARY" /opt/orca/orca-linux.AppImage; then
+    if ((ALICORN_CURRENT_BINARY_MOVED)); then
+      if sudo test -f "$ALICORN_CURRENT_BINARY"; then
+        if ! sudo mv -f "$ALICORN_CURRENT_BINARY" /opt/orca/orca-linux.AppImage; then
           recovery_ok=0
         fi
       elif ! sudo test -f /opt/orca/orca-linux.AppImage; then
         recovery_ok=0
       fi
     fi
-    if ((ORCA_CURRENT_VERSION_MOVED)); then
-      if sudo test -f "$ORCA_CURRENT_VERSION"; then
-        if ! sudo mv -f "$ORCA_CURRENT_VERSION" /opt/orca/VERSION; then
+    if ((ALICORN_CURRENT_VERSION_MOVED)); then
+      if sudo test -f "$ALICORN_CURRENT_VERSION"; then
+        if ! sudo mv -f "$ALICORN_CURRENT_VERSION" /opt/orca/VERSION; then
           recovery_ok=0
         fi
       elif ! sudo test -f /opt/orca/VERSION; then
         recovery_ok=0
       fi
-    elif ((ORCA_VERSION_REPLACEMENT_STARTED)); then
+    elif ((ALICORN_VERSION_REPLACEMENT_STARTED)); then
       if ! sudo rm -f /opt/orca/VERSION; then
         recovery_ok=0
       fi
@@ -753,59 +753,59 @@ restart_after_rollback_error() {
       echo 'Rollback recovery failed; service remains stopped' >&2
     fi
   fi
-  if [[ -n "$ORCA_ROLLBACK_BINARY_STAGED" ]]; then
-    sudo rm -f -- "$ORCA_ROLLBACK_BINARY_STAGED"
+  if [[ -n "$ALICORN_ROLLBACK_BINARY_STAGED" ]]; then
+    sudo rm -f -- "$ALICORN_ROLLBACK_BINARY_STAGED"
   fi
-  if [[ -n "$ORCA_ROLLBACK_VERSION_STAGED" ]]; then
-    sudo rm -f -- "$ORCA_ROLLBACK_VERSION_STAGED"
+  if [[ -n "$ALICORN_ROLLBACK_VERSION_STAGED" ]]; then
+    sudo rm -f -- "$ALICORN_ROLLBACK_VERSION_STAGED"
   fi
-  sudo rm -rf -- "$ORCA_RESTORE"
+  sudo rm -rf -- "$ALICORN_RESTORE"
   exit "$exit_status"
 }
 trap restart_after_rollback_error EXIT
 
-if [[ "$(sudo stat -c %d "$ORCA_RESTORE")" != \
+if [[ "$(sudo stat -c %d "$ALICORN_RESTORE")" != \
   "$(sudo stat -c %d /home/orca/.config)" ]]; then
   echo 'Refusing rollback because staging and the Orca profile are on different filesystems' >&2
   exit 1
 fi
-sudo tar xzf "$ORCA_ROLLBACK/profile.tgz" -C "$ORCA_RESTORE"
-ORCA_RESTORE_DIRS=()
+sudo tar xzf "$ALICORN_ROLLBACK/profile.tgz" -C "$ALICORN_RESTORE"
+ALICORN_RESTORE_DIRS=()
 for profile_dir in orca Orca; do
-  if sudo test -L "$ORCA_RESTORE/$profile_dir"; then
+  if sudo test -L "$ALICORN_RESTORE/$profile_dir"; then
     echo "Rollback bundle contains a symlinked profile: $profile_dir" >&2
     exit 1
   fi
-  if sudo test -d "$ORCA_RESTORE/$profile_dir"; then
+  if sudo test -d "$ALICORN_RESTORE/$profile_dir"; then
     if [[ "$profile_dir" == Orca ]] && \
-      sudo test "$ORCA_RESTORE/orca" -ef "$ORCA_RESTORE/Orca"; then
+      sudo test "$ALICORN_RESTORE/orca" -ef "$ALICORN_RESTORE/Orca"; then
       continue
     fi
-    ORCA_RESTORE_DIRS+=("$profile_dir")
+    ALICORN_RESTORE_DIRS+=("$profile_dir")
   fi
 done
-if ((${#ORCA_RESTORE_DIRS[@]} == 0)); then
-  echo "Rollback bundle has no Orca profile directories: $ORCA_ROLLBACK" >&2
+if ((${#ALICORN_RESTORE_DIRS[@]} == 0)); then
+  echo "Rollback bundle has no Orca profile directories: $ALICORN_ROLLBACK" >&2
   exit 1
 fi
-for profile_dir in "${ORCA_RESTORE_DIRS[@]}"; do
-  sudo chown -R orca:orca "$ORCA_RESTORE/$profile_dir"
+for profile_dir in "${ALICORN_RESTORE_DIRS[@]}"; do
+  sudo chown -R orca:orca "$ALICORN_RESTORE/$profile_dir"
 done
 
-ORCA_ROLLBACK_STAMP=$(date +%F-%H%M%S-%N)
-ORCA_ROLLBACK_BINARY_STAGED=/opt/orca/orca-linux.AppImage.rollback-staged-$ORCA_ROLLBACK_STAMP
-sudo cp -a "$ORCA_ROLLBACK/orca-linux.AppImage" "$ORCA_ROLLBACK_BINARY_STAGED"
-if sudo test -f "$ORCA_ROLLBACK/VERSION"; then
-  ORCA_ROLLBACK_HAS_VERSION=1
-  ORCA_ROLLBACK_VERSION_STAGED=/opt/orca/VERSION.rollback-staged-$ORCA_ROLLBACK_STAMP
-  sudo cp -a "$ORCA_ROLLBACK/VERSION" "$ORCA_ROLLBACK_VERSION_STAGED"
+ALICORN_ROLLBACK_STAMP=$(date +%F-%H%M%S-%N)
+ALICORN_ROLLBACK_BINARY_STAGED=/opt/orca/orca-linux.AppImage.rollback-staged-$ALICORN_ROLLBACK_STAMP
+sudo cp -a "$ALICORN_ROLLBACK/orca-linux.AppImage" "$ALICORN_ROLLBACK_BINARY_STAGED"
+if sudo test -f "$ALICORN_ROLLBACK/VERSION"; then
+  ALICORN_ROLLBACK_HAS_VERSION=1
+  ALICORN_ROLLBACK_VERSION_STAGED=/opt/orca/VERSION.rollback-staged-$ALICORN_ROLLBACK_STAMP
+  sudo cp -a "$ALICORN_ROLLBACK/VERSION" "$ALICORN_ROLLBACK_VERSION_STAGED"
 fi
 
-ORCA_SERVICE_STOPPED=1
+ALICORN_SERVICE_STOPPED=1
 sudo systemctl stop orca-serve.service
 
 # Preserve and replace only Orca-owned profile directories
-ORCA_CURRENT_DIRS=()
+ALICORN_CURRENT_DIRS=()
 for profile_dir in orca Orca; do
   if sudo test -L "/home/orca/.config/$profile_dir"; then
     echo "Refusing symlinked Orca profile: /home/orca/.config/$profile_dir" >&2
@@ -816,43 +816,43 @@ for profile_dir in orca Orca; do
       sudo test /home/orca/.config/orca -ef /home/orca/.config/Orca; then
       continue
     fi
-    ORCA_CURRENT_DIRS+=("$profile_dir")
+    ALICORN_CURRENT_DIRS+=("$profile_dir")
   fi
 done
-ORCA_POST_UPGRADE=/home/orca/.config/orca-rollback-$ORCA_ROLLBACK_STAMP
-sudo install -d -o orca -g orca -m 700 "$ORCA_POST_UPGRADE"
-if ((${#ORCA_CURRENT_DIRS[@]})); then
-  for profile_dir in "${ORCA_CURRENT_DIRS[@]}"; do
-    ORCA_MOVED_CURRENT_DIRS+=("$profile_dir")
-    sudo mv "/home/orca/.config/$profile_dir" "$ORCA_POST_UPGRADE/"
+ALICORN_POST_UPGRADE=/home/orca/.config/orca-rollback-$ALICORN_ROLLBACK_STAMP
+sudo install -d -o orca -g orca -m 700 "$ALICORN_POST_UPGRADE"
+if ((${#ALICORN_CURRENT_DIRS[@]})); then
+  for profile_dir in "${ALICORN_CURRENT_DIRS[@]}"; do
+    ALICORN_MOVED_CURRENT_DIRS+=("$profile_dir")
+    sudo mv "/home/orca/.config/$profile_dir" "$ALICORN_POST_UPGRADE/"
   done
 fi
-for profile_dir in "${ORCA_RESTORE_DIRS[@]}"; do
-  ORCA_INSTALLED_RESTORE_DIRS+=("$profile_dir")
-  sudo mv "$ORCA_RESTORE/$profile_dir" /home/orca/.config/
+for profile_dir in "${ALICORN_RESTORE_DIRS[@]}"; do
+  ALICORN_INSTALLED_RESTORE_DIRS+=("$profile_dir")
+  sudo mv "$ALICORN_RESTORE/$profile_dir" /home/orca/.config/
 done
 
-ORCA_CURRENT_BINARY=/opt/orca/orca-linux.AppImage.rollback-current-$ORCA_ROLLBACK_STAMP
-ORCA_CURRENT_BINARY_MOVED=1
-sudo mv /opt/orca/orca-linux.AppImage "$ORCA_CURRENT_BINARY"
-sudo mv -f "$ORCA_ROLLBACK_BINARY_STAGED" /opt/orca/orca-linux.AppImage
+ALICORN_CURRENT_BINARY=/opt/orca/orca-linux.AppImage.rollback-current-$ALICORN_ROLLBACK_STAMP
+ALICORN_CURRENT_BINARY_MOVED=1
+sudo mv /opt/orca/orca-linux.AppImage "$ALICORN_CURRENT_BINARY"
+sudo mv -f "$ALICORN_ROLLBACK_BINARY_STAGED" /opt/orca/orca-linux.AppImage
 
-ORCA_CURRENT_VERSION=/opt/orca/VERSION.rollback-current-$ORCA_ROLLBACK_STAMP
+ALICORN_CURRENT_VERSION=/opt/orca/VERSION.rollback-current-$ALICORN_ROLLBACK_STAMP
 if sudo test -f /opt/orca/VERSION; then
-  ORCA_CURRENT_VERSION_MOVED=1
-  sudo mv /opt/orca/VERSION "$ORCA_CURRENT_VERSION"
+  ALICORN_CURRENT_VERSION_MOVED=1
+  sudo mv /opt/orca/VERSION "$ALICORN_CURRENT_VERSION"
 fi
-ORCA_VERSION_REPLACEMENT_STARTED=1
-if ((ORCA_ROLLBACK_HAS_VERSION)); then
-  sudo mv -f "$ORCA_ROLLBACK_VERSION_STAGED" /opt/orca/VERSION
+ALICORN_VERSION_REPLACEMENT_STARTED=1
+if ((ALICORN_ROLLBACK_HAS_VERSION)); then
+  sudo mv -f "$ALICORN_ROLLBACK_VERSION_STAGED" /opt/orca/VERSION
 else
   sudo rm -f /opt/orca/VERSION
 fi
 # The crash-looping build you are rolling back from tripped StartLimitBurst
 sudo systemctl reset-failed orca-serve.service
 sudo systemctl start orca-serve.service
-ORCA_SERVICE_STOPPED=0
-sudo rm -rf -- "$ORCA_RESTORE"
+ALICORN_SERVICE_STOPPED=0
+sudo rm -rf -- "$ALICORN_RESTORE"
 trap - EXIT
 ```
 

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AgentHookServer, _internals } from './server'
 import { AGENT_STATUS_MAX_FIELD_LENGTH } from '../../shared/agent-status-types'
 import { makePaneKey } from '../../shared/stable-pane-id'
+import { ALICORN_HOOK_PROTOCOL_VERSION } from '../../shared/agent-hook-types'
 import { buildBody, PANE, LEAF_2, LEAF_3 } from './server.test-fixtures'
 
 const { getCohortAtEmitMock, trackMock } = vi.hoisted(() => ({
@@ -33,11 +34,11 @@ async function postClaudeHook(
   payload: Record<string, unknown>
 ): Promise<Response> {
   const env = server.buildPtyEnv()
-  return fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/claude`, {
+  return fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/claude`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+      'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
     },
     body: JSON.stringify(buildBody(payload))
   })
@@ -49,11 +50,11 @@ describe('AgentHookServer listener replay', () => {
     await server.start({ env: 'production' })
     try {
       const env = server.buildPtyEnv()
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/claude`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/claude`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN,
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN,
           'X-Orca-Agent-Hook-Meta-Encoding': 'base64',
           'X-Orca-Agent-Hook-Meta': Buffer.from(
             [PANE, 'tab-1', '', 'wt-1', 'production', ''].join('\x1f')
@@ -167,12 +168,12 @@ describe('AgentHookServer listener replay', () => {
         payload: Record<string, unknown>
       ): Promise<void> => {
         const response = await fetch(
-          `http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/${source}`,
+          `http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/${source}`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+              'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
             },
             body: JSON.stringify(buildBody(payload))
           }
@@ -220,14 +221,17 @@ describe('AgentHookServer listener replay', () => {
     try {
       const env = server.buildPtyEnv()
       const postClaudeHook = async (payload: Record<string, unknown>): Promise<void> => {
-        const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/claude`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
-          },
-          body: JSON.stringify(buildBody(payload))
-        })
+        const response = await fetch(
+          `http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/claude`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
+            },
+            body: JSON.stringify(buildBody(payload))
+          }
+        )
         expect(response.status).toBe(204)
       }
 
@@ -262,11 +266,11 @@ describe('AgentHookServer listener replay', () => {
     try {
       server.registerPaneKeyAlias('tab-1:0', PANE)
       const env = server.buildPtyEnv()
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/claude`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/claude`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(
           buildBody(
@@ -305,11 +309,11 @@ describe('AgentHookServer listener replay', () => {
     await server.start({ env: 'production' })
     try {
       const env = server.buildPtyEnv()
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/claude`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/claude`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(
           buildBody(
@@ -415,7 +419,9 @@ describe('AgentHookServer listener replay', () => {
           tabId: ' tab-3 ',
           worktreeId: ' wt-3 ',
           env: 'remote',
-          version: '1',
+          // The server's own version: a mismatch is a legitimate warning, and this test
+          // asserts the quiet path.
+          version: ALICORN_HOOK_PROTOCOL_VERSION,
           payload: {
             state: 'done',
             prompt: oversizedPrompt,
@@ -455,18 +461,18 @@ describe('AgentHookServer listener replay', () => {
         tabId: 'tab-1',
         worktreeId: 'repo::/tmp/worktree with "quotes"',
         env: 'production',
-        version: env.ORCA_AGENT_HOOK_VERSION ?? '',
+        version: env.ALICORN_AGENT_HOOK_VERSION ?? '',
         payload: JSON.stringify({
           hook_event_name: 'UserPromptSubmit',
           prompt: 'form encoded'
         })
       })
 
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/claude`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/claude`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: params
       })
@@ -508,14 +514,14 @@ describe('AgentHookServer listener replay', () => {
           tabId: 'tab-1',
           worktreeId: 'wt-1',
           env: 'production',
-          version: env.ORCA_AGENT_HOOK_VERSION ?? '',
+          version: env.ALICORN_AGENT_HOOK_VERSION ?? '',
           payload: JSON.stringify(payload)
         })
-        const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/codex`, {
+        const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/codex`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+            'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
           },
           body: params
         })
@@ -604,11 +610,11 @@ describe('AgentHookServer listener replay', () => {
     await server.start({ env: 'production' })
     try {
       const env = server.buildPtyEnv()
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/hermes`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/hermes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(
           buildBody({
@@ -648,11 +654,11 @@ describe('AgentHookServer listener replay', () => {
       const listener = vi.fn()
       server.setListener(listener)
 
-      const response = await fetch(`http://127.0.0.1:${env.ORCA_AGENT_HOOK_PORT}/hook/amp`, {
+      const response = await fetch(`http://127.0.0.1:${env.ALICORN_AGENT_HOOK_PORT}/hook/amp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Orca-Agent-Hook-Token': env.ORCA_AGENT_HOOK_TOKEN
+          'X-Orca-Agent-Hook-Token': env.ALICORN_AGENT_HOOK_TOKEN
         },
         body: JSON.stringify(
           buildBody({

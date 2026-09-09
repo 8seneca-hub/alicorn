@@ -110,8 +110,8 @@ describe('registerWorktreeHandlers', () => {
     expect(result).toMatchObject({
       runnerScriptPath: '/workspace/repo/.git/orca/issue-command-runner.sh',
       envVars: {
-        ORCA_ROOT_PATH: '/workspace/repo',
-        ORCA_WORKTREE_PATH: '/workspace/improve-dashboard'
+        ALICORN_ROOT_PATH: '/workspace/repo',
+        ALICORN_WORKTREE_PATH: '/workspace/improve-dashboard'
       }
     })
   })

@@ -12,21 +12,21 @@ import type {
 function getEnvVars(): { name: string; description: string }[] {
   return [
     {
-      name: '$ORCA_ROOT_PATH',
+      name: '$ALICORN_ROOT_PATH',
       description: translate(
         'auto.components.settings.RepositoryHooksSection.30952c4aa4',
         'Path to the main repo checkout. Useful for copying shared files, like .env, into a worktree.'
       )
     },
     {
-      name: '$ORCA_WORKTREE_PATH',
+      name: '$ALICORN_WORKTREE_PATH',
       description: translate(
         'auto.components.settings.RepositoryHooksSection.54c73d88d0',
         'Path to the worktree being created. Setup commands run from this directory.'
       )
     },
     {
-      name: '$ORCA_WORKSPACE_NAME',
+      name: '$ALICORN_WORKSPACE_NAME',
       description: translate(
         'auto.components.settings.RepositoryHooksSection.0fa21e19ec',
         'Name of the workspace, usually based on the branch name.'

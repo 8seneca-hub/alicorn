@@ -82,15 +82,15 @@ export type HostCliPassthroughOptions = {
 export class HostCliUnavailableError extends Error {}
 
 // Why: only Orca terminal-context vars may cross from the remote shell into
-// the host CLI process. Remote PATH / ORCA_USER_DATA_PATH are paths on the
+// the host CLI process. Remote PATH / ALICORN_USER_DATA_PATH are paths on the
 // remote machine (meaningless or instance-hijacking on the host), and
 // NODE_OPTIONS-style vars could alter host execution.
 const REMOTE_CONTEXT_ENV_VARS = [
-  'ORCA_TERMINAL_HANDLE',
-  'ORCA_WORKTREE_ID',
-  'ORCA_PANE_KEY',
-  'ORCA_AGENT_LAUNCH_TOKEN',
-  'ORCA_WORKSPACE_ID'
+  'ALICORN_TERMINAL_HANDLE',
+  'ALICORN_WORKTREE_ID',
+  'ALICORN_PANE_KEY',
+  'ALICORN_AGENT_LAUNCH_TOKEN',
+  'ALICORN_WORKSPACE_ID'
 ] as const
 
 // Why: bound captured output so a runaway command cannot balloon the relay
@@ -154,17 +154,17 @@ export function buildHostCliEnv(args: {
   }
   // Why: bind the subprocess to this app instance's runtime metadata (dev and
   // parallel instances use non-default userData dirs).
-  env.ORCA_USER_DATA_PATH = args.userDataPath
+  env.ALICORN_USER_DATA_PATH = args.userDataPath
   // Why: the caller's working directory lives on the remote machine, so the
-  // subprocess cwd cannot be chdir'd there; ORCA_CLI_CWD carries it for
+  // subprocess cwd cannot be chdir'd there; ALICORN_CLI_CWD carries it for
   // cwd-based selectors like `--worktree active`.
-  env.ORCA_CLI_CWD = args.remoteCwd
+  env.ALICORN_CLI_CWD = args.remoteCwd
   // Why: recovery commands run on the SSH execution host through its relay shim.
-  env.ORCA_CLI_COMMAND = 'orca'
+  env.ALICORN_CLI_COMMAND = 'orca'
   // Why: same node-mode hygiene as the shipped CLI launchers — stash and clear
   // NODE_OPTIONS so Electron's node bootstrap does not inherit them.
-  env.ORCA_NODE_OPTIONS = args.hostEnv.NODE_OPTIONS ?? ''
-  env.ORCA_NODE_REPL_EXTERNAL_MODULE = args.hostEnv.NODE_REPL_EXTERNAL_MODULE ?? ''
+  env.ALICORN_NODE_OPTIONS = args.hostEnv.NODE_OPTIONS ?? ''
+  env.ALICORN_NODE_REPL_EXTERNAL_MODULE = args.hostEnv.NODE_REPL_EXTERNAL_MODULE ?? ''
   delete env.NODE_OPTIONS
   delete env.NODE_REPL_EXTERNAL_MODULE
   delete env[ORCHESTRATION_COMPATIBILITY_HOST_KIND_ENV]

@@ -2,13 +2,13 @@ import { execFileSync } from 'node:child_process'
 import type { DockerSshRelayTarget } from './helpers/docker-ssh-relay-target'
 
 const REMOTE_TUI_PATH = '/tmp/orca-codex-display-artifacts-repro.mjs'
-export const REMOTE_TUI_DONE = 'ORCA_REMOTE_CODEX_ARTIFACT_TUI_DONE'
+export const REMOTE_TUI_DONE = 'ALICORN_REMOTE_CODEX_ARTIFACT_TUI_DONE'
 export const REMOTE_CODEX_FIXTURE_CLEAN_FINAL_TEXT =
   'Any gray slab visible now is stale renderer state.'
 const REMOTE_TUI_FRAMES = 900
-const REMOTE_CODEX_FIXTURE_FRAMES = parseEnvNumber(process.env.ORCA_E2E_CODEX_FIXTURE_FRAMES, 34)
+const REMOTE_CODEX_FIXTURE_FRAMES = parseEnvNumber(process.env.ALICORN_E2E_CODEX_FIXTURE_FRAMES, 34)
 const REMOTE_CODEX_FIXTURE_FRAME_DELAY_MS = parseEnvNumber(
-  process.env.ORCA_E2E_CODEX_FIXTURE_FRAME_DELAY_MS,
+  process.env.ALICORN_E2E_CODEX_FIXTURE_FRAME_DELAY_MS,
   45
 )
 
@@ -95,7 +95,7 @@ const write = (chunk) => new Promise((resolve) => process.stdout.write(chunk, re
 const cols = Number(process.env.COLUMNS || 120)
 const rows = Number(process.env.LINES || 48)
 const width = Math.max(42, cols - 4)
-const marker = process.argv.join(' ').match(/ORCA_REMOTE_CODEX_ARTIFACT_TUI_DONE|ORCA_REAL_REMOTE_CODEX_DONE_[0-9]+/)?.[0] || '${REMOTE_TUI_DONE}'
+const marker = process.argv.join(' ').match(/ALICORN_REMOTE_CODEX_ARTIFACT_TUI_DONE|ALICORN_REAL_REMOTE_CODEX_DONE_[0-9]+/)?.[0] || '${REMOTE_TUI_DONE}'
 const scrollTop = 1
 const viewportTop = Math.max(14, rows - 17)
 const viewportBottom = Math.max(viewportTop + 8, rows - 3)

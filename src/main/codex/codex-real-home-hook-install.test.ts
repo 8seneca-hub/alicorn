@@ -79,8 +79,8 @@ beforeEach(() => {
   grantMock.mockReset()
   fakeHomeDir = mkdtempSync(join(tmpdir(), 'orca-real-home-hooks-home-'))
   userDataDir = mkdtempSync(join(tmpdir(), 'orca-real-home-hooks-user-data-'))
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
+  process.env.ALICORN_USER_DATA_PATH = userDataDir
   homedirMock.mockReturnValue(fakeHomeDir)
   mkdirSync(join(fakeHomeDir, '.codex'), { recursive: true })
   _internals.setLaneForTesting('pending')
@@ -92,9 +92,9 @@ afterEach(() => {
   rmSync(fakeHomeDir, { recursive: true, force: true })
   rmSync(userDataDir, { recursive: true, force: true })
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.ALICORN_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
   }
   vi.clearAllMocks()
 })

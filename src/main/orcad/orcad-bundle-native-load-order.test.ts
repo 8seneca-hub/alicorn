@@ -16,7 +16,7 @@ import { runProcessSync } from '../../shared/child-process/run-process'
  * runs vitest. `smoke:orcad-terminal` builds it in the static-analysis job, which never
  * runs vitest; the `orcad_browser` job runs vitest but deliberately does not build orcad.
  * A `runIf(existsSync(...))` guard therefore skips in every shard, forever — the same way
- * an unset ORCA_BROWSER_EXECUTABLE kept the browser provider uncovered.
+ * an unset ALICORN_BROWSER_EXECUTABLE kept the browser provider uncovered.
  *
  * Why not fail-when-CI instead: the wiring that would satisfy it lives in `.github/`, so
  * that turns a silent gap into a red build someone else has to fix. Building costs well

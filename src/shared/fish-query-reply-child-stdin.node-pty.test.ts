@@ -119,8 +119,8 @@ describe('a held query reply never reaches the next child process (#13892)', () 
           LANG: 'en_US.UTF-8',
           XDG_CONFIG_HOME: configHome,
           XDG_DATA_HOME: path.join(configHome, 'data'),
-          ORCA_NODE_BIN: process.execPath,
-          ORCA_CHILD_SCRIPT: childScript
+          ALICORN_NODE_BIN: process.execPath,
+          ALICORN_CHILD_SCRIPT: childScript
         }
       })
 
@@ -191,7 +191,7 @@ describe('a held query reply never reaches the next child process (#13892)', () 
         // OSC 11) and hands the tty over in the same breath.
         term.write('sleep 0.4\r')
         await sleep(150)
-        term.write('"$ORCA_NODE_BIN" "$ORCA_CHILD_SCRIPT"\r')
+        term.write('"$ALICORN_NODE_BIN" "$ALICORN_CHILD_SCRIPT"\r')
         await sleep(1_500)
         expect(oscQueryCount).toBeGreaterThan(oscQueriesBeforeHandoff)
 

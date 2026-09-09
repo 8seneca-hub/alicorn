@@ -22,7 +22,7 @@ import * as path from 'node:path'
  * `exec`s the guest argv in place -- the guest and the root are one pid, which
  * is the closest faithful analogue and keeps the assertion honest. Guest-side
  * teardown across a real relay stays uncovered; see wsl-runner.wsl.test.ts,
- * which is gated to win32 plus ORCA_REAL_WSL_RUNNER_TEST.
+ * which is gated to win32 plus ALICORN_REAL_WSL_RUNNER_TEST.
  */
 
 let fakeWslPath = ''

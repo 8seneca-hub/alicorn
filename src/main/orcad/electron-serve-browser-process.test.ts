@@ -114,9 +114,9 @@ beforeEach(async () => {
       args: [FAKE_SIDECAR, ...(spec.args ?? [])],
       env: {
         ...spec.env,
-        ORCA_FAKE_SIDECAR_LOG: logPath,
-        ORCA_FAKE_SIDECAR_CONTROL: controlPath,
-        ...(sidecarMode ? { ORCA_FAKE_SIDECAR_MODE: sidecarMode } : {})
+        ALICORN_FAKE_SIDECAR_LOG: logPath,
+        ALICORN_FAKE_SIDECAR_CONTROL: controlPath,
+        ...(sidecarMode ? { ALICORN_FAKE_SIDECAR_MODE: sidecarMode } : {})
       }
     })
   )
@@ -135,7 +135,7 @@ describe('ElectronServeBrowserProcess start-up', () => {
     for (const key of AGENT_BROWSER_ENVIRONMENT_KEYS) {
       vi.stubEnv(key, `leaked-${key}`)
     }
-    vi.stubEnv('ORCA_HARNESS_UNRELATED', 'preserved')
+    vi.stubEnv('ALICORN_HARNESS_UNRELATED', 'preserved')
 
     const processHandle = await startProvider()
 
@@ -152,7 +152,7 @@ describe('ElectronServeBrowserProcess start-up', () => {
     for (const key of AGENT_BROWSER_ENVIRONMENT_KEYS) {
       expect(spec.env).not.toHaveProperty(key)
     }
-    expect(spec.env?.ORCA_HARNESS_UNRELATED).toBe('preserved')
+    expect(spec.env?.ALICORN_HARNESS_UNRELATED).toBe('preserved')
     expect(processHandle.isAvailable()).toBe(true)
   })
 

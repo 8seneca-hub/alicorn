@@ -3,7 +3,7 @@ import { expect, test } from './helpers/orca-app'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
 async function captureProof(page: Page, testInfo: TestInfo, name: string): Promise<void> {
-  if (process.env.ORCA_E2E_RECORD_VIDEO === '1') {
+  if (process.env.ALICORN_E2E_RECORD_VIDEO === '1') {
     return
   }
   const screenshotPath = testInfo.outputPath(name)

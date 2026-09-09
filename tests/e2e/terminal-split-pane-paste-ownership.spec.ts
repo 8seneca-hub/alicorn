@@ -85,7 +85,7 @@ test.describe('split terminal pane paste ownership', () => {
       scriptStarted = true
       await waitForTerminalOutput(orcaPage, `SPLIT_PASTE_READY_${runId}`, 10_000)
 
-      const payload = `ORCA_E2E_SPLIT_PASTE_${runId}`
+      const payload = `ALICORN_E2E_SPLIT_PASTE_${runId}`
       const encodedPayload = Buffer.from(payload, 'utf8').toString('base64')
       await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
       await clearTerminalPtyWriteLog(electronApp)

@@ -1,6 +1,6 @@
 # Orca relay bash overlay wrapper
-_orca_shell_features=",${ORCA_SHELL_FEATURES:-},"
-builtin unset ORCA_SHELL_FEATURES
+_orca_shell_features=",${ALICORN_SHELL_FEATURES:-},"
+builtin unset ALICORN_SHELL_FEATURES
 __orca_has_feature() { [[ "$_orca_shell_features" == *",$1,"* ]]; }
 __orca_has_feature identity && printf "\033]777;orca-shell-start:%s\007" "$$"
 # Why a plain variable: the channel is consumed and destroyed in these first
@@ -23,9 +23,9 @@ fi
 # continuation. Modern readline defaults this on; force it for the rest.
 [[ $- == *i* ]] && bind 'set enable-bracketed-paste on' 2>/dev/null
 # Why: remote startup files can re-export user defaults after relay spawn.
-[[ -n "${ORCA_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${ORCA_OPENCODE_CONFIG_DIR}"
-[[ -n "${ORCA_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${ORCA_MIMOCODE_HOME}"
-[[ -n "${ORCA_REMOTE_CLI_BIN_DIR:-}" ]] && case ":$PATH:" in *:"${ORCA_REMOTE_CLI_BIN_DIR}":*) ;; *) export PATH="${ORCA_REMOTE_CLI_BIN_DIR}:$PATH" ;; esac
+[[ -n "${ALICORN_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="${ALICORN_OPENCODE_CONFIG_DIR}"
+[[ -n "${ALICORN_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="${ALICORN_MIMOCODE_HOME}"
+[[ -n "${ALICORN_REMOTE_CLI_BIN_DIR:-}" ]] && case ":$PATH:" in *:"${ALICORN_REMOTE_CLI_BIN_DIR}":*) ;; *) export PATH="${ALICORN_REMOTE_CLI_BIN_DIR}:$PATH" ;; esac
 # Why: OMP does not auto-load Orca's managed status extension; wrap only
 # interactive launch invocations so subcommands such as `omp config` keep
 # their normal argv shape.
@@ -50,12 +50,12 @@ __orca_omp_cwd_is_usable() {
 __orca_omp_invoke() {
   local __orca_use_extension="$1"
   shift
-  if [[ $__orca_use_extension -eq 1 && -n "${ORCA_OMP_STATUS_EXTENSION:-}" && -f "${ORCA_OMP_STATUS_EXTENSION}" ]]; then
+  if [[ $__orca_use_extension -eq 1 && -n "${ALICORN_OMP_STATUS_EXTENSION:-}" && -f "${ALICORN_OMP_STATUS_EXTENSION}" ]]; then
     if [[ "${1:-}" == "launch" ]]; then
       shift
-      command omp launch --extension "${ORCA_OMP_STATUS_EXTENSION}" "$@"
+      command omp launch --extension "${ALICORN_OMP_STATUS_EXTENSION}" "$@"
     else
-      command omp --extension "${ORCA_OMP_STATUS_EXTENSION}" "$@"
+      command omp --extension "${ALICORN_OMP_STATUS_EXTENSION}" "$@"
     fi
   else
     command omp "$@"
@@ -65,7 +65,7 @@ __orca_omp() {
   local __orca_use_extension=1
   __orca_omp_should_skip_extension "${1:-}" && __orca_use_extension=0
   if ! __orca_omp_cwd_is_usable; then
-    local __orca_logical_cwd="${PWD:-${ORCA_WORKTREE_PATH:-${ORCA_ROOT_PATH:-}}}"
+    local __orca_logical_cwd="${PWD:-${ALICORN_WORKTREE_PATH:-${ALICORN_ROOT_PATH:-}}}"
     # Why: a restored shell can retain the deleted directory inode after its path is recreated.
     (
       if [[ -z "$__orca_logical_cwd" ]]; then
@@ -82,22 +82,22 @@ __orca_omp() {
     __orca_omp_invoke "$__orca_use_extension" "$@"
   fi
 }
-if [[ -n "${ORCA_OMP_STATUS_EXTENSION:-}" ]]; then
+if [[ -n "${ALICORN_OMP_STATUS_EXTENSION:-}" ]]; then
   # Why the function reserved word: it suppresses alias expansion of the name, which
   # an `alias omp` otherwise rewrites at parse time, aborting the rest of the file.
   function omp { __orca_omp "$@"; }
 fi
 
-if [[ -n "${ORCA_HISTFILE:-}" ]]; then
-  HISTFILE="$ORCA_HISTFILE"
-  builtin unset ORCA_HISTFILE
+if [[ -n "${ALICORN_HISTFILE:-}" ]]; then
+  HISTFILE="$ALICORN_HISTFILE"
+  builtin unset ALICORN_HISTFILE
 elif [[ "${HISTFILE:-}" == "$ZDOTDIR/.zsh_history" ]]; then
   # Why also when Orca injected nothing: /etc/zshrc derived this from Orca's
   # wrapper ZDOTDIR, so history would accumulate INSIDE the wrapper dir and the
   # user's real history would be invisible — the plain #11044 bug, with no
   # per-worktree scoping involved. Matching the exact clobbered value means a
   # HISTFILE the user set deliberately is never touched.
-  HISTFILE="${ORCA_ORIG_ZDOTDIR:-$HOME}/.zsh_history"
+  HISTFILE="${ALICORN_ORIG_ZDOTDIR:-$HOME}/.zsh_history"
 fi
 # Why: SSH bash sessions need the same command lifecycle markers as local
 # bash so agent rows stop showing "working" when the foreground command exits.

@@ -25,8 +25,8 @@ const USER_DATA = '/tmp/alicorn-profile'
 // The keycloak block a dev sources from cloud/dev/compose/desktop.keycloak.env.example.
 const KEYCLOAK_ENV: NodeJS.ProcessEnv = {
   ALICORN_AUTH_MODE: 'keycloak',
-  ORCA_CLOUD_API_URL: 'http://127.0.0.1:8081',
-  ORCA_CLOUD_CLIENT_ID: 'alicorn-desktop'
+  ALICORN_CLOUD_API_URL: 'http://127.0.0.1:8081',
+  ALICORN_CLOUD_CLIENT_ID: 'alicorn-desktop'
 }
 
 type ActiveProfile = ReturnType<typeof ensureActiveOrcaProfile>
@@ -65,9 +65,9 @@ describe('resolveAlicornAuthMode', () => {
     expect(resolveAlicornAuthMode({ ALICORN_LOCAL_API_TOKEN: TOKEN })).toBe('local')
     expect(resolveAlicornAuthMode({})).toBe('keycloak')
     // An unrecognised value is not a third mode; it is a typo, and the token still decides.
-    expect(resolveAlicornAuthMode({ ALICORN_AUTH_MODE: 'kc', ALICORN_LOCAL_API_TOKEN: TOKEN })).toBe(
-      'local'
-    )
+    expect(
+      resolveAlicornAuthMode({ ALICORN_AUTH_MODE: 'kc', ALICORN_LOCAL_API_TOKEN: TOKEN })
+    ).toBe('local')
   })
 })
 
@@ -97,9 +97,9 @@ describe('readAlicornBearer — local mode', () => {
   })
 
   it('trims the token so a copied newline does not reach the header', async () => {
-    expect((await readAlicornBearer({ ALICORN_LOCAL_API_TOKEN: `  ${TOKEN}\n` }))?.accessToken).toBe(
-      TOKEN
-    )
+    expect(
+      (await readAlicornBearer({ ALICORN_LOCAL_API_TOKEN: `  ${TOKEN}\n` }))?.accessToken
+    ).toBe(TOKEN)
   })
 
   it('never reaches for a signed-in session', async () => {

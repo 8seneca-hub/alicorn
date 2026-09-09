@@ -6,8 +6,8 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { Worker } from 'node:worker_threads'
 
-const INTERNAL_ENV = 'ORCA_PACKAGED_WATCHDOG_SMOKE_INTERNAL'
-const ASAR_ENV = 'ORCA_PACKAGED_WATCHDOG_SMOKE_ASAR'
+const INTERNAL_ENV = 'ALICORN_PACKAGED_WATCHDOG_SMOKE_INTERNAL'
+const ASAR_ENV = 'ALICORN_PACKAGED_WATCHDOG_SMOKE_ASAR'
 const TIMEOUT_MS = 100
 const CHECK_INTERVAL_MS = 20
 const POLL_TIMEOUT_MS = 5_000

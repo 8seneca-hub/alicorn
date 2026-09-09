@@ -160,7 +160,7 @@ export function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServ
       state.codexRuntimeHome?.reconcileLegacySharedHomeForRetainedPanes()
       logStartupMilestone('startup-service-done', { service: 'daemon-pty-provider' })
     },
-    // Why: PTY spawn env reads ORCA_AGENT_HOOK_* from live server state, so the renderer awaits this before restored terminals reconnect.
+    // Why: PTY spawn env reads ALICORN_AGENT_HOOK_* from live server state, so the renderer awaits this before restored terminals reconnect.
     startAgentHookServer: async () => {
       const settings = state.store?.getSettings()
       if (!isAgentStatusHooksEnabled(settings)) {

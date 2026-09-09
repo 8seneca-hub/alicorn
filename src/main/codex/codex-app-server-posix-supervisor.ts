@@ -3,9 +3,9 @@ import type { CodexAppServerLaunch } from './codex-app-server-connection'
 /** Inline supervisor source kept dependency-free for the spawned Node child. */
 export const POSIX_PROVIDER_SUPERVISOR_SCRIPT = `
 const { spawn } = require('node:child_process')
-const spec = JSON.parse(Buffer.from(process.env.ORCA_PROVIDER_SUPERVISOR_SPEC, 'base64').toString())
+const spec = JSON.parse(Buffer.from(process.env.ALICORN_PROVIDER_SUPERVISOR_SPEC, 'base64').toString())
 const childEnv = { ...process.env }
-delete childEnv.ORCA_PROVIDER_SUPERVISOR_SPEC
+delete childEnv.ALICORN_PROVIDER_SUPERVISOR_SPEC
 delete childEnv.ELECTRON_RUN_AS_NODE
 const child = spawn(spec.command, spec.args, {
   cwd: spec.cwd,
@@ -107,7 +107,7 @@ export function supervisedPosixLaunch(
     env: {
       ...childEnv,
       ELECTRON_RUN_AS_NODE: '1',
-      ORCA_PROVIDER_SUPERVISOR_SPEC: supervisorSpec
+      ALICORN_PROVIDER_SUPERVISOR_SPEC: supervisorSpec
     }
   }
 }

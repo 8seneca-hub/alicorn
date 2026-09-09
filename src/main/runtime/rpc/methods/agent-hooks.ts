@@ -27,7 +27,7 @@ export const AGENT_HOOK_METHODS: readonly RpcMethod[] = [
       return await prepareManagedWslCodexHomeBeforeShellLaunch({
         env: {
           CODEX_HOME: params.codexHome,
-          ORCA_CODEX_HOME: params.orcaCodexHome,
+          ALICORN_CODEX_HOME: params.orcaCodexHome,
           WSL_DISTRO_NAME: params.wslDistro
         },
         hooksEnabled:

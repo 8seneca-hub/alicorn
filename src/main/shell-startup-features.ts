@@ -3,15 +3,15 @@
  * features its wrapper should turn on, plus the pure selection that fills it.
  *
  * Why a positive allowlist the wrapper destroys before anything else runs:
- * every earlier switch was a negative, exported one (`ORCA_SHELL_READY_MARKER=0`,
- * `ORCA_SHELL_COMMAND_MARKERS=0`). Those live in the pane's PTY env, so every
+ * every earlier switch was a negative, exported one (`ALICORN_SHELL_READY_MARKER=0`,
+ * `ALICORN_SHELL_COMMAND_MARKERS=0`). Those live in the pane's PTY env, so every
  * child inherits them — a pane launched with a feature suppressed suppressed it
  * for an Orca started from that pane too. With an allowlist, an inherited or
  * stale value can only ever mean *fewer* features, never more, and the wrapper
  * unsets it before the user's own config (or anything it spawns) can see it.
  */
 
-export const SHELL_STARTUP_FEATURE_ENV = 'ORCA_SHELL_FEATURES'
+export const SHELL_STARTUP_FEATURE_ENV = 'ALICORN_SHELL_FEATURES'
 
 export const SHELL_STARTUP_FEATURES = [
   'overlay',
@@ -26,12 +26,12 @@ export type ShellStartupFeature = (typeof SHELL_STARTUP_FEATURES)[number]
 
 /** Spawn-env keys that mean this pane carries an Orca overlay the wrapper must re-apply. */
 const OVERLAY_ENV_KEYS = [
-  'ORCA_OPENCODE_CONFIG_DIR',
-  'ORCA_MIMOCODE_HOME',
-  'ORCA_OMP_STATUS_EXTENSION',
-  'ORCA_CODEX_HOME',
-  'ORCA_AGENT_TEAMS_SHIM_DIR',
-  'ORCA_REMOTE_CLI_BIN_DIR'
+  'ALICORN_OPENCODE_CONFIG_DIR',
+  'ALICORN_MIMOCODE_HOME',
+  'ALICORN_OMP_STATUS_EXTENSION',
+  'ALICORN_CODEX_HOME',
+  'ALICORN_AGENT_TEAMS_SHIM_DIR',
+  'ALICORN_REMOTE_CLI_BIN_DIR'
 ] as const
 
 export type ShellStartupFeatureInput = {
@@ -53,7 +53,7 @@ function shellName(shellPath: string): string {
 
 /**
  * Pure function of spawn env + launch intent. Nothing here reads
- * `ORCA_SHELL_FEATURES`, so a value inherited from a parent shell cannot
+ * `ALICORN_SHELL_FEATURES`, so a value inherited from a parent shell cannot
  * enable or disable anything for the shell Orca is about to launch.
  */
 export function selectShellStartupFeatures(input: ShellStartupFeatureInput): ShellStartupFeature[] {
@@ -68,7 +68,7 @@ export function selectShellStartupFeatures(input: ShellStartupFeatureInput): She
   // place while the system zshrc runs, so the clobbered value it derives lands
   // inside Orca's wrapper dir and has to be repaired the same way.
   const history =
-    shellName(input.shellPath) === 'zsh' && (Boolean(input.env.ORCA_HISTFILE) || wrappedBefore)
+    shellName(input.shellPath) === 'zsh' && (Boolean(input.env.ALICORN_HISTFILE) || wrappedBefore)
 
   const features: ShellStartupFeature[] = []
   if (overlay) {

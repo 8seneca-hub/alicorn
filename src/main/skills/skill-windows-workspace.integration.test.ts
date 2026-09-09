@@ -10,7 +10,7 @@ import { createSkillPackageArchive } from './skill-package-creation'
 
 const execFileAsync = promisify(execFile)
 const RUN_REAL_WINDOWS =
-  process.platform === 'win32' && process.env.ORCA_REAL_WINDOWS_SKILL_TEST === '1'
+  process.platform === 'win32' && process.env.ALICORN_REAL_WINDOWS_SKILL_TEST === '1'
 
 describe.runIf(RUN_REAL_WINDOWS)('real Windows skill workspace installation', () => {
   let root = ''

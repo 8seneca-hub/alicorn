@@ -6,9 +6,9 @@ import { waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 import { seedLineageScenario } from './worktree-lineage-state'
 import { worktreeRow } from './worktree-row-locators'
 
-// Set ORCA_CAPTURE_EVIDENCE=1 to also write before/after screenshots to
+// Set ALICORN_CAPTURE_EVIDENCE=1 to also write before/after screenshots to
 // pr-evidence/. Off by default so CI just runs the behavioral assertions.
-const CAPTURE_EVIDENCE = process.env.ORCA_CAPTURE_EVIDENCE === '1'
+const CAPTURE_EVIDENCE = process.env.ALICORN_CAPTURE_EVIDENCE === '1'
 const SHOT_DIR = resolve(process.cwd(), 'pr-evidence')
 
 async function captureSidebar(page: Page, name: string): Promise<void> {

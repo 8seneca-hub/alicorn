@@ -6,7 +6,7 @@ import { codexHookService } from './hook-service'
 
 type ShellPreflightEnvironment = {
   CODEX_HOME?: string
-  ORCA_CODEX_HOME?: string
+  ALICORN_CODEX_HOME?: string
 }
 
 function pathsEqual(left: string, right: string): boolean {
@@ -58,7 +58,7 @@ export function resolveManagedCodexShellPreflightHome(
   userDataPath: string
 ): string | null {
   const codexHome = env.CODEX_HOME?.trim()
-  const orcaCodexHome = env.ORCA_CODEX_HOME?.trim()
+  const orcaCodexHome = env.ALICORN_CODEX_HOME?.trim()
   if (!codexHome || !orcaCodexHome || !pathsEqual(codexHome, orcaCodexHome)) {
     return null
   }
@@ -96,7 +96,7 @@ export async function prepareManagedCodexHomeBeforeShellLaunch(args: {
   }
   const env = args.env ?? {
     CODEX_HOME: process.env.CODEX_HOME,
-    ORCA_CODEX_HOME: process.env.ORCA_CODEX_HOME
+    ALICORN_CODEX_HOME: process.env.ALICORN_CODEX_HOME
   }
   const runtimeHomePath = resolveManagedCodexShellPreflightHome(env, args.userDataPath)
   if (!runtimeHomePath) {

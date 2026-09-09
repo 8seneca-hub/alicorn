@@ -59,16 +59,16 @@ describe('installMainThreadHangWatchdog', () => {
     workerState.error = null
     appMock.on.mockReset()
     appMock.isPackaged = true
-    delete process.env.ORCA_HANG_WATCHDOG_FORCE
-    delete process.env.ORCA_HANG_WATCHDOG_TIMEOUT_MS
-    delete process.env.ORCA_HANG_WATCHDOG_CHECK_INTERVAL_MS
+    delete process.env.ALICORN_HANG_WATCHDOG_FORCE
+    delete process.env.ALICORN_HANG_WATCHDOG_TIMEOUT_MS
+    delete process.env.ALICORN_HANG_WATCHDOG_CHECK_INTERVAL_MS
   })
 
   afterEach(() => {
     vi.useRealTimers()
-    delete process.env.ORCA_HANG_WATCHDOG_FORCE
-    delete process.env.ORCA_HANG_WATCHDOG_TIMEOUT_MS
-    delete process.env.ORCA_HANG_WATCHDOG_CHECK_INTERVAL_MS
+    delete process.env.ALICORN_HANG_WATCHDOG_FORCE
+    delete process.env.ALICORN_HANG_WATCHDOG_TIMEOUT_MS
+    delete process.env.ALICORN_HANG_WATCHDOG_CHECK_INTERVAL_MS
   })
 
   it('is a no-op off macOS', () => {
@@ -86,13 +86,13 @@ describe('installMainThreadHangWatchdog', () => {
     expect(
       withPlatform('darwin', () => installMainThreadHangWatchdog({ userDataPath: '/ud' }))
     ).toBeNull()
-    process.env.ORCA_HANG_WATCHDOG_FORCE = '1'
+    process.env.ALICORN_HANG_WATCHDOG_FORCE = '1'
     const worker = fakeWorker()
     workerState.instance = worker
     expect(
       withPlatform('darwin', () => installMainThreadHangWatchdog({ userDataPath: '/ud' }))
     ).not.toBeNull()
-    delete process.env.ORCA_HANG_WATCHDOG_FORCE
+    delete process.env.ALICORN_HANG_WATCHDOG_FORCE
   })
 
   it('starts a worker with pid, marker, and timing config', () => {
@@ -150,8 +150,8 @@ describe('installMainThreadHangWatchdog', () => {
   })
 
   it('passes test timing overrides to the worker', () => {
-    process.env.ORCA_HANG_WATCHDOG_TIMEOUT_MS = '900'
-    process.env.ORCA_HANG_WATCHDOG_CHECK_INTERVAL_MS = '100'
+    process.env.ALICORN_HANG_WATCHDOG_TIMEOUT_MS = '900'
+    process.env.ALICORN_HANG_WATCHDOG_CHECK_INTERVAL_MS = '100'
     workerState.instance = fakeWorker()
     withPlatform('darwin', () => installMainThreadHangWatchdog({ userDataPath: '/ud' }))
     const options = workerState.calls[0][1] as {

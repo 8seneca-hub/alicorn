@@ -77,7 +77,7 @@ describe('generate-terminal-perf-html-report', () => {
       }
     )
     expect(
-      parseHtmlReportArgs(['a.json'], { ORCA_E2E_TERMINAL_PERF_HTML_REPORT_PATH: 'env.html' })
+      parseHtmlReportArgs(['a.json'], { ALICORN_E2E_TERMINAL_PERF_HTML_REPORT_PATH: 'env.html' })
     ).toEqual({
       inputs: [{ label: 'a', path: 'a.json' }],
       outputPath: 'env.html'

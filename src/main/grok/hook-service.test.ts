@@ -51,14 +51,14 @@ type WindowsGrokHookRun = {
 
 function createWindowsGrokHookEnvironment(grokHome?: string): NodeJS.ProcessEnv {
   const env = { ...process.env } as NodeJS.ProcessEnv
-  delete env.ORCA_AGENT_HOOK_ENDPOINT
+  delete env.ALICORN_AGENT_HOOK_ENDPOINT
   if (grokHome === undefined) {
     delete env.GROK_HOME
   } else {
     env.GROK_HOME = grokHome
   }
-  env.ORCA_AGENT_HOOK_TOKEN = 'test-token'
-  env.ORCA_PANE_KEY = 'pane-test'
+  env.ALICORN_AGENT_HOOK_TOKEN = 'test-token'
+  env.ALICORN_PANE_KEY = 'pane-test'
   return env
 }
 
@@ -90,7 +90,7 @@ async function runWindowsGrokHook(
   if (!address || typeof address === 'string') {
     throw new Error('Could not resolve Windows Grok hook test listener port')
   }
-  env.ORCA_AGENT_HOOK_PORT = String(address.port)
+  env.ALICORN_AGENT_HOOK_PORT = String(address.port)
   try {
     const result = await new Promise<Omit<WindowsGrokHookRun, 'request'>>((resolve, reject) => {
       const child = spawn(process.env.ComSpec ?? 'cmd.exe', ['/d', '/c', scriptPath], {
@@ -132,14 +132,14 @@ describe('GrokHookService', () => {
   // every SessionStart/UserPromptSubmit on Windows outside Orca terminals.
   it('guards Windows GROK_HOME substring checks when empty (#9358)', () => {
     const script = buildWindowsGrokHookScript()
-    expect(script).toContain('set "ORCA_GROK_HOME="')
+    expect(script).toContain('set "ALICORN_GROK_HOME="')
     expect(script).toContain('if not defined GROK_HOME goto :orca_grok_home_ready')
     expect(script).toContain('%GROK_HOME:~4096,1%')
-    expect(script).toContain('set "ORCA_GROK_HOME=%GROK_HOME:"=%"')
-    expect(script).toContain('%ORCA_GROK_HOME:~4096,1%')
+    expect(script).toContain('set "ALICORN_GROK_HOME=%GROK_HOME:"=%"')
+    expect(script).toContain('%ALICORN_GROK_HOME:~4096,1%')
     expect(script).toContain(':orca_grok_home_ready')
-    expect(script).toContain('if not defined ORCA_GROK_HOME goto :orca_grok_home_ready')
-    expect(script).toContain('if "%ORCA_GROK_HOME:~-1%"=="\\"')
+    expect(script).toContain('if not defined ALICORN_GROK_HOME goto :orca_grok_home_ready')
+    expect(script).toContain('if "%ALICORN_GROK_HOME:~-1%"=="\\"')
     expect(script).toContain('if not "%GROK_HOME:~4096,1%"=="" goto :orca_grok_home_ready')
     // Why: parenthesized `if defined (...)` still parse-expands the body early.
     expect(script).not.toMatch(/if defined GROK_HOME \(/)
@@ -279,7 +279,7 @@ describe('GrokHookService', () => {
       expect(command).toContain(join(homeDir, '.orca'))
       // Why: with no Orca pane in the environment the guard short-circuits, so a standalone Grok
       // session never spawns a shell for the managed script at all.
-      expect(command).toMatch(/^if \[ -n "\$ORCA_PANE_KEY" \] && /)
+      expect(command).toMatch(/^if \[ -n "\$ALICORN_PANE_KEY" \] && /)
     }
 
     const script = readFileSync(
@@ -291,8 +291,8 @@ describe('GrokHookService', () => {
       expect(script).toContain('%SystemRoot%\\System32\\curl.exe')
       // Why: windows-grok-hook-script.test.ts pins the GROK_HOME guard shape itself,
       // and does so on every platform rather than only on Windows runners.
-      expect(script).toContain('set "ORCA_GROK_HOME=%GROK_HOME:"=%"')
-      expect(script).toContain('--data-urlencode "grokHome=%ORCA_GROK_HOME%"')
+      expect(script).toContain('set "ALICORN_GROK_HOME=%GROK_HOME:"=%"')
+      expect(script).toContain('--data-urlencode "grokHome=%ALICORN_GROK_HOME%"')
     } else {
       // Why: payload is piped to curl via stdin (`payload@-`) so it never lands
       // on the curl command line (EDR oversized-command-line false positive).

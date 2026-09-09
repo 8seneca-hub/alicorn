@@ -118,8 +118,8 @@ describe('registerOrcaProfileHandlers', () => {
   })
 
   it('reports multiProfileUi when the env flag is set', async () => {
-    const previous = process.env.ORCA_MULTI_PROFILE_UI
-    process.env.ORCA_MULTI_PROFILE_UI = '1'
+    const previous = process.env.ALICORN_MULTI_PROFILE_UI
+    process.env.ALICORN_MULTI_PROFILE_UI = '1'
     try {
       getOrcaProfileListStateMock.mockReturnValue({
         activeProfileId: 'local-default',
@@ -134,9 +134,9 @@ describe('registerOrcaProfileHandlers', () => {
       })
     } finally {
       if (previous === undefined) {
-        delete process.env.ORCA_MULTI_PROFILE_UI
+        delete process.env.ALICORN_MULTI_PROFILE_UI
       } else {
-        process.env.ORCA_MULTI_PROFILE_UI = previous
+        process.env.ALICORN_MULTI_PROFILE_UI = previous
       }
     }
   })

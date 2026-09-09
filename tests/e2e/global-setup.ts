@@ -17,7 +17,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { prepareDockerSshRelayImage } from './helpers/docker-ssh-relay-image'
 
-export const E2E_TEST_REPO_PATH_FILE_ENV = 'ORCA_E2E_TEST_REPO_PATH_FILE'
+export const E2E_TEST_REPO_PATH_FILE_ENV = 'ALICORN_E2E_TEST_REPO_PATH_FILE'
 /** Temp file where the test repo path is stored for the fixture to read. */
 export const TEST_REPO_PATH_FILE =
   process.env[E2E_TEST_REPO_PATH_FILE_ENV] ??
@@ -63,7 +63,7 @@ export default function globalSetup(): void {
     })
     console.error('[e2e] CLI build complete.')
   }
-  if (process.env.ORCA_E2E_WEB_CLIENT === '1') {
+  if (process.env.ALICORN_E2E_WEB_CLIENT === '1') {
     if (process.env.SKIP_BUILD && existsSync(outWeb)) {
       console.error('[e2e] SKIP_BUILD set and web client exists — skipping web build')
     } else {
@@ -79,10 +79,11 @@ export default function globalSetup(): void {
     }
   }
   if (
-    process.env.ORCA_E2E_SSH_LOCALHOST === '1' ||
-    process.env.ORCA_E2E_SSH_DOCKER === '1' ||
-    process.env.ORCA_E2E_NESTED_RUNTIME_SSH === '1' ||
-    (process.env.ORCA_E2E_SKILL_STAGING === '1' && Boolean(process.env.ORCA_E2E_SKILL_SSH_HOST))
+    process.env.ALICORN_E2E_SSH_LOCALHOST === '1' ||
+    process.env.ALICORN_E2E_SSH_DOCKER === '1' ||
+    process.env.ALICORN_E2E_NESTED_RUNTIME_SSH === '1' ||
+    (process.env.ALICORN_E2E_SKILL_STAGING === '1' &&
+      Boolean(process.env.ALICORN_E2E_SKILL_SSH_HOST))
   ) {
     if (process.env.SKIP_BUILD && existsSync(outLinuxRelay)) {
       console.error('[e2e] SKIP_BUILD set and SSH relay bundle exists — skipping relay build')
@@ -96,7 +97,10 @@ export default function globalSetup(): void {
       })
     }
   }
-  if (process.env.ORCA_E2E_SSH_DOCKER === '1' || process.env.ORCA_E2E_NESTED_RUNTIME_SSH === '1') {
+  if (
+    process.env.ALICORN_E2E_SSH_DOCKER === '1' ||
+    process.env.ALICORN_E2E_NESTED_RUNTIME_SSH === '1'
+  ) {
     console.error('[e2e] Preparing Docker OpenSSH fixture image...')
     prepareDockerSshRelayImage(root)
   }

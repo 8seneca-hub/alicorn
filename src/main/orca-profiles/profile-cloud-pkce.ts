@@ -3,8 +3,8 @@ import { createServer, type Server, type ServerResponse } from 'node:http'
 import { shell } from 'electron'
 import type { OrcaCloudAuthConfig } from './profile-cloud-auth-config'
 import {
-  ORCA_CLOUD_CALLBACK_RESPONSE_HEADERS,
-  ORCA_CLOUD_CALLBACK_SUCCESS_PAGE
+  ALICORN_CLOUD_CALLBACK_RESPONSE_HEADERS,
+  ALICORN_CLOUD_CALLBACK_SUCCESS_PAGE
 } from './profile-cloud-callback-page'
 
 export type OrcaCloudAuthorizationCode = {
@@ -106,8 +106,8 @@ export function beginOrcaCloudPkceFlow(
           writeInvalidCallback(response)
           return
         }
-        response.writeHead(200, ORCA_CLOUD_CALLBACK_RESPONSE_HEADERS)
-        response.end(ORCA_CLOUD_CALLBACK_SUCCESS_PAGE)
+        response.writeHead(200, ALICORN_CLOUD_CALLBACK_RESPONSE_HEADERS)
+        response.end(ALICORN_CLOUD_CALLBACK_SUCCESS_PAGE)
         resolveFlow(code)
       } catch (error) {
         rejectFlow(error instanceof Error ? error : new Error('orca_cloud_auth_callback_failed'))

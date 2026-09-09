@@ -41,7 +41,7 @@ const CANARY_EVENT_TIMEOUT_MS = 5_000
 const CANARY_MAX_MISSES = 2
 
 async function startCanary(getStableActivityRevision: () => number | null): Promise<void> {
-  const configuredCanaryDir = process.env.ORCA_WATCHER_CANARY_DIR
+  const configuredCanaryDir = process.env.ALICORN_WATCHER_CANARY_DIR
   let canaryDir: string
   let lastEventAt = 0
   try {

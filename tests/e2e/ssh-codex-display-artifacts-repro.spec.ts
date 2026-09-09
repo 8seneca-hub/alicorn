@@ -46,19 +46,20 @@ import { MAX_FINAL_GRAY_SLABS, captureGraySlabAnalysis } from './terminal-raster
 import { persistReproEvidence } from './terminal-repro-evidence'
 import { resetWebglAndCaptureGraySlabAnalysis } from './terminal-webgl-reset-capture'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
-const RUN_REAL_REMOTE_CODEX = process.env.ORCA_E2E_REAL_REMOTE_CODEX === '1'
-const EXPECT_NO_ARTIFACTS = process.env.ORCA_E2E_EXPECT_NO_CODEX_ARTIFACTS === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
+const RUN_REAL_REMOTE_CODEX = process.env.ALICORN_E2E_REAL_REMOTE_CODEX === '1'
+const EXPECT_NO_ARTIFACTS = process.env.ALICORN_E2E_EXPECT_NO_CODEX_ARTIFACTS === '1'
 const CAPTURE_WHILE_REMOTE_TUI_RUNNING =
-  process.env.ORCA_E2E_CAPTURE_WHILE_REMOTE_TUI_RUNNING === '1'
-const HIDE_UNTIL_REMOTE_TUI_DONE = process.env.ORCA_E2E_HIDE_UNTIL_REMOTE_TUI_DONE === '1'
+  process.env.ALICORN_E2E_CAPTURE_WHILE_REMOTE_TUI_RUNNING === '1'
+const HIDE_UNTIL_REMOTE_TUI_DONE = process.env.ALICORN_E2E_HIDE_UNTIL_REMOTE_TUI_DONE === '1'
 const CAPTURE_SCROLLBACK_ARTIFACT_REGION =
-  process.env.ORCA_E2E_CAPTURE_SCROLLBACK_ARTIFACT_REGION === '1'
-const FORCE_SSH_RECONNECT_DURING_TUI = process.env.ORCA_E2E_FORCE_SSH_RECONNECT_DURING_TUI === '1'
-const KEEP_SSH_REPRO_TARGET = process.env.ORCA_E2E_KEEP_SSH_REPRO_TARGET === '1'
+  process.env.ALICORN_E2E_CAPTURE_SCROLLBACK_ARTIFACT_REGION === '1'
+const FORCE_SSH_RECONNECT_DURING_TUI =
+  process.env.ALICORN_E2E_FORCE_SSH_RECONNECT_DURING_TUI === '1'
+const KEEP_SSH_REPRO_TARGET = process.env.ALICORN_E2E_KEEP_SSH_REPRO_TARGET === '1'
 
 test.describe('Remote SSH Codex display artifacts repro', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH repro.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH repro.')
   test.skip(process.platform === 'win32', 'Docker SSH repro uses POSIX ssh tooling.')
 
   test('does not leave duplicated Codex status output after SSH replay', async ({
@@ -86,10 +87,10 @@ test.describe('Remote SSH Codex display artifacts repro', () => {
 
       const ptyId = await waitForActivePanePtyId(orcaPage, 60_000)
       const doneMarker = RUN_REAL_REMOTE_CODEX
-        ? `ORCA_REAL_REMOTE_CODEX_DONE_${Date.now()}`
+        ? `ALICORN_REAL_REMOTE_CODEX_DONE_${Date.now()}`
         : REMOTE_TUI_DONE
       const cleanMarker = RUN_REAL_REMOTE_CODEX
-        ? `ORCA_REAL_REMOTE_CODEX_CLEAN_${Date.now()}`
+        ? `ALICORN_REAL_REMOTE_CODEX_CLEAN_${Date.now()}`
         : doneMarker
       await execInTerminal(
         orcaPage,

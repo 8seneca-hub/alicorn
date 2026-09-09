@@ -303,7 +303,7 @@ async function resetRendererProbe(page) {
 
 async function runActivationCycle(page, target, args) {
   await resetRendererProbe(page)
-  const marker = `ORCA_APPHANG_${target.index}_${Date.now()}`
+  const marker = `ALICORN_APPHANG_${target.index}_${Date.now()}`
   const cycleStartedAt = Date.now()
   const activationStartedAt = Date.now()
   await clickWorktreeCard(page, target.id)

@@ -165,7 +165,7 @@ describe('LocalPtyProvider', () => {
       provider.configure({
         buildSpawnEnv: (_id, env) => {
           env.CODEX_HOME = 'C:\\Users\\jin\\.codex'
-          env.ORCA_CODEX_HOME = 'C:\\Users\\jin\\.codex'
+          env.ALICORN_CODEX_HOME = 'C:\\Users\\jin\\.codex'
           return env
         }
       })
@@ -179,7 +179,7 @@ describe('LocalPtyProvider', () => {
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[0]).toBe('wsl.exe')
       expect(spawnCall[2].env.CODEX_HOME).toBeUndefined()
-      expect(spawnCall[2].env.ORCA_CODEX_HOME).toBeUndefined()
+      expect(spawnCall[2].env.ALICORN_CODEX_HOME).toBeUndefined()
     })
 
     it('does not pass a WSL managed Codex home into Windows terminals', async () => {
@@ -188,7 +188,7 @@ describe('LocalPtyProvider', () => {
         buildSpawnEnv: (_id, env) => {
           env.CODEX_HOME =
             '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\orca\\codex-accounts\\a\\home'
-          env.ORCA_CODEX_HOME =
+          env.ALICORN_CODEX_HOME =
             '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\orca\\codex-accounts\\a\\home'
           return env
         }
@@ -202,7 +202,7 @@ describe('LocalPtyProvider', () => {
 
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[2].env.CODEX_HOME).toBeUndefined()
-      expect(spawnCall[2].env.ORCA_CODEX_HOME).toBeUndefined()
+      expect(spawnCall[2].env.ALICORN_CODEX_HOME).toBeUndefined()
     })
 
     it('preserves an explicit Linux Codex home for WSL terminals', async () => {
@@ -232,7 +232,7 @@ describe('LocalPtyProvider', () => {
         buildSpawnEnv: (_id, env) => {
           env.CODEX_HOME =
             '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\orca\\codex-accounts\\a\\home'
-          env.ORCA_CODEX_HOME =
+          env.ALICORN_CODEX_HOME =
             '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\orca\\codex-accounts\\a\\home'
           return env
         }
@@ -247,11 +247,11 @@ describe('LocalPtyProvider', () => {
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[0]).toBe('wsl.exe')
       expect(spawnCall[2].env.CODEX_HOME).toBe('/home/jin/.local/share/orca/codex-accounts/a/home')
-      expect(spawnCall[2].env.ORCA_CODEX_HOME).toBe(
+      expect(spawnCall[2].env.ALICORN_CODEX_HOME).toBe(
         '/home/jin/.local/share/orca/codex-accounts/a/home'
       )
       expect(spawnCall[2].env.WSLENV).toContain('CODEX_HOME')
-      expect(spawnCall[2].env.WSLENV).toContain('ORCA_CODEX_HOME')
+      expect(spawnCall[2].env.WSLENV).toContain('ALICORN_CODEX_HOME')
     })
 
     it('does not pass a WSL managed Codex home into a different WSL distro', async () => {
@@ -260,7 +260,7 @@ describe('LocalPtyProvider', () => {
         buildSpawnEnv: (_id, env) => {
           env.CODEX_HOME =
             '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\orca\\codex-accounts\\a\\home'
-          env.ORCA_CODEX_HOME =
+          env.ALICORN_CODEX_HOME =
             '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.local\\share\\orca\\codex-accounts\\a\\home'
           return env
         }
@@ -275,7 +275,7 @@ describe('LocalPtyProvider', () => {
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[0]).toBe('wsl.exe')
       expect(spawnCall[2].env.CODEX_HOME).toBeUndefined()
-      expect(spawnCall[2].env.ORCA_CODEX_HOME).toBeUndefined()
+      expect(spawnCall[2].env.ALICORN_CODEX_HOME).toBeUndefined()
     })
 
     it('uses the preferred WSL distro for Windows cwd WSL terminals', async () => {
@@ -489,14 +489,14 @@ describe('LocalPtyProvider', () => {
     it('marks Orca terminal handle for WSL import when buildSpawnEnv opts in', async () => {
       Object.defineProperty(process, 'platform', { configurable: true, value: 'win32' })
       const savedCodexHome = process.env.CODEX_HOME
-      const savedOrcaCodexHome = process.env.ORCA_CODEX_HOME
+      const savedOrcaCodexHome = process.env.ALICORN_CODEX_HOME
       delete process.env.CODEX_HOME
-      delete process.env.ORCA_CODEX_HOME
+      delete process.env.ALICORN_CODEX_HOME
       provider.configure({
         buildSpawnEnv: (_id, env, ctx) => {
-          env.ORCA_TERMINAL_HANDLE = 'term_wsl'
+          env.ALICORN_TERMINAL_HANDLE = 'term_wsl'
           if (ctx?.isWsl) {
-            env.WSLENV = 'ORCA_TERMINAL_HANDLE/u'
+            env.WSLENV = 'ALICORN_TERMINAL_HANDLE/u'
           }
           return env
         }
@@ -507,7 +507,7 @@ describe('LocalPtyProvider', () => {
           cols: 80,
           rows: 24,
           cwd: '\\\\wsl.localhost\\Ubuntu\\home\\jin\\repo',
-          env: { ORCA_HERMES_STARTUP_QUERY: 'line one\nline two' }
+          env: { ALICORN_HERMES_STARTUP_QUERY: 'line one\nline two' }
         })
       } finally {
         if (savedCodexHome === undefined) {
@@ -516,19 +516,19 @@ describe('LocalPtyProvider', () => {
           process.env.CODEX_HOME = savedCodexHome
         }
         if (savedOrcaCodexHome === undefined) {
-          delete process.env.ORCA_CODEX_HOME
+          delete process.env.ALICORN_CODEX_HOME
         } else {
-          process.env.ORCA_CODEX_HOME = savedOrcaCodexHome
+          process.env.ALICORN_CODEX_HOME = savedOrcaCodexHome
         }
       }
 
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[0]).toBe('wsl.exe')
-      expect(spawnCall[2].env.ORCA_TERMINAL_HANDLE).toBe('term_wsl')
+      expect(spawnCall[2].env.ALICORN_TERMINAL_HANDLE).toBe('term_wsl')
       expect(spawnCall[2].env.WSLENV?.split(':')).toEqual(
         expect.arrayContaining([
-          'ORCA_TERMINAL_HANDLE/u',
-          'ORCA_HERMES_STARTUP_QUERY',
+          'ALICORN_TERMINAL_HANDLE/u',
+          'ALICORN_HERMES_STARTUP_QUERY',
           POWERLEVEL10K_WIZARD_DISABLE_ENV
         ])
       )
@@ -591,7 +591,7 @@ describe('LocalPtyProvider', () => {
         getWindowsShell: () => 'git-bash',
         buildSpawnEnv: (_id, env) => ({
           ...env,
-          ORCA_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT
+          ALICORN_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT
         })
       })
 
@@ -625,7 +625,7 @@ describe('LocalPtyProvider', () => {
           env: expect.objectContaining({
             CHERE_INVOKING: '1',
             PYTHONUTF8: '1',
-            ORCA_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT
+            ALICORN_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT
           })
         })
       )
@@ -638,7 +638,7 @@ describe('LocalPtyProvider', () => {
         getWindowsShell: () => 'cmd.exe',
         buildSpawnEnv: (_id, env) => ({
           ...env,
-          ORCA_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT
+          ALICORN_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT
         })
       })
 
@@ -654,12 +654,12 @@ describe('LocalPtyProvider', () => {
         'cmd.exe',
         [
           '/K',
-          'chcp 65001 > nul & if defined ORCA_CODEX_LAUNCH_PREFLIGHT call %ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%%ORCA_CODEX_LAUNCH_PREFLIGHT%%ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE% agent hooks prepare-codex > nul 2>&1'
+          'chcp 65001 > nul & if defined ALICORN_CODEX_LAUNCH_PREFLIGHT call %ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%%ALICORN_CODEX_LAUNCH_PREFLIGHT%%ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE% agent hooks prepare-codex > nul 2>&1'
         ],
         expect.objectContaining({
           env: expect.objectContaining({
-            ORCA_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT,
-            ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE: '"'
+            ALICORN_CODEX_LAUNCH_PREFLIGHT: CODEX_LAUNCH_PREFLIGHT,
+            ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE: '"'
           })
         })
       )

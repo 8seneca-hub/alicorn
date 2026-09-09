@@ -246,7 +246,7 @@ describe('registerPtyHandlers', () => {
           sessionId: appPtyId,
           persistHostSessionBinding: true
         })
-      ).rejects.toThrow(/ORCA_TERMINAL_SESSION_STATE_SAVE_FAILED/)
+      ).rejects.toThrow(/ALICORN_TERMINAL_SESSION_STATE_SAVE_FAILED/)
 
       expect(remoteShutdown).toHaveBeenCalledWith(appPtyId, { immediate: true })
       expect(store.upsertSshRemotePtyLease).not.toHaveBeenCalled()
@@ -298,7 +298,7 @@ describe('registerPtyHandlers', () => {
       cols: 80,
       rows: 24,
       worktreeId: 'wt-1',
-      env: { ORCA_PANE_KEY: ` ${paneKey} ` }
+      env: { ALICORN_PANE_KEY: ` ${paneKey} ` }
     })
     const replacementGen = (await handlers.get('pty:declarePendingPaneSerializer')!(null, {
       paneKey
@@ -360,7 +360,7 @@ describe('registerPtyHandlers', () => {
         cols: 80,
         rows: 24,
         worktreeId: 'wt-1',
-        env: { ORCA_PANE_KEY: paneKey }
+        env: { ALICORN_PANE_KEY: paneKey }
       })
     }
 
@@ -441,7 +441,7 @@ describe('registerPtyHandlers', () => {
     expect(hasPendingRendererSerializerForPaneKey(paneKey)).toBe(false)
     expect(sender.once).not.toHaveBeenCalled()
   })
-  it('ignores renderer-provided ORCA_TERMINAL_HANDLE for local PTY spawns', async () => {
+  it('ignores renderer-provided ALICORN_TERMINAL_HANDLE for local PTY spawns', async () => {
     const runtime = {
       setPtyController: vi.fn(),
       noteTerminalSpawnCommand: vi.fn(),
@@ -455,12 +455,12 @@ describe('registerPtyHandlers', () => {
     await handlers.get('pty:spawn')!(null, {
       cols: 80,
       rows: 24,
-      env: { ORCA_TERMINAL_HANDLE: 'term_untrusted' }
+      env: { ALICORN_TERMINAL_HANDLE: 'term_untrusted' }
     })
 
     const spawnCall = spawnMock.mock.calls.at(-1)!
     const env = spawnCall[2].env as Record<string, string>
-    expect(env.ORCA_TERMINAL_HANDLE).toBe('term_trusted')
+    expect(env.ALICORN_TERMINAL_HANDLE).toBe('term_trusted')
     expect(runtime.preAllocateHandleForPty).toHaveBeenCalledWith(expect.any(String))
   })
   it('forwards the trusted Orca terminal handle into managed WSL terminals', async () => {
@@ -494,26 +494,26 @@ describe('registerPtyHandlers', () => {
     const spawnCall = spawnMock.mock.calls.at(-1)!
     const env = spawnCall[2].env as Record<string, string>
     expect(spawnCall[0]).toBe('wsl.exe')
-    expect(env.ORCA_TERMINAL_HANDLE).toBe('term_wsl')
-    expect(env.ORCA_USER_DATA_PATH).toBe('/tmp/orca-user-data')
-    expect(env.ORCA_CLI_COMMAND).toBe('alicorn-ide')
+    expect(env.ALICORN_TERMINAL_HANDLE).toBe('term_wsl')
+    expect(env.ALICORN_USER_DATA_PATH).toBe('/tmp/orca-user-data')
+    expect(env.ALICORN_CLI_COMMAND).toBe('alicorn-ide')
     expect(env.WSLENV?.split(':')).toEqual(
       expect.arrayContaining([
-        'ORCA_TERMINAL_HANDLE/u',
-        'ORCA_USER_DATA_PATH/p',
-        'ORCA_CLI_COMMAND/u',
-        'ORCA_AGENT_HOOK_PORT/u',
-        'ORCA_AGENT_HOOK_TOKEN/u',
+        'ALICORN_TERMINAL_HANDLE/u',
+        'ALICORN_USER_DATA_PATH/p',
+        'ALICORN_CLI_COMMAND/u',
+        'ALICORN_AGENT_HOOK_PORT/u',
+        'ALICORN_AGENT_HOOK_TOKEN/u',
         // Why: bare WSL shells no longer create ~/.omp; only status extension is exported (#10196).
-        'ORCA_OMP_STATUS_EXTENSION/p',
+        'ALICORN_OMP_STATUS_EXTENSION/p',
         'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD'
       ])
     )
     expect(env.WSLENV?.split(':')).not.toEqual(
-      expect.arrayContaining(['ORCA_OMP_SOURCE_AGENT_DIR/p'])
+      expect.arrayContaining(['ALICORN_OMP_SOURCE_AGENT_DIR/p'])
     )
   })
-  it('forces managed ORCA_USER_DATA_PATH for WSL spawns even when the caller provides a stale root', async () => {
+  it('forces managed ALICORN_USER_DATA_PATH for WSL spawns even when the caller provides a stale root', async () => {
     const platform = Object.getOwnPropertyDescriptor(process, 'platform')
     Object.defineProperty(process, 'platform', {
       configurable: true,
@@ -534,7 +534,7 @@ describe('registerPtyHandlers', () => {
         rows: 24,
         shellOverride: 'wsl.exe',
         env: {
-          ORCA_USER_DATA_PATH: '/tmp/stale-orca-user-data'
+          ALICORN_USER_DATA_PATH: '/tmp/stale-orca-user-data'
         }
       })
     } finally {
@@ -546,6 +546,6 @@ describe('registerPtyHandlers', () => {
     const spawnCall = spawnMock.mock.calls.at(-1)!
     const env = spawnCall[2].env as Record<string, string>
     expect(spawnCall[0]).toBe('wsl.exe')
-    expect(env.ORCA_USER_DATA_PATH).toBe('/tmp/orca-user-data')
+    expect(env.ALICORN_USER_DATA_PATH).toBe('/tmp/orca-user-data')
   })
 })

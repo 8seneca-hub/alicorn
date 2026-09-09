@@ -3,8 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 
 import {
-  ORCA_HOOK_PROTOCOL_VERSION,
-  ORCA_HOOK_RAW_JSON_TRANSPORT
+  ALICORN_HOOK_PROTOCOL_VERSION,
+  ALICORN_HOOK_RAW_JSON_TRANSPORT
 } from '../shared/agent-hook-types'
 import {
   clearAllListenerCaches,
@@ -189,8 +189,8 @@ export class RelayAgentHookServer {
       port: this.port,
       token: this.token,
       env: this.env,
-      version: ORCA_HOOK_PROTOCOL_VERSION,
-      transport: ORCA_HOOK_RAW_JSON_TRANSPORT
+      version: ALICORN_HOOK_PROTOCOL_VERSION,
+      transport: ALICORN_HOOK_RAW_JSON_TRANSPORT
     })
     return this.endpointFileWritten
   }

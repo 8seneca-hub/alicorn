@@ -4,8 +4,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { tryDeleteWslUncPath } from './wsl-unc-delete'
 
 const execFileAsync = promisify(execFile)
-const DISTRO = process.env.ORCA_WSL_TEST_DISTRO ?? 'Ubuntu-24.04'
-const runRealWsl = process.platform === 'win32' && process.env.ORCA_REAL_WSL_DELETE_TEST === '1'
+const DISTRO = process.env.ALICORN_WSL_TEST_DISTRO ?? 'Ubuntu-24.04'
+const runRealWsl = process.platform === 'win32' && process.env.ALICORN_REAL_WSL_DELETE_TEST === '1'
 
 function unc(linuxPath: string): string {
   return `\\\\wsl.localhost\\${DISTRO}${linuxPath.replaceAll('/', '\\')}`

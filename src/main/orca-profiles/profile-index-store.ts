@@ -14,7 +14,7 @@ import {
   createDefaultLocalOrcaProfile,
   DEFAULT_LOCAL_ORCA_PROFILE_ID,
   DEFAULT_LOCAL_ORCA_PROFILE_NAME,
-  ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+  ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
   type CreateLocalOrcaProfileArgs,
   type CreateLocalOrcaProfileResult,
   type OrcaProfileIndex,
@@ -93,7 +93,7 @@ function normalizeProfileIndex(raw: unknown): OrcaProfileIndex | null {
     return null
   }
   return {
-    schemaVersion: ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+    schemaVersion: ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
     activeProfileId,
     profiles
   }
@@ -185,7 +185,7 @@ export function seedNewOrcaProfileTelemetryConsent(
 function createInitialProfileIndex(now = Date.now()): OrcaProfileIndex {
   const profile = createDefaultLocalOrcaProfile(now)
   return {
-    schemaVersion: ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+    schemaVersion: ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
     activeProfileId: profile.id,
     profiles: [profile]
   }

@@ -48,7 +48,7 @@ function createHarness(options: { paneKey?: string; isIdle?: () => boolean } = {
     module,
     exports: module.exports,
     process: {
-      env: { ORCA_PANE_KEY: options.paneKey ?? 'pane-1' },
+      env: { ALICORN_PANE_KEY: options.paneKey ?? 'pane-1' },
       cwd: () => CWD
     },
     console: { warn: vi.fn(), error: vi.fn(), log: vi.fn() },

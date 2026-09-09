@@ -217,5 +217,5 @@ powershell -File tests/tools/win-update-e2e/window-enum.ps1
 - **Daemon file log** does not exist yet in packaged builds (the fork's stdio is
   suppressed). The "daemon log free of ERROR lines" assertion is `INFO` until
   Phase 0 daemon logging lands, then it reads `<userData>/logs/daemon.log`.
-- The harness assumes the packaged main honors `ORCA_E2E_USER_DATA_DIR` to
+- The harness assumes the packaged main honors `ALICORN_E2E_USER_DATA_DIR` to
   relocate userData; verify this against a real packaged build.

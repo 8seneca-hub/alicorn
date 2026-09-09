@@ -482,7 +482,7 @@ describe('Codex state DB backfill recovery', () => {
 describe.skipIf(process.platform === 'win32')('Codex backfill supervisor owner lock', () => {
   it('recovers a dead owner whose PID was reused with a different start identity', async () => {
     const userData = await createTemporaryRoot()
-    vi.stubEnv('ORCA_USER_DATA_PATH', userData)
+    vi.stubEnv('ALICORN_USER_DATA_PATH', userData)
     const home = join(userData, 'managed-home')
     const lockRoot = resolveCodexBackfillSupervisorLockRoot(home)
     const lockParent = join(lockRoot, '.orca')
@@ -508,7 +508,7 @@ describe.skipIf(process.platform === 'win32')('Codex backfill supervisor owner l
 
   it('does not interfere with a live supervisor from another Orca instance', async () => {
     const userData = await createTemporaryRoot()
-    vi.stubEnv('ORCA_USER_DATA_PATH', userData)
+    vi.stubEnv('ALICORN_USER_DATA_PATH', userData)
     const home = join(userData, 'managed-home')
     let releaseFirst!: () => void
     const first = withCodexBackfillSupervisorLock(

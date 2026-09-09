@@ -19,7 +19,7 @@ import {
 } from './helpers/terminal'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const FISH_VERSION = '4.8.1'
 const FISH_ASSETS = {
   aarch64: {
@@ -74,7 +74,7 @@ function installRemoteFish(target: DockerSshRelayTarget): void {
 }
 
 test.describe('PTY input write queue over SSH', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH E2E.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH E2E.')
   test.skip(process.platform === 'win32', 'Docker SSH E2E uses POSIX ssh tooling.')
 
   test('returns an xterm OSC query reply through the live SSH PTY', async ({
@@ -110,7 +110,7 @@ test.describe('PTY input write queue over SSH', () => {
       installRemoteFish(target)
       const runId = String(Date.now())
       const home = `/tmp/orca-fish-${runId}`
-      const prompt = `ORCA_SSH_FISH_${runId}> `
+      const prompt = `ALICORN_SSH_FISH_${runId}> `
       const childReady = `CHILD_READY_${runId}`
       const childRead = `CHILD_READ_${runId}`
       execDockerSshRelayTargetCommand(

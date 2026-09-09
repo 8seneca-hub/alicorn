@@ -1,3 +1,4 @@
+import { isAlicornOwnedEnvName } from '../../shared/alicorn-env-compat'
 import { describe, expect, it, vi } from 'vitest'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
@@ -221,7 +222,7 @@ describe('CodexHookService', () => {
   it.skipIf(process.platform !== 'win32')(
     'keeps the encoded launcher when the profile path contains cmd metacharacters',
     async () => {
-      const metacharHome = join(tmpdir(), 'orca %ORCA_TEST% ^ home')
+      const metacharHome = join(tmpdir(), 'orca %ALICORN_TEST% ^ home')
       mkdirSync(metacharHome, { recursive: true })
       homedirMock.mockReturnValue(metacharHome)
       try {
@@ -313,24 +314,24 @@ describe('CodexHookService', () => {
           hook_event_name: 'UserPromptSubmit'
         })
         // Why: this suite may run inside an Orca-launched terminal whose env
-        // already carries ORCA_AGENT_HOOK_ENDPOINT/PORT/TOKEN. The managed
+        // already carries ALICORN_AGENT_HOOK_ENDPOINT/PORT/TOKEN. The managed
         // script sources that endpoint file, so leave it out or the hook posts
         // to the live Orca instead of this test's listener.
         const cleanEnv = { ...process.env }
         for (const key of Object.keys(cleanEnv)) {
-          if (key.startsWith('ORCA_')) {
+          if (isAlicornOwnedEnvName(key)) {
             delete cleanEnv[key]
           }
         }
         const child = spawn('cmd.exe', ['/d', '/c', scriptPath], {
           env: {
             ...cleanEnv,
-            ORCA_AGENT_HOOK_PORT: String(port),
-            ORCA_AGENT_HOOK_TOKEN: 'tok123',
-            ORCA_PANE_KEY: '42:leaf-abc',
-            ORCA_TAB_ID: '42',
-            ORCA_WORKTREE_ID: 'C:\\work trees\\my repo & co',
-            ORCA_AGENT_HOOK_VERSION: '1'
+            ALICORN_AGENT_HOOK_PORT: String(port),
+            ALICORN_AGENT_HOOK_TOKEN: 'tok123',
+            ALICORN_PANE_KEY: '42:leaf-abc',
+            ALICORN_TAB_ID: '42',
+            ALICORN_WORKTREE_ID: 'C:\\work trees\\my repo & co',
+            ALICORN_AGENT_HOOK_VERSION: '1'
           }
         })
         child.stdin.end(payload)
@@ -365,7 +366,7 @@ describe('CodexHookService', () => {
         }
         throw new Error(`unexpected app.getPath(${name})`)
       })
-      process.env.ORCA_USER_DATA_PATH = devUserDataDir
+      process.env.ALICORN_USER_DATA_PATH = devUserDataDir
       expect((await new CodexHookService().install()).state).toBe('installed')
 
       getPathMock.mockImplementation((name: string) => {
@@ -374,7 +375,7 @@ describe('CodexHookService', () => {
         }
         throw new Error(`unexpected app.getPath(${name})`)
       })
-      process.env.ORCA_USER_DATA_PATH = prodUserDataDir
+      process.env.ALICORN_USER_DATA_PATH = prodUserDataDir
       expect((await new CodexHookService().install()).state).toBe('installed')
 
       const devHooksPath = join(devUserDataDir, 'codex-runtime-home', 'home', 'hooks.json')
@@ -409,7 +410,7 @@ describe('CodexHookService', () => {
       ).toBe(true)
       expect(readFileSync(systemHooksPath, 'utf-8')).toBe(existingSystemHooks)
     } finally {
-      process.env.ORCA_USER_DATA_PATH = homes.userDataDir
+      process.env.ALICORN_USER_DATA_PATH = homes.userDataDir
       rmSync(devUserDataDir, { recursive: true, force: true })
       rmSync(prodUserDataDir, { recursive: true, force: true })
     }

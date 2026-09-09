@@ -11,10 +11,10 @@ import {
 } from './helpers/terminal'
 import { nodeTerminalCommand } from './terminal-node-command'
 
-const PARKING_DELAY_MS = Number(process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS) || 500
+const PARKING_DELAY_MS = Number(process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS) || 500
 
 test.use({
-  orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
+  orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
 })
 
 async function hasPtySession(page: Page, ptyId: string): Promise<boolean> {

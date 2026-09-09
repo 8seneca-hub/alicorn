@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path'
 import {
   AGENT_PLUGIN_MANIFEST_PATH,
   AGENT_PLUGIN_SCHEMA_V1,
-  ORCA_SKILL_BUNDLE_MANIFEST_PATH,
+  ALICORN_SKILL_BUNDLE_MANIFEST_PATH,
   computeSkillBundleDigest,
   parseAgentPluginManifest,
   parseSkillBundleManifest,
@@ -209,7 +209,7 @@ async function createSkillBundleArchiveUnobserved(
         bytes: pluginBytes
       },
       {
-        path: ORCA_SKILL_BUNDLE_MANIFEST_PATH,
+        path: ALICORN_SKILL_BUNDLE_MANIFEST_PATH,
         size: manifestBytes.length,
         executable: false,
         bytes: manifestBytes

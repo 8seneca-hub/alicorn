@@ -84,12 +84,14 @@ describe('AntigravityHookService', () => {
       ANTIGRAVITY_PRE_INVOCATION_COMMAND
     )
     if (process.platform === 'win32') {
-      expect(config['orca-status'].PreInvocation[0].command).not.toContain('ORCA_ANTIGRAVITY_EVENT')
+      expect(config['orca-status'].PreInvocation[0].command).not.toContain(
+        'ALICORN_ANTIGRAVITY_EVENT'
+      )
     } else {
       expect(config['orca-status'].PreInvocation[0].command).toContain(
-        "ORCA_ANTIGRAVITY_EVENT='PreInvocation'"
+        "ALICORN_ANTIGRAVITY_EVENT='PreInvocation'"
       )
-      expect(config['orca-status'].Stop[0].command).toContain("ORCA_ANTIGRAVITY_EVENT='Stop'")
+      expect(config['orca-status'].Stop[0].command).toContain("ALICORN_ANTIGRAVITY_EVENT='Stop'")
     }
 
     const script = readFileSync(
@@ -100,12 +102,12 @@ describe('AntigravityHookService', () => {
     if (process.platform === 'win32') {
       expect(script).not.toContain('powershell.exe')
       expect(script).toContain('%SystemRoot%\\System32\\curl.exe')
-      expect(script).toContain('hook_event_name=%ORCA_ANTIGRAVITY_EVENT%')
+      expect(script).toContain('hook_event_name=%ALICORN_ANTIGRAVITY_EVENT%')
       expect(script).toContain('--data-urlencode "payload@-"')
       // Why (#9358/#9941): delayed expansion eats `!` out of percent-expanded curl args.
       expect(script).toContain('setlocal DisableDelayedExpansion')
     } else {
-      expect(script).toContain('hook_event_name=${ORCA_ANTIGRAVITY_EVENT}')
+      expect(script).toContain('hook_event_name=${ALICORN_ANTIGRAVITY_EVENT}')
       expect(script).toContain(`payload=$(${POSIX_HOOK_STDIN_READER})`)
       expect(script).toContain("payload='{}'")
       expect(script).not.toContain('if [ -z "$payload" ]; then\n  exit 0\nfi')
@@ -133,11 +135,11 @@ describe('AntigravityHookService', () => {
         {
           env: {
             ...process.env,
-            ORCA_ANTIGRAVITY_EVENT: 'PreToolUse',
-            ORCA_AGENT_HOOK_ENDPOINT: '',
-            ORCA_AGENT_HOOK_PORT: '',
-            ORCA_AGENT_HOOK_TOKEN: '',
-            ORCA_PANE_KEY: ''
+            ALICORN_ANTIGRAVITY_EVENT: 'PreToolUse',
+            ALICORN_AGENT_HOOK_ENDPOINT: '',
+            ALICORN_AGENT_HOOK_PORT: '',
+            ALICORN_AGENT_HOOK_TOKEN: '',
+            ALICORN_PANE_KEY: ''
           },
           input: '{"toolCall":{"name":"run_command","args":{"CommandLine":"ls"}}}',
           encoding: 'utf8'
@@ -215,7 +217,7 @@ describe('AntigravityHookService', () => {
                   hooks: [
                     {
                       type: 'command',
-                      command: `cmd /d /s /c "set "ORCA_ANTIGRAVITY_EVENT=PreToolUse" && call "${staleScriptPath}""`
+                      command: `cmd /d /s /c "set "ALICORN_ANTIGRAVITY_EVENT=PreToolUse" && call "${staleScriptPath}""`
                     }
                   ]
                 }
@@ -258,11 +260,11 @@ describe('AntigravityHookService', () => {
           : definition.command
         expect(createManagedCommandMatcher(wrapperFileName)(command)).toBe(true)
         expect(command).not.toContain('cmd /d /s /c')
-        expect(command).not.toContain('ORCA_ANTIGRAVITY_EVENT')
+        expect(command).not.toContain('ALICORN_ANTIGRAVITY_EVENT')
 
         const wrapper = readFileSync(join(homeDir, '.orca', 'agent-hooks', wrapperFileName), 'utf8')
-        expect(wrapper).toContain(`set "ORCA_ANTIGRAVITY_EVENT=${eventName}"`)
-        expect(wrapper).toContain('call "%ORCA_ANTIGRAVITY_CORE%"')
+        expect(wrapper).toContain(`set "ALICORN_ANTIGRAVITY_EVENT=${eventName}"`)
+        expect(wrapper).toContain('call "%ALICORN_ANTIGRAVITY_CORE%"')
         // Why: the wrapper is the stdin owner when the core script is gone, so it must answer the gate itself.
         if (eventName === 'PreToolUse') {
           expect(wrapper).toContain(`echo ${PRE_TOOL_USE_DECISION}`)
@@ -279,7 +281,7 @@ describe('AntigravityHookService', () => {
       expect(script).toContain('/hook/antigravity')
       expect(script).not.toContain('powershell.exe')
       expect(script).toContain('%SystemRoot%\\System32\\curl.exe')
-      expect(script).toContain('hook_event_name=%ORCA_ANTIGRAVITY_EVENT%')
+      expect(script).toContain('hook_event_name=%ALICORN_ANTIGRAVITY_EVENT%')
       expect(script).toContain('setlocal DisableDelayedExpansion')
     })
   })

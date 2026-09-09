@@ -60,8 +60,8 @@ export function orcadLaunchCommand(host: RemoteHostPlatform, spec: OrcadLaunchSp
     // otherwise let the deploy activate on the OLD process's health payload.
     `: > ${readiness} &&`,
     'umask 077 &&',
-    `ORCA_VERSION=${shellEscape(spec.fullVersion)}`,
-    `ORCA_USER_DATA=${shellEscape(spec.userDataDir)}`,
+    `ALICORN_VERSION=${shellEscape(spec.fullVersion)}`,
+    `ALICORN_USER_DATA=${shellEscape(spec.userDataDir)}`,
     `nohup ${shellEscape(spec.nodePath)} ${entry}`,
     `--json --bind ${shellEscape(spec.bindHost)} --port ${String(spec.port)}`,
     `> ${readiness} 2>> ${log} < /dev/null &`,

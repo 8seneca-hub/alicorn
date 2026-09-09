@@ -27,7 +27,7 @@ import {
   type RendererJank
 } from './ai-vault-typing-bench-renderer-probe'
 
-const BENCH_ENABLED = process.env.ORCA_AI_VAULT_TYPING_BENCH === '1'
+const BENCH_ENABLED = process.env.ALICORN_AI_VAULT_TYPING_BENCH === '1'
 const RESULTS_DIR = path.resolve(__dirname, '..', 'tools', 'benchmarks', 'results')
 
 function readPositiveInt(name: string, fallback: number): number {
@@ -35,12 +35,12 @@ function readPositiveInt(name: string, fallback: number): number {
   return Number.isInteger(value) && value > 0 ? value : fallback
 }
 
-const ITERATIONS = readPositiveInt('ORCA_AI_VAULT_BENCH_ITERATIONS', 3)
-const SESSION_COUNT = readPositiveInt('ORCA_AI_VAULT_BENCH_SESSIONS', 300)
-const PAYLOAD_KIB = readPositiveInt('ORCA_AI_VAULT_BENCH_PAYLOAD_KIB', 128)
-const KEY_COUNT = readPositiveInt('ORCA_AI_VAULT_BENCH_KEYS', 100)
-const KEY_CADENCE_MS = readPositiveInt('ORCA_AI_VAULT_BENCH_CADENCE_MS', 30)
-const BENCH_LABEL = process.env.ORCA_AI_VAULT_BENCH_LABEL ?? 'dev'
+const ITERATIONS = readPositiveInt('ALICORN_AI_VAULT_BENCH_ITERATIONS', 3)
+const SESSION_COUNT = readPositiveInt('ALICORN_AI_VAULT_BENCH_SESSIONS', 300)
+const PAYLOAD_KIB = readPositiveInt('ALICORN_AI_VAULT_BENCH_PAYLOAD_KIB', 128)
+const KEY_COUNT = readPositiveInt('ALICORN_AI_VAULT_BENCH_KEYS', 100)
+const KEY_CADENCE_MS = readPositiveInt('ALICORN_AI_VAULT_BENCH_CADENCE_MS', 30)
+const BENCH_LABEL = process.env.ALICORN_AI_VAULT_BENCH_LABEL ?? 'dev'
 const TYPING_ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
 
 type ArmResult = {

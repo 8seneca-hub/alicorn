@@ -133,7 +133,7 @@ function launchDevInstance({ label, repoRoot }, fixture, port) {
   }
   const env = {
     ...process.env,
-    ORCA_DEV_USER_DATA_PATH: fixture.userDataPath,
+    ALICORN_DEV_USER_DATA_PATH: fixture.userDataPath,
     REMOTE_DEBUGGING_PORT: String(port)
   }
   delete env.ELECTRON_RUN_AS_NODE

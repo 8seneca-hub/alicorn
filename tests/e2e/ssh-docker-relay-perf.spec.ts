@@ -20,7 +20,7 @@ import {
   reconnectDockerSshRelayTarget
 } from './helpers/docker-ssh-relay-connection'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const KEY_LATENCY_SAMPLES = 'abcdefghij'
 const MAX_MEDIAN_KEY_LATENCY_MS = 500
 const MAX_WORST_KEY_LATENCY_MS = 2_000
@@ -145,7 +145,7 @@ async function stopRemoteLoad(page: Page, ptyId: string): Promise<void> {
 }
 
 test.describe('Docker SSH relay perf', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH relay perf.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH relay perf.')
   test.skip(process.platform === 'win32', 'Docker SSH relay perf uses POSIX ssh tooling.')
 
   test('keeps remote typing responsive while the Linux relay streams TUI output', async ({

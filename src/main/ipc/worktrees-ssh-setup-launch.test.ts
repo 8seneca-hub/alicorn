@@ -195,8 +195,8 @@ describe('registerWorktreeHandlers', () => {
           runnerScriptPath:
             '/remote/repo/.git/worktrees/repo-improve-dashboard/orca/setup-runner.sh',
           envVars: expect.objectContaining({
-            ORCA_ROOT_PATH: '/remote/repo',
-            ORCA_WORKTREE_PATH: '/remote/repo-improve-dashboard'
+            ALICORN_ROOT_PATH: '/remote/repo',
+            ALICORN_WORKTREE_PATH: '/remote/repo-improve-dashboard'
           }),
           waitForAgentStartup: true
         }
@@ -296,8 +296,8 @@ describe('registerWorktreeHandlers', () => {
           runnerScriptPath:
             'C:\\remote\\repo\\.git\\worktrees\\improve-dashboard\\orca\\setup-runner.cmd',
           envVars: expect.objectContaining({
-            ORCA_ROOT_PATH: 'C:\\remote\\repo',
-            ORCA_WORKTREE_PATH: 'C:\\remote\\improve-dashboard'
+            ALICORN_ROOT_PATH: 'C:\\remote\\repo',
+            ALICORN_WORKTREE_PATH: 'C:\\remote\\improve-dashboard'
           })
         }
       })

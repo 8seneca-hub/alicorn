@@ -137,8 +137,8 @@ describe('app icon selection', () => {
       expect.arrayContaining(['-e', expect.stringContaining('setIcon:image forFile:appPath')]),
       expect.objectContaining({
         env: expect.objectContaining({
-          ORCA_APP_BUNDLE_PATH: '/Applications/Orca.app',
-          ORCA_APP_ICON_PATH: 'watercolor-icon-unpacked'
+          ALICORN_APP_BUNDLE_PATH: '/Applications/Orca.app',
+          ALICORN_APP_ICON_PATH: 'watercolor-icon-unpacked'
         })
       }),
       expect.any(Function)
@@ -178,7 +178,7 @@ describe('app icon selection', () => {
       ]),
       expect.objectContaining({
         env: expect.objectContaining({
-          ORCA_APP_BUNDLE_PATH: '/Applications/Orca.app'
+          ALICORN_APP_BUNDLE_PATH: '/Applications/Orca.app'
         }),
         timeout: 10_000
       }),
@@ -317,7 +317,7 @@ describe('app icon selection', () => {
       expect.any(Array),
       expect.objectContaining({
         env: expect.objectContaining({
-          ORCA_APP_ICON_PATH: 'watercolor-icon-unpacked'
+          ALICORN_APP_ICON_PATH: 'watercolor-icon-unpacked'
         })
       }),
       expect.any(Function)
@@ -332,7 +332,7 @@ describe('app icon selection', () => {
       expect.any(Array),
       expect.objectContaining({
         env: expect.objectContaining({
-          ORCA_APP_ICON_PATH: 'blue-icon-unpacked'
+          ALICORN_APP_ICON_PATH: 'blue-icon-unpacked'
         })
       }),
       expect.any(Function)
@@ -346,7 +346,7 @@ describe('app icon selection', () => {
       ]),
       expect.objectContaining({
         env: expect.objectContaining({
-          ORCA_APP_BUNDLE_PATH: '/Applications/Orca.app'
+          ALICORN_APP_BUNDLE_PATH: '/Applications/Orca.app'
         }),
         timeout: 10_000
       }),
@@ -439,7 +439,7 @@ describe('app icon selection', () => {
       expect.any(Array),
       expect.objectContaining({
         env: expect.objectContaining({
-          ORCA_APP_ICON_PATH: 'blue-icon-unpacked'
+          ALICORN_APP_ICON_PATH: 'blue-icon-unpacked'
         }),
         timeout: 10_000
       }),

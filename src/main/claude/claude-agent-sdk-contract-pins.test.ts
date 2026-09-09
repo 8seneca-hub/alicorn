@@ -120,8 +120,8 @@ function scriptScenario(
 function scenarioEnv(scenario: { scenarioPath: string; reportPath: string }) {
   return {
     PATH: process.env.PATH,
-    ORCA_SDK_CONTRACT_SCENARIO_PATH: scenario.scenarioPath,
-    ORCA_SDK_CONTRACT_REPORT_PATH: scenario.reportPath
+    ALICORN_SDK_CONTRACT_SCENARIO_PATH: scenario.scenarioPath,
+    ALICORN_SDK_CONTRACT_REPORT_PATH: scenario.reportPath
   }
 }
 
@@ -275,7 +275,7 @@ describe('Claude Agent SDK contract pins', () => {
       env: {
         ...scenarioEnv(scenario),
         CLAUDE_CONFIG_DIR: '/pinned/claude-config',
-        ORCA_AGENT_SESSION_SPAWN_TOKEN: 'spawn-token-1',
+        ALICORN_AGENT_SESSION_SPAWN_TOKEN: 'spawn-token-1',
         NODE_OPTIONS: '--max-old-space-size=64'
       },
       spawnClaudeCodeProcess: recordingSpawner(spawns)
@@ -285,7 +285,7 @@ describe('Claude Agent SDK contract pins', () => {
     // Supplied values arrive verbatim: the config-dir pin and spawn token are
     // observable at this boundary, so Orca's auth scrubbing stays assertable.
     expect(env.CLAUDE_CONFIG_DIR).toBe('/pinned/claude-config')
-    expect(env.ORCA_AGENT_SESSION_SPAWN_TOKEN).toBe('spawn-token-1')
+    expect(env.ALICORN_AGENT_SESSION_SPAWN_TOKEN).toBe('spawn-token-1')
     // Ambient process.env is NOT merged in when env is supplied.
     expect(env.ANTHROPIC_API_KEY).toBeUndefined()
     // The SDK's two documented mutations, pinned so a change is noticed.
@@ -295,9 +295,9 @@ describe('Claude Agent SDK contract pins', () => {
 
   it('inherits process.env into the child when env is omitted — the ambient-auth sharp edge', async () => {
     const scenario = scriptScenario([{ awaitUserMessage: true }, { emit: RESULT_FRAME }])
-    vi.stubEnv('ORCA_SDK_CONTRACT_SCENARIO_PATH', scenario.scenarioPath)
-    vi.stubEnv('ORCA_SDK_CONTRACT_REPORT_PATH', scenario.reportPath)
-    vi.stubEnv('ORCA_SDK_CONTRACT_AMBIENT_CANARY', 'inherited-from-process-env')
+    vi.stubEnv('ALICORN_SDK_CONTRACT_SCENARIO_PATH', scenario.scenarioPath)
+    vi.stubEnv('ALICORN_SDK_CONTRACT_REPORT_PATH', scenario.reportPath)
+    vi.stubEnv('ALICORN_SDK_CONTRACT_AMBIENT_CANARY', 'inherited-from-process-env')
     const spawns: SpawnSeen[] = []
     await drainQuery({
       pathToClaudeCodeExecutable: FAKE_CLI,
@@ -308,7 +308,7 @@ describe('Claude Agent SDK contract pins', () => {
     // Omitting env reproduces the ambient-auth-leak failure mode: the child
     // sees everything in process.env. Orca must therefore always pass an
     // explicit, fully-constructed env.
-    expect(spawns[0]!.env.ORCA_SDK_CONTRACT_AMBIENT_CANARY).toBe('inherited-from-process-env')
+    expect(spawns[0]!.env.ALICORN_SDK_CONTRACT_AMBIENT_CANARY).toBe('inherited-from-process-env')
   })
 
   it('emits --replay-user-messages only through extraArgs, never on its own', async () => {

@@ -143,7 +143,7 @@ describe('agent hooks CLI handler', () => {
   it('forwards WSL pane routing to the runtime exactly once without using the host installer', async () => {
     const home = '/home/jin/.local/share/orca/codex-runtime-home/home'
     vi.stubEnv('CODEX_HOME', home)
-    vi.stubEnv('ORCA_CODEX_HOME', home)
+    vi.stubEnv('ALICORN_CODEX_HOME', home)
     vi.stubEnv('WSL_DISTRO_NAME', 'Ubuntu-24.04')
     callMock.mockResolvedValue({ result: { state: 'installed' } })
 
@@ -159,7 +159,7 @@ describe('agent hooks CLI handler', () => {
 
   it('fails open when WSL runtime preparation is unavailable', async () => {
     vi.stubEnv('CODEX_HOME', '/home/jin/.local/share/orca/codex-runtime-home/home')
-    vi.stubEnv('ORCA_CODEX_HOME', '/home/jin/.local/share/orca/codex-runtime-home/home')
+    vi.stubEnv('ALICORN_CODEX_HOME', '/home/jin/.local/share/orca/codex-runtime-home/home')
     vi.stubEnv('WSL_DISTRO_NAME', 'Ubuntu')
     callMock.mockRejectedValue(new Error('method_not_found'))
 

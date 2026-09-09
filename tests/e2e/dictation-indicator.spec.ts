@@ -33,7 +33,7 @@ async function setDictationVisualState(
 }
 
 async function pauseForRecordedProof(page: Page): Promise<void> {
-  if (process.env.ORCA_E2E_RECORD_VIDEO === '1') {
+  if (process.env.ALICORN_E2E_RECORD_VIDEO === '1') {
     await page.waitForTimeout(700)
   }
 }

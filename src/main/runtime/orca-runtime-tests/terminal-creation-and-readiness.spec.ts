@@ -75,9 +75,9 @@ describe('OrcaRuntimeService', () => {
     const spawnCall = spawn.mock.calls[0]?.[0] as { env?: Record<string, string> } | undefined
     const spawnedEnv = spawnCall?.env ?? {}
     expectStablePaneKeyEnv(spawnedEnv)
-    const spawnedLeafId = spawnedEnv.ORCA_PANE_KEY.slice(`${spawnedEnv.ORCA_TAB_ID}:`.length)
-    expect(spawnedEnv.ORCA_WORKTREE_ID).toBe(TEST_WORKTREE_ID)
-    expect(spawnedEnv.ORCA_AGENT_LAUNCH_TOKEN).toMatch(UUID_RE)
+    const spawnedLeafId = spawnedEnv.ALICORN_PANE_KEY.slice(`${spawnedEnv.ALICORN_TAB_ID}:`.length)
+    expect(spawnedEnv.ALICORN_WORKTREE_ID).toBe(TEST_WORKTREE_ID)
+    expect(spawnedEnv.ALICORN_AGENT_LAUNCH_TOKEN).toMatch(UUID_RE)
     expect(revealTerminalSession).toHaveBeenCalledWith(TEST_WORKTREE_ID, {
       ptyId: 'pty-bg',
       title: 'worker',
@@ -85,9 +85,9 @@ describe('OrcaRuntimeService', () => {
         agentArgs: '--model gpt-5',
         agentEnv: { CODEX_PROFILE: 'captured' }
       },
-      launchToken: spawnedEnv.ORCA_AGENT_LAUNCH_TOKEN,
+      launchToken: spawnedEnv.ALICORN_AGENT_LAUNCH_TOKEN,
       activate: false,
-      tabId: spawnedEnv.ORCA_TAB_ID,
+      tabId: spawnedEnv.ALICORN_TAB_ID,
       leafId: spawnedLeafId
     })
   })
@@ -134,14 +134,14 @@ describe('OrcaRuntimeService', () => {
       (spawn.mock.calls[0]?.[0] as { env?: Record<string, string> } | undefined)?.env ?? {}
     const evidence = {
       terminalHandle: terminal.handle,
-      paneKey: spawnEnv.ORCA_PANE_KEY,
-      launchToken: spawnEnv.ORCA_AGENT_LAUNCH_TOKEN
+      paneKey: spawnEnv.ALICORN_PANE_KEY,
+      launchToken: spawnEnv.ALICORN_AGENT_LAUNCH_TOKEN
     }
 
     expect(runtime.verifyOrchestrationCompatibilityCaller(evidence)).not.toBeNull()
     expect(
-      runtime.getAgentStatusLaunchConfigForPaneKey(spawnEnv.ORCA_PANE_KEY, {
-        launchToken: spawnEnv.ORCA_AGENT_LAUNCH_TOKEN
+      runtime.getAgentStatusLaunchConfigForPaneKey(spawnEnv.ALICORN_PANE_KEY, {
+        launchToken: spawnEnv.ALICORN_AGENT_LAUNCH_TOKEN
       })
     ).toBeDefined()
     expect((await runtime.listTerminals()).terminals).toEqual([
@@ -150,11 +150,11 @@ describe('OrcaRuntimeService', () => {
 
     runtime.onPtyData('pty-authority', '\x1b]133;D;0\x07', 100)
 
-    expect(retireAuthority).toHaveBeenCalledWith(spawnEnv.ORCA_PANE_KEY)
+    expect(retireAuthority).toHaveBeenCalledWith(spawnEnv.ALICORN_PANE_KEY)
     expect(runtime.verifyOrchestrationCompatibilityCaller(evidence)).toBeNull()
     expect(
-      runtime.getAgentStatusLaunchConfigForPaneKey(spawnEnv.ORCA_PANE_KEY, {
-        launchToken: spawnEnv.ORCA_AGENT_LAUNCH_TOKEN
+      runtime.getAgentStatusLaunchConfigForPaneKey(spawnEnv.ALICORN_PANE_KEY, {
+        launchToken: spawnEnv.ALICORN_AGENT_LAUNCH_TOKEN
       })
     ).toBeUndefined()
     expect((await runtime.listTerminals()).terminals).toEqual([

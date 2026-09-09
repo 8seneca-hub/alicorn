@@ -260,12 +260,12 @@ describe('managed agent hook timeouts', () => {
         const child = spawn('sh', [scriptPath], {
           env: {
             ...process.env,
-            ORCA_AGENT_HOOK_ENDPOINT: '',
-            ORCA_AGENT_HOOK_PORT: String(port),
-            ORCA_AGENT_HOOK_TOKEN: 'test-token',
-            ORCA_PANE_KEY: 'pane-1',
-            ORCA_TAB_ID: 'tab-1',
-            ORCA_WORKTREE_ID: 'wt-1'
+            ALICORN_AGENT_HOOK_ENDPOINT: '',
+            ALICORN_AGENT_HOOK_PORT: String(port),
+            ALICORN_AGENT_HOOK_TOKEN: 'test-token',
+            ALICORN_PANE_KEY: 'pane-1',
+            ALICORN_TAB_ID: 'tab-1',
+            ALICORN_WORKTREE_ID: 'wt-1'
           },
           stdio: ['pipe', 'ignore', 'ignore']
         })

@@ -105,13 +105,13 @@ describe('SshGitProvider', () => {
 
     await provider.execNonInteractive(
       '/bin/bash',
-      ['-lc', 'echo "$ORCA_WORKTREE_PATH"'],
+      ['-lc', 'echo "$ALICORN_WORKTREE_PATH"'],
       '/home/user/repo',
       120_000,
       undefined,
       {
-        ORCA_ROOT_PATH: '/home/user/repo',
-        ORCA_WORKTREE_PATH: '/home/user/repo-feature'
+        ALICORN_ROOT_PATH: '/home/user/repo',
+        ALICORN_WORKTREE_PATH: '/home/user/repo-feature'
       }
     )
 
@@ -119,13 +119,13 @@ describe('SshGitProvider', () => {
       'agent.execNonInteractive',
       {
         binary: '/bin/bash',
-        args: ['-lc', 'echo "$ORCA_WORKTREE_PATH"'],
+        args: ['-lc', 'echo "$ALICORN_WORKTREE_PATH"'],
         cwd: '/home/user/repo',
         stdin: null,
         timeoutMs: 120_000,
         env: {
-          ORCA_ROOT_PATH: '/home/user/repo',
-          ORCA_WORKTREE_PATH: '/home/user/repo-feature'
+          ALICORN_ROOT_PATH: '/home/user/repo',
+          ALICORN_WORKTREE_PATH: '/home/user/repo-feature'
         }
       },
       { timeoutMs: 125_000 }

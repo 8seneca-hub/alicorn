@@ -1,4 +1,4 @@
-export const ORCA_PROJECT_FIELDS = `
+export const ALICORN_PROJECT_FIELDS = `
   id
   slugId
   name
@@ -55,8 +55,8 @@ export const ORCA_PROJECT_FIELDS = `
   }
 `
 
-export const ORCA_PROJECT_DETAIL_FIELDS = `
-  ${ORCA_PROJECT_FIELDS}
+export const ALICORN_PROJECT_DETAIL_FIELDS = `
+  ${ALICORN_PROJECT_FIELDS}
   projectMilestones(first: 20) {
     nodes {
       id
@@ -88,7 +88,7 @@ export const ORCA_PROJECT_DETAIL_FIELDS = `
   }
 `
 
-export const ORCA_ISSUE_FIELDS = `
+export const ALICORN_ISSUE_FIELDS = `
   id
   identifier
   title
@@ -125,7 +125,7 @@ export const PROJECTS_QUERY = `
   query OrcaLinearProjects($first: Int, $filter: ProjectFilter, $orderBy: PaginationOrderBy) {
     projects(first: $first, filter: $filter, orderBy: $orderBy) {
       nodes {
-        ${ORCA_PROJECT_FIELDS}
+        ${ALICORN_PROJECT_FIELDS}
       }
       pageInfo {
         hasNextPage
@@ -138,7 +138,7 @@ export const SEARCH_PROJECTS_QUERY = `
   query OrcaLinearProjectSearch($term: String!, $first: Int, $after: String) {
     searchProjects(term: $term, first: $first, after: $after) {
       nodes {
-        ${ORCA_PROJECT_FIELDS}
+        ${ALICORN_PROJECT_FIELDS}
       }
       pageInfo {
         hasNextPage
@@ -151,7 +151,7 @@ export const SEARCH_PROJECTS_QUERY = `
 export const PROJECT_QUERY = `
   query OrcaLinearProject($id: String!) {
     project(id: $id) {
-      ${ORCA_PROJECT_DETAIL_FIELDS}
+      ${ALICORN_PROJECT_DETAIL_FIELDS}
     }
   }
 `
@@ -161,7 +161,7 @@ export const CREATE_PROJECT_MUTATION = `
     projectCreate(input: $input) {
       success
       project {
-        ${ORCA_PROJECT_DETAIL_FIELDS}
+        ${ALICORN_PROJECT_DETAIL_FIELDS}
       }
     }
   }
@@ -177,7 +177,7 @@ export const PROJECT_ISSUES_QUERY = `
     project(id: $id) {
       issues(first: $first, after: $after, orderBy: $orderBy) {
         nodes {
-          ${ORCA_ISSUE_FIELDS}
+          ${ALICORN_ISSUE_FIELDS}
         }
         pageInfo {
           hasNextPage

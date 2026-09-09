@@ -11,7 +11,7 @@
  *   echo-half   = pty echo    -> marker visible in the xterm buffer
  * All three clocks are epoch ms on one machine, so the halves add up.
  *
- * Scenarios are gated behind ORCA_TYPING_BENCH=1 (they are benchmarks that
+ * Scenarios are gated behind ALICORN_TYPING_BENCH=1 (they are benchmarks that
  * may legitimately "fail" while the bug reproduces, not CI regression gates).
  * Entry point: pnpm bench:multi-workspace-typing  (see
  * config/scripts/run-multi-workspace-typing-bench.mjs for knobs). Results are
@@ -51,19 +51,19 @@ import {
   writeTypingEchoProbeScript
 } from './sustained-agent-typing-load-scripts'
 
-const BENCH_ENABLED = process.env.ORCA_TYPING_BENCH === '1'
+const BENCH_ENABLED = process.env.ALICORN_TYPING_BENCH === '1'
 
 function readPositiveInt(name: string, fallback: number): number {
   const value = Number(process.env[name])
   return Number.isInteger(value) && value > 0 ? value : fallback
 }
 
-const LOAD_PANES = readPositiveInt('ORCA_TYPING_BENCH_LOAD_PANES', 4)
-const LOAD_RATE_KBPS = readPositiveInt('ORCA_TYPING_BENCH_RATE_KBPS', 256)
-const KEY_COUNT = readPositiveInt('ORCA_TYPING_BENCH_KEYS', 32)
-const KEY_CADENCE_MS = readPositiveInt('ORCA_TYPING_BENCH_KEY_CADENCE_MS', 250)
-const CPU_WORKERS = readPositiveInt('ORCA_TYPING_BENCH_CPU_WORKERS', 0)
-const BENCH_LABEL = process.env.ORCA_TYPING_BENCH_LABEL ?? 'dev'
+const LOAD_PANES = readPositiveInt('ALICORN_TYPING_BENCH_LOAD_PANES', 4)
+const LOAD_RATE_KBPS = readPositiveInt('ALICORN_TYPING_BENCH_RATE_KBPS', 256)
+const KEY_COUNT = readPositiveInt('ALICORN_TYPING_BENCH_KEYS', 32)
+const KEY_CADENCE_MS = readPositiveInt('ALICORN_TYPING_BENCH_KEY_CADENCE_MS', 250)
+const CPU_WORKERS = readPositiveInt('ALICORN_TYPING_BENCH_CPU_WORKERS', 0)
+const BENCH_LABEL = process.env.ALICORN_TYPING_BENCH_LABEL ?? 'dev'
 
 const KEY_CHARS = 'abcdefghijklmnopqrstuvwxyz'
 const TIMER_SAMPLE_MS = 16

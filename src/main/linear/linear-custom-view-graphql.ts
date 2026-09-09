@@ -1,4 +1,4 @@
-import { ORCA_ISSUE_FIELDS, ORCA_PROJECT_FIELDS } from './linear-project-graphql'
+import { ALICORN_ISSUE_FIELDS, ALICORN_PROJECT_FIELDS } from './linear-project-graphql'
 
 export const CUSTOM_VIEWS_QUERY = `
   query OrcaLinearCustomViews(
@@ -85,7 +85,7 @@ export const CUSTOM_VIEW_ISSUES_QUERY = `
       modelName
       issues(first: $first, after: $after, orderBy: $orderBy) {
         nodes {
-          ${ORCA_ISSUE_FIELDS}
+          ${ALICORN_ISSUE_FIELDS}
         }
         pageInfo {
           hasNextPage
@@ -103,7 +103,7 @@ export const CUSTOM_VIEW_PROJECTS_QUERY = `
       modelName
       projects(first: $first, orderBy: $orderBy) {
         nodes {
-          ${ORCA_PROJECT_FIELDS}
+          ${ALICORN_PROJECT_FIELDS}
         }
         pageInfo {
           hasNextPage

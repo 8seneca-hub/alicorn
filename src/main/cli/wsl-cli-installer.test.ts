@@ -38,19 +38,19 @@ function makeHostStatus(
 const PRE_RC4_MANAGED_WSL_LAUNCHER = `#!/usr/bin/env bash
 set -euo pipefail
 # Orca managed WSL CLI launcher
-# ORCA_WIN_LAUNCHER_B64=QzpcUHJvZ3JhbSBGaWxlc1xPcmNhXHJlc291cmNlc1xiaW5cb3JjYS5jbWQ=
-ORCA_WIN_LAUNCHER='C:\\Program Files\\Orca\\resources\\bin\\orca.cmd'
-ORCA_BRIDGE_PS1='/home/alice/.local/share/orca/orca-wsl-bridge.ps1'
+# ALICORN_WIN_LAUNCHER_B64=QzpcUHJvZ3JhbSBGaWxlc1xPcmNhXHJlc291cmNlc1xiaW5cb3JjYS5jbWQ=
+ALICORN_WIN_LAUNCHER='C:\\Program Files\\Orca\\resources\\bin\\orca.cmd'
+ALICORN_BRIDGE_PS1='/home/alice/.local/share/orca/orca-wsl-bridge.ps1'
 if command -v powershell.exe >/dev/null 2>&1; then
-  ORCA_POWERSHELL=powershell.exe
+  ALICORN_POWERSHELL=powershell.exe
 elif [ -x /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe ]; then
-  ORCA_POWERSHELL=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+  ALICORN_POWERSHELL=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 else
   echo "Orca WSL CLI requires Windows interop and could not find powershell.exe." >&2
   exit 1
 fi
-ORCA_BRIDGE_PS1_WIN=$(wslpath -w "$ORCA_BRIDGE_PS1")
-exec "$ORCA_POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$ORCA_BRIDGE_PS1_WIN" "$ORCA_WIN_LAUNCHER" "$@"
+ALICORN_BRIDGE_PS1_WIN=$(wslpath -w "$ALICORN_BRIDGE_PS1")
+exec "$ALICORN_POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$ALICORN_BRIDGE_PS1_WIN" "$ALICORN_WIN_LAUNCHER" "$@"
 `
 
 function createWslRunner(
@@ -99,10 +99,12 @@ function createWslRunner(
         throw new Error('__ORCA_CONFLICT__')
       }
       const launcher =
-        command.match(/cat > "\$command_tmp" <<'ORCA_WSL_CLI'\n([\s\S]*)\nORCA_WSL_CLI/)?.[1] ?? ''
+        command.match(
+          /cat > "\$command_tmp" <<'ALICORN_WSL_CLI'\n([\s\S]*)\nALICORN_WSL_CLI/
+        )?.[1] ?? ''
       const bridge =
         command.match(
-          /cat > "\$bridge_tmp" <<'ORCA_WSL_BRIDGE'\n([\s\S]*)\nORCA_WSL_BRIDGE/
+          /cat > "\$bridge_tmp" <<'ALICORN_WSL_BRIDGE'\n([\s\S]*)\nALICORN_WSL_BRIDGE/
         )?.[1] ?? ''
       files.set(commandPath, launcher)
       files.set(bridgePath, bridge)
@@ -322,15 +324,15 @@ describe('WslCliInstaller', () => {
     expect(launcher).toContain(
       'Orca WSL CLI requires Windows interop and could not find powershell.exe.'
     )
-    expect(launcher).toContain('"$ORCA_POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File')
-    expect(launcher).toContain('ORCA_WSL_CWD=$(pwd -P 2>/dev/null) || {')
-    expect(launcher).toContain('ORCA_WSL_CWD=/')
+    expect(launcher).toContain('"$ALICORN_POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File')
+    expect(launcher).toContain('ALICORN_WSL_CWD=$(pwd -P 2>/dev/null) || {')
+    expect(launcher).toContain('ALICORN_WSL_CWD=/')
     expect(launcher).toContain('cd /')
-    expect(launcher).toContain('ORCA_WSL_CWD_WIN=$(wslpath -w "$ORCA_WSL_CWD")')
-    expect(launcher.indexOf('ORCA_WSL_CWD=$(pwd -P')).toBeLessThan(
-      launcher.indexOf('ORCA_BRIDGE_PS1_WIN=$(wslpath')
+    expect(launcher).toContain('ALICORN_WSL_CWD_WIN=$(wslpath -w "$ALICORN_WSL_CWD")')
+    expect(launcher.indexOf('ALICORN_WSL_CWD=$(pwd -P')).toBeLessThan(
+      launcher.indexOf('ALICORN_BRIDGE_PS1_WIN=$(wslpath')
     )
-    expect(launcher).toContain('"$ORCA_WIN_LAUNCHER" -WslCwd "$ORCA_WSL_CWD_WIN" "$@"')
+    expect(launcher).toContain('"$ALICORN_WIN_LAUNCHER" -WslCwd "$ALICORN_WSL_CWD_WIN" "$@"')
     expect(launcher).not.toContain('-Command')
     expect(bridge).not.toContain('[CmdletBinding')
     expect(bridge).not.toMatch(/^param\(/m)
@@ -339,7 +341,7 @@ describe('WslCliInstaller', () => {
     expect(bridge).toContain('$WslCwd = $args[2]')
     expect(bridge).toContain('$ForwardArgs = @($args[$ForwardArgStart..($args.Count - 1)])')
     expect(bridge).toContain('if ([string]::IsNullOrEmpty($WslCwd))')
-    expect(bridge).toContain('$env:ORCA_CLI_CWD = $WslCwd')
+    expect(bridge).toContain('$env:ALICORN_CLI_CWD = $WslCwd')
     expect(bridge).toContain('$LauncherDirectory = Split-Path -Parent $OrcaLauncher')
     expect(bridge).toContain('Push-Location -LiteralPath $LauncherDirectory')
     // Why (#16463): Push-Location moves only the PowerShell provider location.
@@ -354,7 +356,7 @@ describe('WslCliInstaller', () => {
     expect(bridge).toContain('$Process.WaitForExit()')
     expect(bridge).toContain('$exitCode = $Process.ExitCode')
     expect(bridge).not.toContain('& $OrcaLauncher @ForwardArgs')
-    expect(bridge).toContain('Remove-Item Env:ORCA_CLI_CWD -ErrorAction SilentlyContinue')
+    expect(bridge).toContain('Remove-Item Env:ALICORN_CLI_CWD -ErrorAction SilentlyContinue')
     expect(bridge).toContain('catch')
     expect(bridge).toContain('$exitCode = 1')
     expect(bridge).toContain('exit $exitCode')
@@ -775,7 +777,9 @@ describe('WslCliInstaller', () => {
     await expect(installer.repairManagedRegistration()).resolves.toMatchObject({ changed: true })
     await expect(installer.repairManagedRegistration()).resolves.toMatchObject({ changed: false })
     expect(wsl.calls.filter((command) => command.includes('cat > "$command_tmp"'))).toHaveLength(1)
-    expect(wsl.getFile()).toContain("ORCA_WIN_LAUNCHER='D:\\Custom Orca\\resources\\bin\\orca.exe'")
+    expect(wsl.getFile()).toContain(
+      "ALICORN_WIN_LAUNCHER='D:\\Custom Orca\\resources\\bin\\orca.exe'"
+    )
   })
 
   it('settles when wsl.exe never reports completion', async () => {

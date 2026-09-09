@@ -14,7 +14,7 @@ const entitlementsPath = path.join(
   'build',
   'entitlements.computer-use.mac.plist'
 )
-const bundleId = process.env.ORCA_COMPUTER_MACOS_BUNDLE_ID ?? 'com.8seneca.alicorn.computer-use'
+const bundleId = process.env.ALICORN_COMPUTER_MACOS_BUNDLE_ID ?? 'com.8seneca.alicorn.computer-use'
 const displayName = 'Orca Computer Use'
 const signingIdentity = resolveSigningIdentity()
 const universalTriples = ['arm64-apple-macosx', 'x86_64-apple-macosx']
@@ -55,7 +55,7 @@ function createHelperApp() {
 
 function codesignArgs(identity, targetPath) {
   const args = ['--force', '--deep', '--sign', identity]
-  if (process.env.ORCA_MAC_RELEASE === '1' && identity !== '-') {
+  if (process.env.ALICORN_MAC_RELEASE === '1' && identity !== '-') {
     args.push('--options', 'runtime', '--timestamp', '--entitlements', entitlementsPath)
   }
   args.push(targetPath)
@@ -63,7 +63,7 @@ function codesignArgs(identity, targetPath) {
 }
 
 function resolveSigningIdentity() {
-  const explicitIdentity = process.env.ORCA_COMPUTER_MACOS_SIGN_IDENTITY ?? process.env.CSC_NAME
+  const explicitIdentity = process.env.ALICORN_COMPUTER_MACOS_SIGN_IDENTITY ?? process.env.CSC_NAME
   if (explicitIdentity) {
     return explicitIdentity
   }
@@ -74,7 +74,7 @@ function resolveSigningIdentity() {
     return '-'
   }
   const developmentMatch = identities.stdout.match(/"([^"]*Apple Development:[^"]+)"/)
-  if (process.env.ORCA_MAC_RELEASE !== '1' && developmentMatch) {
+  if (process.env.ALICORN_MAC_RELEASE !== '1' && developmentMatch) {
     return developmentMatch[1]
   }
   const releaseMatch =

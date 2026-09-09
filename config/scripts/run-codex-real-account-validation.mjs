@@ -34,12 +34,12 @@ const RESTRICTED_ENV_KEYS = [
   'HOMEDRIVE',
   'HOMEPATH',
   'CODEX_HOME',
-  'ORCA_CODEX_HOME',
-  'ORCA_E2E_HOME_DIR',
-  'ORCA_E2E_USER_DATA_DIR',
-  'ORCA_USER_DATA_PATH',
+  'ALICORN_CODEX_HOME',
+  'ALICORN_E2E_HOME_DIR',
+  'ALICORN_E2E_USER_DATA_DIR',
+  'ALICORN_USER_DATA_PATH',
   'ZDOTDIR',
-  'ORCA_ORIG_ZDOTDIR',
+  'ALICORN_ORIG_ZDOTDIR',
   'BASH_ENV',
   'ENV',
   'ELECTRON_RUN_AS_NODE'
@@ -78,15 +78,15 @@ export function createValidationEnv(inheritedEnv, layout) {
     HOME: layout.homeDir,
     USERPROFILE: layout.homeDir,
     NODE_ENV: 'development',
-    ORCA_E2E_HOME_DIR: layout.homeDir,
-    ORCA_E2E_USER_DATA_DIR: layout.userDataDir,
-    ORCA_USER_DATA_PATH: layout.userDataDir
+    ALICORN_E2E_HOME_DIR: layout.homeDir,
+    ALICORN_E2E_USER_DATA_DIR: layout.userDataDir,
+    ALICORN_USER_DATA_PATH: layout.userDataDir
   }
 }
 
 export async function createValidationLayout(options = {}) {
   const primaryHome = path.resolve(options.primaryHome ?? os.homedir())
-  const envTempParent = process.env.ORCA_CODEX_VALIDATION_TEMP_PARENT?.trim()
+  const envTempParent = process.env.ALICORN_CODEX_VALIDATION_TEMP_PARENT?.trim()
   const tempParent = path.resolve(options.tempParent ?? (envTempParent || os.tmpdir()))
   // Why: guards must compare canonical paths — a symlinked temp parent must
   // not smuggle the disposable root inside the primary home.
@@ -100,7 +100,7 @@ export async function createValidationLayout(options = {}) {
   if (samePath(tempParentReal, primaryHomeReal) || isWithin(tempParentReal, primaryHomeReal)) {
     throw new Error(
       `Refusing to place the disposable validation root inside the primary home (${primaryHome}). ` +
-        'Pass --temp-parent <dir> or set ORCA_CODEX_VALIDATION_TEMP_PARENT to a directory outside it.'
+        'Pass --temp-parent <dir> or set ALICORN_CODEX_VALIDATION_TEMP_PARENT to a directory outside it.'
     )
   }
   const tempRoot = await mkdtemp(path.join(tempParent, 'orca-codex-real-'))
@@ -357,11 +357,11 @@ function buildAppIfNeeded(repoRoot, skipBuild) {
 }
 
 function validationCliCommand() {
-  if (process.env.ORCA_VALIDATION_CLI) {
-    return process.env.ORCA_VALIDATION_CLI
+  if (process.env.ALICORN_VALIDATION_CLI) {
+    return process.env.ALICORN_VALIDATION_CLI
   }
-  if (process.env.ORCA_CLI_COMMAND) {
-    return process.env.ORCA_CLI_COMMAND
+  if (process.env.ALICORN_CLI_COMMAND) {
+    return process.env.ALICORN_CLI_COMMAND
   }
   return process.platform === 'linux' ? 'orca-ide' : 'orca'
 }
@@ -370,7 +370,7 @@ async function probeTerminalEnvironment(terminalHandle, launchEnv) {
   const marker = `__ORCA_CODEX_VALIDATION_${randomUUID()}__`
   const command = [
     'node -e',
-    `"console.log('${marker}:' + JSON.stringify({home: require('node:os').homedir(), codexHome: process.env.CODEX_HOME || null, orcaCodexHome: process.env.ORCA_CODEX_HOME || null}))"`
+    `"console.log('${marker}:' + JSON.stringify({home: require('node:os').homedir(), codexHome: process.env.CODEX_HOME || null, orcaCodexHome: process.env.ALICORN_CODEX_HOME || null}))"`
   ].join(' ')
   const cli = validationCliCommand()
   execFileSync(
@@ -523,7 +523,7 @@ async function main() {
       app = await electron.launch({
         args: [mainPath],
         // Why: a validation run must not pull the window over the developer's work.
-        env: { ...launchEnv, ORCA_BACKGROUND_LAUNCH: '1' }
+        env: { ...launchEnv, ALICORN_BACKGROUND_LAUNCH: '1' }
       })
       report.electronPaths = await app.evaluate(({ app: electronApp }) => ({
         home: electronApp.getPath('home'),

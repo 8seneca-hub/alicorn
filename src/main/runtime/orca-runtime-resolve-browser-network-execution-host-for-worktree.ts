@@ -170,18 +170,18 @@ export class OrcaRuntimeWithResolveBrowserNetworkExecutionHostForWorktree extend
       ...cleanBaseEnv,
       ...agentTeamsEnv,
       ...this.buildAgentHookPtyEnv?.(),
-      ORCA_PANE_KEY: paneKey,
-      ORCA_TAB_ID: tabId,
-      ORCA_WORKTREE_ID: scope.id
+      ALICORN_PANE_KEY: paneKey,
+      ALICORN_TAB_ID: tabId,
+      ALICORN_WORKTREE_ID: scope.id
     }
     if (!scope.folderWorkspace) {
       return env
     }
     return {
       ...env,
-      ORCA_WORKSPACE_ID: scope.id,
-      ORCA_PROJECT_GROUP_ID: scope.folderWorkspace.projectGroupId,
-      ORCA_WORKSPACE_ROOT: scope.folderWorkspace.folderPath
+      ALICORN_WORKSPACE_ID: scope.id,
+      ALICORN_PROJECT_GROUP_ID: scope.folderWorkspace.projectGroupId,
+      ALICORN_WORKSPACE_ROOT: scope.folderWorkspace.folderPath
     }
   }
 

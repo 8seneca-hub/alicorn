@@ -12,7 +12,7 @@ export function parseReportGateArgs(argv, env = process.env) {
     forwardedArgs.shift()
   }
 
-  let reportPath = env.ORCA_E2E_TERMINAL_PERF_REPORT_PATH || DEFAULT_REPORT_PATH
+  let reportPath = env.ALICORN_E2E_TERMINAL_PERF_REPORT_PATH || DEFAULT_REPORT_PATH
   const passthroughArgs = []
   for (let index = 0; index < forwardedArgs.length; index += 1) {
     const arg = forwardedArgs[index]
@@ -120,7 +120,7 @@ export function runTerminalScalePerfReportGate({
     return budgetExitCode
   }
 
-  const htmlReportPath = env.ORCA_E2E_TERMINAL_PERF_HTML_REPORT_PATH || DEFAULT_HTML_REPORT_PATH
+  const htmlReportPath = env.ALICORN_E2E_TERMINAL_PERF_HTML_REPORT_PATH || DEFAULT_HTML_REPORT_PATH
   const htmlResult = runNodeScript(
     'config/scripts/generate-terminal-perf-html-report.mjs',
     [reportPath, '--output', htmlReportPath],

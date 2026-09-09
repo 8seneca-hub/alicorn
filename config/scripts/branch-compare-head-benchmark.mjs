@@ -20,13 +20,13 @@ import { fileURLToPath } from 'node:url'
 import { readBranchCompareHead } from '../../src/shared/git-branch-compare-head.ts'
 
 const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url))
-const ITERATIONS = Number(process.env.ORCA_BRANCH_COMPARE_BENCH_ITERATIONS ?? '8')
-const WARMUP = Number(process.env.ORCA_BRANCH_COMPARE_BENCH_WARMUP ?? '2')
+const ITERATIONS = Number(process.env.ALICORN_BRANCH_COMPARE_BENCH_ITERATIONS ?? '8')
+const WARMUP = Number(process.env.ALICORN_BRANCH_COMPARE_BENCH_WARMUP ?? '2')
 const ROUNDS = 6
 
 for (const [name, value] of [
-  ['ORCA_BRANCH_COMPARE_BENCH_ITERATIONS', ITERATIONS],
-  ['ORCA_BRANCH_COMPARE_BENCH_WARMUP', WARMUP]
+  ['ALICORN_BRANCH_COMPARE_BENCH_ITERATIONS', ITERATIONS],
+  ['ALICORN_BRANCH_COMPARE_BENCH_WARMUP', WARMUP]
 ]) {
   if (!Number.isSafeInteger(value) || value <= 0) {
     throw new Error(`${name} must be a positive integer, received ${value}`)

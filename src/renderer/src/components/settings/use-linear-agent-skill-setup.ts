@@ -5,7 +5,7 @@ import {
 } from '@/lib/agent-skill-cli-prerequisite'
 import {
   LINEAR_AGENT_SKILL_NAMES,
-  ORCA_LINEAR_SKILL_INSTALL_COMMAND
+  ALICORN_LINEAR_SKILL_INSTALL_COMMAND
 } from '@/lib/agent-feature-install-commands'
 import { getLinearAgentSkillUpdateTarget } from '@/lib/linear-agent-skill-update-command'
 import {
@@ -55,9 +55,9 @@ export function useLinearAgentSkillSetup(): {
   // Why: the built command also depends on the focused runtime environment, so
   // memoizing it on the runtime alone can serve a stale Windows host command.
   const installCommand = activeSkillRuntime.installDisabledReason
-    ? ORCA_LINEAR_SKILL_INSTALL_COMMAND
+    ? ALICORN_LINEAR_SKILL_INSTALL_COMMAND
     : buildSkillCommandForRuntime(
-        ORCA_LINEAR_SKILL_INSTALL_COMMAND,
+        ALICORN_LINEAR_SKILL_INSTALL_COMMAND,
         activeSkillRuntime.agentRuntime
       )
   const updateTarget = useMemo(

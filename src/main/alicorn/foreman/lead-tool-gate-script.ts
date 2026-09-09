@@ -35,27 +35,27 @@ export function getLeadToolGateScript(target: 'local' | 'posix' = 'local'): stri
       'setlocal',
       // Why: refresh endpoint coordinates for PTYs surviving an Orca restart — a stale port
       // would silently leave the lead unrestricted.
-      'if defined ORCA_AGENT_HOOK_ENDPOINT if exist "%ORCA_AGENT_HOOK_ENDPOINT%" call "%ORCA_AGENT_HOOK_ENDPOINT%" 2>nul',
+      'if defined ALICORN_AGENT_HOOK_ENDPOINT if exist "%ALICORN_AGENT_HOOK_ENDPOINT%" call "%ALICORN_AGENT_HOOK_ENDPOINT%" 2>nul',
       // Why (#11549): outside an Orca pane the caller may abandon stdin, so answer without
       // reading it; in a pane, a non-lead drains as usual.
-      'if "%ORCA_AGENT_HOOK_PORT%"=="" goto :orca_lead_gate_neutral',
-      'if "%ORCA_AGENT_HOOK_TOKEN%"=="" goto :orca_lead_gate_neutral',
+      'if "%ALICORN_AGENT_HOOK_PORT%"=="" goto :orca_lead_gate_neutral',
+      'if "%ALICORN_AGENT_HOOK_TOKEN%"=="" goto :orca_lead_gate_neutral',
       `if "%${ALICORN_ROLE_ENV_VAR}%"=="" goto :orca_lead_gate_drain`,
-      'set "ORCA_LEAD_GATE_OUT=%TEMP%\\orca-lead-gate-%RANDOM%%RANDOM%.json"',
+      'set "ALICORN_LEAD_GATE_OUT=%TEMP%\\orca-lead-gate-%RANDOM%%RANDOM%.json"',
       // Why a response file rather than a captured pipe: `for /f` re-runs the command in a
       // subshell that does not inherit this hook's stdin, which is the payload.
       [
         '"%SystemRoot%\\System32\\curl.exe" -sS -X POST',
-        `"http://127.0.0.1:%ORCA_AGENT_HOOK_PORT%${ALICORN_LEAD_TOOL_GATE_PATHNAME}"`,
+        `"http://127.0.0.1:%ALICORN_AGENT_HOOK_PORT%${ALICORN_LEAD_TOOL_GATE_PATHNAME}"`,
         ...CURL_FLAGS,
-        '-H "X-Orca-Agent-Hook-Token: %ORCA_AGENT_HOOK_TOKEN%"',
+        '-H "X-Orca-Agent-Hook-Token: %ALICORN_AGENT_HOOK_TOKEN%"',
         `-H "X-Alicorn-Role: %${ALICORN_ROLE_ENV_VAR}%"`,
         '-H "X-Alicorn-Cwd: %CD%"',
         '--data-binary @-',
-        '-o "%ORCA_LEAD_GATE_OUT%" >nul 2>&1'
+        '-o "%ALICORN_LEAD_GATE_OUT%" >nul 2>&1'
       ].join(' '),
-      'findstr /b /c:"{" "%ORCA_LEAD_GATE_OUT%" >nul 2>&1 && (type "%ORCA_LEAD_GATE_OUT%") || (echo {})',
-      'del /f /q "%ORCA_LEAD_GATE_OUT%" >nul 2>&1',
+      'findstr /b /c:"{" "%ALICORN_LEAD_GATE_OUT%" >nul 2>&1 && (type "%ALICORN_LEAD_GATE_OUT%") || (echo {})',
+      'del /f /q "%ALICORN_LEAD_GATE_OUT%" >nul 2>&1',
       'exit /b 0',
       ':orca_lead_gate_drain',
       WINDOWS_HOOK_STDIN_DRAIN_COMMAND,
@@ -73,18 +73,18 @@ export function getLeadToolGateScript(target: 'local' | 'posix' = 'local'): stri
     ...buildPosixHookPayloadCapture('empty-object'),
     // Why: refresh endpoint coordinates for PTYs surviving an Orca restart — a stale port would
     // silently leave the lead unrestricted.
-    'if [ -n "${ORCA_AGENT_HOOK_ENDPOINT:-}" ] && [ -r "$ORCA_AGENT_HOOK_ENDPOINT" ]; then',
-    '  . "$ORCA_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
+    'if [ -n "${ALICORN_AGENT_HOOK_ENDPOINT:-}" ] && [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ]; then',
+    '  . "$ALICORN_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
     'fi',
-    `if [ -z "\${${ALICORN_ROLE_ENV_VAR}:-}" ] || [ -z "\${ORCA_AGENT_HOOK_PORT:-}" ] || [ -z "\${ORCA_AGENT_HOOK_TOKEN:-}" ]; then`,
+    `if [ -z "\${${ALICORN_ROLE_ENV_VAR}:-}" ] || [ -z "\${ALICORN_AGENT_HOOK_PORT:-}" ] || [ -z "\${ALICORN_AGENT_HOOK_TOKEN:-}" ]; then`,
     "  printf '{}\\n'",
     '  exit 0',
     'fi',
     [
       'orca_lead_gate=$(printf %s "$payload" | curl -sS -X POST',
-      `"http://127.0.0.1:\${ORCA_AGENT_HOOK_PORT}${ALICORN_LEAD_TOOL_GATE_PATHNAME}"`,
+      `"http://127.0.0.1:\${ALICORN_AGENT_HOOK_PORT}${ALICORN_LEAD_TOOL_GATE_PATHNAME}"`,
       ...CURL_FLAGS,
-      '-H "X-Orca-Agent-Hook-Token: ${ORCA_AGENT_HOOK_TOKEN}"',
+      '-H "X-Orca-Agent-Hook-Token: ${ALICORN_AGENT_HOOK_TOKEN}"',
       `-H "X-Alicorn-Role: \${${ALICORN_ROLE_ENV_VAR}}"`,
       '-H "X-Alicorn-Cwd: ${PWD:-}"',
       '--data-binary @- 2>/dev/null) || orca_lead_gate=""'

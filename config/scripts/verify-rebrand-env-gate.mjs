@@ -91,8 +91,21 @@ const SKIPPED_DIRECTORIES = new Set([
 export const ALLOWLIST_PATTERNS = [
   'src/shared/alicorn-env-compat.ts',
   'src/shared/alicorn-env-compat.test.ts',
+  // Proves a pre-rebrand endpoint file still parses; the old names are its fixtures.
+  'src/shared/agent-hook-endpoint-file.test.ts',
+  // The retired git-attribution shim's own variable names. It was removed *before* R4, so
+  // `ALICORN_ENABLE_GIT_ATTRIBUTION` and friends never existed: the only values a tombstone
+  // wrapper will ever find in an inherited environment are the pre-rebrand ones, and renaming
+  // them turns the neutralization script into a no-op that still claims to have run. The live
+  // strip list in `legacy-terminal-shim-dir.ts` carries both spellings; these are the scripts.
+  'src/main/pty/legacy-terminal-posix-tombstone.ts',
+  'src/main/pty/legacy-terminal-windows-tombstone.ts',
+  'src/main/pty/legacy-terminal-windows-tombstone.test.ts',
+  'src/main/pty/legacy-terminal-shim-dir.test.ts',
   'config/scripts/verify-rebrand-env-gate.mjs',
   'config/scripts/verify-rebrand-env-gate.test.mjs',
+  'config/scripts/rename-orca-env.mjs',
+  'config/scripts/rename-orca-env.test.mjs',
   'cloud/apps/relay*/**',
   'cloud/infra/**',
   '.github/workflows/cloud-*.yml'
@@ -255,9 +268,13 @@ export function renderBaseline(findings) {
     '# is silent and adding a name is not. Review every added row: the point of the gate is',
     '# that a genuinely new `ORCA_*` name is visible in this diff.',
     '#',
-    '# This list may only SHRINK. Rebrand task R4 empties it, and from then on any entry',
-    '# fails the build. Read both names through `readAlicornEnv` and export both through',
-    '# `withLegacyEnvAliases` (src/shared/alicorn-env-compat.ts) instead of adding a row.',
+    '# This list may only SHRINK. R4 emptied everything a codemod owns; what is left is a',
+    '# GitHub *secret store* name, renamed by a human in repository settings and read as a',
+    '# fallback until then — a reference to a secret that does not exist resolves to the empty',
+    '# string with no error, so dropping the old name silently ships a release with no key.',
+    '# Never allowlist the whole file for one of these: a 1300-line workflow would then be',
+    '# blind to a genuinely new name. Read both names through `readAlicornEnv` and export both',
+    '# through `withLegacyEnvAliases` (src/shared/alicorn-env-compat.ts) instead of adding a row.',
     '',
     ...rows
   ].join('\n')

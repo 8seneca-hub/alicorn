@@ -7,7 +7,7 @@ import {
   buildSkillCommandForRuntime,
   buildSkillSetupTerminalCommand
 } from '@/components/settings/CliSkillRuntimeSetup'
-import { ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND } from '@/lib/agent-feature-install-commands'
+import { ALICORN_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND } from '@/lib/agent-feature-install-commands'
 import { useActiveProjectSkillRuntime } from '@/hooks/useActiveProjectSkillRuntime'
 import { translate } from '@/i18n/i18n'
 
@@ -18,7 +18,7 @@ export function CliSkillSetupTerminal(): React.JSX.Element {
   // gate, and repair-required only happens on Windows, so it still needs the
   // npx preflight.
   const skillCommand = buildSkillCommandForRuntime(
-    ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND,
+    ALICORN_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND,
     activeSkillRuntime.installDisabledReason ? undefined : activeSkillRuntime.agentRuntime
   )
   const terminalRuntime = activeSkillRuntime.installDisabledReason

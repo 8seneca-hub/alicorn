@@ -12,7 +12,7 @@ import {
 } from './helpers/docker-ssh-relay-connection'
 import { openTerminalTabInActiveGroup } from './helpers/terminal-tab-open'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 
 /**
  * An SSH reconnect destroys the terminal state behind a tab whose creation has not yet reached the
@@ -57,7 +57,7 @@ const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
  * run here as evidence the bug is gone.
  */
 test.describe('SSH reconnect tab destruction', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
 
   test('keeps a tab created right after a reconnect alive across the next one', async ({
     orcaPage

@@ -14,8 +14,8 @@ import {
 // nothing even though Cmd+V (a real OS paste ClipboardEvent) and right-click Copy
 // (execCommand('copy') from a user gesture) both work. We route the read through Orca's
 // trusted clipboard IPC bridge instead, matching how the terminal already reads it.
-export const ORCA_CONTEXT_MENU_PASTE_PRIORITY = 10001
-export const ORCA_CONTEXT_MENU_PASTE_NAME = 'orca-ipc-paste'
+export const ALICORN_CONTEXT_MENU_PASTE_PRIORITY = 10001
+export const ALICORN_CONTEXT_MENU_PASTE_NAME = 'orca-ipc-paste'
 
 // Why: this path may either dispatch a native paste (needs getOption/trigger)
 // or hand off to the chunked inserter (needs the MonacoPasteEditor surface), so

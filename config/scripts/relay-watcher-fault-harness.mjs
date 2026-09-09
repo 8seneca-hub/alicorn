@@ -275,7 +275,7 @@ async function main() {
       ],
       {
         cwd: dirname(relayEntry),
-        env: { ...process.env, ORCA_WATCHER_CHILD_PID_FILE: pidFile },
+        env: { ...process.env, ALICORN_WATCHER_CHILD_PID_FILE: pidFile },
         stdio: ['ignore', 'pipe', 'pipe']
       }
     )
@@ -301,7 +301,7 @@ async function main() {
     }
 
     const spawned = await relay.request('pty.spawn', { cols: 80, rows: 24, cwd: watchRoot })
-    const beforePtyMarker = `ORCA_PTY_BEFORE_${Date.now()}`
+    const beforePtyMarker = `ALICORN_PTY_BEFORE_${Date.now()}`
     let startIndex = relay.messageCount()
     relay.notify('pty.data', { id: spawned.id, data: `echo ${beforePtyMarker}\r` })
     await relay.waitForNotification(
@@ -343,7 +343,7 @@ async function main() {
     if (status.pid !== daemon.pid) {
       throw new Error('relay.status did not come from the original surviving relay process')
     }
-    const afterPtyMarker = `ORCA_PTY_AFTER_${Date.now()}`
+    const afterPtyMarker = `ALICORN_PTY_AFTER_${Date.now()}`
     startIndex = relay.messageCount()
     relay.notify('pty.data', { id: spawned.id, data: `echo ${afterPtyMarker}\r` })
     await relay.waitForNotification(

@@ -18,7 +18,7 @@ type RowRemovalFrame = {
 }
 
 async function pauseForVisualProof(page: Page): Promise<void> {
-  if (process.env.ORCA_E2E_RECORD_VIDEO === '1') {
+  if (process.env.ALICORN_E2E_RECORD_VIDEO === '1') {
     await page.waitForTimeout(VISUAL_PROOF_PAUSE_MS)
   }
 }

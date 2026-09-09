@@ -49,8 +49,8 @@ describe('SSH remote Linear save issue', () => {
       ],
       cwd: '/home/alice/remote-repo',
       env: {
-        ORCA_TERMINAL_HANDLE: 'term_ssh',
-        ORCA_WORKTREE_ID: 'repo::remote'
+        ALICORN_TERMINAL_HANDLE: 'term_ssh',
+        ALICORN_WORKTREE_ID: 'repo::remote'
       },
       stdin: 'Updated description'
     })
@@ -85,7 +85,7 @@ describe('SSH remote Linear save issue', () => {
     const result = await runRemoteOrcaCli(runtime, {
       argv: ['linear', 'save-issue', '--team', 'ENG', '--title', 'New issue', '--json'],
       cwd: '/home/alice/remote-repo',
-      env: { ORCA_TERMINAL_HANDLE: 'term_ssh' }
+      env: { ALICORN_TERMINAL_HANDLE: 'term_ssh' }
     })
 
     expect(result.exitCode).toBe(0)
@@ -99,7 +99,7 @@ describe('SSH remote Linear save issue', () => {
     const result = await runRemoteOrcaCli(runtime, {
       argv: ['linear', 'save-issue', 'ENG-123', '--body-file', 'body.md', '--json'],
       cwd: '/home/alice/remote-repo',
-      env: { ORCA_TERMINAL_HANDLE: 'term_ssh' }
+      env: { ALICORN_TERMINAL_HANDLE: 'term_ssh' }
     })
 
     expect(result.exitCode).toBe(1)

@@ -6,7 +6,7 @@
  * answering. That is the wedge shape #17817 and #17838 are about: a link that
  * looks perfectly healthy to TCP and can only be judged by an application probe.
  *
- * Requires: ORCA_E2E_SSH_DOCKER=1 and Docker available.
+ * Requires: ALICORN_E2E_SSH_DOCKER=1 and Docker available.
  */
 import { execFileSync } from 'node:child_process'
 import { expect, test } from './helpers/orca-app'
@@ -24,7 +24,7 @@ import {
   waitForTerminalOutput
 } from './helpers/terminal'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 /** Generous: the point is that a verdict arrives at all, not its exact latency. */
 const LOST_VERDICT_BUDGET_MS = 90_000
 
@@ -43,7 +43,7 @@ async function readSshStatus(
 }
 
 test.describe('Docker SSH half-open link', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Uses docker pause against a Linux container.')
 
   test('declares a frozen host lost instead of wedging, and recovers @half-open', async ({

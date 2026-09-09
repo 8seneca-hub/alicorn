@@ -5,7 +5,7 @@ import type {
 } from '../onboarding/onboarding-feature-setup'
 import {
   COMPUTER_USE_SKILL_NAME,
-  ORCA_CLI_SKILL_NAME,
+  ALICORN_CLI_SKILL_NAME,
   ORCHESTRATION_SKILL_NAME
 } from '@/lib/agent-feature-install-commands'
 import {
@@ -42,7 +42,7 @@ export type AgentCapabilitySetupStatus = {
 
 export function useAgentCapabilitySetupStatus(): AgentCapabilitySetupStatus {
   const activeSkillRuntime = useActiveProjectSkillRuntime()
-  const browserUseSkill = useInstalledAgentSkill(ORCA_CLI_SKILL_NAME, {
+  const browserUseSkill = useInstalledAgentSkill(ALICORN_CLI_SKILL_NAME, {
     discoveryTarget: activeSkillRuntime.discoveryTarget,
     sourceKinds: GLOBAL_AGENT_SKILL_SOURCE_KINDS
   })

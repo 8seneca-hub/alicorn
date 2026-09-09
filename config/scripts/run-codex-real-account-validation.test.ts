@@ -31,7 +31,7 @@ describe('Codex real-account validation harness', () => {
           HOME: primaryHome,
           USERPROFILE: primaryHome,
           CODEX_HOME: '/unsafe/codex',
-          ORCA_CODEX_HOME: '/unsafe/orca-codex',
+          ALICORN_CODEX_HOME: '/unsafe/orca-codex',
           ZDOTDIR: '/unsafe/zsh',
           SAFE_VALUE: 'preserved'
         }, layout)
@@ -44,7 +44,7 @@ describe('Codex real-account validation harness', () => {
     expect(env.HOME).toBe(layout.homeDir)
     expect(env.USERPROFILE).toBe(layout.homeDir)
     expect(env.CODEX_HOME).toBeUndefined()
-    expect(env.ORCA_CODEX_HOME).toBeUndefined()
+    expect(env.ALICORN_CODEX_HOME).toBeUndefined()
     expect(env.ZDOTDIR).toBeUndefined()
     expect(env.SAFE_VALUE).toBe('preserved')
   })
@@ -92,7 +92,7 @@ describe('Codex real-account validation harness', () => {
         console.log(JSON.stringify({ layout }))
       `,
       [path.join(os.tmpdir(), 'orca-primary-home-sentinel')],
-      { ORCA_CODEX_VALIDATION_TEMP_PARENT: tempParent }
+      { ALICORN_CODEX_VALIDATION_TEMP_PARENT: tempParent }
     )
 
     expect(path.dirname(layout.tempRoot)).toBe(tempParent)
@@ -120,7 +120,7 @@ describe('Codex real-account validation harness', () => {
         }
       `,
         [primaryHome],
-        { ORCA_CODEX_VALIDATION_TEMP_PARENT: link }
+        { ALICORN_CODEX_VALIDATION_TEMP_PARENT: link }
       )
 
       expect(error).toContain('Refusing to place the disposable validation root')
@@ -144,7 +144,7 @@ describe('Codex real-account validation harness', () => {
 
     expect(error).toContain('Refusing to place the disposable validation root')
     expect(error).toContain('--temp-parent')
-    expect(error).toContain('ORCA_CODEX_VALIDATION_TEMP_PARENT')
+    expect(error).toContain('ALICORN_CODEX_VALIDATION_TEMP_PARENT')
   })
 
   it('builds via process.execPath and the repo-local electron-vite entry, not npx', () => {
@@ -201,7 +201,7 @@ function runValidationModule<T>(source: string, args: string[], env?: Record<str
     {
       encoding: 'utf8',
       // Why: an ambient temp-parent override must not redirect unrelated cases.
-      env: { ...process.env, ORCA_CODEX_VALIDATION_TEMP_PARENT: '', ...env }
+      env: { ...process.env, ALICORN_CODEX_VALIDATION_TEMP_PARENT: '', ...env }
     }
   )
   return JSON.parse(stdout.trim()) as T

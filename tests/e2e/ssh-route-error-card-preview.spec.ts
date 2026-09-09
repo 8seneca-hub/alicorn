@@ -1,13 +1,13 @@
 // Throwaway interactive preview (untracked): shows the SSH-routing error cards
 // in a headed app and holds it open for review. The prepare IPC is stubbed at
 // the window level; everything else (gate, settings writes, escape hatch) is real.
-// Run: ORCA_SSH_CARD_PREVIEW=1 pnpm exec playwright test --config tests/playwright.config.ts \
+// Run: ALICORN_SSH_CARD_PREVIEW=1 pnpm exec playwright test --config tests/playwright.config.ts \
 //   --project electron-headless --workers=1 tests/e2e/ssh-route-error-card-preview.spec.ts
 import { expect, test } from './helpers/orca-app'
 
 test.skip(
-  process.env.ORCA_SSH_CARD_PREVIEW !== '1',
-  'Preview only; run with ORCA_SSH_CARD_PREVIEW=1'
+  process.env.ALICORN_SSH_CARD_PREVIEW !== '1',
+  'Preview only; run with ALICORN_SSH_CARD_PREVIEW=1'
 )
 
 const HOLD_MINUTES = 20

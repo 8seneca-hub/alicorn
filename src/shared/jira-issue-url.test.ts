@@ -56,7 +56,7 @@ describe('parseJiraIssueUrl', () => {
     'https://user:secret@jira.example.com/browse/ORCA-123',
     'https://jira.example.com/browse/123',
     'https://jira.example.com/browse/-123',
-    'https://jira.example.com/browse/ORCA_123',
+    'https://jira.example.com/browse/ALICORN_123',
     'https://jira.example.com/browse/ORCA-X',
     'https://jira.example.com/browse/ORCA-123/extra',
     'https://jira.example.com/browse/ORCA-123/'

@@ -52,7 +52,7 @@ test.describe('Quick Command startup recovery', () => {
       throw new Error('Sibling terminal has no live PTY')
     }
 
-    const siblingMarker = `ORCA_QUICK_COMMAND_SIBLING_${randomUUID()}`
+    const siblingMarker = `ALICORN_QUICK_COMMAND_SIBLING_${randomUUID()}`
     const siblingProbe = await runNodeScriptInTerminal(
       orcaPage,
       siblingPtyId,
@@ -61,7 +61,7 @@ test.describe('Quick Command startup recovery', () => {
     await waitForTerminalOutput(orcaPage, siblingMarker)
     siblingProbe.cleanup()
 
-    const marker = `ORCA_QUICK_COMMAND_RECOVERY_${randomUUID()}`
+    const marker = `ALICORN_QUICK_COMMAND_RECOVERY_${randomUUID()}`
     const label = `Recovery sentinel ${randomUUID()}`
     const identityPath = path.join(os.tmpdir(), `orca-quick-command-identity-${randomUUID()}.json`)
     const staged = stageNodeScriptForTerminal(
@@ -69,9 +69,9 @@ test.describe('Quick Command startup recovery', () => {
 const { writeFileSync } = require('node:fs')
 const identity = {
   marker: ${JSON.stringify(marker)},
-  paneKey: process.env.ORCA_PANE_KEY || '',
+  paneKey: process.env.ALICORN_PANE_KEY || '',
   pid: process.pid,
-  tabId: process.env.ORCA_TAB_ID || ''
+  tabId: process.env.ALICORN_TAB_ID || ''
 }
 writeFileSync(${JSON.stringify(identityPath)}, JSON.stringify(identity), { flag: 'wx' })
 process.stdout.write(${JSON.stringify(`${marker}\n`)})
@@ -324,7 +324,7 @@ process.stdout.write(${JSON.stringify(`${marker}\n`)})
       expect(ptyIdentity.siblingLive).toBe(true)
       expect(ptyIdentity.siblingStorePtyIds).toContain(siblingPtyId)
 
-      const siblingAfterMarker = `ORCA_QUICK_COMMAND_SIBLING_AFTER_${randomUUID()}`
+      const siblingAfterMarker = `ALICORN_QUICK_COMMAND_SIBLING_AFTER_${randomUUID()}`
       await orcaPage.evaluate(
         (tabId) => window.__store?.getState().setActiveTab(tabId),
         siblingBefore.tabId

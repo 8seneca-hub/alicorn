@@ -12,7 +12,7 @@ import {
 } from './helpers/terminal'
 import { ensureTerminalVisible, waitForActiveWorktree, waitForSessionReady } from './helpers/store'
 
-const DRAFT = 'ORCA_CODEX_PASTE_DRAFT_SHOULD_STAY_UNSENT'
+const DRAFT = 'ALICORN_CODEX_PASTE_DRAFT_SHOULD_STAY_UNSENT'
 const CODEX_TRUST_PROMPT_RE = /Do[\s\S]*you[\s\S]*trust[\s\S]*contents/i
 
 function pastePayload(repeats = 4): string {
@@ -159,8 +159,8 @@ test.describe('Windows Codex multiline paste', () => {
   }) => {
     test.skip(process.platform !== 'win32', 'Windows ConPTY coverage is Windows-only')
     test.skip(
-      process.env.ORCA_E2E_REAL_CODEX !== '1',
-      'Set ORCA_E2E_REAL_CODEX=1 to exercise the locally installed Codex TUI'
+      process.env.ALICORN_E2E_REAL_CODEX !== '1',
+      'Set ALICORN_E2E_REAL_CODEX=1 to exercise the locally installed Codex TUI'
     )
     test.slow()
 
@@ -218,7 +218,7 @@ test.describe('Windows Codex multiline paste', () => {
     // post-normalization bytes.
     expect(Buffer.byteLength(expectedText, 'utf8')).toBeGreaterThan(64 * 1024)
     const expectedHash = createHash('sha256').update(expectedText).digest('hex')
-    const marker = `ORCA_LARGE_PASTE_${randomUUID().replaceAll('-', '')}`
+    const marker = `ALICORN_LARGE_PASTE_${randomUUID().replaceAll('-', '')}`
     const scriptPath = path.join(testRepoPath, `.${marker}.mjs`)
     writeFileSync(scriptPath, pasteCollectorScript(expectedText.length, expectedHash, marker))
 

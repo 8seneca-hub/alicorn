@@ -369,7 +369,7 @@ describe('shouldUseSystemSshTransport', () => {
   })
 
   it('allows an environment override for e2e coverage', () => {
-    vi.stubEnv('ORCA_SSH_FORCE_SYSTEM_TRANSPORT', '1')
+    vi.stubEnv('ALICORN_SSH_FORCE_SYSTEM_TRANSPORT', '1')
     expect(shouldUseSystemSshTransport(createTarget(), null)).toBe(true)
     vi.unstubAllEnvs()
   })

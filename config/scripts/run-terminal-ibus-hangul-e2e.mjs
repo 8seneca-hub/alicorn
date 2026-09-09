@@ -205,12 +205,12 @@ async function runInsideSession(evidenceDir) {
         cwd: projectDir,
         env: {
           ...process.env,
-          ORCA_E2E_FORWARD_APP_LOGS: '1',
-          ORCA_E2E_NATIVE_IBUS_HANGUL: '1',
+          ALICORN_E2E_FORWARD_APP_LOGS: '1',
+          ALICORN_E2E_NATIVE_IBUS_HANGUL: '1',
           [IME_ENGAGEMENT_RECEIPT_ENV]: receiptPath,
           // Why: native IBus key injection only reaches a window the window manager
           // has focused, so this run opts out of the background-launch policy.
-          ORCA_E2E_FOREGROUND: '1'
+          ALICORN_E2E_FOREGROUND: '1'
         },
         stdio: 'inherit'
       }

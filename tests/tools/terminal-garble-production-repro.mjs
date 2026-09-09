@@ -485,8 +485,8 @@ try {
     ...launchTarget,
     env: {
       ...cleanEnv,
-      ORCA_E2E_USER_DATA_DIR: userDataDir,
-      ...(mainPath ? { NODE_ENV: 'development', ORCA_E2E_HEADFUL: '1' } : {})
+      ALICORN_E2E_USER_DATA_DIR: userDataDir,
+      ...(mainPath ? { NODE_ENV: 'development', ALICORN_E2E_HEADFUL: '1' } : {})
     }
   })
   page = await app.firstWindow({ timeout: 120_000 })

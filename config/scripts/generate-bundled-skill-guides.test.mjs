@@ -102,8 +102,8 @@ describe('bundled skill guide generator', () => {
       'utf8'
     )
 
-    expect(source).toContain('ORCA_RECIPE_ID')
-    expect(source).not.toContain('ORCA_VM_RECIPE_ID')
+    expect(source).toContain('ALICORN_RECIPE_ID')
+    expect(source).not.toContain('ALICORN_VM_RECIPE_ID')
     expect(source).toContain('recipe_id="${recipe_id//./-}"')
     expect(source).toContain('max_recipe_id_length=$((128 - ${#instance_id} - 6))')
     expect(source).toContain('name="orca-${recipe_id:0:max_recipe_id_length}-${instance_id}"')
@@ -117,7 +117,7 @@ describe('bundled skill guide generator', () => {
         'utf8'
       )
       const assignment =
-        'orca_user_data_path="${ORCA_USER_DATA_PATH:-${XDG_CONFIG_HOME:-$HOME/.config}/orca}"'
+        'orca_user_data_path="${ALICORN_USER_DATA_PATH:-${XDG_CONFIG_HOME:-$HOME/.config}/orca}"'
       expect(source).toContain(assignment)
       const renderPath = async (env) =>
         (
@@ -138,7 +138,7 @@ describe('bundled skill guide generator', () => {
         renderPath({
           HOME: '/home/orca',
           XDG_CONFIG_HOME: '/srv/config',
-          ORCA_USER_DATA_PATH: '/var/lib/orca-custom'
+          ALICORN_USER_DATA_PATH: '/var/lib/orca-custom'
         })
       ).resolves.toBe('/var/lib/orca-custom')
     }
@@ -151,7 +151,7 @@ describe('bundled skill guide generator', () => {
         path.join(projectDir, 'skill-guides', 'alicorn-per-workspace-env.md'),
         'utf8'
       )
-      const startMarker = 'recipe_id="${ORCA_RECIPE_ID:-vercel-sandbox}"'
+      const startMarker = 'recipe_id="${ALICORN_RECIPE_ID:-vercel-sandbox}"'
       const endMarker = 'name="orca-${recipe_id:0:max_recipe_id_length}-${instance_id}"'
       const start = source.indexOf(startMarker)
       const endStart = source.indexOf(endMarker, start)
@@ -161,7 +161,7 @@ describe('bundled skill guide generator', () => {
       const renderName = async (recipeId, instanceId) =>
         (
           await execFileAsync('bash', ['-u', '-c', script], {
-            env: { ...process.env, ORCA_RECIPE_ID: recipeId, ORCA_VM_INSTANCE_ID: instanceId }
+            env: { ...process.env, ALICORN_RECIPE_ID: recipeId, ALICORN_VM_INSTANCE_ID: instanceId }
           })
         ).stdout
 
@@ -208,7 +208,7 @@ describe('bundled skill guide generator', () => {
     ]) {
       const source = await readFile(path.join(projectDir, 'skill-guides', `${name}.md`), 'utf8')
 
-      expect(source).toContain('ORCA_CLI_COMMAND')
+      expect(source).toContain('ALICORN_CLI_COMMAND')
       expect(source).toContain('orca-dev')
       expect(source).toContain('alicorn-ide')
       expect(source).toContain('PowerShell')

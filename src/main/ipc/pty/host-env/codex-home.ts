@@ -51,11 +51,11 @@ export function shouldStripInheritedOrcaCodexHome(args: {
   )
 }
 
-export const CODEX_HOME_ENV_KEYS = ['CODEX_HOME', 'ORCA_CODEX_HOME'] as const
+export const CODEX_HOME_ENV_KEYS = ['CODEX_HOME', 'ALICORN_CODEX_HOME'] as const
 
 // Why: system-default real-home routing runs Codex on the user's own ~/.codex.
 // Nested Orca panes inherit the parent's Orca-owned override; strip only that
-// (CODEX_HOME matching Orca's private ORCA_CODEX_HOME marker), and always drop
+// (CODEX_HOME matching Orca's private ALICORN_CODEX_HOME marker), and always drop
 // the marker so a shell-ready wrapper cannot restore the managed home. A
 // user-set CODEX_HOME with no Orca marker is preserved untouched (see #8606).
 export function stripInheritedOrcaCodexHomeOverride(baseEnv: Record<string, string>): void {
@@ -67,9 +67,9 @@ export function stripInheritedOrcaCodexHomeOverride(baseEnv: Record<string, stri
 // Why: in-process spawns share main's inherited environment, so equality with
 // the private marker is authoritative here. Persistent daemons compare locally.
 export function getLocalOrcaCodexHomeEnvKeysToDelete(env: Record<string, string>): string[] {
-  const inheritedOrcaOverride = env.ORCA_CODEX_HOME ?? process.env.ORCA_CODEX_HOME
+  const inheritedOrcaOverride = env.ALICORN_CODEX_HOME ?? process.env.ALICORN_CODEX_HOME
   const inheritedCodexHome = env.CODEX_HOME ?? process.env.CODEX_HOME
-  const keysToDelete = ['ORCA_CODEX_HOME']
+  const keysToDelete = ['ALICORN_CODEX_HOME']
   if (inheritedOrcaOverride && inheritedCodexHome === inheritedOrcaOverride) {
     keysToDelete.push('CODEX_HOME')
   }

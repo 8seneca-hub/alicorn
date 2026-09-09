@@ -45,7 +45,7 @@ if (process.argv.slice(2).includes('app-server')) {
   process.stderr.write("error: unrecognized subcommand 'app-server'\\n")
   process.exit(2)
 }
-appendLedger('ORCA_E2E_SPAWN_LEDGER', { event: 'spawn' })
+appendLedger('ALICORN_E2E_SPAWN_LEDGER', { event: 'spawn' })
 process.stdout.write('\\u001b]0;Codex Ready\\u0007OpenAI Codex\\nmodel: e2e\\ndirectory: e2e\\n')
 let acknowledged = false
 ${FAKE_AGENT_PASTE_END_SCANNER_SOURCE}
@@ -57,7 +57,7 @@ process.stdin.on('data', (chunk) => {
     process.stdout.write('\\x1b[?25h')
   }
   if (input.includes('\\x03')) {
-    appendLedger('ORCA_E2E_INTERRUPTION_LEDGER', { event: 'stdin-ctrl-c' })
+    appendLedger('ALICORN_E2E_INTERRUPTION_LEDGER', { event: 'stdin-ctrl-c' })
   }
   if (!acknowledged) {
     fakeAgentMaybeAck(pasteEndScan, input, (mode) => {
@@ -71,7 +71,7 @@ process.stdin.on('data', (chunk) => {
 process.stdin.setRawMode?.(true)
 for (const signal of ['SIGINT', 'SIGHUP', 'SIGTERM']) {
   process.on(signal, () => {
-    appendLedger('ORCA_E2E_INTERRUPTION_LEDGER', { event: 'signal', signal })
+    appendLedger('ALICORN_E2E_INTERRUPTION_LEDGER', { event: 'signal', signal })
     process.exit(0)
   })
 }
@@ -208,8 +208,8 @@ test('a missing legacy worker cannot spawn a replacement during restart recovery
 
   const session = createRestartSession(testInfo, {
     PATH: `${fakeCliDir}${path.delimiter}${process.env.PATH ?? ''}`,
-    ORCA_E2E_SPAWN_LEDGER: spawnLedgerPath,
-    ORCA_E2E_INTERRUPTION_LEDGER: interruptionLedgerPath
+    ALICORN_E2E_SPAWN_LEDGER: spawnLedgerPath,
+    ALICORN_E2E_INTERRUPTION_LEDGER: interruptionLedgerPath
   })
   let firstApp: ElectronApplication | null = null
   let secondApp: ElectronApplication | null = null

@@ -46,7 +46,7 @@ import {
 import { worktreeRow, worktreeRowSurface } from './worktree-row-locators'
 
 const isDockerNestedRuntimeRun =
-  process.env.ORCA_E2E_NESTED_RUNTIME_SSH === '1' && process.env.ORCA_E2E_WEB_CLIENT === '1'
+  process.env.ALICORN_E2E_NESTED_RUNTIME_SSH === '1' && process.env.ALICORN_E2E_WEB_CLIENT === '1'
 
 const test = base.extend<{ proxyJumpFixture: NestedRuntimeProxyJumpFixture | null }>({
   // oxlint-disable-next-line no-empty-pattern -- Playwright fixture callbacks require object destructuring here.
@@ -64,14 +64,14 @@ const test = base.extend<{ proxyJumpFixture: NestedRuntimeProxyJumpFixture | nul
   },
   orcaAppExtraEnv: async ({ proxyJumpFixture }, provideFixture) => {
     await provideFixture(
-      proxyJumpFixture ? { ORCA_SYSTEM_SSH_PATH: proxyJumpFixture.wrapperPath } : {}
+      proxyJumpFixture ? { ALICORN_SYSTEM_SSH_PATH: proxyJumpFixture.wrapperPath } : {}
     )
   }
 })
 
 test.skip(
   !isDockerNestedRuntimeRun,
-  'Run with ORCA_E2E_NESTED_RUNTIME_SSH=1 and ORCA_E2E_WEB_CLIENT=1'
+  'Run with ALICORN_E2E_NESTED_RUNTIME_SSH=1 and ALICORN_E2E_WEB_CLIENT=1'
 )
 test.skip(process.platform === 'win32', 'ProxyJump fixture requires POSIX OpenSSH tooling')
 

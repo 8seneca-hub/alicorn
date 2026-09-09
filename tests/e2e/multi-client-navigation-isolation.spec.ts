@@ -19,7 +19,7 @@ type TestWorktreeIds = {
   clientA2: string
 }
 
-const isPairedBrowserRun = process.env.ORCA_E2E_WEB_CLIENT === '1'
+const isPairedBrowserRun = process.env.ALICORN_E2E_WEB_CLIENT === '1'
 
 test.skip(
   !isPairedBrowserRun,

@@ -81,10 +81,10 @@ describe.skipIf(process.platform === 'win32')(
         platform: () => 'win32',
         remoteHooksEnabled: () => true,
         hookCoordsEnv: () => ({
-          ORCA_AGENT_HOOK_PORT: String(preferredPort),
-          ORCA_AGENT_HOOK_TOKEN: 'live-token',
-          ORCA_AGENT_HOOK_ENV: 'production',
-          ORCA_AGENT_HOOK_VERSION: '1'
+          ALICORN_AGENT_HOOK_PORT: String(preferredPort),
+          ALICORN_AGENT_HOOK_TOKEN: 'live-token',
+          ALICORN_AGENT_HOOK_ENV: 'production',
+          ALICORN_AGENT_HOOK_VERSION: '1'
         }),
         instanceKey: () => 'liveinstance',
         resolveBundle: () => ({ jsPath: BUNDLE_JS, version }),
@@ -151,8 +151,8 @@ describe.skipIf(process.platform === 'win32')(
       )
       expect(existsSync(endpointFile)).toBe(true)
       const endpointText = readFileSync(endpointFile, 'utf8')
-      const port = Number(/ORCA_AGENT_HOOK_PORT=['"]?(\d+)/.exec(endpointText)?.[1])
-      const token = /ORCA_AGENT_HOOK_TOKEN=['"]?([A-Za-z0-9-]+)/.exec(endpointText)?.[1]
+      const port = Number(/ALICORN_AGENT_HOOK_PORT=['"]?(\d+)/.exec(endpointText)?.[1])
+      const token = /ALICORN_AGENT_HOOK_TOKEN=['"]?([A-Za-z0-9-]+)/.exec(endpointText)?.[1]
       expect(port).toBeGreaterThan(0)
       expect(token).toBe('live-token')
 

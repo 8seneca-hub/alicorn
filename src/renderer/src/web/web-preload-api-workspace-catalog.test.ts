@@ -600,11 +600,11 @@ describe('web worktree preload API', () => {
       displayNameKind: 'user',
       startup: {
         command: "codex 'summarize repo'",
-        env: { ORCA_AGENT_MODE: 'direct' },
+        env: { ALICORN_AGENT_MODE: 'direct' },
         launchConfig: {
           agentCommand: 'codex',
           agentArgs: '--model gpt-5',
-          agentEnv: { ORCA_AGENT_MODE: 'direct' }
+          agentEnv: { ALICORN_AGENT_MODE: 'direct' }
         },
         startupCommandDelivery: 'shell-ready'
       }
@@ -641,11 +641,11 @@ describe('web worktree preload API', () => {
           displayName: 'Review label',
           displayNameKind: 'user',
           startupCommand: "codex 'summarize repo'",
-          startupEnv: { ORCA_AGENT_MODE: 'direct' },
+          startupEnv: { ALICORN_AGENT_MODE: 'direct' },
           startupLaunchConfig: {
             agentCommand: 'codex',
             agentArgs: '--model gpt-5',
-            agentEnv: { ORCA_AGENT_MODE: 'direct' }
+            agentEnv: { ALICORN_AGENT_MODE: 'direct' }
           },
           startupCommandDelivery: 'shell-ready',
           activate: true

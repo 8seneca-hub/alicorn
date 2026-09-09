@@ -54,7 +54,7 @@ import { reattachSentinelMatches, selectCreatedTabId } from './reattach-proof.mj
 const SORTABLE_TAB = '[data-testid="sortable-tab"]'
 // The per-shell env var stamped into the interactive shell; reading it back after
 // relaunch proves keystrokes reach the SAME survivor shell (a fresh re-spawn lacks it).
-const SENTINEL_ENV = 'ORCA_CRASH_SENTINEL'
+const SENTINEL_ENV = 'ALICORN_CRASH_SENTINEL'
 
 function log(step, msg) {
   console.log(`[win-crash-survival-e2e] ${step}: ${msg}`)
@@ -85,7 +85,7 @@ async function main() {
   log('setup', `runId=${runId} runDir=${runDir} profile=${opts.expect} exe=${opts.exePath}`)
 
   const ctx = { session: null }
-  const diagDir = process.env.ORCA_E2E_DIAG_DIR || path.join(runDir, 'diag')
+  const diagDir = process.env.ALICORN_E2E_DIAG_DIR || path.join(runDir, 'diag')
   let passed = false
   try {
     passed = await runProof(ctx, { opts, canary, runDir, userDataDir, shellPidFile, reattachFile })

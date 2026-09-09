@@ -129,10 +129,10 @@ test.describe('Large diff freeze repro', () => {
   test('opening a large single-file diff keeps the renderer responsive', async ({ orcaPage }) => {
     await waitForSessionReady(orcaPage)
     const fixture = createIsolatedLargeDiffRepo()
-    const lineCount = Number(process.env.ORCA_LARGE_DIFF_REPRO_LINES ?? '60000')
+    const lineCount = Number(process.env.ALICORN_LARGE_DIFF_REPRO_LINES ?? '60000')
     if (!Number.isFinite(lineCount) || lineCount < 0) {
       throw new Error(
-        `Invalid ORCA_LARGE_DIFF_REPRO_LINES: ${process.env.ORCA_LARGE_DIFF_REPRO_LINES}`
+        `Invalid ALICORN_LARGE_DIFF_REPRO_LINES: ${process.env.ALICORN_LARGE_DIFF_REPRO_LINES}`
       )
     }
     const modifiedContent = buildLargeTypeScriptFile(lineCount)

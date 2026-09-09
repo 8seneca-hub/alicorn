@@ -38,7 +38,7 @@ describe('runtime extraction regressions', () => {
   })
 
   it('preserves the session-inventory capability gate in runtime status', () => {
-    vi.stubEnv('ORCA_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY', '1')
+    vi.stubEnv('ALICORN_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY', '1')
     try {
       const runtime = new OrcaRuntimeService()
       expect(runtime.getStatus().capabilities).not.toContain(

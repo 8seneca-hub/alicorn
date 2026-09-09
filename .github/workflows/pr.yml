@@ -310,7 +310,7 @@ jobs:
               # produced them are most of the tree and would bloat the cache entry.
               find "$source" -name '*.o' -delete
             fi
-            ORCA_GIT_COMPAT_BINARY="$source/git" ORCA_GIT_COMPAT_VERSION="2.25.5" \
+            ALICORN_GIT_COMPAT_BINARY="$source/git" ALICORN_GIT_COMPAT_VERSION="2.25.5" \
               pnpm exec vitest run --config config/vitest.config.ts \
               src/shared/git-binary-compatibility.test.ts
           ) &
@@ -322,7 +322,7 @@ jobs:
             (
               image="${spec%%|*}"
               version="${spec#*|}"
-              ORCA_GIT_COMPAT_IMAGE="$image" ORCA_GIT_COMPAT_VERSION="$version" \
+              ALICORN_GIT_COMPAT_IMAGE="$image" ALICORN_GIT_COMPAT_VERSION="$version" \
                 pnpm exec vitest run --config config/vitest.config.ts \
                 src/shared/git-binary-compatibility.test.ts
             ) &
@@ -368,11 +368,11 @@ jobs:
           # Why REQUIRED: without a binary the suite skips, and a job that skips
           # reports success. This turns a failed or missing install into a red test
           # instead of a green no-op.
-          ORCA_CODEX_CONTRACT_REQUIRED: '1'
-          ORCA_CODEX_CONTRACT_VERSION: ${{ env.CODEX_CLI_VERSION }}
+          ALICORN_CODEX_CONTRACT_REQUIRED: '1'
+          ALICORN_CODEX_CONTRACT_VERSION: ${{ env.CODEX_CLI_VERSION }}
         run: |
           set -euo pipefail
-          ORCA_CODEX_CONTRACT_BINARY="$RUNNER_TEMP/codex-cli/node_modules/.bin/codex" \
+          ALICORN_CODEX_CONTRACT_BINARY="$RUNNER_TEMP/codex-cli/node_modules/.bin/codex" \
             pnpm exec vitest run --config config/vitest.config.ts \
             src/main/codex/codex-index-heal-binary-contract.test.ts
 
@@ -424,7 +424,7 @@ jobs:
       # right on a developer machine and wrong here — this job is a required check
       # and its fish lane is the only end-to-end guard for #9993, so a skip would
       # report green with nothing exercised. Turns those skips into failures.
-      ORCA_REQUIRE_FISH: '1'
+      ALICORN_REQUIRE_FISH: '1'
 
     steps:
       - name: Checkout
@@ -488,7 +488,7 @@ jobs:
           timeout 300 sudo apt-get install -y zsh fish
 
       # Separate from the install so the failure names the contract, not an apt error.
-      # ORCA_REQUIRE_FISH re-checks this at test time; this step just fails in seconds
+      # ALICORN_REQUIRE_FISH re-checks this at test time; this step just fails in seconds
       # instead of after a full dependency install.
       - name: Require fish 4+
         run: |
@@ -578,7 +578,7 @@ jobs:
       # Why the runner's Google Chrome and not its chromium: Ubuntu 24.04 only ships an
       # AppArmor userns profile for the Chrome .deb, so chromium dies with "No usable
       # sandbox" and the provider passes no --no-sandbox. Why fail instead of skip: an
-      # unset ORCA_BROWSER_EXECUTABLE is exactly how this test went uncovered for so long.
+      # unset ALICORN_BROWSER_EXECUTABLE is exactly how this test went uncovered for so long.
       - name: Resolve Chrome for the browser provider
         run: |
           set -euo pipefail
@@ -588,7 +588,7 @@ jobs:
             exit 1
           fi
           "$chrome" --version
-          echo "ORCA_BROWSER_EXECUTABLE=$chrome" >> "$GITHUB_ENV"
+          echo "ALICORN_BROWSER_EXECUTABLE=$chrome" >> "$GITHUB_ENV"
 
       - name: Test external Chromium browser provider
         run: |
@@ -722,7 +722,7 @@ jobs:
 
       - name: Package unpacked app
         env:
-          ORCA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
+          ALICORN_REUSE_PREPARED_NATIVE_RUNTIME: '1'
         run: pnpm exec electron-builder --config config/electron-builder.config.cjs --linux AppImage deb rpm --x64 --publish never
 
       - name: Verify root-package marker payloads
@@ -846,7 +846,7 @@ jobs:
 
       - name: Build package inputs
         env:
-          ORCA_REUSE_WINDOWS_CLI_LAUNCHER: '1'
+          ALICORN_REUSE_WINDOWS_CLI_LAUNCHER: '1'
         run: pnpm run build:release:parallel
 
       - name: Restore compiled Electron native modules
@@ -863,7 +863,7 @@ jobs:
 
       - name: Package unpacked app
         env:
-          ORCA_REUSE_PREPARED_NATIVE_RUNTIME: '1'
+          ALICORN_REUSE_PREPARED_NATIVE_RUNTIME: '1'
         run: pnpm exec electron-builder --config config/electron-builder.config.cjs --dir
 
       - name: Smoke packaged Windows PTY native capability

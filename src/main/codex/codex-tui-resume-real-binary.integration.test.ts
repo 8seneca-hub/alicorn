@@ -113,7 +113,7 @@ describe('real Codex structured-to-TUI resume', () => {
         env: {
           ...process.env,
           CODEX_HOME: codexHome,
-          ORCA_AGENT_LAUNCH_TOKEN: 'real-binary-resume-proof',
+          ALICORN_AGENT_LAUNCH_TOKEN: 'real-binary-resume-proof',
           TERM: 'xterm-256color'
         }
       })

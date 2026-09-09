@@ -60,11 +60,11 @@ export class OrcaRuntimeWithGetStatus extends OrcaRuntimeWithGetRuntimeId {
       (capability) =>
         (capability !== 'browser.screencast.v1' || canBrowse) &&
         // Why: the nested-runtime E2E needs a real legacy transport without maintaining an old binary fixture.
-        (process.env.ORCA_E2E_DISABLE_RUNTIME_SHARED_CONTROL !== '1' ||
+        (process.env.ALICORN_E2E_DISABLE_RUNTIME_SHARED_CONTROL !== '1' ||
           capability !== REMOTE_RUNTIME_SHARED_CONTROL_CAPABILITY) &&
-        (process.env.ORCA_E2E_DISABLE_PAIRED_TERMINAL_PARKING !== '1' ||
+        (process.env.ALICORN_E2E_DISABLE_PAIRED_TERMINAL_PARKING !== '1' ||
           capability !== TERMINAL_PAIRED_PARKING_RUNTIME_CAPABILITY) &&
-        (process.env.ORCA_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY !== '1' ||
+        (process.env.ALICORN_E2E_DISABLE_AUTHORITATIVE_SESSION_TABS_INVENTORY !== '1' ||
           capability !== SESSION_TABS_AUTHORITATIVE_INVENTORY_RUNTIME_CAPABILITY)
     )
     if (hasOffscreen || hasHeadlessCommands) {
@@ -77,7 +77,7 @@ export class OrcaRuntimeWithGetStatus extends OrcaRuntimeWithGetRuntimeId {
       capabilities.push(BROWSER_CERTIFICATE_TRUST_RUNTIME_CAPABILITY)
     }
     // Why the cause and not one fixed sentence: the operator can only act on the reason
-    // that actually applies, and a host that says "set ORCA_BROWSER_EXECUTABLE" to someone
+    // that actually applies, and a host that says "set ALICORN_BROWSER_EXECUTABLE" to someone
     // who already set it sends them to fix a thing that is not broken.
     const cause = canBrowse || hasHeadlessCommands ? null : runtimeBrowserUnavailableCause()
     const degradations: RuntimeDegradation[] = cause

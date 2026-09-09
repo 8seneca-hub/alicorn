@@ -125,7 +125,7 @@ describe('legacy terminal Windows tombstone text', () => {
       // and a legitimate directory containing ! stopped resolving (exit 127). Both on Windows 11.
       expect(cmd).toContain('setlocal DisableDelayedExpansion')
       expect(cmd).not.toContain('\r\nsetlocal\r\n')
-      // Why: a captured ORCA_REAL_* may be relative, and both the existence test and the
+      // Why: a captured ALICORN_REAL_* may be relative, and both the existence test and the
       // invocation resolve it against the cwd.
       expect(cmd).toContain('if defined orca_real call :orca_check_rooted')
       expect(cmd).toContain('if defined orca_real if not defined orca_rooted set "orca_real="')

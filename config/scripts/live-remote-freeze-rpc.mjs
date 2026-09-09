@@ -13,10 +13,10 @@ export function appendOrcaRpcOutput(output, chunk, bytes, limit = MAX_ORCA_RPC_O
 }
 
 export function resolveOrcaCliCommand({ env = process.env, platform = process.platform } = {}) {
-  if (env.ORCA_CLI_COMMAND?.trim()) {
-    return env.ORCA_CLI_COMMAND.trim()
+  if (env.ALICORN_CLI_COMMAND?.trim()) {
+    return env.ALICORN_CLI_COMMAND.trim()
   }
-  if (env.ORCA_DEV_REPO_ROOT) {
+  if (env.ALICORN_DEV_REPO_ROOT) {
     return 'orca-dev'
   }
   return platform === 'linux' ? 'orca-ide' : 'orca'
@@ -31,7 +31,7 @@ export function resolveOrcaCliInvocation({
   const commandName = platform === 'win32' ? path.win32.basename(command).toLowerCase() : command
   if (
     platform === 'win32' &&
-    env.ORCA_DEV_REPO_ROOT &&
+    env.ALICORN_DEV_REPO_ROOT &&
     (commandName === 'orca-dev' || commandName === 'orca-dev.cmd')
   ) {
     const defaultUserDataPath = path.win32.join(
@@ -40,22 +40,22 @@ export function resolveOrcaCliInvocation({
     )
     return {
       command: nodeExecutable,
-      prefixArgs: [path.win32.join(env.ORCA_DEV_REPO_ROOT, 'out', 'cli', 'index.js')],
+      prefixArgs: [path.win32.join(env.ALICORN_DEV_REPO_ROOT, 'out', 'cli', 'index.js')],
       env: {
         ...env,
-        ORCA_USER_DATA_PATH:
-          env.ORCA_USER_DATA_PATH ?? env.ORCA_DEV_USER_DATA_PATH ?? defaultUserDataPath,
-        ORCA_DEV_CLI_INVOCATION: '1',
-        ORCA_APP_EXECUTABLE:
-          env.ORCA_APP_EXECUTABLE ??
+        ALICORN_USER_DATA_PATH:
+          env.ALICORN_USER_DATA_PATH ?? env.ALICORN_DEV_USER_DATA_PATH ?? defaultUserDataPath,
+        ALICORN_DEV_CLI_INVOCATION: '1',
+        ALICORN_APP_EXECUTABLE:
+          env.ALICORN_APP_EXECUTABLE ??
           path.win32.join(
-            env.ORCA_DEV_REPO_ROOT,
+            env.ALICORN_DEV_REPO_ROOT,
             'node_modules',
             'electron',
             'dist',
             'electron.exe'
           ),
-        ORCA_APP_EXECUTABLE_NEEDS_APP_ROOT: '1'
+        ALICORN_APP_EXECUTABLE_NEEDS_APP_ROOT: '1'
       }
     }
   }

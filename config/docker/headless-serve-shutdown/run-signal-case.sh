@@ -2,13 +2,13 @@
 set -euo pipefail
 
 signal_name=${1:?signal name is required}
-app_root=${ORCA_TEST_APP_ROOT:-/artifacts/root}
-signal_target_kind=${ORCA_SIGNAL_TARGET:-app}
-entrypoint_kind=${ORCA_TEST_ENTRYPOINT:-app}
-int_delivery=${ORCA_INT_DELIVERY:-foreground-process-group}
+app_root=${ALICORN_TEST_APP_ROOT:-/artifacts/root}
+signal_target_kind=${ALICORN_SIGNAL_TARGET:-app}
+entrypoint_kind=${ALICORN_TEST_ENTRYPOINT:-app}
+int_delivery=${ALICORN_INT_DELIVERY:-foreground-process-group}
 # Packaged Electron startup can approach 90s on a cold CI runner; leave room
 # for the readiness line to reach the log before the observer deadline.
-startup_timeout_seconds=${ORCA_STARTUP_TIMEOUT_SECONDS:-180}
+startup_timeout_seconds=${ALICORN_STARTUP_TIMEOUT_SECONDS:-180}
 
 if ((EUID == 0)); then
   exec runuser --user orca --preserve-environment -- "$0" "$@"

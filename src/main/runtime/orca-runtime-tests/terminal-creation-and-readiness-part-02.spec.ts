@@ -379,9 +379,9 @@ describe('OrcaRuntimeService', () => {
     expect(spawnCall?.command).toBe("codex '--dangerously-bypass-approvals-and-sandbox'")
     expect(spawnCall?.env).toMatchObject({
       CODEX_PROFILE: 'captured',
-      ORCA_WORKTREE_ID: TEST_WORKTREE_ID
+      ALICORN_WORKTREE_ID: TEST_WORKTREE_ID
     })
-    expect(spawnCall?.env?.ORCA_AGENT_LAUNCH_TOKEN).toMatch(UUID_RE)
+    expect(spawnCall?.env?.ALICORN_AGENT_LAUNCH_TOKEN).toMatch(UUID_RE)
     expect(markCodexProjectTrustedMock).toHaveBeenCalledWith(TEST_WORKTREE_PATH)
     expect(markCodexProjectTrustedMock.mock.invocationCallOrder[0]).toBeLessThan(
       spawn.mock.invocationCallOrder[0]!

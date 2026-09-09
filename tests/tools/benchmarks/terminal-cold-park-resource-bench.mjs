@@ -353,7 +353,7 @@ async function main() {
     fixture = createLocalRepoFixture(args.worktrees)
     const cdpPort = await pickFreePort()
     userDataDir = createShortUserDataDirectory()
-    process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
+    process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
     console.log(
       `[cold-park-res] fixture=${fixture.baseDir} userData=${userDataDir} cdp=${cdpPort} worktrees=${args.worktrees}`
     )

@@ -16,7 +16,7 @@ let uuidIndex = 0
 
 const setupLaunch = {
   runnerScriptPath: '/tmp/setup.sh',
-  envVars: { ORCA_WORKTREE_PATH: '/repo/worktree' }
+  envVars: { ALICORN_WORKTREE_PATH: '/repo/worktree' }
 }
 
 const state = {
@@ -143,7 +143,7 @@ describe('launchWorktreeBackgroundTerminals', () => {
       2,
       expect.objectContaining({
         command: 'bash /tmp/setup.sh',
-        env: expect.objectContaining({ ORCA_WORKTREE_PATH: '/repo/worktree' }),
+        env: expect.objectContaining({ ALICORN_WORKTREE_PATH: '/repo/worktree' }),
         tabId: 'tab-2',
         leafId: '00000000-0000-4000-8000-000000000002'
       })
@@ -237,7 +237,7 @@ describe('launchWorktreeBackgroundTerminals', () => {
       worktreeId: 'wt-1',
       setup: {
         runnerScriptPath: 'C:\\repo\\.git\\worktrees\\wt\\orca\\setup-runner.cmd',
-        envVars: { ORCA_WORKTREE_PATH: 'C:\\repo\\worktree' }
+        envVars: { ALICORN_WORKTREE_PATH: 'C:\\repo\\worktree' }
       }
     })
 
@@ -268,7 +268,7 @@ describe('launchWorktreeBackgroundTerminals', () => {
       setup: {
         runnerScriptPath: 'C:\\repo\\.git\\worktrees\\wt\\orca\\setup-runner.sh',
         shell: { family: 'posix', executable: 'wsl.exe' },
-        envVars: { ORCA_WORKTREE_PATH: 'C:\\repo\\worktree' }
+        envVars: { ALICORN_WORKTREE_PATH: 'C:\\repo\\worktree' }
       }
     })
 

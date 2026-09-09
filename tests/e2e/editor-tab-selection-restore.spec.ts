@@ -54,7 +54,7 @@ test('preserves highlighted editor text across worktree tab switches', async ({
     selectedRange.positionLineNumber,
     selectedRange.positionColumn
   ])
-  if (process.env.ORCA_E2E_RECORD_VIDEO === '1') {
+  if (process.env.ALICORN_E2E_RECORD_VIDEO === '1') {
     await orcaPage.waitForTimeout(700)
   }
 
@@ -72,7 +72,7 @@ test('preserves highlighted editor text across worktree tab switches', async ({
     .poll(() => orcaPage.evaluate(() => window.__monacoEditorE2E?.snapshot().selection ?? null))
     .toEqual(selectedRange)
   await expect(monaco.locator('.selected-text').first()).toBeVisible()
-  if (process.env.ORCA_E2E_RECORD_VIDEO === '1') {
+  if (process.env.ALICORN_E2E_RECORD_VIDEO === '1') {
     await orcaPage.waitForTimeout(700)
   }
 })

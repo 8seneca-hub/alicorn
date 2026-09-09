@@ -75,7 +75,7 @@ describe('foreman preamble sections', () => {
     })
 
     it('names the env var that turns the schema on', () => {
-      expect(text).toContain('ORCA_ALICORN_STRATEGY=orchestrated')
+      expect(text).toContain('ALICORN_ALICORN_STRATEGY=orchestrated')
       expect(text).toContain('--orchestrated')
     })
 

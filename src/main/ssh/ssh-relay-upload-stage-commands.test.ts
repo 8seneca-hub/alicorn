@@ -29,7 +29,7 @@ const posix = getRemoteHostPlatform('linux-x64')
 const windows = getRemoteHostPlatform('win32-x64')
 const owner = '.sftp-namespace-123e4567e89b12d3a456426614174000'
 const roots: string[] = []
-const configuredPowerShell = process.env.ORCA_POWERSHELL_EXECUTABLE
+const configuredPowerShell = process.env.ALICORN_POWERSHELL_EXECUTABLE
 const powerShellExecutable = [
   configuredPowerShell,
   ...(process.platform === 'win32' ? ['pwsh.exe', 'powershell.exe'] : ['pwsh'])

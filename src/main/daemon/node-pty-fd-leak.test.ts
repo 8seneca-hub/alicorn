@@ -30,7 +30,7 @@ async function spawnExitingPty(index: number): Promise<void> {
     cols: 80,
     rows: 24,
     cwd: process.cwd(),
-    env: { ...process.env, ORCA_FD_LEAK_TEST_INDEX: String(index) }
+    env: { ...process.env, ALICORN_FD_LEAK_TEST_INDEX: String(index) }
   })
 
   await new Promise<void>((resolve) => {
@@ -76,7 +76,7 @@ describeOnDarwin('node-pty macOS spawn fd handling', () => {
             cols: 80,
             rows: 24,
             cwd: process.cwd(),
-            env: { ...process.env, ORCA_FD_LEAK_TEST_INDEX: String(i) }
+            env: { ...process.env, ALICORN_FD_LEAK_TEST_INDEX: String(i) }
           })
         ).toThrow(/node-pty: posix_spawn failed: ENOENT/)
       }
@@ -132,7 +132,7 @@ describeOnLinux('node-pty Linux forkpty fd handling', () => {
             cols: 80,
             rows: 24,
             cwd: process.cwd(),
-            env: { ...process.env, ORCA_FD_LEAK_TEST_INDEX: String(i) }
+            env: { ...process.env, ALICORN_FD_LEAK_TEST_INDEX: String(i) }
           })
         )
       }

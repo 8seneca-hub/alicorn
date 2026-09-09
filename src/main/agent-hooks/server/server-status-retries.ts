@@ -48,7 +48,7 @@ export abstract class AgentHookServerStatusRetries extends AgentHookServerStatus
     body: unknown,
     original: EnrichedAgentHookEventPayload
   ): void {
-    // Why: a nested non-codex CLI inherits ORCA_PANE_KEY, so clearing here would silently end a live codex poll.
+    // Why: a nested non-codex CLI inherits ALICORN_PANE_KEY, so clearing here would silently end a live codex poll.
     if (source !== 'codex') {
       return
     }

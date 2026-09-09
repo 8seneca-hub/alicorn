@@ -44,9 +44,9 @@ export function normalizeAgentActivityDisplayMode(value: unknown): AgentActivity
 export const ONBOARDING_FINAL_STEP = 5
 export const ONBOARDING_FLOW_VERSION = 4
 
-export const ORCA_BROWSER_PARTITION = 'persist:orca-browser'
+export const ALICORN_BROWSER_PARTITION = 'persist:orca-browser'
 // Why: inert blank-tab URL shared by main/renderer so the attach policy can allow just this one data URL and reject others.
-export const ORCA_BROWSER_BLANK_URL = 'data:text/html,'
+export const ALICORN_BROWSER_BLANK_URL = 'data:text/html,'
 
 // Why: Electron's invoke error path preserves only message text, so signal reconnect via this stable token.
 export const SSH_TERMINATE_RECONNECT_REQUIRED = 'SSH_TERMINATE_RECONNECT_REQUIRED'

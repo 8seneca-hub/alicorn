@@ -29,7 +29,7 @@ const PARKING_DELAY_MS = 500
 const HISTORICAL_SPLIT_TIMEOUT_MS = 10_000
 
 test.use({
-  orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
+  orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
 })
 
 type CliSplitResponse = {
@@ -129,7 +129,7 @@ async function runParkedSplitCli(
       ],
       {
         cwd: repoRoot,
-        env: { ...process.env, ORCA_DEV_USER_DATA_PATH: userDataDir },
+        env: { ...process.env, ALICORN_DEV_USER_DATA_PATH: userDataDir },
         timeout: HISTORICAL_SPLIT_TIMEOUT_MS + 5_000
       }
     )
@@ -183,8 +183,8 @@ async function expectPaneKeyboardRoundTrip(
   label: string
 ): Promise<void> {
   const nonce = randomUUID().replaceAll('-', '')
-  const marker = `ORCA_PARKED_SPLIT_${label}_${nonce}`
-  const command = `node -e "console.log('ORCA_PARKED_' + 'SPLIT_${label}_${nonce}')"`
+  const marker = `ALICORN_PARKED_SPLIT_${label}_${nonce}`
+  const command = `node -e "console.log('ALICORN_PARKED_' + 'SPLIT_${label}_${nonce}')"`
   const pane = page.locator(
     `[data-terminal-tab-id=${JSON.stringify(tabId)}][data-terminal-layout-leaf-ids] .pane[data-leaf-id=${JSON.stringify(leafId)}]`
   )

@@ -140,13 +140,13 @@ function seedRecipeRepo(repoPath: string, target: DockerSshRelayTarget): string 
     createScript,
     `#!/usr/bin/env bash
 set -euo pipefail
-[ "\${ORCA_RECIPE_RESULT_SCHEMA_VERSION:-}" = 2 ]
-[ -n "\${ORCA_REPO_URL:-}" ]
-[ -n "\${ORCA_REPO_REF:-}" ]
-[ -n "\${ORCA_REPO_REF_HEAD:-}" ]
-[ -n "\${ORCA_REPO_BRANCH:-}" ]
-docker exec ${shellQuote(target.containerName)} git -C ${shellQuote(DOCKER_SSH_RELAY_REMOTE_REPO_PATH)} cat-file -e "$ORCA_REPO_REF_HEAD^{commit}"
-docker exec ${shellQuote(target.containerName)} git -C ${shellQuote(DOCKER_SSH_RELAY_REMOTE_REPO_PATH)} checkout -B "$ORCA_REPO_BRANCH" "$ORCA_REPO_REF_HEAD" >&2
+[ "\${ALICORN_RECIPE_RESULT_SCHEMA_VERSION:-}" = 2 ]
+[ -n "\${ALICORN_REPO_URL:-}" ]
+[ -n "\${ALICORN_REPO_REF:-}" ]
+[ -n "\${ALICORN_REPO_REF_HEAD:-}" ]
+[ -n "\${ALICORN_REPO_BRANCH:-}" ]
+docker exec ${shellQuote(target.containerName)} git -C ${shellQuote(DOCKER_SSH_RELAY_REMOTE_REPO_PATH)} cat-file -e "$ALICORN_REPO_REF_HEAD^{commit}"
+docker exec ${shellQuote(target.containerName)} git -C ${shellQuote(DOCKER_SSH_RELAY_REMOTE_REPO_PATH)} checkout -B "$ALICORN_REPO_BRANCH" "$ALICORN_REPO_REF_HEAD" >&2
 node -e 'console.log(JSON.stringify({schemaVersion:2,checkoutMode:"provisioned-root",connection:{type:"ssh",projectRoot:process.argv[1],target:{label:"Docker provisioned root",host:process.argv[2],port:Number(process.argv[3]),username:"root",identityFile:process.argv[4],identitiesOnly:true}}}))' ${shellQuote(DOCKER_SSH_RELAY_REMOTE_REPO_PATH)} ${shellQuote(target.host)} ${target.port} ${shellQuote(target.identityFile)}
 `
   )

@@ -54,8 +54,8 @@ describe('orcadLaunchCommand', () => {
 
   it('exports the version and the shared data root the deploy decided on', () => {
     const command = orcadLaunchCommand(posix, SPEC)
-    expect(command).toContain(`ORCA_VERSION '${SPEC.fullVersion}'`.replace(' ', '='))
-    expect(command).toContain(`ORCA_USER_DATA='${SPEC.userDataDir}'`)
+    expect(command).toContain(`ALICORN_VERSION '${SPEC.fullVersion}'`.replace(' ', '='))
+    expect(command).toContain(`ALICORN_USER_DATA='${SPEC.userDataDir}'`)
   })
 
   it('declares the Windows refusal instead of emitting a command that cannot work', () => {

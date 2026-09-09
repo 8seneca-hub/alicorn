@@ -68,8 +68,8 @@ beforeEach(async () => {
       args: [FAKE_SIDECAR, ...(spec.args ?? [])],
       env: {
         ...spec.env,
-        ORCA_FAKE_SIDECAR_CONTROL: controlPath,
-        ...(sidecarMode ? { ORCA_FAKE_SIDECAR_MODE: sidecarMode } : {})
+        ALICORN_FAKE_SIDECAR_CONTROL: controlPath,
+        ...(sidecarMode ? { ALICORN_FAKE_SIDECAR_MODE: sidecarMode } : {})
       }
     })
   )
@@ -101,7 +101,7 @@ describe('resolveOrcadBrowserProvider Electron preference', () => {
   it('uses the installed Electron app even when a Chromium executable is configured', async () => {
     provider = await resolveOrcadBrowserProvider({
       userDataPath: join(harnessRoot, 'state'),
-      environment: { ORCA_BROWSER_EXECUTABLE: chromiumExecutable },
+      environment: { ALICORN_BROWSER_EXECUTABLE: chromiumExecutable },
       resolveInstalledElectronExecutable: async () => INSTALLED_EXECUTABLE,
       resolveAgentBrowserBinary: () => '/agent-browser'
     })
@@ -118,7 +118,7 @@ describe('resolveOrcadBrowserProvider Electron preference', () => {
 
     provider = await resolveOrcadBrowserProvider({
       userDataPath: join(harnessRoot, 'state'),
-      environment: { ORCA_BROWSER_EXECUTABLE: chromiumExecutable },
+      environment: { ALICORN_BROWSER_EXECUTABLE: chromiumExecutable },
       resolveInstalledElectronExecutable: async () => INSTALLED_EXECUTABLE,
       resolveAgentBrowserBinary: () => '/agent-browser'
     })

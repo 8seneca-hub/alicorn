@@ -20,10 +20,10 @@ import type { TuiAgent } from '../../../shared/tui-agent'
 import type { PtySubprocessOptions } from '../pty-subprocess'
 
 const PANE_IDENTITY_ENV_KEYS = [
-  'ORCA_PANE_KEY',
-  'ORCA_TAB_ID',
-  'ORCA_WORKTREE_ID',
-  'ORCA_AGENT_LAUNCH_TOKEN'
+  'ALICORN_PANE_KEY',
+  'ALICORN_TAB_ID',
+  'ALICORN_WORKTREE_ID',
+  'ALICORN_AGENT_LAUNCH_TOKEN'
 ] as const
 const WINDOWS_PATH_ENV_KEY_RE = /^path$/i
 
@@ -47,9 +47,9 @@ function deleteRequestedDaemonEnvKeys(
 ): void {
   // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Orca overlay owns it.
   const deleteOrcaOwnedCodexHome =
-    keys?.includes('ORCA_CODEX_HOME') === true &&
-    env.ORCA_CODEX_HOME !== undefined &&
-    env.CODEX_HOME === env.ORCA_CODEX_HOME
+    keys?.includes('ALICORN_CODEX_HOME') === true &&
+    env.ALICORN_CODEX_HOME !== undefined &&
+    env.CODEX_HOME === env.ALICORN_CODEX_HOME
   for (const key of keys ?? []) {
     delete env[key]
   }
@@ -104,7 +104,7 @@ function promoteAgentTeamsShimPath(
   env: Record<string, string>,
   requestedPath: string | undefined
 ): void {
-  if (!env.ORCA_AGENT_TEAMS_TEAM_ID || !requestedPath) {
+  if (!env.ALICORN_AGENT_TEAMS_TEAM_ID || !requestedPath) {
     return
   }
   const normalizedRequestedPath =
@@ -125,9 +125,12 @@ function removeInheritedDevAgentHookEndpoint(
   env: Record<string, string>,
   explicitEnv: Record<string, string> | undefined
 ): void {
-  if (explicitEnv?.ORCA_AGENT_HOOK_ENV === 'development' && !explicitEnv.ORCA_AGENT_HOOK_ENDPOINT) {
+  if (
+    explicitEnv?.ALICORN_AGENT_HOOK_ENV === 'development' &&
+    !explicitEnv.ALICORN_AGENT_HOOK_ENDPOINT
+  ) {
     // Why: strip only stale inherited endpoints; a fresh explicit one is needed by hooks that scrub token-like env vars before exec.
-    delete env.ORCA_AGENT_HOOK_ENDPOINT
+    delete env.ALICORN_AGENT_HOOK_ENDPOINT
   }
 }
 
@@ -137,7 +140,7 @@ export function createDaemonPtyEnvironment(opts: PtySubprocessOptions): Record<s
     TERM: 'xterm-256color',
     COLORTERM: 'truecolor',
     TERM_PROGRAM: 'Orca',
-    TERM_PROGRAM_VERSION: process.env.ORCA_APP_VERSION ?? '0.0.0-dev',
+    TERM_PROGRAM_VERSION: process.env.ALICORN_APP_VERSION ?? '0.0.0-dev',
     FORCE_HYPERLINK: '1'
   } as Record<string, string>
   stripLegacyTerminalShimEnv(env, process.platform)
@@ -153,8 +156,8 @@ export function createDaemonPtyEnvironment(opts: PtySubprocessOptions): Record<s
   if (opts.env?.HISTFILE === undefined) {
     dropInheritedOrcaHistFile(env)
   }
-  if (opts.env?.ORCA_HISTFILE === undefined) {
-    delete env.ORCA_HISTFILE
+  if (opts.env?.ALICORN_HISTFILE === undefined) {
+    delete env.ALICORN_HISTFILE
   }
   removeInheritedDevAgentHookEndpoint(env, opts.env)
   delete env.ELECTRON_RUN_AS_NODE

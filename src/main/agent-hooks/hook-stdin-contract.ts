@@ -34,7 +34,7 @@ export function buildPosixHookSpoolLines(source: string, eventNameVar?: string):
     eventFormat,
     '"paneKey":"%s","tabId":"%s","worktreeId":"%s","env":"%s","version":"%s","launchToken":"%s","source":"%s","receivedAt":%s,"payload":%s}\\n\'',
     eventArg,
-    ' "$(spool_json_escape "${ORCA_PANE_KEY:-}")" "$(spool_json_escape "${ORCA_TAB_ID:-}")" "$(spool_json_escape "${ORCA_WORKTREE_ID:-}")" "$(spool_json_escape "${ORCA_AGENT_HOOK_ENV:-}")" "$(spool_json_escape "${ORCA_AGENT_HOOK_VERSION:-}")" "$(spool_json_escape "${ORCA_AGENT_LAUNCH_TOKEN:-}")" "$(spool_json_escape "',
+    ' "$(spool_json_escape "${ALICORN_PANE_KEY:-}")" "$(spool_json_escape "${ALICORN_TAB_ID:-}")" "$(spool_json_escape "${ALICORN_WORKTREE_ID:-}")" "$(spool_json_escape "${ALICORN_AGENT_HOOK_ENV:-}")" "$(spool_json_escape "${ALICORN_AGENT_HOOK_VERSION:-}")" "$(spool_json_escape "${ALICORN_AGENT_LAUNCH_TOKEN:-}")" "$(spool_json_escape "',
     source,
     '")" "$spool_now" "$payload"; } >> "$spool_file" 2>/dev/null || :'
   )
@@ -43,17 +43,17 @@ export function buildPosixHookSpoolLines(source: string, eventNameVar?: string):
     eventNameVar
       ? `  case "\${${eventNameVar}:-}" in PreToolUse|PostToolUse|PostToolUseFailure) return 0 ;; esac`
       : '  case "$payload" in *\'"PreToolUse"\'*|*\'"PostToolUse"\'*|*\'"PostToolUseFailure"\'*) return 0 ;; esac',
-    '  [ -n "${ORCA_AGENT_HOOK_ENDPOINT:-}" ] || return 0',
+    '  [ -n "${ALICORN_AGENT_HOOK_ENDPOINT:-}" ] || return 0',
     // Why: an endpoint can linger in a parent shell after leaving Orca; without a pane key
     // the record is un-attributable and would accumulate as pane-unknown.jsonl.
-    '  [ -n "${ORCA_PANE_KEY:-}" ] || return 0',
+    '  [ -n "${ALICORN_PANE_KEY:-}" ] || return 0',
     // Why: a stale env var must not create a spool tree for an Orca that is not installed here.
-    '  [ -r "$ORCA_AGENT_HOOK_ENDPOINT" ] || return 0',
-    '  spool_base=${ORCA_AGENT_HOOK_ENDPOINT%/*}',
+    '  [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ] || return 0',
+    '  spool_base=${ALICORN_AGENT_HOOK_ENDPOINT%/*}',
     '  spool_dir="$spool_base/spool"',
     '  mkdir -p "$spool_dir" 2>/dev/null || return 0',
     '  chmod 700 "$spool_dir" 2>/dev/null || :',
-    "  spool_id=$(printf %s \"${ORCA_PANE_KEY:-unknown}\" | tail -c 36 | tr '/:' '__')",
+    "  spool_id=$(printf %s \"${ALICORN_PANE_KEY:-unknown}\" | tail -c 36 | tr '/:' '__')",
     '  spool_file="$spool_dir/pane-$spool_id.jsonl"',
     '  if [ -f "$spool_file" ] && find "$spool_file" -mtime +7 -print -quit 2>/dev/null | grep -q .; then : > "$spool_file"; fi',
     '  [ -f "$spool_file" ] || : > "$spool_file"',
@@ -83,9 +83,9 @@ export const WINDOWS_HOOK_STDIN_DRAIN_COMMAND = `${WINDOWS_HOOK_STDIN_READER} >n
 // surfaces as EPIPE the agent can see (#8110).
 export function buildWindowsHookEnvironmentGuardLines(): string[] {
   return [
-    'if "%ORCA_AGENT_HOOK_PORT%"=="" exit /b 0',
-    'if "%ORCA_AGENT_HOOK_TOKEN%"=="" exit /b 0',
-    'if "%ORCA_PANE_KEY%"=="" exit /b 0'
+    'if "%ALICORN_AGENT_HOOK_PORT%"=="" exit /b 0',
+    'if "%ALICORN_AGENT_HOOK_TOKEN%"=="" exit /b 0',
+    'if "%ALICORN_PANE_KEY%"=="" exit /b 0'
   ]
 }
 

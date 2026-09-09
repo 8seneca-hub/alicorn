@@ -5,8 +5,8 @@ import { buildWslLoginShellCommand, buildWslExecArgs } from '../shared/wsl-login
 import { getLocalWorktreePathAccess } from './local-worktree-filesystem'
 
 const execFileAsync = promisify(execFile)
-const DISTRO = process.env.ORCA_WSL_TEST_DISTRO ?? 'Ubuntu-24.04'
-const runRealWsl = process.platform === 'win32' && process.env.ORCA_REAL_WSL_BANNER_TEST === '1'
+const DISTRO = process.env.ALICORN_WSL_TEST_DISTRO ?? 'Ubuntu-24.04'
+const runRealWsl = process.platform === 'win32' && process.env.ALICORN_REAL_WSL_BANNER_TEST === '1'
 
 const FILE_CONTENTS = 'line one\nline two\n'
 

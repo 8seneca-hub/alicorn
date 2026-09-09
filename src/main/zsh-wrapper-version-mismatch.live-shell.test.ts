@@ -32,18 +32,18 @@ const itWithZsh = hasZsh ? it : it.skip
 
 /** The three files an older build wrote alongside its own `.zshenv`. */
 const OLDER_BUILD_FILES = {
-  '.zprofile': 'export ORCA_TEST_STALE_ZPROFILE=1\n',
-  '.zshrc': 'export ORCA_TEST_STALE_ZSHRC=1\n',
-  '.zlogin': 'export ORCA_TEST_STALE_ZLOGIN=1\n'
+  '.zprofile': 'export ALICORN_TEST_STALE_ZPROFILE=1\n',
+  '.zshrc': 'export ALICORN_TEST_STALE_ZSHRC=1\n',
+  '.zlogin': 'export ALICORN_TEST_STALE_ZLOGIN=1\n'
 }
 
 describe.skipIf(process.platform === 'win32')('zsh wrapper dir written by mixed builds', () => {
   itWithZsh('ignores an older build’s files and loads the user’s config instead', async () => {
     const root = mkdtempSync(join(tmpdir(), 'orca-wrapper-mismatch-'))
     const home = makeZshHome({
-      '.zshenv': 'export ORCA_TEST_USER_ZSHENV=1\n',
-      '.zprofile': 'export ORCA_TEST_USER_ZPROFILE=1\n',
-      '.zshrc': 'export ORCA_TEST_USER_ZSHRC=1\n'
+      '.zshenv': 'export ALICORN_TEST_USER_ZSHENV=1\n',
+      '.zprofile': 'export ALICORN_TEST_USER_ZPROFILE=1\n',
+      '.zshrc': 'export ALICORN_TEST_USER_ZSHRC=1\n'
     })
     try {
       expect(ensureOverlayRestoreWrappers(root)).toBe(true)
@@ -57,26 +57,26 @@ describe.skipIf(process.platform === 'win32')('zsh wrapper dir written by mixed 
           PATH: '/usr/bin:/bin',
           HOME: home,
           ZDOTDIR: zshDir,
-          ORCA_ORIG_ZDOTDIR: home,
-          ORCA_SHELL_FEATURES: 'history',
-          ORCA_HISTFILE: join(home, 'scoped_history')
+          ALICORN_ORIG_ZDOTDIR: home,
+          ALICORN_SHELL_FEATURES: 'history',
+          ALICORN_HISTFILE: join(home, 'scoped_history')
         },
         report: [
-          'ORCA_TEST_USER_ZPROFILE',
-          'ORCA_TEST_USER_ZSHRC',
-          'ORCA_TEST_STALE_ZPROFILE',
-          'ORCA_TEST_STALE_ZSHRC',
-          'ORCA_TEST_STALE_ZLOGIN',
+          'ALICORN_TEST_USER_ZPROFILE',
+          'ALICORN_TEST_USER_ZSHRC',
+          'ALICORN_TEST_STALE_ZPROFILE',
+          'ALICORN_TEST_STALE_ZSHRC',
+          'ALICORN_TEST_STALE_ZLOGIN',
           'HISTFILE'
         ]
       })
 
       // The user's own files loaded; the older build's leftovers did not.
-      expect(values.ORCA_TEST_USER_ZPROFILE).toBe('1')
-      expect(values.ORCA_TEST_USER_ZSHRC).toBe('1')
-      expect(values.ORCA_TEST_STALE_ZPROFILE).toBe('UNSET')
-      expect(values.ORCA_TEST_STALE_ZSHRC).toBe('UNSET')
-      expect(values.ORCA_TEST_STALE_ZLOGIN).toBe('UNSET')
+      expect(values.ALICORN_TEST_USER_ZPROFILE).toBe('1')
+      expect(values.ALICORN_TEST_USER_ZSHRC).toBe('1')
+      expect(values.ALICORN_TEST_STALE_ZPROFILE).toBe('UNSET')
+      expect(values.ALICORN_TEST_STALE_ZSHRC).toBe('UNSET')
+      expect(values.ALICORN_TEST_STALE_ZLOGIN).toBe('UNSET')
       expect(values.HISTFILE).toBe(join(home, 'scoped_history'))
     } finally {
       rmSync(root, { recursive: true, force: true })

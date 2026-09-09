@@ -3,8 +3,14 @@ import { chmodSync, mkdirSync, renameSync, unlinkSync, writeFileSync } from 'nod
 import { join } from 'node:path'
 
 import { sweepStaleAgentHookEndpointTemps } from '../agent-hook-endpoint-temp-cleanup'
+import { withLegacyEnvAliases } from '../alicorn-env-compat'
 
 // ─── Endpoint-file writing ──────────────────────────────────────────
+
+/** `[['ALICORN_X', v]]` → the same pairs followed by their pre-rebrand twins. */
+function withLegacyEnvAliasLines(pairs: readonly [string, string][]): [string, string][] {
+  return Object.entries(withLegacyEnvAliases(Object.fromEntries(pairs)))
+}
 
 export function getEndpointFileName(): string {
   // Why: per-platform extension lets hook scripts source the file natively (POSIX `. "$file"` / Windows `call "%file%"`); the OpenCode plugin regex accepts both shapes.
@@ -35,13 +41,13 @@ export function writeEndpointFile(
   const tmpPath = join(endpointDir, `.endpoint-${process.pid}-${randomUUID()}.tmp`)
   const prefix = process.platform === 'win32' ? 'set ' : ''
   const valuesToWrite: [string, string][] = [
-    ['ORCA_AGENT_HOOK_PORT', String(fields.port)],
-    ['ORCA_AGENT_HOOK_TOKEN', fields.token],
-    ['ORCA_AGENT_HOOK_ENV', fields.env],
-    ['ORCA_AGENT_HOOK_VERSION', fields.version]
+    ['ALICORN_AGENT_HOOK_PORT', String(fields.port)],
+    ['ALICORN_AGENT_HOOK_TOKEN', fields.token],
+    ['ALICORN_AGENT_HOOK_ENV', fields.env],
+    ['ALICORN_AGENT_HOOK_VERSION', fields.version]
   ]
   if (fields.transport) {
-    valuesToWrite.push(['ORCA_AGENT_HOOK_TRANSPORT', fields.transport])
+    valuesToWrite.push(['ALICORN_AGENT_HOOK_TRANSPORT', fields.transport])
   }
   for (const [key, value] of valuesToWrite) {
     if (!isShellSafeEndpointValue(value)) {
@@ -52,7 +58,13 @@ export function writeEndpointFile(
       return false
     }
   }
-  const lines = [...valuesToWrite.map(([key, value]) => `${prefix}${key}=${value}`), '']
+  // Why both spellings: a managed script installed by the previous release sources this file
+  // and reads only the pre-rebrand names. Legacy lines come last so a shell that sources the
+  // file top-to-bottom still ends with both set to the same value.
+  const lines = [
+    ...withLegacyEnvAliasLines(valuesToWrite).map(([key, value]) => `${prefix}${key}=${value}`),
+    ''
+  ]
   let tmpWritten = false
   try {
     // Why: 0o700 owner-only so the dir doesn't leak this install's existence to other local users.

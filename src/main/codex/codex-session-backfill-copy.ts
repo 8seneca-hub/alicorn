@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { copyFile, link, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-const ATOMIC_NO_REPLACE_UNSUPPORTED_CODE = 'ORCA_ATOMIC_NO_REPLACE_UNSUPPORTED'
+const ATOMIC_NO_REPLACE_UNSUPPORTED_CODE = 'ALICORN_ATOMIC_NO_REPLACE_UNSUPPORTED'
 
 export async function copySessionFileWithoutOverwrite(
   sourcePath: string,

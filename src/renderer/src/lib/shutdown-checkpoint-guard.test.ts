@@ -9,8 +9,8 @@ import {
 } from './shutdown-checkpoint-guard'
 import {
   consumeShutdownCheckpointFailureReason,
-  ORCA_RENDERER_SHUTDOWN_CHECKPOINT_FAILED_EVENT,
-  ORCA_RENDERER_UNLOAD_PREVENTED_EVENT
+  ALICORN_RENDERER_SHUTDOWN_CHECKPOINT_FAILED_EVENT,
+  ALICORN_RENDERER_UNLOAD_PREVENTED_EVENT
 } from '../../../shared/renderer-shutdown-events'
 
 describe('createShutdownCheckpointGuard', () => {
@@ -130,7 +130,7 @@ describe('createShutdownCheckpointGuard', () => {
     const guard = createShutdownCheckpointGuard(() => {
       throw new Error('invalid session')
     })
-    eventTarget.addEventListener(ORCA_RENDERER_SHUTDOWN_CHECKPOINT_FAILED_EVENT, failed)
+    eventTarget.addEventListener(ALICORN_RENDERER_SHUTDOWN_CHECKPOINT_FAILED_EVENT, failed)
     eventTarget.addEventListener('beforeunload', createShutdownCheckpointBeforeUnloadHandler(guard))
 
     expect(eventTarget.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false)
@@ -178,7 +178,7 @@ describe('createShutdownCheckpointGuard', () => {
     }
     eventTarget.addEventListener('beforeunload', preventReload)
     eventTarget.addEventListener('beforeunload', createShutdownCheckpointBeforeUnloadHandler(guard))
-    eventTarget.addEventListener(ORCA_RENDERER_UNLOAD_PREVENTED_EVENT, guard.abandonAttempt)
+    eventTarget.addEventListener(ALICORN_RENDERER_UNLOAD_PREVENTED_EVENT, guard.abandonAttempt)
 
     expect(eventTarget.dispatchEvent(new Event('beforeunload', { cancelable: true }))).toBe(false)
     await Promise.resolve()

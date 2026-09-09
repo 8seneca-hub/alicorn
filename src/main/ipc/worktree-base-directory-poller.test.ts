@@ -368,7 +368,7 @@ describe('worktree base directory poller', () => {
   })
 
   it('keeps polling a live window that has never been shown (E2E headless)', () => {
-    // ORCA_E2E_HEADLESS keeps a live BrowserWindow that is never shown; no show/restore
+    // ALICORN_E2E_HEADLESS keeps a live BrowserWindow that is never shown; no show/restore
     // signal is coming to resume a parked poller, so a never-shown window must keep polling.
     const visibility = createWorktreePollerWindowVisibility(() => ({
       isDestroyed: () => false,

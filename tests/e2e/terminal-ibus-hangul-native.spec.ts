@@ -39,14 +39,14 @@ test.use({
 })
 
 function nativeRepetitions(): number {
-  const parsed = Number(process.env.ORCA_E2E_NATIVE_IBUS_REPETITIONS ?? DEFAULT_REPETITIONS)
+  const parsed = Number(process.env.ALICORN_E2E_NATIVE_IBUS_REPETITIONS ?? DEFAULT_REPETITIONS)
   return Number.isInteger(parsed) && parsed > 0
     ? Math.min(parsed, MAX_REPETITIONS)
     : DEFAULT_REPETITIONS
 }
 
 function nativeKeyDelayMs(): number {
-  const parsed = Number(process.env.ORCA_E2E_NATIVE_IBUS_KEY_DELAY_MS ?? DEFAULT_KEY_DELAY_MS)
+  const parsed = Number(process.env.ALICORN_E2E_NATIVE_IBUS_KEY_DELAY_MS ?? DEFAULT_KEY_DELAY_MS)
   return Number.isInteger(parsed) && parsed >= 0
     ? Math.min(parsed, MAX_KEY_DELAY_MS)
     : DEFAULT_KEY_DELAY_MS
@@ -58,7 +58,7 @@ function runXdotool(...args: string[]): void {
 
 async function focusNativeTerminalWindow(page: Page): Promise<string> {
   await focusActiveTerminalInput(page)
-  const title = `ORCA_NATIVE_IBUS_${randomUUID()}`
+  const title = `ALICORN_NATIVE_IBUS_${randomUUID()}`
   await page.evaluate((nextTitle) => {
     document.title = nextTitle
   }, title)
@@ -164,7 +164,7 @@ async function runNativeIbusScenario(
 
 test.describe('Native IBus Hangul terminal input @headful', () => {
   test.skip(
-    process.env.ORCA_E2E_NATIVE_IBUS_HANGUL !== '1',
+    process.env.ALICORN_E2E_NATIVE_IBUS_HANGUL !== '1',
     'Run through config/scripts/run-terminal-ibus-hangul-e2e.mjs'
   )
 

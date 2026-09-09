@@ -59,9 +59,9 @@ describe('createSetupRunnerScript', () => {
       expect(result).toEqual({
         runnerScriptPath: 'C:\\repo\\.git\\worktrees\\feature\\orca\\setup-runner.cmd',
         envVars: expect.objectContaining({
-          ORCA_ROOT_PATH: '/test/repo',
-          ORCA_WORKTREE_PATH: 'C:\\repo\\feature\\',
-          ORCA_WORKSPACE_NAME: 'feature'
+          ALICORN_ROOT_PATH: '/test/repo',
+          ALICORN_WORKTREE_PATH: 'C:\\repo\\feature\\',
+          ALICORN_WORKSPACE_NAME: 'feature'
         }),
         // Why: native Windows worktrees without a configured setup shell keep the cmd runner.
         shell: { family: 'cmd' }
@@ -107,12 +107,12 @@ describe('createSetupRunnerScript', () => {
       expect(result).toEqual({
         runnerScriptPath: 'C:\\repo\\.git\\worktrees\\feature\\orca\\setup-runner.sh',
         envVars: expect.objectContaining({
-          ORCA_ROOT_PATH: '/c/Users/jinwo/git/orca',
-          ORCA_WORKTREE_PATH: '/c/repo/feature',
+          ALICORN_ROOT_PATH: '/c/Users/jinwo/git/orca',
+          ALICORN_WORKTREE_PATH: '/c/repo/feature',
           CONDUCTOR_ROOT_PATH: '/c/Users/jinwo/git/orca',
           GHOSTX_ROOT_PATH: '/c/Users/jinwo/git/orca',
           // Why: a display name, never a path — it must survive the conversion untouched.
-          ORCA_WORKSPACE_NAME: 'feature'
+          ALICORN_WORKSPACE_NAME: 'feature'
         }),
         shell: { family: 'posix' }
       })
@@ -171,8 +171,8 @@ describe('createSetupRunnerScript', () => {
 
       expect(result.envVars).toEqual(
         expect.objectContaining({
-          ORCA_ROOT_PATH: 'C:\\Users\\jinwo\\git\\orca',
-          ORCA_WORKTREE_PATH: 'C:\\repo\\feature'
+          ALICORN_ROOT_PATH: 'C:\\Users\\jinwo\\git\\orca',
+          ALICORN_WORKTREE_PATH: 'C:\\repo\\feature'
         })
       )
     } finally {
@@ -240,7 +240,7 @@ describe('createSetupRunnerScript', () => {
     }
   )
 
-  it('derives ORCA_WORKSPACE_NAME from a POSIX worktree path', async () => {
+  it('derives ALICORN_WORKSPACE_NAME from a POSIX worktree path', async () => {
     const originalPlatform = process.platform
 
     execFileSyncMock.mockReturnValue('/test/repo/.git/worktrees/feature/orca/setup-runner.sh')
@@ -255,8 +255,8 @@ describe('createSetupRunnerScript', () => {
 
       expect(result.envVars).toEqual(
         expect.objectContaining({
-          ORCA_WORKTREE_PATH: '/test/repo-feature',
-          ORCA_WORKSPACE_NAME: 'repo-feature'
+          ALICORN_WORKTREE_PATH: '/test/repo-feature',
+          ALICORN_WORKSPACE_NAME: 'repo-feature'
         })
       )
     } finally {
@@ -292,9 +292,9 @@ describe('createSetupRunnerScript', () => {
         runnerScriptPath:
           '\\\\wsl.localhost\\Ubuntu\\home\\jin\\.git\\worktrees\\feature\\orca\\setup-runner.sh',
         envVars: expect.objectContaining({
-          ORCA_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
-          ORCA_WORKTREE_PATH: '/home/jin/feature',
-          ORCA_WORKSPACE_NAME: 'feature',
+          ALICORN_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
+          ALICORN_WORKTREE_PATH: '/home/jin/feature',
+          ALICORN_WORKSPACE_NAME: 'feature',
           CONDUCTOR_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca',
           GHOSTX_ROOT_PATH: '/mnt/c/Users/jinwo/git/orca'
         })
@@ -338,9 +338,9 @@ describe('createSetupRunnerScript', () => {
         runnerScriptPath:
           '\\\\wsl.localhost\\Ubuntu\\home\\jin\\repo\\.git\\worktrees\\feature\\orca\\setup-runner.sh',
         envVars: expect.objectContaining({
-          ORCA_ROOT_PATH: '/test/repo',
-          ORCA_WORKTREE_PATH: '/home/jin/repo/feature',
-          ORCA_WORKSPACE_NAME: 'feature',
+          ALICORN_ROOT_PATH: '/test/repo',
+          ALICORN_WORKTREE_PATH: '/home/jin/repo/feature',
+          ALICORN_WORKSPACE_NAME: 'feature',
           CONDUCTOR_ROOT_PATH: '/test/repo',
           GHOSTX_ROOT_PATH: '/test/repo'
         })
@@ -396,8 +396,8 @@ describe('createIssueCommandRunnerScript', () => {
       expect(result).toEqual({
         runnerScriptPath: '/test/repo/.git/worktrees/feature/orca/issue-command-runner.sh',
         envVars: expect.objectContaining({
-          ORCA_ROOT_PATH: '/test/repo',
-          ORCA_WORKTREE_PATH: '/test/repo-feature'
+          ALICORN_ROOT_PATH: '/test/repo',
+          ALICORN_WORKTREE_PATH: '/test/repo-feature'
         })
       })
       expect(vi.mocked(fs.writeFileSync)).toHaveBeenCalledWith(

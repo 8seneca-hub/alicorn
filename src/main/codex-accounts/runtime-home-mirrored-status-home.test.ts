@@ -21,11 +21,11 @@ beforeEach(() => {
   testState.home = mkdtempSync(join(tmpdir(), 'orca-codex-status-home-'))
   // Why: the real-home check consults CODEX_HOME and the shell rc, so a
   // developer who exports one would otherwise fail this suite locally.
-  for (const key of ['ORCA_USER_DATA_PATH', 'CODEX_HOME', 'ORCA_CODEX_HOME']) {
+  for (const key of ['ALICORN_USER_DATA_PATH', 'CODEX_HOME', 'ALICORN_CODEX_HOME']) {
     previousEnv[key] = process.env[key]
     delete process.env[key]
   }
-  process.env.ORCA_USER_DATA_PATH = testState.userData
+  process.env.ALICORN_USER_DATA_PATH = testState.userData
   mkdirSync(join(testState.home, '.codex'), { recursive: true })
 })
 

@@ -151,7 +151,7 @@ const shutdown = () => server.close(() => process.exit(0))
 process.on('SIGINT', shutdown)
 process.on('SIGTERM', shutdown)
 server.listen(0, '127.0.0.1', () => {
-  fs.writeFileSync(process.env.ORCA_TEST_LISTENER_STATE, JSON.stringify({
+  fs.writeFileSync(process.env.ALICORN_TEST_LISTENER_STATE, JSON.stringify({
     pid: process.pid,
     port: server.address().port
   }))
@@ -161,7 +161,7 @@ server.listen(0, '127.0.0.1', () => {
           )
 
           launcher = spawn(launcherPath, [], {
-            env: { ...process.env, ORCA_TEST_LISTENER_STATE: statePath },
+            env: { ...process.env, ALICORN_TEST_LISTENER_STATE: statePath },
             stdio: 'ignore'
           })
           const state = await waitForListenerState(statePath)
@@ -269,9 +269,9 @@ node -e 'console.log(JSON.stringify({
   argv: process.argv.slice(1),
   runAsNode: process.env.ELECTRON_RUN_AS_NODE,
   nodeOptions: process.env.NODE_OPTIONS ?? null,
-  orcaNodeOptions: process.env.ORCA_NODE_OPTIONS ?? null,
+  orcaNodeOptions: process.env.ALICORN_NODE_OPTIONS ?? null,
   nodeReplExternalModule: process.env.NODE_REPL_EXTERNAL_MODULE ?? null,
-  orcaNodeReplExternalModule: process.env.ORCA_NODE_REPL_EXTERNAL_MODULE ?? null
+  orcaNodeReplExternalModule: process.env.ALICORN_NODE_REPL_EXTERNAL_MODULE ?? null
 }))' -- "$@"
 `,
         { encoding: 'utf8', mode: 0o755 }
@@ -335,7 +335,7 @@ exit 97
       await writeFile(
         electronPath,
         `#!/usr/bin/env node
-require('node:fs').writeFileSync(process.env.ORCA_TEST_LAUNCH_STATE, JSON.stringify({
+require('node:fs').writeFileSync(process.env.ALICORN_TEST_LAUNCH_STATE, JSON.stringify({
   argv: process.argv.slice(2),
   runAsNode: process.env.ELECTRON_RUN_AS_NODE ?? null
 }))
@@ -344,7 +344,7 @@ require('node:fs').writeFileSync(process.env.ORCA_TEST_LAUNCH_STATE, JSON.string
       )
 
       await execFileAsync(launcherPath, ['serve', '--recipe-json', '--project-root', '/tmp/repo'], {
-        env: { ...process.env, ORCA_TEST_LAUNCH_STATE: statePath }
+        env: { ...process.env, ALICORN_TEST_LAUNCH_STATE: statePath }
       })
       const payload = JSON.parse(await readFile(statePath, 'utf8')) as {
         argv: string[]

@@ -338,8 +338,8 @@
       "commands": [
         "node config/scripts/run-ephemeral-vm-runtime-store-rollback-repro.mjs config/scripts/ephemeral-vm-runtime-store-cross-version.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/ephemeral-vm-runtime-store.test.ts src/shared/ephemeral-vm-runtime-store-rollback.test.ts src/shared/ephemeral-vm-recipe-process.test.ts src/main/ephemeral-vm-runtime-service.test.ts src/main/ephemeral-vm-resume-integrity.test.ts src/main/ephemeral-vm-recipe-runner.test.ts src/main/ephemeral-vm-runtime-ssh-cleanup.test.ts src/main/ipc/ephemeral-vm-runtime-handler-cleanup.test.ts src/main/ipc/ephemeral-vm-provision-cancel.test.ts src/main/ipc/ephemeral-vm-provisioned-root-ref.test.ts src/main/ipc/ephemeral-vm.test.ts src/main/provisioned-root-ssh-adoption.test.ts src/renderer/src/components/settings/EphemeralVmRuntimesSection.test.tsx src/renderer/src/lib/ephemeral-vm-failed-create-cleanup.test.ts src/renderer/src/lib/ephemeral-vm-runtime-cleanup.test.ts src/renderer/src/lib/ephemeral-vm-workspace-target.test.ts src/renderer/src/lib/ephemeral-vm-worktree-creation.test.ts src/renderer/src/lib/provisioned-root-create-options.test.ts src/renderer/src/store/slices/repos-ephemeral-vm-cleanup-retention.test.ts",
-        "ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ephemeral-vm-provisioned-root.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "SKIP_BUILD=1 ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ephemeral-vm-provisioned-root.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ephemeral-vm-provisioned-root.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "SKIP_BUILD=1 ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ephemeral-vm-provisioned-root.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "pnpm exec playwright test tests/e2e/ephemeral-vm-cleanup-retry.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
@@ -493,7 +493,7 @@
           "date": "2026-08-14",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ephemeral-vm-provisioned-root.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ephemeral-vm-provisioned-root.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 22,
           "summary": "The final-tree full-build run completed the Docker Linux SSH journey: default-base create at the captured source commit, provisioned-root adoption, terminal, workspace removal, destroy, and provider-container cleanup."
@@ -559,8 +559,8 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/main/daemon/repro-13767-shell-ready-marker-lost-to-exec.test.ts src/main/daemon/bash-prompt-command-composition.test.ts src/main/line-editor-ready-output-scanner.test.ts src/main/shell-startup-identity-scanner.test.ts src/main/shell-startup-output-scanner.test.ts src/main/shell-prompt-readiness-probe.test.ts src/shared/pty-slave-line-discipline-echo.test.ts src/shared/shell-process-readiness.test.ts src/main/daemon/session.test.ts src/main/daemon/shell-ready.test.ts src/main/providers/local-pty-shell-ready-marker-scan.test.ts src/main/providers/local-pty-shell-ready-startup-command.test.ts src/main/providers/local-pty-shell-ready-wrapper-generation.test.ts src/main/providers/local-pty-provider-shell-readiness.test.ts src/relay/pty-shell-launch.test.ts src/relay/pty-handler-startup-command-delivery.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/daemon/repro-13767-shell-ready-marker-lost-to-exec.test.ts src/main/line-editor-ready-output-scanner.test.ts src/main/shell-startup-identity-scanner.test.ts src/main/shell-startup-output-scanner.test.ts src/main/shell-prompt-readiness-probe.test.ts src/shared/pty-slave-line-discipline-echo.test.ts src/shared/shell-process-readiness.test.ts src/main/daemon/session.test.ts src/main/daemon/shell-ready.test.ts src/main/providers/local-pty-shell-ready-marker-scan.test.ts src/main/providers/local-pty-shell-ready-startup-command.test.ts src/main/providers/local-pty-shell-ready-wrapper-generation.test.ts src/main/providers/local-pty-provider-shell-readiness.test.ts src/relay/pty-shell-launch.test.ts src/relay/pty-handler-startup-command-delivery.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts --maxWorkers=1 src/main/daemon/shell-ready.test.ts src/main/shell-startup-output-scanner.test.ts",
-        "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headless --project electron-headful --workers=1"
+        "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headless --project electron-headful --workers=1"
       ],
       "testFiles": [
         "src/main/daemon/repro-13767-shell-ready-marker-lost-to-exec.test.ts",
@@ -679,7 +679,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "linux",
-          "command": "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 17,
           "summary": "The live OpenSSH/Bash relay journey crossed the bounded compatibility fallback while rc-file exec was blocked, proved one queued command echo with no command execution, then passed a disconnect/reconnect with exact-once startup output/input and stable pane plus owner PTY identities."
@@ -688,7 +688,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headless --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-startup-exec-readiness.spec.ts --config tests/playwright.config.ts --project electron-headless --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 14,
           "summary": "The shared oracle passed a headed desktop owner plus paired web client and an isolated headless orca serve owner plus paired web client."
@@ -1024,7 +1024,7 @@
       "oracle": "Pause a real ssh2 SFTP relay.js write after one remotely acknowledged chunk, prove the remote file is partial, abort the live transfer, and require no shared .install-lock, leaked local descriptor, or foreign-process termination. Separately inject two unconfirmed cancellations, require an independent deployment to install, launch, answer relay RPC, and read a real repository HEAD. Keep a fresh install lock on the current POSIX or Windows boot and require takeover to fail; replace its bounded identity with a prior-boot value and race concurrent recoverers, requiring exactly one atomic winner, a current successor identity, and no tombstone residue; omit the marker and require the legacy lock to remain fenced. Replace one retained fixed slot with an old-mtime same-owner directory while preserving the original, add a fixed-slot POSIX symlink, and require installed-path recovery to skip both while reclaiming a valid stale slot behind them. Add 15,197 unrelated relay-shaped names and run the real version GC, requiring bounded stdout and no removal. Unit and wire contracts cover exact POSIX and native PowerShell 0/1/7/8/9+ quota behavior, no-follow identity fencing, payload symlink/reparse rejection, one-item repeated draining, zero lock acquisition before upload settlement, joined transfer/channel teardown including never-settling failures, SFTP redirection, package.json namespace ownership, promotion only after the lock, cross-version isolation, and system-SSH behavior.",
       "commands": [
         "node config/scripts/run-ssh-staged-upload-reliability.mjs --powershell <PowerShell-7.6.4-executable> src/main/ssh/sftp-upload.test.ts src/main/ssh/ssh-file-transfer-abort.test.ts src/main/ssh/ssh-relay-deploy-staged-upload.test.ts src/main/ssh/ssh-relay-native-deps-install-staged-upload.test.ts src/main/ssh/ssh-relay-sftp-namespace-install.test.ts src/main/ssh/ssh-relay-install-namespace.test.ts src/main/ssh/ssh-relay-upload-stage-commands.test.ts src/main/ssh/sftp-namespace-resolution.test.ts src/main/ssh/ssh-connection-sftp-wire.test.ts src/main/ssh/ssh-remote-commands.test.ts src/main/ssh/ssh-relay-cross-version-isolation.test.ts",
-        "ORCA_REVIEW_SSH_UPLOAD_CANCEL=1 ORCA_REVIEW_SSH_TARGET_HOST=<non-loopback-host> ORCA_REVIEW_SSH_IMAGE=<throwaway-sshd-image> ORCA_REVIEW_EXPECT_RECOVERY=1 pnpm exec vitest run --config config/vitest.config.ts src/main/ssh/ssh-relay-upload-cancel.docker.test.ts --maxWorkers=1 --reporter=verbose"
+        "ALICORN_REVIEW_SSH_UPLOAD_CANCEL=1 ALICORN_REVIEW_SSH_TARGET_HOST=<non-loopback-host> ALICORN_REVIEW_SSH_IMAGE=<throwaway-sshd-image> ALICORN_REVIEW_EXPECT_RECOVERY=1 pnpm exec vitest run --config config/vitest.config.ts src/main/ssh/ssh-relay-upload-cancel.docker.test.ts --maxWorkers=1 --reporter=verbose"
       ],
       "testFiles": [
         "src/main/ssh/sftp-upload.test.ts",
@@ -1114,7 +1114,7 @@
           "date": "2026-07-31",
           "runner": "local",
           "platform": "linux",
-          "command": "ORCA_REVIEW_SSH_UPLOAD_CANCEL=1 ORCA_REVIEW_SSH_TARGET_HOST=<non-loopback-host> ORCA_REVIEW_SSH_IMAGE=<throwaway-sshd-image> ORCA_REVIEW_EXPECT_RECOVERY=1 pnpm exec vitest run --config config/vitest.config.ts src/main/ssh/ssh-relay-upload-cancel.docker.test.ts --maxWorkers=1 --reporter=verbose",
+          "command": "ALICORN_REVIEW_SSH_UPLOAD_CANCEL=1 ALICORN_REVIEW_SSH_TARGET_HOST=<non-loopback-host> ALICORN_REVIEW_SSH_IMAGE=<throwaway-sshd-image> ALICORN_REVIEW_EXPECT_RECOVERY=1 pnpm exec vitest run --config config/vitest.config.ts src/main/ssh/ssh-relay-upload-cancel.docker.test.ts --maxWorkers=1 --reporter=verbose",
           "result": "passed",
           "durationSeconds": 12.58,
           "summary": "A throwaway linux-arm64 Docker sshd acknowledged 65,536 of 837,401 relay.js bytes before live abort with no shared lock and preserved the foreign sleep sentinel. Two injected unconfirmed stages remained pre-lock; retry launched the relay, answered RPC, and read a real Git HEAD. Installed recovery preserved a same-owner identity-mismatched replacement, its original, a POSIX symlink, and its foreign target while draining one valid stale slot behind them. Real version GC retained all 15,197 unrelated names, emitted 25 bytes, and completed in 25 ms."
@@ -1693,10 +1693,10 @@
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/worktree-base-directory-event-filter.test.ts src/main/ipc/worktree-base-directory-watcher.test.ts src/main/ipc/worktree-base-directory-poller.test.ts src/main/ipc/worktree-head-identity-reader.test.ts src/renderer/src/hooks/worktree-head-identity-apply.test.ts src/renderer/src/components/right-sidebar/git-status-push-signal-refresh.test.ts src/renderer/src/hooks/useIpcEvents-browser-tab-create.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/watched-worktree-catalog-notification.test.ts src/main/runtime/external-worktree-paired-client-discovery.integration.test.ts src/main/window/attach-main-window-services.test.ts",
-        "ORCA_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-external-worktree-discovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "ALICORN_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-external-worktree-discovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/repos-remote.test.ts src/main/ssh/ssh-connection-generation.test.ts src/main/ssh/ssh-provider-authority.test.ts --reporter=dot",
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/direct-ssh-reconnect-telemetry-schema.test.ts src/renderer/src/lib/direct-ssh-reconnect-product-telemetry.test.ts src/renderer/src/hooks/direct-ssh-worktree-refresh-scheduler.test.ts src/renderer/src/hooks/direct-ssh-reconnect-coordinator.test.ts src/renderer/src/hooks/useIpcEvents-agent-status-ssh-authority.test.ts --reporter=dot",
-        "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+        "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
         "src/main/ipc/worktree-base-directory-event-filter.test.ts",
@@ -1907,7 +1907,7 @@
           "date": "2026-07-27",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 66,
           "summary": "Four Electron Docker SSH tests passed: two typing/performance paths, one concurrent file/Git load path, and exact-authority disconnect/reconnect with a container-visible remote proof file."
@@ -1925,7 +1925,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-external-worktree-discovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-external-worktree-discovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 17.96,
           "summary": "One forced-visible paired Electron test passed: real Git inventory, matching visible host/client rows, and one unchanged main-process shared-control transport epoch during convergence."
@@ -2721,7 +2721,7 @@
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/terminal-runtime-host-link-routing.test.ts src/renderer/src/components/terminal-pane/terminal-link-action-routing.test.ts src/renderer/src/components/terminal-pane/terminal-link-open-hints.test.ts src/renderer/src/lib/http-link-routing.test.ts src/renderer/src/lib/http-link-modifier-routing.test.ts src/renderer/src/lib/workspace-browser-tab-open.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/terminal-runtime-host-link-routing.test.ts src/renderer/src/components/terminal-pane/terminal-link-action-routing.test.ts src/renderer/src/lib/workspace-browser-tab-open.test.ts",
-        "ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-browser-link.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+        "ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-browser-link.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
         "src/renderer/src/components/terminal-pane/terminal-runtime-host-link-routing.test.ts",
@@ -2781,7 +2781,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-browser-link.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-browser-link.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 32.9,
           "summary": "Candidate created one host browser and one client mirror with matching page identity, rendered the fixture, activated on an explicit tab click, made zero client external-browser calls, converged both inventories after exact UI close, and delivered fresh output on the original remote PTY."
@@ -2790,7 +2790,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-browser-link.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-browser-link.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "failed",
           "durationSeconds": 53,
           "summary": "The byte-identical final Electron oracle failed at its exact host/client identity barrier when the sole source delta replaced src/renderer/src/store/index.ts registration lines 110-113 with registerRuntimeHttpLinkBrowserOpener(null); no host-owned browser appeared within the deterministic 60-second bound."
@@ -2884,16 +2884,16 @@
         // The convergence journey with real clicks and typing: chip → address bar → URL converts in
         // place, Back returns across the conversion, a typed path converts a runtime-owned tab, the
         // dropdown's doc row dedupe-activates. Caught the remote-pane routing gap before it shipped.
-        "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-preview-address-bar-convergence.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=list",
-        "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
-        "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
+        "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-preview-address-bar-convergence.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=list",
+        "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+        "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
         // The changed-spec e2e job's own command, which is the only Linux run this gate has.
         "npx playwright test --config tests/playwright.config.ts --project=electron-headless tests/e2e/paired-remote-html-preview-local-render.spec.ts --workers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/orca-runtime-browser.test.ts src/renderer/src/runtime/web-runtime-session.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/orca-runtime.test.ts src/main/runtime/orca-runtime-browser.test.ts src/renderer/src/hooks/useIpcEvents-browser-tab-create.test.ts src/renderer/src/hooks/useIpcEvents-close-routing-browser-pages.test.ts src/renderer/src/hooks/useIpcEvents-close-routing-session-tabs.test.ts src/renderer/src/store/slices/browser.test.ts src/renderer/src/runtime/web-runtime-session.test.ts",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-browser-create-navigation-deadline.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "SKIP_BUILD=1 ORCA_E2E_FORCE_HEADFUL=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
-        "SKIP_BUILD=1 ORCA_E2E_FORCE_HEADFUL=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line"
+        "SKIP_BUILD=1 ALICORN_E2E_FORCE_HEADFUL=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
+        "SKIP_BUILD=1 ALICORN_E2E_FORCE_HEADFUL=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line"
       ],
       "testFiles": [
         "src/main/runtime/orca-runtime-browser.test.ts",
@@ -3265,7 +3265,7 @@
           "date": "2026-08-27",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 186,
           "summary": "The rewritten journey passed 2/2. The first test proves the inverted claim: the client gains exactly one browser workspace and it is the document one — page and tab url blank, the document path mirrored onto both, the tab named by the document's own title, the chip still naming the file, no editor row of the retired preview species — while the host's page registry and tab snapshot both stay at their pre-action content. Both host oracles carry a presence precondition in the same run: an ordinary URL browser tab this client opens does arrive in browser.tabList and in session.tabs.list, and leaves both again when it is closed, so the preview's absence is a decision rather than an oracle that cannot see browser pages. The document still reaches nothing on its own (zero ICE candidates, unattended and post-press egress both swallowed), and the one route out still works: a real press on a target=_blank anchor routes exactly one call and opens a tab while the preview stays open. The second test quits the client with a document tab open and relaunches it on the same profile: the same workspace row comes back blank and named by the document, renders again, and does so over a grant URL that differs from the one that was quit."
@@ -3274,7 +3274,7 @@
           "date": "2026-08-27",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "failed",
           "durationSeconds": 108,
           "summary": "Candidate with the sole delta that the preview action also opens an ordinary browser tab through the runtime — what it did before STA-5557 — failed at the client-workspace count, 2 against the 1 the claim allows. It dies there rather than at the host oracle, so it proves the exactly-one-workspace half; the host half has no single line to mutate, since a document page never calls the runtime at all, and is protected instead by the presence precondition recorded above."
@@ -3283,7 +3283,7 @@
           "date": "2026-08-27",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "failed",
           "durationSeconds": 190,
           "summary": "Candidate with the sole delta that the workspace row stops mirroring the document its active page shows failed in both tests on workspaceDocFilePath, null against the document path — the tab entry would go on naming nothing while the page it renders is a document. Two earlier mutants survived and are reported as ill-posed rather than as blind spots: flipping the mobile publish filter changes what this desktop publishes to its own phone clients, not what a paired client puts on its host, and flipping the document mirror in the workspace constructor is repaired on the next state write by the active-page mirror, which is the line the mutant above hits."
@@ -3292,7 +3292,7 @@
           "date": "2026-08-27",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "failed",
           "durationSeconds": 195,
           "summary": "Candidate with the sole delta that the preview pane does not hand focus to its guest — the tree as it stood before this change — failed at the target=_blank press: six real presses reached the anchor, the embedder had the webview as its active element, and main's own log answered each report with registered true, grant live, focused false. This is the gap the rewrite found: since previews became browser pages they had no chrome to pass focus on, so the one route out of a preview was shut."
@@ -3418,7 +3418,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 23.1,
           "summary": "The journey passed 1/1 on the candidate that requires the guest to be bound to a grant before any navigation is allowed, rather than admitting an unbound one. The document still rendered and the target=_blank press still routed out, which is the half that would break if the renderer-set src reached will-navigate: it does not, because that load is browser-initiated, so the permissive branch it was written for is unreachable."
@@ -3436,7 +3436,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
           "result": "passed",
           "durationSeconds": 72,
           "summary": "The journey passed 3/3 on the trusted-click candidate, which removed the recent-input gate, made both navigation sinks deny-only, dropped the webview's allowpopups attribute and gave the preview guest its own pinned preload. The fixture now also attempts a window.open and location.href from inside a pointerdown handler, so the egress rides a press the reader really made: it reported 'attempted' every run while both browser counts stayed at that phase's baseline and nothing routed, and the later real press on the target=_blank link still opened exactly one Orca browser tab with the preview still open."
@@ -3445,7 +3445,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "failed",
           "durationSeconds": 26.9,
           "summary": "Candidate with the sole delta that the navigation sinks route again behind a two-second recent-input gate failed on clientBrowserWorkspaceCountAllWorktrees 1 versus baseline 0: the document's location.href, run from inside the handler for the reader's press on the heading, opened a real browser tab. That is the case the earlier design could not distinguish from the press's own effect, and it is why the sinks route nothing at all now. The same run still refused the unattended on-load egress, so this measures the new half specifically."
@@ -3472,7 +3472,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 22.8,
           "summary": "The journey passed 1/1 with the fixture document now attempting its own egress on every load: an unattended window.open and location.href to an off-machine URL, and an ICE gathering probe. Both browser counts held at baseline and the probe reported candidates=0, while the document still rendered and the later real target=_blank press still routed out as an Orca browser tab."
@@ -3481,7 +3481,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "failed",
           "durationSeconds": 23.6,
           "summary": "Candidate with the sole delta that the preview guest no longer receives the disable_non_proxied_udp IP-handling policy failed on candidates=6 versus 0, proving the document can gather ICE — including a STUN reflexive candidate against an off-machine server in the standalone probe — whenever that one main-process call is missing."
@@ -3490,7 +3490,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
           "result": "passed",
           "durationSeconds": 66,
           "summary": "The journey passed 3/3 again under --repeat-each=3 on the candidate that clears grants on every fresh shell document and gates the mint channel on the trusted renderer, so neither change disturbs a live preview: the document still rendered, both browser counts held at baseline, and the target=_blank press still routed out as an Orca browser tab."
@@ -3499,7 +3499,7 @@
           "date": "2026-08-26",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-remote-html-preview-local-render.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line --repeat-each=3",
           "result": "passed",
           "durationSeconds": 59.7,
           "summary": "The renamed journey passed 3/3 under --repeat-each=3 on the hardened candidate: the host document rendered in the orca-preview guest, both browser counts held at baseline through the split, focus, reactivation and close phases, and the final phase's real target=_blank press routed out as an Orca browser tab with the routing call recorded as opened while the preview tab stayed open."
@@ -3508,7 +3508,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_FORCE_HEADFUL=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_FORCE_HEADFUL=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 18.3,
           "summary": "The full headed spec passed 2/2. A visible desktop host and separate paired Electron client proved both reconciliation rollback and capability rejection with a failure toast and exact host/client browser, group, editor, and terminal inventory restoration."
@@ -3517,7 +3517,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_FORCE_HEADFUL=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_FORCE_HEADFUL=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 9.1,
           "summary": "The full isolated headless-serve journey passed 1/1, applying both reconciliation and capability faults to the same live host while preserving the visible-toast and exact inventory-restoration oracle."
@@ -3535,7 +3535,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_FORCE_HEADFUL=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_FORCE_HEADFUL=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 24.3,
           "summary": "A visible desktop host and separate paired Electron client held one exact host page before client materialization, forced the post-create timeout, then proved exact host rollback, empty-split removal, failure UI, no local fallback, and surviving editor and terminal."
@@ -3544,7 +3544,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_FORCE_HEADFUL=1 ORCA_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_FORCE_HEADFUL=1 ALICORN_E2E_FORWARD_APP_LOGS=1 pnpm exec playwright test tests/e2e/paired-browser-creation-reconciliation-failure.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 18.5,
           "summary": "The same exact-page hold, timeout, rollback, client cleanup, no-fallback, editor, and terminal oracle passed against isolated headless serve."
@@ -3669,7 +3669,7 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/main/browser/browser-client-network-route-registry.test.ts src/main/browser/paired-runtime-browser-client-host-composition.test.ts src/main/browser/paired-runtime-browser-client-host-registry.test.ts src/main/browser/paired-runtime-browser-client-host-runtime.test.ts src/main/browser/browser-client-page-command-executor.test.ts src/main/browser/browser-session-startup.test.ts src/main/ipc/runtime-environments-subscription-teardown.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/browser-host-command-ledger.test.ts src/main/runtime/browser-host-command-ledger-capacity.test.ts src/main/runtime/browser-host-lease-registry.test.ts src/main/runtime/rpc/methods/browser-client-host.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/browser-host-lease-registry.test.ts src/main/browser/browser-network-deferred-socket.test.ts src/main/browser/browser-network-execution-route.test.ts src/main/browser/paired-runtime-browser-network-route.test.ts src/main/runtime/rpc/methods/browser-network-tunnel.test.ts src/main/browser/ssh-browser-network-execution-route.test.ts src/main/browser/system-ssh-socks-client-socket.test.ts src/main/ssh/system-ssh-dynamic-forward-process.test.ts src/shared/browser-client-host-protocol.test.ts src/shared/browser-network-capabilities.test.ts src/main/ssh/system-ssh-forward-process.test.ts src/main/ssh/ssh-system-fallback.test.ts src/main/ssh/ssh-port-forward.test.ts",
-        "ORCA_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts"
+        "ALICORN_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts"
       ],
       "testFiles": [
         "src/main/browser/browser-route-webcontents-registry.test.ts",
@@ -4387,7 +4387,7 @@
           "date": "2026-08-14",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
+          "command": "ALICORN_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
           "result": "passed",
           "durationSeconds": 1.3,
           "summary": "Two tests passed: an ephemeral Linux sshd resolved remote-only.internal and returned the sta-4150-remote-only HTTP marker over real ssh2 forwardOut and one real system-OpenSSH dynamic forward; the ssh2 route also fenced on authority invalidation."
@@ -4961,10 +4961,10 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/runtime/web-runtime-session-browser-client-placement.test.ts src/renderer/src/runtime/web-runtime-session-browser-create-failure.test.ts src/main/runtime/orca-runtime-browser-client-hosted.test.ts src/main/runtime/runtime-browser-client-page-creation.test.ts src/main/runtime/browser-host-page-reconciliation-orchestration.test.ts src/main/runtime/browser-host-command-ledger.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/browser-client-host-protocol.test.ts src/shared/remote-runtime-client.test.ts src/main/runtime/browser-host-capability-selection.test.ts src/main/runtime/rpc/methods/browser-tab-create-schema.test.ts src/main/ipc/runtime-environment-browser-client-host-handler.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts tests/e2e/cross-version-wire/cross-version-browser-placement.unit.test.ts",
-        "SKIP_BUILD=1 ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Orca.app/Contents/MacOS/Orca pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "SKIP_BUILD=1 ALICORN_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Orca.app/Contents/MacOS/Orca pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/browser-network-tunnel-paired-runtime.integration.test.ts src/main/browser/paired-runtime-browser-network-route.test.ts src/main/browser/browser-network-execution-route.test.ts src/main/browser/wsl-browser-network-execution-route.test.ts src/main/browser/wsl-browser-network-relay-launch.test.ts src/main/runtime/runtime-browser-network-execution-host.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/browser/browser-screencast-lifecycle.test.ts src/main/browser/browser-screencast-stream.test.ts src/main/runtime/orca-runtime-browser-screencast-fanout.test.ts",
-        "ORCA_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
+        "ALICORN_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
         "Manual iOS 26.5 simulator: pair current mobile code to packaged Orca 1.4.184; create Browser; navigate to https://example.com; require one visible Example Domain tab on the server-hosted surface"
       ],
       "testFiles": [
@@ -5070,7 +5070,7 @@
           "date": "2026-08-16",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Orca.app/Contents/MacOS/Orca pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "SKIP_BUILD=1 ALICORN_CROSS_VERSION_PACKAGED_EXECUTABLE=/Applications/Orca.app/Contents/MacOS/Orca pnpm exec playwright test tests/e2e/packaged-mixed-version-browser-placement.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 10.3,
           "summary": "Two packaged v1.4.184 skew journeys passed four times (9.6, 10.3, 9.5, and 10.3 seconds), including after the latest-main rebase: old client to current host and current client to old host each selected server placement, owned one host guest and zero client guests, and returned packaged-skew-marker through browser.snapshot."
@@ -5079,7 +5079,7 @@
           "date": "2026-08-16",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
+          "command": "ALICORN_RUN_DOCKER_SSH_BROWSER_E2E=1 pnpm exec vitest run --config config/vitest.config.ts tests/e2e/ssh-browser-network-execution-route.docker.unit.test.ts",
           "result": "passed",
           "durationSeconds": 3.31,
           "summary": "Two real Docker/OpenSSH routes resolved and loaded a container-only HTTP target through ssh2 and system SSH."
@@ -5758,13 +5758,13 @@
         // Historical evidence record retained so its nine-file command remains auditable.
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/terminal-pane-split-with-inherited-cwd.test.ts src/renderer/src/lib/pane-manager/pane-split-close.test.ts src/renderer/src/components/terminal-pane/resolve-split-cwd.test.ts src/renderer/src/components/terminal-pane/pty-connection-split-cwd-resolution.test.ts src/renderer/src/components/terminal-pane/terminal-pane-tab-detach.test.ts src/renderer/src/components/terminal-pane/pty-preconnect-input-buffer.test.ts src/renderer/src/components/terminal-pane/pty-transport-input-write.test.ts src/renderer/src/components/terminal-pane/deferred-split-pane-handoff.test.ts tests/e2e/terminal-split-activation-latency-artifact.unit.test.ts --reporter=dot",
         // Historical schema-v1 evidence records only; their labels do not verify the checkout or harness.
-        "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1 ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2 ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1 ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2 ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
         // Exact-HEAD schema-v1 evidence records use the committed harness but predate revision metadata.
-        "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-current ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-run2 ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-current ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-run2 ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
         // Schema-v2 evidence embeds the exact checkout identity and clean/dirty state.
-        "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-073e6c7b0eb-headful-clean ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-073e6c7b0eb-headful-clean.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1"
+        "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-073e6c7b0eb-headful-clean ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-073e6c7b0eb-headful-clean.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1"
       ],
       "testFiles": [
         "src/renderer/src/components/terminal-pane/terminal-pane-split-with-inherited-cwd.test.ts",
@@ -5933,7 +5933,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1 ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1 ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-baseline-df14d1a2983d8339e788d0e521f1c4affd9c6d5f-headful-run1.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "durationSeconds": 72,
           "summary": "At baseline df14d1a2983d8339e788d0e521f1c4affd9c6d5f, the visible BrowserWindow and document completed 3/3 warmups followed by 20/20 measured cold-CWD cycles with every event present, distinct child PTYs, and observed child exits. Shortcut-to-focus p50/p95/max was 65.7/88.7/102.6 ms, PTY bind was 122.8/154.0/159.7 ms, and first echo was 203.8/264.2/332.7 ms. Artifact SHA-256: 6d860cd0cd210f55f2349a197318248af488042117b20c08b6831160950c3277."
         },
@@ -5942,7 +5942,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2 ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2 ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-candidate-d453ffcdb704764daced1b2917fddee7224389f0-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "durationSeconds": 72,
           "summary": "At candidate d453ffcdb704764daced1b2917fddee7224389f0, the visible BrowserWindow and document completed 3/3 warmups followed by 20/20 measured cold-CWD cycles with every event present, distinct child PTYs, and observed child exits. Shortcut-to-focus p50/p95/max was 12.8/14.4/16.5 ms, PTY bind was 177.0/316.1/333.3 ms, and first echo was 268.6/627.4/710.7 ms. Artifact SHA-256: 9aef7fa842c732eb74f0066a77b2a0336e8f956a06ca61387f9999d6e76213cc."
         },
@@ -5951,7 +5951,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-current ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-current ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "durationSeconds": 72,
           "summary": "At exact HEAD 962faacec8c, the visible BrowserWindow and document completed 3/3 warmups followed by 20/20 measured cold-CWD cycles with every event present, distinct child PTYs, and observed child exits. Shortcut-to-focus p50/p95/max was 12.6/13.7/13.7 ms, PTY bind was 140.5/399.1/464.1 ms, and first echo was 192.0/519.3/2343.1 ms. Artifact SHA-256: 875e9d37dc711472a81438e4bbdbc8cbc7aada8c961d14195c024d8da350b9e2."
         },
@@ -5960,7 +5960,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-run2 ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-962faacec8c-headful-run2 ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-962faacec8c-headful-run2.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "durationSeconds": 72,
           "summary": "At exact HEAD 962faacec8c, the visible BrowserWindow and document completed 3/3 warmups followed by 20/20 measured cold-CWD cycles with every event present, distinct child PTYs, and observed child exits. Shortcut-to-focus p50/p95/max was 12.8/14.0/14.3 ms, PTY bind was 236.5/654.0/687.3 ms, and first echo was 566.8/1191.5/1219.7 ms. Artifact SHA-256: 4f66b93e5c936ade05f880010f4ec027385d5c89893430169af91c7fdfbe1d06."
         },
@@ -5969,7 +5969,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_TERMINAL_SPLIT_LATENCY_BENCH=1 ORCA_TERMINAL_SPLIT_LATENCY_LABEL=candidate-073e6c7b0eb-headful-clean ORCA_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-073e6c7b0eb-headful-clean.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_TERMINAL_SPLIT_LATENCY_BENCH=1 ALICORN_TERMINAL_SPLIT_LATENCY_LABEL=candidate-073e6c7b0eb-headful-clean ALICORN_TERMINAL_SPLIT_LATENCY_OUTPUT=/private/tmp/orca-terminal-split-activation-073e6c7b0eb-headful-clean.json pnpm exec playwright test tests/e2e/terminal-split-activation-latency.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "durationSeconds": 87.6,
           "summary": "At exact clean HEAD 073e6c7b0eb1c0ccbb115db1528b641901997c73, the schema-v2 artifact records dirty=false, a visible BrowserWindow/document, and 3/3 warmups plus 20/20 measured cycles with every missing-event counter at zero, distinct child PTYs, and observed child exits. Measured focus p50/p95/max was 12.0/13.6/14.7 ms; attributed CWD lookup was 40/97/103 ms, CWD-settle to spawn request 1/4/4 ms, spawn request to result 48/120/122 ms, and spawn result to bind 2.1/2.5/2.5 ms. Fixture unlock request to IPC write was 0.5/0.8/0.9 ms, IPC write to fixture-ready parse was 35.1/87.4/141.8 ms, and input to first echo was 1.3/3.5/3.9 ms. Total shortcut-to-bind was 113.5/161.3/162.7 ms and shortcut-to-first-echo was 158.5/240.7/291.2 ms. Artifact SHA-256: 1e7ff9e658b717056273d64ecdf662cc6b5776bb6dae1827ed213b7647e4a5fb."
         }
@@ -6659,7 +6659,7 @@
         "https://github.com/stablyai/orca/pull/17128"
       ],
       "invariant": "A fresh local renderer terminal spawn may recover from a saved startup cwd whose directory no longer exists only by spawning at the selected workspace root and printing a generic in-terminal notice; existing directories — including ones outside the worktree (#7685) — spawn as requested, and reattach, SSH, remote-runtime, runtime/API, and mobile callers keep exact cwd semantics. A long-lived POSIX shell whose cwd inode was deleted and replaced may run a wrapped OMP command from the live path named by its logical PWD only in a subshell; the parent shell cwd, OMP argv, status extension, and exit status remain unchanged, while a genuinely unavailable path fails visibly without invoking OMP. A usable physical cwd remains authoritative when PWD is unset or names a removed logical symlink instead of being remapped to a workspace fallback.",
-      "oracle": "The shared resolver falls back to the workspace root only when the injected existence probe reports the resolved cwd missing and the workspace root present, and never probes floating terminals or a cwd equal to the root. The renderer sends cwdFallback only for fresh local IPC spawns, main honors it only when connectionId and sessionId are absent, WSL UNC paths never engage the probe-based fallback, main returns fallback metadata only after an actual fallback, the IPC transport preserves that metadata, and the connection layer writes a generic notice that omits the missing path. In real interactive Bash and Zsh PTYs, unset PWD and remove a logical symlink while the physical cwd stays usable, requiring OMP to remain there; then delete and recreate the active project path, require extension-enabled and extension-skipping invocations to observe the replacement inode with byte-exact argv and nonzero status preserved, require the parent shell to remain on the stale inode, unset PWD and require recovery through ORCA_WORKTREE_PATH, clear every logical fallback and require an actionable failure without invoking OMP, and finally delete the replacement and require the same for the missing PWD path.",
+      "oracle": "The shared resolver falls back to the workspace root only when the injected existence probe reports the resolved cwd missing and the workspace root present, and never probes floating terminals or a cwd equal to the root. The renderer sends cwdFallback only for fresh local IPC spawns, main honors it only when connectionId and sessionId are absent, WSL UNC paths never engage the probe-based fallback, main returns fallback metadata only after an actual fallback, the IPC transport preserves that metadata, and the connection layer writes a generic notice that omits the missing path. In real interactive Bash and Zsh PTYs, unset PWD and remove a logical symlink while the physical cwd stays usable, requiring OMP to remain there; then delete and recreate the active project path, require extension-enabled and extension-skipping invocations to observe the replacement inode with byte-exact argv and nonzero status preserved, require the parent shell to remain on the stale inode, unset PWD and require recovery through ALICORN_WORKTREE_PATH, clear every logical fallback and require an actionable failure without invoking OMP, and finally delete the replacement and require the same for the missing PWD path.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/shared/terminal-startup-cwd.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/pty-spawn-cwd-fallback.test.ts src/main/ipc/pty-wsl-cwd-validation.test.ts",
@@ -6722,10 +6722,10 @@
           "file": "src/main/pty/omp-shell-wrapper.node-pty.test.ts",
           "assertions": [
             "real Bash and Zsh PTYs rebind OMP to a recreated cwd inode without changing the parent shell",
-            "an unset PWD with a usable cwd stays unset and does not remap OMP to ORCA_WORKTREE_PATH",
+            "an unset PWD with a usable cwd stays unset and does not remap OMP to ALICORN_WORKTREE_PATH",
             "a removed logical symlink does not invalidate its still-usable physical cwd",
             "extension-skipping commands such as omp --version still recover the cwd without gaining extension argv",
-            "an unset PWD on a stale inode recovers through ORCA_WORKTREE_PATH",
+            "an unset PWD on a stale inode recovers through ALICORN_WORKTREE_PATH",
             "an unset PWD on a stale inode without a logical fallback fails visibly before invoking OMP",
             "extension argv and a nonzero OMP exit status survive the recovery subshell",
             "a subsequently missing logical cwd prints an actionable error and does not invoke OMP again"
@@ -7354,7 +7354,7 @@
         "node --check config/scripts/remote-agent-session-process-cleanup.mjs && node config/scripts/remote-agent-session-authority-repro.mjs",
         "pnpm exec electron-vite build --mode e2e",
         "VITE_EXPOSE_STORE=true pnpm run build:web",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/remote-agent-session-focus-authority.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/remote-agent-session-focus-authority.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
         "Manual headed paired-server journey: isolated Orca desktop host + separate paired web client + real Codex process + 20-second WebSocket fault + reconnect + explicit stop",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/orca-runtime.test.ts src/main/runtime/terminal-orphan-owner.test.ts src/main/runtime/terminal-orphan-topology.test.ts src/renderer/src/runtime/web-session-terminal-orphan-recovery.test.ts src/renderer/src/runtime/web-session-terminal-orphan-mixed-version.test.ts src/renderer/src/runtime/web-session-tabs-sync.test.ts --maxWorkers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/providers/pty-process-inspection.test.ts src/main/daemon/terminal-host.test.ts src/main/daemon/daemon-pty-router.test.ts src/main/daemon/degraded-daemon-pty-provider.test.ts src/relay/pty-handler-spawn-admission.test.ts src/main/daemon/daemon-pty-adapter.test.ts src/main/runtime/orca-runtime.test.ts tests/e2e/remote-agent-completion-authority.unit.test.ts src/renderer/src/runtime/runtime-terminal-inspection.test.ts src/renderer/src/components/terminal-pane/agent-completion-coordinator-process-cadence.test.ts src/renderer/src/components/terminal-pane/agent-completion-coordinator-pending-title-inspection.test.ts",
@@ -7589,7 +7589,7 @@
           "date": "2026-07-23",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/remote-agent-session-focus-authority.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/remote-agent-session-focus-authority.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 5.8,
           "summary": "After fresh Electron E2E and exposed-store web builds, the isolated headed desktop host plus separate paired web client passed fresh/resume activate true/false, exact non-tail legacy placement in host/mirror/DOM, host focus isolation, requester-only exact focus, writable agent and unrelated shell markers, unrelated survival, and terminal/tab/PTY/process cleanup."
@@ -7724,8 +7724,8 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/sidebar/AddProjectFromFolderDialog.test.tsx src/renderer/src/components/sidebar/NonGitFolderDialog.test.tsx src/renderer/src/components/sidebar/AddRepoDialog.default-checkout.test.ts src/renderer/src/components/sidebar/AddRepoSteps.default-checkout.test.ts src/renderer/src/components/sidebar/project-added-default-checkout.test.ts src/renderer/src/components/sidebar/useAddRepoLocalFolderFlow.test.ts src/renderer/src/components/sidebar/useAddRepoNestedImportFlow.test.ts src/renderer/src/components/sidebar/useAddRepoServerPathFlow.test.ts src/renderer/src/components/sidebar/useAddRepoCloneFlow.test.ts src/renderer/src/components/sidebar/useCreateRepo.default-checkout.test.ts src/renderer/src/components/sidebar/worktree-list/listing/host-filtering.test.ts src/renderer/src/lib/resolved-worktree-execution-host.test.ts src/renderer/src/lib/worktree-runtime-owner.test.ts src/renderer/src/store/selectors.test.ts src/renderer/src/store/slices/repos-all-hosts-folder-workspaces.test.ts src/renderer/src/store/slices/repos-project-groups.test.ts src/renderer/src/store/slices/repos-selected-owner-routing.test.ts src/renderer/src/store/slices/selected-host-active-workspace-identity.test.ts src/renderer/src/store/slices/worktrees-fetch-owner-routing.test.ts src/renderer/src/runtime/web-runtime-session.test.ts --maxWorkers=1",
         "pnpm run ensure:electron-runtime && npx playwright test tests/e2e/pr11346-selected-runtime-add.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
         "pnpm run ensure:electron-runtime && npx playwright test tests/e2e/pr11346-selected-runtime-add.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
-        "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
-        "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line"
+        "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
+        "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line"
       ],
       "testFiles": [
         "src/main/ipc/settings.test.ts",
@@ -7917,7 +7917,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 12.3,
           "summary": "A real paired web client against a visible desktop host kept the sole blocked and unavailable runtime listed but non-selectable, with Browse, Clone, and Create disabled and no local host fallback."
@@ -7926,7 +7926,7 @@
           "date": "2026-08-12",
           "runner": "local",
           "platform": "macos",
-          "command": "SKIP_BUILD=1 ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
+          "command": "SKIP_BUILD=1 ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_FORCE_HEADFUL=1 pnpm exec playwright test tests/e2e/paired-web-add-project-unavailable-host.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --reporter=line",
           "result": "passed",
           "durationSeconds": 5.8,
           "summary": "The same present-but-blocked and present-but-unavailable Add Project action oracle passed against isolated headless serve."
@@ -8617,7 +8617,7 @@
       "oracle": "Resolve the launched instance's real main PID from inside Electron, force-kill only that PID, require it to die, require one command-line-scoped daemon PID and the stamped interactive shell PID to remain live, relaunch with persisted state, require the daemon PID to remain identical, read the exact shell PID and a per-shell environment sentinel back through the exact restored tab, then require a successful Windows Application event-log query with zero matching pwsh FailFast events across the full crash-to-input window.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts config/scripts/win-crash-survival-e2e.test.mjs",
-        "node tests/tools/win-crash-survival-e2e/run.mjs --expect survival --exe-path \"$env:ORCA_EXE\" --soak-seconds 8"
+        "node tests/tools/win-crash-survival-e2e/run.mjs --expect survival --exe-path \"$env:ALICORN_EXE\" --soak-seconds 8"
       ],
       "testFiles": [
         "config/scripts/win-crash-survival-e2e.test.mjs",
@@ -8647,7 +8647,7 @@
           "date": "2026-07-18",
           "runner": "ci",
           "platform": "windows",
-          "command": "node tests/tools/win-crash-survival-e2e/run.mjs --expect survival --exe-path \"$env:ORCA_EXE\" --soak-seconds 8",
+          "command": "node tests/tools/win-crash-survival-e2e/run.mjs --expect survival --exe-path \"$env:ALICORN_EXE\" --soak-seconds 8",
           "result": "passed",
           "durationSeconds": 61,
           "summary": "The packaged branch build's real main died; the same daemon and shell PIDs survived; the event-log scan found zero FailFast events; relaunch adopted the unchanged daemon; and terminal input read the survivor shell sentinel back."
@@ -8935,16 +8935,16 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/runtime/remote-runtime-terminal-parse-backpressure.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ipc/pty-ipc-hidden-delivery-gate.test.ts",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-host-restart-background-sync.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-host-restart-background-sync.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --repeat-each=10 --max-failures=1",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-host-restart-background-sync.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --repeat-each=10 --max-failures=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-lossy-initial-snapshot.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_DISABLE_PAIRED_TERMINAL_PARKING=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-probe-gap-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_DISABLE_PAIRED_TERMINAL_PARKING=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-probe-gap-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-parked-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1"
       ],
       "testFiles": [
@@ -9256,7 +9256,7 @@
           "date": "2026-08-10",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 27.6,
           "summary": "The isolated headed desktop host and separate encrypted paired client drove 180 timed decorative real-PTY titles across six hidden worktrees and observed exactly 12 semantic transport envelopes and 12 production store title mutations, then reduced six managers to one, stayed within heap/cell/timer budgets, restored the bounded host tail exactly, and continued input/output while the host renderer retained zero target managers."
@@ -9265,7 +9265,7 @@
           "date": "2026-08-10",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 33.9,
           "summary": "The isolated headless `orca serve` host passed the same six-worktree real-title transport/store bound, parking, and exact-restoration oracle; a second scenario proved cold activation mounted only the visible paired terminal."
@@ -9301,7 +9301,7 @@
           "date": "2026-08-07",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-host-restart-background-sync.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --repeat-each=10 --max-failures=1",
+          "command": "ALICORN_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-host-restart-background-sync.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --repeat-each=10 --max-failures=1",
           "result": "passed",
           "durationSeconds": 126,
           "summary": "Ten consecutive isolated host-relaunch journeys preserved the daemon and PTY identities and resumed terminal input plus live output after the paired transport recovered."
@@ -9328,7 +9328,7 @@
           "date": "2026-08-02",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 13.7,
           "summary": "The isolated headed desktop host and encrypted paired web client kept hidden renderer work bounded, ordinary-parked five of six real PTYs, restored the authoritative tail once, preserved PTY identity, and resumed live input/output."
@@ -9337,7 +9337,7 @@
           "date": "2026-08-02",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 31.4,
           "summary": "Both isolated headless `orca serve` scenarios passed: ordinary parking restored authoritative history and cold activation mounted only the visible paired terminal."
@@ -9346,7 +9346,7 @@
           "date": "2026-07-30",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-probe-gap-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-probe-gap-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 17.3,
           "summary": "The headed paired oracle dropped and acknowledged output only for the original client stream, proved the fixture consumed input while the host model advanced and the client stayed stale, then replaced the stream, repainted exact fixture output, preserved authoritative PTY identity and target-tab cardinality, and resumed live I/O."
@@ -9364,7 +9364,7 @@
           "date": "2026-07-29",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 11.4,
           "summary": "The headed paired-server scenario painted a truncated retained history after reload; the capability-disabled legacy fallback scenario is skipped unless explicitly selected."
@@ -9373,7 +9373,7 @@
           "date": "2026-07-29",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 18,
           "summary": "The byte-identical headed oracle exhausted one paired stream, proved host/client divergence, then repainted the marker while preserving the original PTY and tab."
@@ -9382,7 +9382,7 @@
           "date": "2026-07-29",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 14.5,
           "summary": "Six real paired worktrees and host PTYs ordinary-parked five client xterms with the lossy budget disabled, released at least 55% of staged cells within heap and timer-lag budgets, then restored requested row 4,000, parked-time output, and live I/O on the original PTY while every target terminal remained unmounted in the host renderer."
@@ -9391,7 +9391,7 @@
           "date": "2026-07-29",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-stall-recovery.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 14.4,
           "summary": "An isolated `orca serve` host and paired web renderer exhausted one terminal stream, recovered it, and preserved the original PTY and tab without exposing readiness or pairing material."
@@ -9400,7 +9400,7 @@
           "date": "2026-07-30",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/headless-paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 23,
           "summary": "The isolated headless `orca serve` host passed ordinary parking plus cold activation: deferred tabs stayed unmounted until activation, preserved PTY identity and parked output, and resumed live input."
@@ -9409,7 +9409,7 @@
           "date": "2026-07-29",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 ORCA_E2E_DISABLE_PAIRED_TERMINAL_PARKING=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 ALICORN_E2E_DISABLE_PAIRED_TERMINAL_PARKING=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-truncated-tail-first-paint.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 18.6,
           "summary": "A host without terminal.paired-parking.v1 preserved the existing lossy limit-one fallback, restored retained output, and continued PTY input/output."
@@ -9427,7 +9427,7 @@
           "date": "2026-07-30",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_WEB_CLIENT=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-retention-memory.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 17.5,
           "summary": "The headed six-PTY oracle kept all warm-mounted hidden streams at zero renderer scheduler enqueues/drains under sustained output and under 500 ms timer lag, then restored the authoritative flood tail and parked/live markers exactly once."
@@ -9760,11 +9760,11 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/main/ssh/ssh-relay-session.test.ts src/main/ssh/ssh-relay-session-data-delivery.test.ts src/main/ssh/ssh-relay-session-reconnect-incarnation.test.ts src/main/ssh/ssh-relay-deploy.test.ts src/relay/ssh-pty-consumer-session-adapter.test.ts src/main/persistence-ssh-targets-and-pane-keys.test.ts --reporter=dot",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/providers/ssh-pty-notification-routing.test.ts src/main/providers/ssh-pty-provider-reattach-incarnation.test.ts src/relay/relay-pty-source-recovery-interleavings.test.ts src/main/ssh/ssh-relay-deploy.test.ts src/main/ssh/ssh-relay-session-data-delivery.test.ts --reporter=dot",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/agent-hooks/wsl-hook-relay-sentinel.test.ts --reporter=dot",
-        "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         // Historical evidence commands; the override is ignored after the always-on transition.
-        "ORCA_E2E_SSH_DOCKER=1 ORCA_SSH_PTY_SOURCE_CREDIT_V1=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_SSH_DOCKER=1 ORCA_SSH_PTY_SOURCE_CREDIT_V1=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+        "ALICORN_E2E_SSH_DOCKER=1 ALICORN_SSH_PTY_SOURCE_CREDIT_V1=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "ALICORN_E2E_SSH_DOCKER=1 ALICORN_SSH_PTY_SOURCE_CREDIT_V1=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
         "src/main/ipc/pty-renderer-inflight-credit.test.ts",
@@ -10257,7 +10257,7 @@
           "date": "2026-07-28",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 ORCA_SSH_PTY_SOURCE_CREDIT_V1=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 ALICORN_SSH_PTY_SOURCE_CREDIT_V1=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 60,
           "summary": "All four deployed Linux relay/direct-SSH cases passed after an exact-current E2E rebuild at code commit 5611bb45b51a/tree 8e85c3afedec: main bundle SHA-256 cbaf4e997d74bbe0ae1179bc20e52b122c60f0b56ee49ca607e12ae4125a4342 and Linux-x64 relay SHA-256 a7438fc47c4da0223ceaafab621086e14b6cdee427f53a3bf2e710fa99bcf2e6. Direct typing was 3.7/109.1 ms median/worst, ACK-stalled typing was 5.1/109.7 ms at exactly 262,144 held source units, fixed-size filesystem/Git churn was 144.9/153.2 ms with 104 bulk reads, and owner-lease reconnect completed in 15.8 seconds."
@@ -10266,7 +10266,7 @@
           "date": "2026-07-28",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 ORCA_SSH_PTY_SOURCE_CREDIT_V1=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 ALICORN_SSH_PTY_SOURCE_CREDIT_V1=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 60,
           "summary": "Four post-rebase Docker OpenSSH/deployed-relay tests passed: direct typing median/worst 107.7/113.6 ms, stalled-ACK typing 3.6/107.3 ms at an exact 262,144-source-unit plateau, fixed-size filesystem/Git churn 148.1/161.1 ms with 93 bulk reads, and terminal owner-lease reconnect in 15.7 seconds."
@@ -10275,7 +10275,7 @@
           "date": "2026-07-29",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 56.7,
           "summary": "All four always-on deployed Linux relay/direct-SSH cases passed after rebuilding at current-main merge commit adba3410fe4427ceb7525f3fdce2ec58973263a7/tree e43d87340666ca3a733bdb38007c24f95be3f219: main bundle SHA-256 3c304ffc0618520e42bede9a52f72d4b7bb68cbfe543974f89e82a3c477c44b3 and Linux-x64 relay SHA-256 366cb7ccf2e4b388cc6f81a8f6055ab9fde57d2d91381767005c15908832e776. Direct typing was 5.3/108.9 ms median/worst, ACK-stalled typing was 4.8/107.6 ms at exactly 262,144 held source units, fixed-size filesystem/Git churn was 152.0/173.3 ms with 84 bulk reads, and owner-lease reconnect completed in 14.3 seconds; no paired-runtime topology was exercised."
@@ -10553,7 +10553,7 @@
         "pnpm exec electron-vite build --mode e2e",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/pty-snapshot-capability-main-stall.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1 --repeat-each=3",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-cold-activation-deferral.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+        "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
         "src/preload/pty-snapshot-capability-ipc.test.ts",
@@ -10684,8 +10684,8 @@
         "pnpm run build:web-from-renderer",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/paired-remote-terminal-materialization-reconnect.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-cold-activation-deferral.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+        "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+        "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
         "src/main/providers/ssh-pty-provider-reattach-incarnation.test.ts",
@@ -11206,7 +11206,7 @@
           "date": "2026-07-14",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 128,
           "summary": "Six focused files and 475 tests passed; the local cold-activation journey passed; the Docker/Linux SSH journey restored six of six original relay PTYs, mounted six of six managers without parking, and executed remote input through the restored terminal."
@@ -11260,7 +11260,7 @@
           "date": "2026-07-28",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-docker-relay-perf.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 51.4,
           "summary": "Four Electron Docker SSH tests passed on the final implementation, including exact-authority repo/worktree hydration, two concurrent immutable file streams under Git churn, live terminal input before and after disconnect/reconnect, and an independent container-visible remote proof file."
@@ -11269,7 +11269,7 @@
           "date": "2026-07-28",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-cold-activation-restore.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 12.5,
           "summary": "One Electron journey passed on the final implementation after exact-authority hydration; six restored SSH terminal managers remounted after renderer reload and remote input reached the Linux target."
@@ -11992,7 +11992,7 @@
           "command": "pnpm run test:e2e -- tests/e2e/chinese-ime-chat-input-repro.spec.ts",
           "result": "passed",
           "durationSeconds": 72.0,
-          "summary": "Electron/CDP IME repro passed: Sogou candidate selection, post-composition candidate selection, and existing Chinese IME harness passed; real Codex IME test was skipped behind ORCA_E2E_REAL_CODEX_IME."
+          "summary": "Electron/CDP IME repro passed: Sogou candidate selection, post-composition candidate selection, and existing Chinese IME harness passed; real Codex IME test was skipped behind ALICORN_E2E_REAL_CODEX_IME."
         }
       ],
       "runtimeBudget": {
@@ -12373,7 +12373,7 @@
         "If both Windows process-enumeration backends remain unavailable through the bounded ladder, routing fails closed to the legacy Esc+CR path; no live Droid artifact covers that degraded host configuration.",
         "Protocol v21 restarts older daemons because the minimal persisted launchAgent is a new contract; sessions preserved by pre-v21 daemons cannot supply warm-reattach launch ownership and fail closed until current process confirmation or restart.",
         "No live daemon, WSL, remote-runtime, paired-web, or restore/replay byte artifact has been collected; SSH is covered only by a macOS-client-to-Linux-host relay run.",
-        "A running PTY keeps its spawn-time ORCA_PANE_KEY after pane-to-tab detach. This change transfers launch/process routing evidence and retires the stale hook snapshot, but does not redesign future hook reattribution across tab IDs."
+        "A running PTY keeps its spawn-time ALICORN_PANE_KEY after pane-to-tab detach. This change transfers launch/process routing evidence and retires the stale hook snapshot, but does not redesign future hook reattribution across tab IDs."
       ],
       "demotionRule": "Keep non-blocking or demote to protection none if the Windows byte test silently skips, flakes without an actionable artifact, routes bytes using tab/title/terminal-output heuristics, or adds any ordinary-key lookup, IPC, polling, scan, or lifecycle leak."
     },
@@ -14358,7 +14358,7 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-batching.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-query-reply-immediate.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-transport-input-coalescing.test.ts",
         "pnpm exec playwright test tests/e2e/terminal-osc-color-queries.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
         "pnpm exec playwright test tests/e2e/terminal-typing-latency.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+        "ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
         "src/renderer/src/components/terminal-pane/pty-input-write-queue.test.ts",
@@ -14483,7 +14483,7 @@
           "date": "2026-08-09",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 36.8,
           "summary": "A real Linux process behind Docker OpenSSH emitted an OSC 10 query and observed xterm's synthetic RGB reply after it traversed the live renderer queue, Electron IPC, SSH provider, and relay PTY."
@@ -14492,7 +14492,7 @@
           "date": "2026-08-14",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test tests/e2e/pty-input-write-queue-ssh.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "result": "passed",
           "durationSeconds": 36.9,
           "summary": "Run with SKIP_BUILD=1 against the existing e2e bundle. Both Docker OpenSSH Electron tests passed: the live OSC query returned its RGB reply, and an upstream-node-pty Linux ARM64 relay without echoState kept OSC/DA1 bytes out of the next fish 4.8.1 child's stdin."
@@ -14691,7 +14691,7 @@
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/rpc/terminal-multiplex-snapshot-serialization.test.ts src/main/runtime/rpc/terminal-multiplex-ack-output-budget.test.ts src/main/runtime/rpc/terminal-multiplex-ack-overflow-recovery.test.ts src/main/runtime/rpc/terminal-multiplex-pty-wait-capacity.test.ts src/main/runtime/rpc/terminal-multiplex-output-pause-and-viewport.test.ts --maxWorkers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/rpc/terminal-subscribe-buffer.test.ts src/main/runtime/rpc/terminal-output-batching.test.ts src/main/runtime/rpc/terminal-multiplex-snapshot-serialization.test.ts src/main/runtime/rpc/terminal-multiplex-ack-output-budget.test.ts src/main/runtime/rpc/terminal-multiplex-ack-overflow-recovery.test.ts src/main/runtime/rpc/terminal-multiplex-pty-wait-capacity.test.ts src/main/runtime/rpc/terminal-multiplex-output-pause-and-viewport.test.ts",
         "pnpm exec vitest run --config config/vitest.config.ts src/main/runtime/rpc/terminal-subscribe-buffer.test.ts src/main/runtime/rpc/terminal-output-batching.test.ts src/main/runtime/rpc/terminal-multiplex-snapshot-serialization.test.ts src/main/runtime/rpc/terminal-multiplex-ack-output-budget.test.ts src/main/runtime/rpc/terminal-multiplex-ack-overflow-recovery.test.ts src/main/runtime/rpc/terminal-multiplex-pty-wait-capacity.test.ts src/main/runtime/rpc/terminal-multiplex-output-pause-and-viewport.test.ts src/renderer/src/components/terminal-pane/pty-connection-hidden-output-restore.test.ts src/renderer/src/components/terminal-pane/remote-runtime-pty-transport-stream-reconnect.test.ts src/renderer/src/components/terminal-pane/terminal-pty-ack-gate.test.ts src/renderer/src/lib/pane-manager/terminal-delivery-credit.test.ts src/renderer/src/runtime/remote-runtime-terminal-parse-backpressure.test.ts src/renderer/src/runtime/runtime-terminal-stream.test.ts --maxWorkers=1",
-        "ORCA_TERMINAL_PERF_BENCH=1 pnpm exec vitest run --config config/vitest.config.ts --disableConsoleIntercept src/main/runtime/rpc/terminal-multiplex-flow-control.bench.test.ts",
+        "ALICORN_TERMINAL_PERF_BENCH=1 pnpm exec vitest run --config config/vitest.config.ts --disableConsoleIntercept src/main/runtime/rpc/terminal-multiplex-flow-control.bench.test.ts",
         "pnpm --dir mobile exec vitest run --root .. mobile/src/session/mobile-native-chat-terminal-stream.test.ts",
         "pnpm --dir mobile exec vitest run --root .. mobile/src/session/use-mobile-native-chat-terminal-stream.test.ts"
       ],
@@ -14845,7 +14845,7 @@
           "date": "2026-07-22",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_TERMINAL_PERF_BENCH=1 pnpm exec vitest run --config config/vitest.config.ts --disableConsoleIntercept src/main/runtime/rpc/terminal-multiplex-flow-control.bench.test.ts",
+          "command": "ALICORN_TERMINAL_PERF_BENCH=1 pnpm exec vitest run --config config/vitest.config.ts --disableConsoleIntercept src/main/runtime/rpc/terminal-multiplex-flow-control.bench.test.ts",
           "result": "passed",
           "durationSeconds": 0.91,
           "summary": "The 1/20/100 ms RTT x 1/4/8 viewer matrix stayed at or below 8 MiB in flight with zero completion spread. At 100 ms it modeled 18.8 MiB/s per viewer for 1-4 viewers and 9.7 MiB/s for 8 viewers. Measured @xterm/headless parsing was 26.7/63.6/95.3 aggregate MiB/s for 1/4/8 viewers, with 84.4/236.5/336.0 ms CPU and 2893/13409/28991 KiB retained heap for 4 MiB per viewer."
@@ -15260,7 +15260,7 @@
       "commands": [
         "pnpm run ensure:electron-runtime && pnpm exec playwright test tests/e2e/terminal-reveal-paused-render-repro.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/pty-connection-hidden-backlog-snapshot.test.ts src/renderer/src/components/terminal-pane/terminal-visibility-resume.test.ts src/renderer/src/components/terminal-pane/use-terminal-window-wake-recovery.test.ts src/renderer/src/lib/pane-manager/pane-manager-registry.test.ts src/renderer/src/lib/pane-manager/pane-webgl-renderer.test.ts src/renderer/src/lib/pane-manager/terminal-canvas-dpr-repair.test.ts src/renderer/src/lib/pane-manager/terminal-render-pause-release.test.ts",
-        "ORCA_E2E_RECORD_VIDEO=1 pnpm exec playwright test tests/e2e/terminal-reveal-paused-render-repro.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --repeat-each=3"
+        "ALICORN_E2E_RECORD_VIDEO=1 pnpm exec playwright test tests/e2e/terminal-reveal-paused-render-repro.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --repeat-each=3"
       ],
       "testFiles": [
         "src/renderer/src/components/terminal-pane/pty-connection-hidden-backlog-snapshot.test.ts",
@@ -15319,7 +15319,7 @@
           "date": "2026-08-22",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_RECORD_VIDEO=1 pnpm exec playwright test tests/e2e/terminal-reveal-paused-render-repro.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --repeat-each=3",
+          "command": "ALICORN_E2E_RECORD_VIDEO=1 pnpm exec playwright test tests/e2e/terminal-reveal-paused-render-repro.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1 --repeat-each=3",
           "result": "passed",
           "durationSeconds": 48,
           "summary": "Three consecutive headed real-WebGL runs passed in 15.0-15.7 seconds each and emitted a 1920x1080 video per BrowserWindow."
@@ -16499,8 +16499,8 @@
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/hooks/useIpcEvents-agent-status-ssh-authority.test.ts src/main/ssh/ssh-port-forward.test.ts src/main/ssh/system-ssh-forward-process.test.ts src/main/ipc/ssh.test.ts src/main/ssh/ssh-relay-session.test.ts tests/e2e/helpers/ssh-port-forward-snapshot-barrier.unit.test.ts --reporter=dot",
         "pnpm exec electron-vite build --mode e2e",
-        "ORCA_E2E_SSH_DOCKER=1 ORCA_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
-        "ORCA_E2E_SSH_DOCKER=1 ORCA_SSH_FORCE_SYSTEM_TRANSPORT=1 ORCA_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1"
+        "ALICORN_E2E_SSH_DOCKER=1 ALICORN_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+        "ALICORN_E2E_SSH_DOCKER=1 ALICORN_SSH_FORCE_SYSTEM_TRANSPORT=1 ALICORN_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1"
       ],
       "testFiles": [
         "src/renderer/src/hooks/useIpcEvents-agent-status-ssh-authority.test.ts",
@@ -16562,7 +16562,7 @@
           "date": "2026-07-30",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 ORCA_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 ALICORN_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 53.7,
           "summary": "Headed Electron passed against a real Docker sshd over ssh2 after forcing the stale startup-snapshot race and exact renderer-continuation barrier, with two remote listeners, scan refresh, in-place relay and full transport reconnect restoration, collision rejection, explicit removal, independent state inventories, HTTP responses, process identity, and no live forward-close warning."
@@ -16571,7 +16571,7 @@
           "date": "2026-07-30",
           "runner": "local",
           "platform": "macos",
-          "command": "ORCA_E2E_SSH_DOCKER=1 ORCA_SSH_FORCE_SYSTEM_TRANSPORT=1 ORCA_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
+          "command": "ALICORN_E2E_SSH_DOCKER=1 ALICORN_SSH_FORCE_SYSTEM_TRANSPORT=1 ALICORN_E2E_FORWARD_APP_LOGS=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/ssh-port-forward-lifecycle.spec.ts --config tests/playwright.config.ts --project electron-headful --workers=1",
           "result": "passed",
           "durationSeconds": 66,
           "summary": "The identical stale-snapshot and headed lifecycle passed through forced system OpenSSH, with a wrapper marker proving the -L forward process executed; in-place relay and full transport reconnects restored both intents, no unexpected forward close was captured before assertions, and intentional removal completed."
@@ -16698,7 +16698,7 @@
         "Only the terminal stream is covered; session tabs, agent sessions, file/Git RPCs, mobile E2EE framing, and the relay transport are not.",
         "The newest stable release and pinned reported pair do not expose every intermediate regression.",
         "The host runtime is a stub around a fake PTY, so real PTY, daemon, and SSH provider behavior is out of scope.",
-        "The baseline is the newest release tag by default, so the compared pair changes when a new release is cut unless ORCA_CROSS_VERSION_BASELINE_REF pins it.",
+        "The baseline is the newest release tag by default, so the compared pair changes when a new release is cut unless ALICORN_CROSS_VERSION_BASELINE_REF pins it.",
         "tests/ is outside every tsconfig include, so the harness is linted and executed but not typechecked."
       ],
       "demotionRule": "Demote if the baseline checkout cannot be materialized in CI, if a pairing has to be skipped to keep the lane green, or if the journey stops asserting the full step list and frame sequence."
@@ -16799,7 +16799,7 @@
         "https://linear.app/stably/issue/STA-4051"
       ],
       "invariant": "After packaged foreground headless serve publishes structured readiness, one SIGINT or SIGTERM exits successfully without an Electron fatal trap or core evidence, releases the exact listener and owned Xvfb/process tree, and leaves an unrelated process identity untouched.",
-      "oracle": "First start the original, readable-and-executable AppImage once in a fresh restricted Ubuntu 26.04 container through dbus-run-session -- xvfb-run -a --appimage-extract-and-run with ORCA_STARTUP_DIAGNOSTICS=1, and require the exact updater-setup-done marker within 90 seconds while fencing the launcher and owned Xvfb by PID start ticks. For each signal, start a separate unprivileged container with disposable profile and runtime directories, a random loopback port, DISPLAY unset, software GL, and the extracted AppImage in a fresh session. Wait for orca_server_ready schema version 1, record the listener owner, process tree, owned Xvfb, and unrelated canary identities, deliver SIGINT to the foreground process group or the documented KillMode=mixed graceful SIGTERM to the AppRun PID, then require wait status zero, no Failed to shutdown, SIGTRAP, core, listener, recorded descendant, profile/AppImage/Xvfb residue, or changed canary identity. The 30-second bounds are failure deadlines, never success conditions.",
+      "oracle": "First start the original, readable-and-executable AppImage once in a fresh restricted Ubuntu 26.04 container through dbus-run-session -- xvfb-run -a --appimage-extract-and-run with ALICORN_STARTUP_DIAGNOSTICS=1, and require the exact updater-setup-done marker within 90 seconds while fencing the launcher and owned Xvfb by PID start ticks. For each signal, start a separate unprivileged container with disposable profile and runtime directories, a random loopback port, DISPLAY unset, software GL, and the extracted AppImage in a fresh session. Wait for orca_server_ready schema version 1, record the listener owner, process tree, owned Xvfb, and unrelated canary identities, deliver SIGINT to the foreground process group or the documented KillMode=mixed graceful SIGTERM to the AppRun PID, then require wait status zero, no Failed to shutdown, SIGTRAP, core, listener, recorded descendant, profile/AppImage/Xvfb residue, or changed canary identity. The 30-second bounds are failure deadlines, never success conditions.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/main/startup/ensure-virtual-display.test.ts config/scripts/headless-serve-shutdown-workflow.test.mjs --reporter=dot",
         "shellcheck config/docker/headless-serve-shutdown/run-signal-case.sh",
@@ -17226,12 +17226,12 @@
       "oracle": "Begin and partially append upload A, then begin and append upload B from an independent service or relay sharing the same parent. Require two exact PID-and-UUID owner directories, two upload-ID archives, and byte-for-byte survival of both. Cancel B then A and require archive counts 1 then 0. Stage two more live uploads, terminate relay A, and require relay B's exact owner, archive, and bytes to survive before B terminates and the root becomes empty. Kill real child owners at begun, partial, uploaded, and committed boundaries and require a fresh owner to remove only exited-process staging and complete its own transfer. Seed 65 exited owners, require one attempt to remove exactly 64 and reject before adding bytes, then require retry to drain the final stale owner and begin normally.",
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/main/skills/skill-upload-session-service.test.ts --reporter=verbose",
-        "ORCA_REAL_PROCESS_SKILL_TEST=1 pnpm exec vitest run --config config/vitest.config.ts src/main/skills/skill-upload-process-restart.integration.test.ts src/main/skills/skill-upload-process-restart-child.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+        "ALICORN_REAL_PROCESS_SKILL_TEST=1 pnpm exec vitest run --config config/vitest.config.ts src/main/skills/skill-upload-process-restart.integration.test.ts src/main/skills/skill-upload-process-restart-child.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
         "pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
-        "ORCA_REAL_PROCESS_SKILL_TEST=1 pnpm exec vitest run --config config/vitest.config.ts src/main/skills/skill-upload-session-service.test.ts src/main/skills/skill-upload-process-restart.integration.test.ts src/main/skills/skill-upload-process-restart-child.test.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
-        "ORCA_SKILL_UPLOAD_LEGACY_RELAY_ENTRY=<fa9b20cb4163-relay.js> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
-        "ORCA_SKILL_UPLOAD_RELAY_ENTRY=<fa9b20cb4163-relay.js;sha256=4db8609c4e1772f1efa9b0c0cf6affa8f64ff9ebc8e2b6f9e71678992ccdcf1a> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
-        "ORCA_SKILL_UPLOAD_RELAY_ENTRY=<012e9f410c-fix-reverted-relay.js;sha256=ca03bf47d93828ec30473391b542d945df887b7881cce3df17e95d90226e34fb> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose"
+        "ALICORN_REAL_PROCESS_SKILL_TEST=1 pnpm exec vitest run --config config/vitest.config.ts src/main/skills/skill-upload-session-service.test.ts src/main/skills/skill-upload-process-restart.integration.test.ts src/main/skills/skill-upload-process-restart-child.test.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+        "ALICORN_SKILL_UPLOAD_LEGACY_RELAY_ENTRY=<fa9b20cb4163-relay.js> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+        "ALICORN_SKILL_UPLOAD_RELAY_ENTRY=<fa9b20cb4163-relay.js;sha256=4db8609c4e1772f1efa9b0c0cf6affa8f64ff9ebc8e2b6f9e71678992ccdcf1a> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+        "ALICORN_SKILL_UPLOAD_RELAY_ENTRY=<012e9f410c-fix-reverted-relay.js;sha256=ca03bf47d93828ec30473391b542d945df887b7881cce3df17e95d90226e34fb> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose"
       ],
       "testFiles": [
         "src/main/skills/skill-upload-session-service.test.ts",
@@ -17276,7 +17276,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_REAL_PROCESS_SKILL_TEST=1 pnpm exec vitest run --config config/vitest.config.ts src/main/skills/skill-upload-session-service.test.ts src/main/skills/skill-upload-process-restart.integration.test.ts src/main/skills/skill-upload-process-restart-child.test.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+          "command": "ALICORN_REAL_PROCESS_SKILL_TEST=1 pnpm exec vitest run --config config/vitest.config.ts src/main/skills/skill-upload-session-service.test.ts src/main/skills/skill-upload-process-restart.integration.test.ts src/main/skills/skill-upload-process-restart-child.test.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
           "durationSeconds": 5.95,
           "summary": "Fifteen service tests, four crash-boundary cases, and one two-current-relay topology passed; the child fixture and two explicitly separate mixed-version cases skipped."
         },
@@ -17285,7 +17285,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_SKILL_UPLOAD_LEGACY_RELAY_ENTRY=<fa9b20cb4163-relay.js> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+          "command": "ALICORN_SKILL_UPLOAD_LEGACY_RELAY_ENTRY=<fa9b20cb4163-relay.js> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
           "durationSeconds": 0.9,
           "summary": "The current/current case and both originating/current mixed-version launch orders passed with exact per-root archive bytes."
         },
@@ -17294,7 +17294,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "failed",
-          "command": "ORCA_SKILL_UPLOAD_RELAY_ENTRY=<fa9b20cb4163-relay.js;sha256=4db8609c4e1772f1efa9b0c0cf6affa8f64ff9ebc8e2b6f9e71678992ccdcf1a> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+          "command": "ALICORN_SKILL_UPLOAD_RELAY_ENTRY=<fa9b20cb4163-relay.js;sha256=4db8609c4e1772f1efa9b0c0cf6affa8f64ff9ebc8e2b6f9e71678992ccdcf1a> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
           "durationSeconds": 0.4,
           "summary": "Expected red: zero PID/UUID owner directories and one archive were observed where two each were required; relay A's exact first five bytes were missing."
         },
@@ -17303,7 +17303,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "failed",
-          "command": "ORCA_SKILL_UPLOAD_RELAY_ENTRY=<012e9f410c-fix-reverted-relay.js;sha256=ca03bf47d93828ec30473391b542d945df887b7881cce3df17e95d90226e34fb> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
+          "command": "ALICORN_SKILL_UPLOAD_RELAY_ENTRY=<012e9f410c-fix-reverted-relay.js;sha256=ca03bf47d93828ec30473391b542d945df887b7881cce3df17e95d90226e34fb> pnpm exec vitest run --config config/vitest.config.ts src/relay/skill-upload-multi-relay.integration.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism --reporter=verbose",
           "durationSeconds": 0.4,
           "summary": "Expected red: zero PID/UUID owner directories and one archive were observed where two each were required; relay A's exact first five bytes were missing."
         }
@@ -17360,7 +17360,7 @@
       "commands": [
         "pnpm exec vitest run --config config/vitest.config.ts src/renderer/src/components/terminal-pane/pty-connection-queued-startup-consume.test.ts src/renderer/src/components/terminal-pane/use-terminal-pane-lifecycle.test.ts src/renderer/src/store/slices/terminal-startup-command-retention.test.ts --reporter=dot",
         "pnpm exec playwright test tests/e2e/terminal-quick-command-pre-bind-recovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
-        "ORCA_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-quick-command-pre-bind-recovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
+        "ALICORN_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-quick-command-pre-bind-recovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1"
       ],
       "testFiles": [
         "src/renderer/src/components/terminal-pane/pty-connection-queued-startup-consume.test.ts",
@@ -17396,7 +17396,7 @@
           "runner": "local",
           "platform": "macos",
           "result": "passed",
-          "command": "ORCA_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-quick-command-pre-bind-recovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
+          "command": "ALICORN_E2E_FORCE_HEADFUL=1 SKIP_BUILD=1 pnpm exec playwright test tests/e2e/terminal-quick-command-pre-bind-recovery.spec.ts --config tests/playwright.config.ts --project electron-headless --workers=1",
           "durationSeconds": 24,
           "summary": "The exact rebased PR head passed the visible-window Electron flow in 23.9 seconds using the same E2E build."
         }

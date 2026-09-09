@@ -122,7 +122,7 @@ describeMacOS('macOS helper owner-loss benchmark process cleanup', () => {
     const temporaryDirectory = mkdtempSync(path.join(tmpdir(), 'orca-owner-benchmark-group-test-'))
     temporaryDirectories.add(temporaryDirectory)
     const childPidPath = path.join(temporaryDirectory, 'child.pid')
-    const environmentName = `ORCA_OWNER_GROUP_${process.pid}`
+    const environmentName = `ALICORN_OWNER_GROUP_${process.pid}`
     const environmentValue = `${Date.now()}`
     const fixture = `
       const { spawn } = require('node:child_process')
@@ -168,7 +168,7 @@ describeMacOS('macOS helper owner-loss benchmark process cleanup', () => {
   })
 
   it('resumes the group after post-stop revalidation fails', () => {
-    const marker = 'ORCA_OWNER_GROUP=trial'
+    const marker = 'ALICORN_OWNER_GROUP=trial'
     const members = [
       { pid: 41, pgid: 41, command: `/launcher ${marker}` },
       { pid: 42, pgid: 41, command: `/child ${marker}` }
@@ -204,7 +204,7 @@ describeMacOS('macOS helper owner-loss benchmark process cleanup', () => {
   })
 
   it('compensates a possible stop after group anchor replacement', () => {
-    const marker = 'ORCA_OWNER_GROUP=trial'
+    const marker = 'ALICORN_OWNER_GROUP=trial'
     const anchor = { pid: 41, pgid: 41, command: `/launcher ${marker}` }
     const replacement = { pid: 41, pgid: 99, command: '/unrelated' }
     const signals = []
@@ -234,7 +234,7 @@ describeMacOS('macOS helper owner-loss benchmark process cleanup', () => {
   })
 
   it('resumes a previously frozen group when final inspection fails', () => {
-    const marker = 'ORCA_OWNER_GROUP=trial'
+    const marker = 'ALICORN_OWNER_GROUP=trial'
     const members = [{ pid: 41, pgid: 41, command: `/launcher ${marker}` }]
     const signals = []
     let scanCount = 0
@@ -264,7 +264,7 @@ describeMacOS('macOS helper owner-loss benchmark process cleanup', () => {
   })
 
   it('resumes a previously frozen group when final anchor stop fails', () => {
-    const marker = 'ORCA_OWNER_GROUP=trial'
+    const marker = 'ALICORN_OWNER_GROUP=trial'
     const members = [
       { pid: 41, pgid: 41, command: `/launcher ${marker}` },
       { pid: 42, pgid: 41, command: `/child ${marker}` }
@@ -290,7 +290,7 @@ describeMacOS('macOS helper owner-loss benchmark process cleanup', () => {
   })
 
   it('resumes a previously frozen group after final anchor replacement', () => {
-    const marker = 'ORCA_OWNER_GROUP=trial'
+    const marker = 'ALICORN_OWNER_GROUP=trial'
     const anchor = { pid: 41, pgid: 41, command: `/launcher ${marker}` }
     const child = { pid: 42, pgid: 41, command: `/child ${marker}` }
     const replacement = { pid: 41, pgid: 99, command: '/unrelated' }

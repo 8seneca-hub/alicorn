@@ -18,7 +18,7 @@ import {
   waitForActiveTerminalManager
 } from './helpers/terminal'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const REMOTE_IMAGE_PATH = '/tmp/orca-ssh-external-preview.png'
 const IMAGE_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVR4AWN8z8DwnwEJMDGgAcICAO2mBAXmO4drAAAAAElFTkSuQmCC'
@@ -103,7 +103,7 @@ async function activateTerminalLink(page: Page, probe: LinkProbe, text: string):
 }
 
 test.describe('SSH external image preview', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'The disposable SSH host uses POSIX tooling.')
 
   test('opens an image outside the worktree from a terminal link', async ({

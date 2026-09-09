@@ -168,9 +168,9 @@ describe('LocalPtyProvider', () => {
         rows: 24,
         cwd: 'C:\\repo',
         env: {
-          ORCA_AGENT_TEAMS_TEAM_ID: 'team-test',
-          ORCA_PATH_ROOT: 'C:\\Users\\orca\\AppData\\Local',
-          PATH: '%orca_path_root%\\agy\\bin;C:\\Windows'
+          ALICORN_AGENT_TEAMS_TEAM_ID: 'team-test',
+          ALICORN_PATH_ROOT: 'C:\\Users\\orca\\AppData\\Local',
+          PATH: '%alicorn_path_root%\\agy\\bin;C:\\Windows'
         }
       })
 
@@ -328,7 +328,7 @@ describe('LocalPtyProvider', () => {
       provider.configure({
         buildSpawnEnv: (_id, env) => {
           env.TERM_PROGRAM = 'Orca'
-          env.ORCA_STALE_TEST_ENV = '/tmp/orca-stale'
+          env.ALICORN_STALE_TEST_ENV = '/tmp/orca-stale'
           env.PATH = `/tmp/orca-stale:${env.PATH ?? ''}`
           return env
         }
@@ -340,9 +340,9 @@ describe('LocalPtyProvider', () => {
         env: {
           TERM: 'screen-256color',
           PATH: '/tmp/orca-agent-teams-bin:/usr/bin',
-          ORCA_AGENT_TEAMS_TEAM_ID: 'team-test'
+          ALICORN_AGENT_TEAMS_TEAM_ID: 'team-test'
         },
-        envToDelete: ['TERM_PROGRAM', 'ORCA_STALE_TEST_ENV']
+        envToDelete: ['TERM_PROGRAM', 'ALICORN_STALE_TEST_ENV']
       })
 
       const spawnCall = spawnMock.mock.calls.at(-1)!
@@ -350,7 +350,7 @@ describe('LocalPtyProvider', () => {
       expect(spawnCall[2].env.TERM).toBe('screen-256color')
       expect(spawnCall[2].env.PATH.split(':')[0]).toBe('/tmp/orca-agent-teams-bin')
       expect(spawnCall[2].env.TERM_PROGRAM).toBeUndefined()
-      expect(spawnCall[2].env.ORCA_STALE_TEST_ENV).toBeUndefined()
+      expect(spawnCall[2].env.ALICORN_STALE_TEST_ENV).toBeUndefined()
     })
 
     it('does not re-promote a legacy attribution path for Agent Teams', async () => {
@@ -359,7 +359,7 @@ describe('LocalPtyProvider', () => {
         rows: 24,
         env: {
           PATH: '/tmp/orca-terminal-attribution/posix:/usr/bin',
-          ORCA_AGENT_TEAMS_TEAM_ID: 'team-test'
+          ALICORN_AGENT_TEAMS_TEAM_ID: 'team-test'
         }
       })
 
@@ -521,7 +521,7 @@ describe('LocalPtyProvider', () => {
       provider.configure({
         buildSpawnEnv: (_id, env) => {
           env.MIMOCODE_HOME = '/tmp/orca-mimocode-overlay'
-          env.ORCA_MIMOCODE_HOME = '/tmp/orca-mimocode-overlay'
+          env.ALICORN_MIMOCODE_HOME = '/tmp/orca-mimocode-overlay'
           return env
         }
       })
@@ -531,7 +531,7 @@ describe('LocalPtyProvider', () => {
       const spawnCall = spawnMock.mock.calls.at(-1)!
       expect(spawnCall[1]).toEqual(['-l'])
       expect(spawnCall[2].env.ZDOTDIR).toMatch(/shell-ready[\\/]zsh/)
-      expect(spawnCall[2].env.ORCA_SHELL_FEATURES).not.toContain('ready')
+      expect(spawnCall[2].env.ALICORN_SHELL_FEATURES).not.toContain('ready')
     })
 
     it('promotes the agent-teams shim onto the Windows `Path` spelling', async () => {
@@ -550,7 +550,7 @@ describe('LocalPtyProvider', () => {
         rows: 24,
         env: {
           Path: '/tmp/orca-agent-teams-bin:/usr/bin',
-          ORCA_AGENT_TEAMS_TEAM_ID: 'team-test'
+          ALICORN_AGENT_TEAMS_TEAM_ID: 'team-test'
         }
       })
 
@@ -561,13 +561,13 @@ describe('LocalPtyProvider', () => {
 
     it('does not inherit parent Orca pane identity when caller omits pane env', async () => {
       const saved = {
-        ORCA_PANE_KEY: process.env.ORCA_PANE_KEY,
-        ORCA_TAB_ID: process.env.ORCA_TAB_ID,
-        ORCA_WORKTREE_ID: process.env.ORCA_WORKTREE_ID
+        ALICORN_PANE_KEY: process.env.ALICORN_PANE_KEY,
+        ALICORN_TAB_ID: process.env.ALICORN_TAB_ID,
+        ALICORN_WORKTREE_ID: process.env.ALICORN_WORKTREE_ID
       }
-      process.env.ORCA_PANE_KEY = 'parent-tab:parent-leaf'
-      process.env.ORCA_TAB_ID = 'parent-tab'
-      process.env.ORCA_WORKTREE_ID = 'parent-worktree'
+      process.env.ALICORN_PANE_KEY = 'parent-tab:parent-leaf'
+      process.env.ALICORN_TAB_ID = 'parent-tab'
+      process.env.ALICORN_WORKTREE_ID = 'parent-worktree'
 
       try {
         await provider.spawn({ cols: 80, rows: 24 })
@@ -582,29 +582,29 @@ describe('LocalPtyProvider', () => {
       }
 
       const spawnCall = spawnMock.mock.calls.at(-1)!
-      expect(spawnCall[2].env.ORCA_PANE_KEY).toBeUndefined()
-      expect(spawnCall[2].env.ORCA_TAB_ID).toBeUndefined()
-      expect(spawnCall[2].env.ORCA_WORKTREE_ID).toBeUndefined()
+      expect(spawnCall[2].env.ALICORN_PANE_KEY).toBeUndefined()
+      expect(spawnCall[2].env.ALICORN_TAB_ID).toBeUndefined()
+      expect(spawnCall[2].env.ALICORN_WORKTREE_ID).toBeUndefined()
     })
 
     it('preserves explicit child Orca pane identity over parent env', async () => {
       const saved = {
-        ORCA_PANE_KEY: process.env.ORCA_PANE_KEY,
-        ORCA_TAB_ID: process.env.ORCA_TAB_ID,
-        ORCA_WORKTREE_ID: process.env.ORCA_WORKTREE_ID
+        ALICORN_PANE_KEY: process.env.ALICORN_PANE_KEY,
+        ALICORN_TAB_ID: process.env.ALICORN_TAB_ID,
+        ALICORN_WORKTREE_ID: process.env.ALICORN_WORKTREE_ID
       }
-      process.env.ORCA_PANE_KEY = 'parent-tab:parent-leaf'
-      process.env.ORCA_TAB_ID = 'parent-tab'
-      process.env.ORCA_WORKTREE_ID = 'parent-worktree'
+      process.env.ALICORN_PANE_KEY = 'parent-tab:parent-leaf'
+      process.env.ALICORN_TAB_ID = 'parent-tab'
+      process.env.ALICORN_WORKTREE_ID = 'parent-worktree'
 
       try {
         await provider.spawn({
           cols: 80,
           rows: 24,
           env: {
-            ORCA_PANE_KEY: 'child-tab:child-leaf',
-            ORCA_TAB_ID: 'child-tab',
-            ORCA_WORKTREE_ID: 'child-worktree'
+            ALICORN_PANE_KEY: 'child-tab:child-leaf',
+            ALICORN_TAB_ID: 'child-tab',
+            ALICORN_WORKTREE_ID: 'child-worktree'
           }
         })
       } finally {
@@ -618,9 +618,9 @@ describe('LocalPtyProvider', () => {
       }
 
       const spawnCall = spawnMock.mock.calls.at(-1)!
-      expect(spawnCall[2].env.ORCA_PANE_KEY).toBe('child-tab:child-leaf')
-      expect(spawnCall[2].env.ORCA_TAB_ID).toBe('child-tab')
-      expect(spawnCall[2].env.ORCA_WORKTREE_ID).toBe('child-worktree')
+      expect(spawnCall[2].env.ALICORN_PANE_KEY).toBe('child-tab:child-leaf')
+      expect(spawnCall[2].env.ALICORN_TAB_ID).toBe('child-tab')
+      expect(spawnCall[2].env.ALICORN_WORKTREE_ID).toBe('child-worktree')
     })
   })
 })

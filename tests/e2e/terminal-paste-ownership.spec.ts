@@ -207,7 +207,7 @@ test.describe('terminal paste ownership', () => {
       await waitForTerminalOutput(orcaPage, `PASTE_READY_${runId}`, 10_000)
 
       for (const [index, chord] of keyboardPasteChords().entries()) {
-        const payload = `ORCA_E2E_PASTE_${runId}_${index}`
+        const payload = `ALICORN_E2E_PASTE_${runId}_${index}`
         const encodedPayload = Buffer.from(payload, 'utf8').toString('base64')
         await clearTerminalPtyWriteLog(electronApp)
         await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
@@ -249,7 +249,7 @@ test.describe('terminal paste ownership', () => {
       scriptStarted = true
       await waitForTerminalOutput(orcaPage, `PASTE_READY_${runId}`, 10_000)
 
-      const payload = `ORCA_E2E_TRANSIENT_BLUR_PASTE_${runId}`
+      const payload = `ALICORN_E2E_TRANSIENT_BLUR_PASTE_${runId}`
       const encodedPayload = Buffer.from(payload, 'utf8').toString('base64')
       await clearTerminalPtyWriteLog(electronApp)
       await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
@@ -292,7 +292,7 @@ test.describe('terminal paste ownership', () => {
       scriptStarted = true
       await waitForTerminalOutput(orcaPage, `PASTE_READY_${runId}`, 10_000)
 
-      const payload = `ORCA_E2E_CONTEXT_MENU_PASTE_${runId}`
+      const payload = `ALICORN_E2E_CONTEXT_MENU_PASTE_${runId}`
       const encodedPayload = Buffer.from(payload, 'utf8').toString('base64')
       await clearTerminalPtyWriteLog(electronApp)
       await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
@@ -327,9 +327,9 @@ test.describe('terminal paste ownership', () => {
 
     const ptyId = await waitForActivePanePtyId(orcaPage)
     const runId = randomUUID()
-    const sentinel = `ORCA_E2E_MULTILINE_DONE_${runId}`
+    const sentinel = `ALICORN_E2E_MULTILINE_DONE_${runId}`
     const payload = [
-      `ORCA_E2E_MULTILINE_${runId}`,
+      `ALICORN_E2E_MULTILINE_${runId}`,
       'line with spaces and tabs\tend',
       'PowerShell metacharacters: ` $ " \' ; | & < > @ { } ( )',
       'cmd metacharacters: % ! ^ & | < >',
@@ -390,7 +390,7 @@ test.describe('terminal paste ownership', () => {
       scriptStarted = true
       await waitForTerminalOutput(orcaPage, `PASTE_READY_${runId}`, 10_000)
 
-      const payload = `ORCA_E2E_RIGHT_CLICK_PASTE_${runId}`
+      const payload = `ALICORN_E2E_RIGHT_CLICK_PASTE_${runId}`
       const encodedPayload = Buffer.from(payload, 'utf8').toString('base64')
       await clearTerminalPtyWriteLog(electronApp)
       await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)

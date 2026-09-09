@@ -8,7 +8,7 @@ import {
   createDefaultLocalOrcaProfile,
   DEFAULT_LOCAL_ORCA_PROFILE_ID,
   DEFAULT_LOCAL_ORCA_PROFILE_NAME,
-  ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+  ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
   type OrcaProfileIndex
 } from '../../shared/orca-profiles'
 
@@ -76,7 +76,7 @@ describe('profile index store', () => {
     expect(existsSync(join(testState.dir, 'orca-data.json'))).toBe(true)
 
     expect(readJson(getOrcaProfileIndexPath())).toMatchObject({
-      schemaVersion: ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+      schemaVersion: ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
       activeProfileId: DEFAULT_LOCAL_ORCA_PROFILE_ID,
       profiles: [expect.objectContaining({ id: DEFAULT_LOCAL_ORCA_PROFILE_ID, kind: 'local' })]
     })
@@ -94,7 +94,7 @@ describe('profile index store', () => {
       'utf-8'
     )
     const index: OrcaProfileIndex = {
-      schemaVersion: ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+      schemaVersion: ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
       activeProfileId: profileId,
       profiles: [
         {
@@ -164,7 +164,7 @@ describe('profile index store', () => {
     const indexPath = store.getOrcaProfileIndexPath()
     const profile = createDefaultLocalOrcaProfile(1)
     const index: OrcaProfileIndex = {
-      schemaVersion: ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+      schemaVersion: ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
       activeProfileId: profile.id,
       profiles: [profile]
     }
@@ -199,7 +199,7 @@ describe('profile index store', () => {
     const store = await loadProfileIndexStore()
     const indexPath = store.getOrcaProfileIndexPath()
     const index: OrcaProfileIndex = {
-      schemaVersion: ORCA_PROFILE_INDEX_SCHEMA_VERSION,
+      schemaVersion: ALICORN_PROFILE_INDEX_SCHEMA_VERSION,
       activeProfileId: '../../escape',
       profiles: [
         {

@@ -2,12 +2,12 @@
 # Capture one-shot macOS launch diagnostics for a published Orca release.
 #
 # Usage:
-#   ORCA_DIAGNOSTIC_TAG=v1.4.42-rc.1 bash config/scripts/macos-launch-diagnostics.sh
+#   ALICORN_DIAGNOSTIC_TAG=v1.4.42-rc.1 bash config/scripts/macos-launch-diagnostics.sh
 #   bash config/scripts/macos-launch-diagnostics.sh --tag v1.4.42-rc.1
 set -euo pipefail
 
-REPO="${ORCA_DIAGNOSTIC_REPO:-stablyai/orca}"
-TAG="${ORCA_DIAGNOSTIC_TAG:-}"
+REPO="${ALICORN_DIAGNOSTIC_REPO:-stablyai/orca}"
+TAG="${ALICORN_DIAGNOSTIC_TAG:-}"
 KEEP=0
 
 while [[ $# -gt 0 ]]; do
@@ -29,7 +29,7 @@ while [[ $# -gt 0 ]]; do
 Capture one-shot macOS launch diagnostics for a published Orca release.
 
 Usage:
-  ORCA_DIAGNOSTIC_TAG=v1.4.42-rc.1 bash config/scripts/macos-launch-diagnostics.sh
+  ALICORN_DIAGNOSTIC_TAG=v1.4.42-rc.1 bash config/scripts/macos-launch-diagnostics.sh
   bash config/scripts/macos-launch-diagnostics.sh --tag v1.4.42-rc.1
 EOF
       exit 0
@@ -48,7 +48,7 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
 fi
 
 if [[ -z "$TAG" ]]; then
-  echo "Set ORCA_DIAGNOSTIC_TAG or pass --tag vX.Y.Z-rc.N." >&2
+  echo "Set ALICORN_DIAGNOSTIC_TAG or pass --tag vX.Y.Z-rc.N." >&2
   exit 2
 fi
 
@@ -284,9 +284,9 @@ run_launchservices_probe() {
       --stdout "$stdout_file" \
       --stderr "$stderr_file" \
       --env ELECTRON_ENABLE_LOGGING=1 \
-      --env ORCA_STARTUP_DIAGNOSTICS=trace \
-      --env ORCA_STARTUP_DIAGNOSTICS_TRACE_LIMIT=30000 \
-      --env ORCA_STARTUP_DIAGNOSTICS_FILE="$bootstrap_file" \
+      --env ALICORN_STARTUP_DIAGNOSTICS=trace \
+      --env ALICORN_STARTUP_DIAGNOSTICS_TRACE_LIMIT=30000 \
+      --env ALICORN_STARTUP_DIAGNOSTICS_FILE="$bootstrap_file" \
       --env "$extra_env_name=$extra_env_value" \
       "$APP_DIR" &
   else
@@ -294,9 +294,9 @@ run_launchservices_probe() {
       --stdout "$stdout_file" \
       --stderr "$stderr_file" \
       --env ELECTRON_ENABLE_LOGGING=1 \
-      --env ORCA_STARTUP_DIAGNOSTICS=trace \
-      --env ORCA_STARTUP_DIAGNOSTICS_TRACE_LIMIT=30000 \
-      --env ORCA_STARTUP_DIAGNOSTICS_FILE="$bootstrap_file" \
+      --env ALICORN_STARTUP_DIAGNOSTICS=trace \
+      --env ALICORN_STARTUP_DIAGNOSTICS_TRACE_LIMIT=30000 \
+      --env ALICORN_STARTUP_DIAGNOSTICS_FILE="$bootstrap_file" \
       "$APP_DIR" &
   fi
   local runner_pid="$!"
@@ -322,9 +322,9 @@ run_direct_exec_probe() {
   } >"$OUT_DIR/$label.meta"
 
   ELECTRON_ENABLE_LOGGING=1 \
-    ORCA_STARTUP_DIAGNOSTICS=trace \
-    ORCA_STARTUP_DIAGNOSTICS_TRACE_LIMIT=30000 \
-    ORCA_STARTUP_DIAGNOSTICS_FILE="$bootstrap_file" \
+    ALICORN_STARTUP_DIAGNOSTICS=trace \
+    ALICORN_STARTUP_DIAGNOSTICS_TRACE_LIMIT=30000 \
+    ALICORN_STARTUP_DIAGNOSTICS_FILE="$bootstrap_file" \
     "$APP_DIR/Contents/MacOS/Orca" >"$stdout_file" 2>"$stderr_file" &
   local runner_pid="$!"
   wait_for_probe "$runner_pid" "$label"
@@ -360,7 +360,7 @@ ensure_no_existing_orca
 download_and_copy_app
 write_app_report
 run_launchservices_probe "launchservices-trace"
-run_launchservices_probe "launchservices-bypass-lock" "ORCA_BYPASS_SINGLE_INSTANCE_LOCK" "1"
+run_launchservices_probe "launchservices-bypass-lock" "ALICORN_BYPASS_SINGLE_INSTANCE_LOCK" "1"
 run_direct_exec_probe
 write_system_log_snapshot
 package_results

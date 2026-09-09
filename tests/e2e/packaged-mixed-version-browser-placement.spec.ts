@@ -24,7 +24,7 @@ import {
   type RuntimeDesktopPairingOffer
 } from './helpers/paired-electron-client'
 
-const PACKAGED_EXECUTABLE_ENV = 'ORCA_CROSS_VERSION_PACKAGED_EXECUTABLE'
+const PACKAGED_EXECUTABLE_ENV = 'ALICORN_CROSS_VERSION_PACKAGED_EXECUTABLE'
 const CLIENT_HOST_CAPABILITY = 'browser.clientHost.v1'
 const TUNNEL_CAPABILITY = 'network.browserTunnel.v1'
 
@@ -163,8 +163,8 @@ async function launchPackagedPairedClient(args: {
       env: {
         ...homeIsolation.env,
         NODE_ENV: 'production',
-        ORCA_BYPASS_SINGLE_INSTANCE_LOCK: '1',
-        ORCA_E2E_HEADLESS: '1'
+        ALICORN_BYPASS_SINGLE_INSTANCE_LOCK: '1',
+        ALICORN_E2E_HEADLESS: '1'
       }
     })
     forwardElectronProcessLogs(app, args.testInfo)

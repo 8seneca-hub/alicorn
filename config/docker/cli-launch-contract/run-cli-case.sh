@@ -3,9 +3,9 @@
 set -uo pipefail
 
 case_name=${1:?launch case is required}
-extracted_root=${ORCA_TEST_EXTRACTED_ROOT:-/artifacts/squashfs-root}
+extracted_root=${ALICORN_TEST_EXTRACTED_ROOT:-/artifacts/squashfs-root}
 launcher="$extracted_root/resources/bin/alicorn-ide"
-command_timeout_seconds=${ORCA_TEST_COMMAND_TIMEOUT_SECONDS:-60}
+command_timeout_seconds=${ALICORN_TEST_COMMAND_TIMEOUT_SECONDS:-60}
 
 if ((EUID == 0)); then
   # Reproduce extracted AppImage sandbox ownership as an unprivileged user.

@@ -26,7 +26,7 @@ describe('getUpstreamStatus', () => {
   })
 
   it('benchmarks concurrent upstream Git command pressure', async () => {
-    const benchPath = process.env.ORCA_GIT_UPSTREAM_COALESCING_BENCH_JSON
+    const benchPath = process.env.ALICORN_GIT_UPSTREAM_COALESCING_BENCH_JSON
     if (!benchPath) {
       return
     }

@@ -172,7 +172,7 @@ hard-fails changed and revoked; `accept-new` persists silently; `yes` denies unk
 **ca-only, reversed after review.** The rejection was stricter than ssh, and the blast radius was
 mispriced. An SSH CA user holds ONE line — very often `@cert-authority *` — which matches every
 candidate, so EVERY target failed, not just CA-signed ones, including on-demand runtime VMs, and
-`StrictHostKeyChecking=no` did not help. `ORCA_SSH_FORCE_SYSTEM_TRANSPORT=1` is read from the
+`StrictHostKeyChecking=no` did not help. `ALICORN_SSH_FORCE_SYSTEM_TRANSPORT=1` is read from the
 process environment, which an Electron app launched from the Dock or Start Menu does not have, so
 the documented escape was unreachable for exactly the people who needed it. And OpenSSH's own
 verdict for a CA-covered host presenting a plain key is `HOST_NEW`: it connects. ssh2 cannot

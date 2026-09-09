@@ -13,7 +13,7 @@ import { SWALLOWED_ENTER_FIXTURE_TIMEOUT_MS } from '../../src/shared/orchestrati
 const execFileAsync = promisify(execFile)
 const fixtureRoot = mkdtempSync(path.join(os.tmpdir(), 'orca-terminal-send-agent-prompt-'))
 const fixtureReport = path.join(fixtureRoot, 'report.json')
-const fixtureMarker = `ORCA_TERMINAL_SEND_E2E_${process.pid}`
+const fixtureMarker = `ALICORN_TERMINAL_SEND_E2E_${process.pid}`
 const fixtureScript = path.join(process.cwd(), 'tests', 'tools', 'repro-terminal-send-submit.mjs')
 const fakeCodex = path.join(fixtureRoot, process.platform === 'win32' ? 'codex.cmd' : 'codex')
 const fakeCodexCommand = buildFakeAgentCommandOverride(fakeCodex)
@@ -22,8 +22,8 @@ const swallowedEnterFixtureTimeoutMs = SWALLOWED_ENTER_FIXTURE_TIMEOUT_MS
 writeFileSync(
   fakeCodex,
   process.platform === 'win32'
-    ? `@echo off\r\n"${process.execPath}" "${fixtureScript}" --fake-agent --report "%ORCA_FAKE_AGENT_REPORT%" --marker "%ORCA_FAKE_AGENT_MARKER%" --allow-unframed-paste %*\r\n`
-    : `#!/usr/bin/env sh\n"${process.execPath}" "${fixtureScript}" --fake-agent --report "$ORCA_FAKE_AGENT_REPORT" --marker "$ORCA_FAKE_AGENT_MARKER" "$@"\n`,
+    ? `@echo off\r\n"${process.execPath}" "${fixtureScript}" --fake-agent --report "%ALICORN_FAKE_AGENT_REPORT%" --marker "%ALICORN_FAKE_AGENT_MARKER%" --allow-unframed-paste %*\r\n`
+    : `#!/usr/bin/env sh\n"${process.execPath}" "${fixtureScript}" --fake-agent --report "$ALICORN_FAKE_AGENT_REPORT" --marker "$ALICORN_FAKE_AGENT_MARKER" "$@"\n`,
   'utf8'
 )
 if (process.platform !== 'win32') {
@@ -63,8 +63,8 @@ async function createFakeCodexTerminal(
     command: [fakeCodexCommand, ...args].join(' '),
     launchAgent: 'codex',
     env: {
-      ORCA_FAKE_AGENT_REPORT: fixtureReport,
-      ORCA_FAKE_AGENT_MARKER: fixtureMarker
+      ALICORN_FAKE_AGENT_REPORT: fixtureReport,
+      ALICORN_FAKE_AGENT_MARKER: fixtureMarker
     },
     title: 'terminal send submit repro'
   })
@@ -113,7 +113,7 @@ test('CLI text plus Enter waits for a slow agent composer before submitting', as
       ],
       {
         cwd: repoRoot,
-        env: { ...process.env, ORCA_DEV_USER_DATA_PATH: userDataDir },
+        env: { ...process.env, ALICORN_DEV_USER_DATA_PATH: userDataDir },
         timeout: 60_000
       }
     )
@@ -171,7 +171,7 @@ test('CLI reports a swallowed Enter without submitting a second Enter', async ({
       ],
       {
         cwd: repoRoot,
-        env: { ...process.env, ORCA_DEV_USER_DATA_PATH: userDataDir },
+        env: { ...process.env, ALICORN_DEV_USER_DATA_PATH: userDataDir },
         timeout: 90_000
       }
     )
@@ -227,7 +227,7 @@ test('CLI does not write prompt bytes into an active permission dialog', async (
       ],
       {
         cwd: repoRoot,
-        env: { ...process.env, ORCA_DEV_USER_DATA_PATH: userDataDir },
+        env: { ...process.env, ALICORN_DEV_USER_DATA_PATH: userDataDir },
         timeout: 60_000
       }
     )

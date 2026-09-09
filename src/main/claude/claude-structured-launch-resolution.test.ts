@@ -249,12 +249,12 @@ describe('claude structured launch resolution', () => {
       ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
       ANTHROPIC_AUTH_TOKEN: process.env.ANTHROPIC_AUTH_TOKEN,
       CLAUDE_CODE_OAUTH_TOKEN: process.env.CLAUDE_CODE_OAUTH_TOKEN,
-      ORCA_LAUNCH_RESOLUTION_MARKER: process.env.ORCA_LAUNCH_RESOLUTION_MARKER
+      ALICORN_LAUNCH_RESOLUTION_MARKER: process.env.ALICORN_LAUNCH_RESOLUTION_MARKER
     }
     process.env.ANTHROPIC_API_KEY = 'sk-ant-SHELL-LEAK'
     process.env.ANTHROPIC_AUTH_TOKEN = 'tok-SHELL-LEAK'
     process.env.CLAUDE_CODE_OAUTH_TOKEN = 'oauth-SHELL-LEAK'
-    process.env.ORCA_LAUNCH_RESOLUTION_MARKER = 'inherited'
+    process.env.ALICORN_LAUNCH_RESOLUTION_MARKER = 'inherited'
     try {
       const launch = await resolverFor(record(), undefined, true)({ identity: IDENTITY })
 
@@ -262,7 +262,7 @@ describe('claude structured launch resolution', () => {
       expect(launch.env?.ANTHROPIC_AUTH_TOKEN).toBeUndefined()
       expect(launch.env?.CLAUDE_CODE_OAUTH_TOKEN).toBeUndefined()
       // The inherited env is still the base — only auth is removed from it.
-      expect(launch.env?.ORCA_LAUNCH_RESOLUTION_MARKER).toBe('inherited')
+      expect(launch.env?.ALICORN_LAUNCH_RESOLUTION_MARKER).toBe('inherited')
       expect(launch.env?.PATH ?? launch.env?.Path).toBeTruthy()
     } finally {
       for (const [key, value] of Object.entries(restore)) {

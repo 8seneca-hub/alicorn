@@ -10,14 +10,14 @@ const probeBin = path.join(probeRoot, 'bin')
 mkdirSync(probeBin)
 writeFileSync(
   path.join(probeBin, 'orca-path-expansion-probe.cmd'),
-  '@echo off\r\necho ORCA_PATH_EXPANSION_OK\r\n'
+  '@echo off\r\necho ALICORN_PATH_EXPANSION_OK\r\n'
 )
 
 const test = base
 test.use({
   launchEnv: {
-    ORCA_E2E_PATH_ROOT: probeRoot,
-    PATH: `%ORCA_E2E_PATH_ROOT%\\bin${path.delimiter}${process.env.PATH ?? ''}`
+    ALICORN_E2E_PATH_ROOT: probeRoot,
+    PATH: `%ALICORN_E2E_PATH_ROOT%\\bin${path.delimiter}${process.env.PATH ?? ''}`
   }
 })
 
@@ -34,5 +34,5 @@ test('expands variables in PATH before spawning a Windows shell', async ({ orcaP
 
   await execInTerminal(orcaPage, ptyId, 'orca-path-expansion-probe')
 
-  await waitForTerminalOutput(orcaPage, 'ORCA_PATH_EXPANSION_OK')
+  await waitForTerminalOutput(orcaPage, 'ALICORN_PATH_EXPANSION_OK')
 })

@@ -27,9 +27,9 @@ function cleanEnvString(value: string | undefined, fallback: string): string {
 
 function devSelf(): OrcaOrgMember {
   return {
-    userId: cleanEnvString(process.env.ORCA_CLOUD_DEV_USER_ID, 'dev-user'),
-    email: cleanEnvString(process.env.ORCA_CLOUD_DEV_EMAIL, 'dev@orca.local'),
-    displayName: cleanEnvString(process.env.ORCA_CLOUD_DEV_DISPLAY_NAME, 'Orca Dev'),
+    userId: cleanEnvString(process.env.ALICORN_CLOUD_DEV_USER_ID, 'dev-user'),
+    email: cleanEnvString(process.env.ALICORN_CLOUD_DEV_EMAIL, 'dev@orca.local'),
+    displayName: cleanEnvString(process.env.ALICORN_CLOUD_DEV_DISPLAY_NAME, 'Orca Dev'),
     role: 'owner'
   }
 }

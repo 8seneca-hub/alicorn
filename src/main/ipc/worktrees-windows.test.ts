@@ -467,8 +467,8 @@ describe('registerWorktreeHandlers – Windows path handling', () => {
       runnerScriptPath: 'C:\\repo\\.git\\orca\\setup-runner.sh',
       shell: setupShell,
       envVars: {
-        ORCA_ROOT_PATH: 'C:\\repo',
-        ORCA_WORKTREE_PATH: 'C:\\workspaces\\improve-dashboard'
+        ALICORN_ROOT_PATH: 'C:\\repo',
+        ALICORN_WORKTREE_PATH: 'C:\\workspaces\\improve-dashboard'
       }
     })
 

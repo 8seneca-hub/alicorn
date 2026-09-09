@@ -94,8 +94,8 @@ describe('validateWorkingDirectory', () => {
 
   it('rejects a missing native Windows path', () => {
     existsSyncMock.mockReturnValue(false)
-    const previousVersion = process.env.ORCA_APP_VERSION
-    process.env.ORCA_APP_VERSION = '1.4.178-test'
+    const previousVersion = process.env.ALICORN_APP_VERSION
+    process.env.ALICORN_APP_VERSION = '1.4.178-test'
 
     try {
       expect(() => validateWorkingDirectory(NATIVE_DIR)).toThrow(
@@ -104,9 +104,9 @@ describe('validateWorkingDirectory', () => {
       expect(wslUncDirectoryExistsMock).not.toHaveBeenCalled()
     } finally {
       if (previousVersion === undefined) {
-        delete process.env.ORCA_APP_VERSION
+        delete process.env.ALICORN_APP_VERSION
       } else {
-        process.env.ORCA_APP_VERSION = previousVersion
+        process.env.ALICORN_APP_VERSION = previousVersion
       }
     }
   })
@@ -245,8 +245,8 @@ describe('spawnShellWithFallback macOS TCC login wrapping', () => {
     // features Orca never selected for it.
     const zshLaunchEnv = {
       ZDOTDIR: '/userdata/shell-ready/zsh',
-      ORCA_ORIG_ZDOTDIR: '/home/jin',
-      ORCA_SHELL_FEATURES: 'history'
+      ALICORN_ORIG_ZDOTDIR: '/home/jin',
+      ALICORN_SHELL_FEATURES: 'history'
     }
     const env: Record<string, string> = { HOME: '/home/jin', ...zshLaunchEnv }
     const ptySpawn = vi
@@ -269,9 +269,9 @@ describe('spawnShellWithFallback macOS TCC login wrapping', () => {
         shell === '/bin/zsh' ? { args: ['-l'], env: zshLaunchEnv } : { args: null, env: {} }
     })
 
-    expect(env.ORCA_SHELL_FEATURES).toBeUndefined()
+    expect(env.ALICORN_SHELL_FEATURES).toBeUndefined()
     expect(env.ZDOTDIR).toBeUndefined()
-    expect(env.ORCA_ORIG_ZDOTDIR).toBeUndefined()
+    expect(env.ALICORN_ORIG_ZDOTDIR).toBeUndefined()
     expect(env.HOME).toBe('/home/jin')
   })
 
@@ -279,7 +279,7 @@ describe('spawnShellWithFallback macOS TCC login wrapping', () => {
     // Why: the keys to scrub are the ones the LAST attempt wrote. Computed once
     // from the primary, a wrapped first fallback leaks its own ZDOTDIR and
     // feature channel into the shell that finally starts.
-    const bashLaunchEnv = { ORCA_SHELL_FEATURES: 'markers', BASH_ENV: '/userdata/bash/rcfile' }
+    const bashLaunchEnv = { ALICORN_SHELL_FEATURES: 'markers', BASH_ENV: '/userdata/bash/rcfile' }
     const env: Record<string, string> = { HOME: '/home/jin', ZDOTDIR: '/userdata/shell-ready/zsh' }
     const ptySpawn = vi
       .fn()
@@ -304,7 +304,7 @@ describe('spawnShellWithFallback macOS TCC login wrapping', () => {
         shell === '/bin/bash' ? { args: ['--rcfile', '/rc'], env: bashLaunchEnv } : null
     })
 
-    expect(env.ORCA_SHELL_FEATURES).toBeUndefined()
+    expect(env.ALICORN_SHELL_FEATURES).toBeUndefined()
     expect(env.BASH_ENV).toBeUndefined()
     expect(env.ZDOTDIR).toBeUndefined()
     expect(env.HOME).toBe('/home/jin')

@@ -26,37 +26,41 @@ function makeWindow(destroyed = false): BrowserWindow & {
 
 describe('isBackgroundLaunch', () => {
   it('covers headless and headful E2E plus opted-in dev launches', () => {
-    expect(isBackgroundLaunch({ ORCA_E2E_HEADLESS: '1' })).toBe(true)
-    expect(isBackgroundLaunch({ ORCA_E2E_HEADFUL: '1' })).toBe(true)
-    expect(isBackgroundLaunch({ ORCA_BACKGROUND_LAUNCH: '1' })).toBe(true)
+    expect(isBackgroundLaunch({ ALICORN_E2E_HEADLESS: '1' })).toBe(true)
+    expect(isBackgroundLaunch({ ALICORN_E2E_HEADFUL: '1' })).toBe(true)
+    expect(isBackgroundLaunch({ ALICORN_BACKGROUND_LAUNCH: '1' })).toBe(true)
     expect(isBackgroundLaunch({})).toBe(false)
   })
 
   it('lets native-focus specs opt back into the foreground', () => {
-    expect(isBackgroundLaunch({ ORCA_E2E_HEADFUL: '1', ORCA_E2E_FOREGROUND: '1' })).toBe(false)
-    expect(isWindowlessLaunch({ ORCA_E2E_HEADLESS: '1', ORCA_E2E_FOREGROUND: '1' })).toBe(false)
+    expect(isBackgroundLaunch({ ALICORN_E2E_HEADFUL: '1', ALICORN_E2E_FOREGROUND: '1' })).toBe(
+      false
+    )
+    expect(isWindowlessLaunch({ ALICORN_E2E_HEADLESS: '1', ALICORN_E2E_FOREGROUND: '1' })).toBe(
+      false
+    )
   })
 })
 
 describe('isWindowlessLaunch', () => {
   it('is headless-only; a headful run still paints', () => {
-    expect(isWindowlessLaunch({ ORCA_E2E_HEADLESS: '1' })).toBe(true)
-    expect(isWindowlessLaunch({ ORCA_E2E_HEADLESS: '1', ORCA_E2E_HEADFUL: '1' })).toBe(false)
-    expect(isWindowlessLaunch({ ORCA_BACKGROUND_LAUNCH: '1' })).toBe(false)
+    expect(isWindowlessLaunch({ ALICORN_E2E_HEADLESS: '1' })).toBe(true)
+    expect(isWindowlessLaunch({ ALICORN_E2E_HEADLESS: '1', ALICORN_E2E_HEADFUL: '1' })).toBe(false)
+    expect(isWindowlessLaunch({ ALICORN_BACKGROUND_LAUNCH: '1' })).toBe(false)
   })
 })
 
 describe('showWindowWithoutStealingFocus', () => {
   it('keeps a headless window off screen', () => {
     const window = makeWindow()
-    showWindowWithoutStealingFocus(window, { ORCA_E2E_HEADLESS: '1' })
+    showWindowWithoutStealingFocus(window, { ALICORN_E2E_HEADLESS: '1' })
     expect(window.show).not.toHaveBeenCalled()
     expect(window.showInactive).not.toHaveBeenCalled()
   })
 
   it('shows a background window without activating it', () => {
     const window = makeWindow()
-    showWindowWithoutStealingFocus(window, { ORCA_BACKGROUND_LAUNCH: '1' })
+    showWindowWithoutStealingFocus(window, { ALICORN_BACKGROUND_LAUNCH: '1' })
     expect(window.showInactive).toHaveBeenCalledOnce()
     expect(window.show).not.toHaveBeenCalled()
   })
@@ -88,7 +92,7 @@ describe('applyBackgroundActivationPolicy', () => {
     expect(
       applyBackgroundActivationPolicy({
         app,
-        env: { ORCA_E2E_HEADLESS: '1' },
+        env: { ALICORN_E2E_HEADLESS: '1' },
         platform: 'darwin'
       })
     ).toBe(true)
@@ -100,7 +104,7 @@ describe('applyBackgroundActivationPolicy', () => {
     const headful = makeApp()
     applyBackgroundActivationPolicy({
       app: headful,
-      env: { ORCA_E2E_HEADLESS: '1', ORCA_E2E_HEADFUL: '1' },
+      env: { ALICORN_E2E_HEADLESS: '1', ALICORN_E2E_HEADFUL: '1' },
       platform: 'darwin'
     })
     expect(headful.setActivationPolicy).not.toHaveBeenCalled()
@@ -115,7 +119,7 @@ describe('applyBackgroundActivationPolicy', () => {
     expect(
       applyBackgroundActivationPolicy({
         app,
-        env: { ORCA_E2E_HEADLESS: '1' },
+        env: { ALICORN_E2E_HEADLESS: '1' },
         platform: 'win32'
       })
     ).toBe(false)

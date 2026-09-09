@@ -125,7 +125,7 @@ describe('PtyHandler', () => {
       const spawnOptions = mockPtySpawn.mock.calls[0]?.[2] as
         | { env?: Record<string, string> }
         | undefined
-      expect(spawnOptions?.env?.ORCA_SHELL_FEATURES).toContain('ready')
+      expect(spawnOptions?.env?.ALICORN_SHELL_FEATURES).toContain('ready')
       expect(handler.retainedStartupCommandCount).toBe(1)
       expect(handler.retainedStartupCommandBytes).toBe(0)
       vi.advanceTimersByTime(15_000)
@@ -164,7 +164,7 @@ describe('PtyHandler', () => {
       const spawnOptions = mockPtySpawn.mock.calls[0]?.[2] as
         | { env?: Record<string, string> }
         | undefined
-      expect(spawnOptions?.env?.ORCA_SHELL_FEATURES).toContain('ready')
+      expect(spawnOptions?.env?.ALICORN_SHELL_FEATURES).toContain('ready')
       expect(handler.retainedStartupCommandCount).toBe(1)
     }
   )
@@ -202,7 +202,7 @@ describe('PtyHandler', () => {
       const spawnOptions = mockPtySpawn.mock.calls[0]?.[2] as
         | { env?: Record<string, string> }
         | undefined
-      expect(spawnOptions?.env?.ORCA_SHELL_FEATURES).toContain('ready')
+      expect(spawnOptions?.env?.ALICORN_SHELL_FEATURES).toContain('ready')
     }
   )
 
@@ -241,7 +241,7 @@ describe('PtyHandler', () => {
       const spawnOptions = mockPtySpawn.mock.calls[0]?.[2] as
         | { env?: Record<string, string> }
         | undefined
-      expect(spawnOptions?.env?.ORCA_SHELL_FEATURES).toContain('ready')
+      expect(spawnOptions?.env?.ALICORN_SHELL_FEATURES).toContain('ready')
     }
   )
 
@@ -515,7 +515,7 @@ describe('PtyHandler', () => {
       const spawnOptions = mockPtySpawn.mock.calls[0]?.[2] as
         | { env?: Record<string, string> }
         | undefined
-      expect(spawnOptions?.env?.ORCA_SHELL_FEATURES).toBe('')
+      expect(spawnOptions?.env?.ALICORN_SHELL_FEATURES).toBe('')
       expect(handler.retainedStartupCommandCount).toBe(0)
     }
   )

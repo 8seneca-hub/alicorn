@@ -104,8 +104,8 @@ export async function launchHeadlessPairedRuntimeHost(
       inheritedEnv: cleanEnv,
       launchEnv: {
         NODE_ENV: 'development',
-        ORCA_E2E_ENFORCE_SINGLE_INSTANCE_LOCK: '1',
-        ORCA_E2E_HEADLESS: '1'
+        ALICORN_E2E_ENFORCE_SINGLE_INSTANCE_LOCK: '1',
+        ALICORN_E2E_HEADLESS: '1'
       },
       extraEnv: {},
       userDataDir

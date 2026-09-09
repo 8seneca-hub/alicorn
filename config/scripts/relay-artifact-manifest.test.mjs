@@ -25,7 +25,7 @@ beforeAll(() => {
   execFileSync('node', [join(projectDir, 'config', 'scripts', 'build-relay.mjs')], {
     cwd: projectDir,
     stdio: 'pipe',
-    env: { ...process.env, ORCA_RELAY_OUT_ROOT: relayOutDir }
+    env: { ...process.env, ALICORN_RELAY_OUT_ROOT: relayOutDir }
   })
 }, 120_000)
 

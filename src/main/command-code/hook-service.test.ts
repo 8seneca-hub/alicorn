@@ -97,15 +97,15 @@ describe('CommandCodeHookService', () => {
     if (process.platform === 'win32') {
       expect(script).toContain('sourceEndpointByPort')
       expect(script).toContain('orca-dev\\agent-hooks')
-      expect(script).toContain('set ORCA_AGENT_HOOK_PORT=')
+      expect(script).toContain('set ALICORN_AGENT_HOOK_PORT=')
     } else {
       expect(script).toContain('Command Code strips TOKEN-like env vars')
       expect(script).toContain('Command Code sanitizes hook subprocess env')
       expect(script).toContain('__orca_read_ancestor_var')
       expect(script).toContain('__orca_fill_from_endpoint_file')
-      expect(script).toContain('[ "$__orca_endpoint_port" != "$ORCA_AGENT_HOOK_PORT" ]')
-      expect(script).toContain('ORCA_PANE_KEY')
-      expect(script).toContain('ORCA_AGENT_LAUNCH_TOKEN')
+      expect(script).toContain('[ "$__orca_endpoint_port" != "$ALICORN_AGENT_HOOK_PORT" ]')
+      expect(script).toContain('ALICORN_PANE_KEY')
+      expect(script).toContain('ALICORN_AGENT_LAUNCH_TOKEN')
       expect(script).toContain('orca-dev/agent-hooks')
       expect(script).toContain('endpoint_port=')
     }
@@ -120,10 +120,10 @@ describe('CommandCodeHookService', () => {
     writeFileSync(
       staleEndpointPath,
       [
-        'ORCA_AGENT_HOOK_PORT=9',
-        'ORCA_AGENT_HOOK_TOKEN=stale-token',
-        'ORCA_AGENT_HOOK_ENV=development',
-        'ORCA_AGENT_HOOK_VERSION=1',
+        'ALICORN_AGENT_HOOK_PORT=9',
+        'ALICORN_AGENT_HOOK_TOKEN=stale-token',
+        'ALICORN_AGENT_HOOK_ENV=development',
+        'ALICORN_AGENT_HOOK_VERSION=1',
         ''
       ].join('\n')
     )
@@ -153,14 +153,14 @@ describe('CommandCodeHookService', () => {
         env: {
           ...process.env,
           HOME: homeDir,
-          ORCA_AGENT_HOOK_ENDPOINT: staleEndpointPath,
-          ORCA_AGENT_HOOK_PORT: String(address.port),
-          ORCA_AGENT_HOOK_TOKEN: 'current-token',
-          ORCA_PANE_KEY: 'tab:leaf',
-          ORCA_TAB_ID: 'tab',
-          ORCA_WORKTREE_ID: 'worktree',
-          ORCA_AGENT_HOOK_ENV: 'development',
-          ORCA_AGENT_HOOK_VERSION: '1'
+          ALICORN_AGENT_HOOK_ENDPOINT: staleEndpointPath,
+          ALICORN_AGENT_HOOK_PORT: String(address.port),
+          ALICORN_AGENT_HOOK_TOKEN: 'current-token',
+          ALICORN_PANE_KEY: 'tab:leaf',
+          ALICORN_TAB_ID: 'tab',
+          ALICORN_WORKTREE_ID: 'worktree',
+          ALICORN_AGENT_HOOK_ENV: 'development',
+          ALICORN_AGENT_HOOK_VERSION: '1'
         },
         stdio: ['pipe', 'ignore', 'pipe']
       })

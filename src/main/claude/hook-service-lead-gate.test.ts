@@ -37,18 +37,18 @@ function commandsIn(entries: HookEntry[]): string[] {
 }
 
 beforeEach(() => {
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
+  previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
   isolatedUserDataDir = mkdtempSync(join(tmpdir(), 'orca-lead-gate-user-data-'))
-  process.env.ORCA_USER_DATA_PATH = isolatedUserDataDir
+  process.env.ALICORN_USER_DATA_PATH = isolatedUserDataDir
   home = mkdtempSync(join(tmpdir(), 'orca-lead-gate-home-'))
   homedirMock.mockReturnValue(home)
 })
 
 afterEach(() => {
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.ALICORN_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
   }
   homedirMock.mockImplementation(() => process.env.HOME ?? tmpdir())
   rmSync(isolatedUserDataDir, { recursive: true, force: true })

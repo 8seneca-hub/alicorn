@@ -18,7 +18,7 @@ import {
   reconnectDisconnectedDockerSshRelayTarget
 } from './helpers/docker-ssh-relay-connection'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 const DROP_CYCLES = 3
 
 test.use({ seedTestRepo: false })
@@ -166,7 +166,7 @@ async function runResurrectionCycles(
 }
 
 test.describe('SSH lost kill tab resurrection', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run Docker-backed SSH tests.')
   test.skip(process.platform === 'win32', 'Docker SSH restore uses POSIX SSH tooling.')
 
   // STA-3374. A tab closed while the transport is down leaves an unterminated remote lease: the

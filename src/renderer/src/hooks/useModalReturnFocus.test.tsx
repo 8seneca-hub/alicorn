@@ -6,7 +6,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { useAppStore } from '../store'
 import { focusTerminalTabSurface } from '../lib/focus-terminal-tab-surface'
-import { ORCA_BROWSER_FOCUS_REQUEST_EVENT } from '../components/browser-pane/host-guest/browser-focus'
+import { ALICORN_BROWSER_FOCUS_REQUEST_EVENT } from '../components/browser-pane/host-guest/browser-focus'
 import { useModalReturnFocus } from './useModalReturnFocus'
 
 vi.mock('../lib/focus-terminal-tab-surface', () => ({
@@ -166,7 +166,7 @@ describe('useModalReturnFocus', () => {
     const dialogInput = document.createElement('input')
     document.body.append(dialogInput)
     const focusRequests: unknown[] = []
-    window.addEventListener(ORCA_BROWSER_FOCUS_REQUEST_EVENT, (event) => {
+    window.addEventListener(ALICORN_BROWSER_FOCUS_REQUEST_EVENT, (event) => {
       focusRequests.push((event as CustomEvent).detail)
     })
 

@@ -26,31 +26,31 @@ const { verifyStaticAppImagePackage } = require('./scripts/static-appimage-packa
 // This is also why the rebrand is a clean install, not an update: `appId` moved
 // off `com.stablyai.orca`, so no Orca install can be swapped for an Alicorn one.
 // See docs/alicorn/plans/2026-09-06-rebrand-cutover-distribution.md, Task 3.
-const isMacHourly = process.env.ORCA_MAC_HOURLY === '1'
-const isMacDaily = process.env.ORCA_MAC_DAILY === '1'
-const isMacAdhoc = process.env.ORCA_MAC_ADHOC === '1'
+const isMacHourly = process.env.ALICORN_MAC_HOURLY === '1'
+const isMacDaily = process.env.ALICORN_MAC_DAILY === '1'
+const isMacAdhoc = process.env.ALICORN_MAC_ADHOC === '1'
 // Why a second set of variables rather than making the mac ones platform-neutral:
 // the mac ones gate `isMacRelease` below, which turns on hardened runtime,
 // notarization, and root-level `forceCodeSigning`. A Windows dev build that
 // reused them would fail packaging outright for want of a cert it is
 // deliberately not using.
-const isWinHourly = process.env.ORCA_WIN_HOURLY === '1'
-const isWinDaily = process.env.ORCA_WIN_DAILY === '1'
-const isWinAdhoc = process.env.ORCA_WIN_ADHOC === '1'
+const isWinHourly = process.env.ALICORN_WIN_HOURLY === '1'
+const isWinDaily = process.env.ALICORN_WIN_DAILY === '1'
+const isWinAdhoc = process.env.ALICORN_WIN_ADHOC === '1'
 const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
-const isMacRelease = process.env.ORCA_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
-const isLinuxArm64Release = process.env.ORCA_LINUX_ARM64_RELEASE === '1'
+const isMacRelease = process.env.ALICORN_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
+const isLinuxArm64Release = process.env.ALICORN_LINUX_ARM64_RELEASE === '1'
 const localBuildVersion =
-  isMacRelease || isWinDevChannel ? undefined : process.env.ORCA_LOCAL_BUILD_VERSION
+  isMacRelease || isWinDevChannel ? undefined : process.env.ALICORN_LOCAL_BUILD_VERSION
 const isHourlyChannel = isMacHourly || isWinHourly
 const isDailyChannel = isMacDaily || isWinDaily
 const isAdhocChannel = isMacAdhoc || isWinAdhoc
 const devChannelBuildVersion = isHourlyChannel
-  ? process.env.ORCA_HOURLY_BUILD_VERSION
+  ? process.env.ALICORN_HOURLY_BUILD_VERSION
   : isDailyChannel
-    ? process.env.ORCA_DAILY_BUILD_VERSION
+    ? process.env.ALICORN_DAILY_BUILD_VERSION
     : isAdhocChannel
-      ? process.env.ORCA_ADHOC_BUILD_VERSION
+      ? process.env.ALICORN_ADHOC_BUILD_VERSION
       : undefined
 // Why each dev channel gets its own repo rather than tagging into the main one:
 // the releases atom feed exposes only the 10 newest entries, so 24 hourly tags a
@@ -189,7 +189,7 @@ module.exports = {
     // carries hostile-panel, the adversarial fixture the containment tests point at,
     // which must never reach a user's install.
     '!examples{,/**/*}',
-    // Why: pr-evidence/ is a local e2e screenshot output (ORCA_CAPTURE_EVIDENCE);
+    // Why: pr-evidence/ is a local e2e screenshot output (ALICORN_CAPTURE_EVIDENCE);
     // it is gitignored, but exclude it defensively so a stray local capture at
     // package time never bloats app.asar.
     '!pr-evidence{,/**/*}',
@@ -320,7 +320,7 @@ module.exports = {
         throw new Error(`Unsupported local-build compatibility architecture: ${context.arch}`)
       }
       const version = context.packager.appInfo.version
-      let commit = process.env.ORCA_BUILD_COMMIT || process.env.GITHUB_SHA || 'unknown'
+      let commit = process.env.ALICORN_BUILD_COMMIT || process.env.GITHUB_SHA || 'unknown'
       if (commit === 'unknown') {
         try {
           commit = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], {
@@ -722,7 +722,7 @@ async function signMacComputerUseHelper(helperAppPath, packager) {
       ? await packager.codeSigningInfo.value
       : null
   const identity =
-    process.env.ORCA_COMPUTER_MACOS_SIGN_IDENTITY ??
+    process.env.ALICORN_COMPUTER_MACOS_SIGN_IDENTITY ??
     process.env.CSC_NAME ??
     findInstalledMacSigningIdentity(codeSigningInfo?.keychainFile) ??
     (isMacRelease ? null : '-')

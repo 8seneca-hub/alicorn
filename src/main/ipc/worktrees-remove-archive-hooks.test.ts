@@ -310,8 +310,8 @@ describe('registerWorktreeHandlers', () => {
       120_000,
       undefined,
       expect.objectContaining({
-        ORCA_ROOT_PATH: '/remote/repo',
-        ORCA_WORKTREE_PATH: '/remote/feature-wt'
+        ALICORN_ROOT_PATH: '/remote/repo',
+        ALICORN_WORKTREE_PATH: '/remote/feature-wt'
       })
     )
     expect(provider.removeWorktree).toHaveBeenCalledWith('/remote/feature-wt', undefined)
@@ -624,8 +624,8 @@ describe('registerWorktreeHandlers', () => {
       120_000,
       undefined,
       expect.objectContaining({
-        ORCA_ROOT_PATH: 'C:\\remote\\repo',
-        ORCA_WORKTREE_PATH: 'C:\\remote\\feature-wt'
+        ALICORN_ROOT_PATH: 'C:\\remote\\repo',
+        ALICORN_WORKTREE_PATH: 'C:\\remote\\feature-wt'
       })
     )
   })

@@ -71,16 +71,16 @@ describe('structured agent-session launch args wiring', () => {
     const deps = await installedDeps({
       agentDefaultArgs: {},
       agentDefaultEnv: {
-        claude: { ORCA_CLAUDE_OVERLAY: 'claude-value' },
-        codex: { ORCA_CODEX_OVERLAY: 'codex-value' }
+        claude: { ALICORN_CLAUDE_OVERLAY: 'claude-value' },
+        codex: { ALICORN_CODEX_OVERLAY: 'codex-value' }
       }
     })
 
     expect(deps.resolveClaudeLaunchEnv).toBeTypeOf('function')
     expect(deps.resolveClaudeLaunchEnv?.()).toMatchObject({
-      ORCA_CLAUDE_OVERLAY: 'claude-value'
+      ALICORN_CLAUDE_OVERLAY: 'claude-value'
     })
-    expect(deps.resolveClaudeLaunchEnv?.()).not.toHaveProperty('ORCA_CODEX_OVERLAY')
-    expect(deps.resolveLaunchEnvOverlay()).toMatchObject({ ORCA_CODEX_OVERLAY: 'codex-value' })
+    expect(deps.resolveClaudeLaunchEnv?.()).not.toHaveProperty('ALICORN_CODEX_OVERLAY')
+    expect(deps.resolveLaunchEnvOverlay()).toMatchObject({ ALICORN_CODEX_OVERLAY: 'codex-value' })
   })
 })

@@ -43,7 +43,7 @@ test('shows keep-awake mode and Agent activity in the status bar', async ({
   await expect(orcaPage.getByRole('menuitemradio', { name: /^On/ })).toBeVisible()
   await expect(orcaPage.getByRole('menuitemradio', { name: /^Agent/ })).toBeVisible()
   await expect(orcaPage.getByRole('menuitemradio', { name: /^Off/ })).toBeVisible()
-  const menuProofPath = process.env.ORCA_CAFFEINATE_MENU_PROOF_PATH
+  const menuProofPath = process.env.ALICORN_CAFFEINATE_MENU_PROOF_PATH
   if (menuProofPath) {
     await orcaPage.screenshot({ path: menuProofPath })
   }
@@ -62,7 +62,7 @@ test('shows keep-awake mode and Agent activity in the status bar', async ({
   await expect(agentActiveStatus).toBeVisible()
   await expect(agentActiveStatus).toHaveText('Agent')
 
-  const proofPath = process.env.ORCA_CAFFEINATE_PROOF_PATH
+  const proofPath = process.env.ALICORN_CAFFEINATE_PROOF_PATH
   if (proofPath) {
     await orcaPage.screenshot({ path: proofPath })
   }

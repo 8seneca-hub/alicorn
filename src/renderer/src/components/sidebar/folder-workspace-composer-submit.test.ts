@@ -138,7 +138,7 @@ describe('submitFolderWorkspaceCreate', () => {
       autoRenameBranchFromWork: true,
       agentCmdOverrides: {},
       agentArgs: '--model gpt-5.4',
-      agentEnv: { ORCA_AGENT_PROFILE: 'review' },
+      agentEnv: { ALICORN_AGENT_PROFILE: 'review' },
       launchSource: 'new_workspace_composer',
       runtimeEnvironmentId: 'env-1',
       createFolderWorkspace,
@@ -159,7 +159,7 @@ describe('submitFolderWorkspaceCreate', () => {
         runtimeEnvironmentId: 'env-1',
         startup: expect.objectContaining({
           command: expect.stringContaining('codex'),
-          env: { ORCA_AGENT_PROFILE: 'review' },
+          env: { ALICORN_AGENT_PROFILE: 'review' },
           telemetry: expect.objectContaining({
             launch_source: 'new_workspace_composer'
           })

@@ -43,15 +43,15 @@ const PI_OVERLAY_SUBDIR_BY_KIND: Record<LegacyOverlayAgentKind, string> = {
 const OPENCODE_PLUGIN_FILE = 'orca-opencode-status.js'
 const PI_EXTENSION_FILE = 'orca-agent-status.ts'
 const PI_AGENT_SUBDIR = 'agent'
-// Why: bare-shell OMP still needs ORCA_OMP_STATUS_EXTENSION without mkdir ~/.omp.
+// Why: bare-shell OMP still needs ALICORN_OMP_STATUS_EXTENSION without mkdir ~/.omp.
 // Mirror local userData/omp-managed-status-extension under the relay home root.
 const OMP_MANAGED_STATUS_EXTENSION_DIR = 'omp-managed-status-extension'
-const ORCA_MANAGED_EXTENSION_MARKER = '@orca-managed-pi-extension'
+const ALICORN_MANAGED_EXTENSION_MARKER = '@orca-managed-pi-extension'
 
 function withOrcaManagedPiExtensionMarker(source: string): string {
-  return source.includes(ORCA_MANAGED_EXTENSION_MARKER)
+  return source.includes(ALICORN_MANAGED_EXTENSION_MARKER)
     ? source
-    : `// ${ORCA_MANAGED_EXTENSION_MARKER}\n${source}`
+    : `// ${ALICORN_MANAGED_EXTENSION_MARKER}\n${source}`
 }
 // Why: source-dir resolution is keyed off the launching agent (Pi or OMP).
 // Both consume `PI_CODING_AGENT_DIR` but default to different `~/.<kind>/agent`
@@ -249,7 +249,7 @@ export class PluginOverlayManager {
 
   private canOverwritePiExtension(path: string): boolean {
     try {
-      return readFileSync(path, 'utf8').includes(ORCA_MANAGED_EXTENSION_MARKER)
+      return readFileSync(path, 'utf8').includes(ALICORN_MANAGED_EXTENSION_MARKER)
     } catch {
       return true
     }
@@ -280,7 +280,7 @@ export class PluginOverlayManager {
    *  When `materializeDefaultHome` is false (bare shells), missing default
    *  homes are left alone so unused agents do not recreate `~/.<agent>` (#10196).
    *  For OMP, a relay-owned status file is still written so bare shells can
-   *  export ORCA_OMP_STATUS_EXTENSION without ORCA_OMP_SOURCE_AGENT_DIR. */
+   *  export ALICORN_OMP_STATUS_EXTENSION without ALICORN_OMP_SOURCE_AGENT_DIR. */
   materializePi(
     id: string,
     existingAgentDir?: string,

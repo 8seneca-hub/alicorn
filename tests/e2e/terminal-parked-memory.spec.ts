@@ -21,10 +21,10 @@ import {
 // Why: production cold-park hysteresis is 30s. The fast-park env override is
 // scoped to this spec's app launches via orcaAppExtraEnv (same pattern as
 // terminal-hidden-view-parking.spec.ts) so it cannot leak into other specs.
-const PARKING_DELAY_MS = Number(process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS) || 500
+const PARKING_DELAY_MS = Number(process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS) || 500
 
 test.use({
-  orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) },
+  orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) },
   // Why: without this switch Chromium quantizes performance.memory and only
   // refreshes it every ~20 minutes, so both scenarios report the same stale
   // launch-time bucket instead of a comparable heap figure.
@@ -32,7 +32,7 @@ test.use({
 })
 
 // Why: 8 hidden tabs is below the 12-tab hot-retain limit, but that limit
-// never retains anything here — the ORCA_E2E_TERMINAL_PARKING_DELAY_MS
+// never retains anything here — the ALICORN_E2E_TERMINAL_PARKING_DELAY_MS
 // collapse (terminal-parking-e2e-overrides.ts) shrinks hotRetainMs to the
 // same delay as coldParkDelayMs, and the policy cold-parks any tab hidden
 // past hotRetainMs before the retain-count limit is even consulted. The one
@@ -596,13 +596,13 @@ async function waitForRetentionBudgetSetting(page: Page, enabled: boolean): Prom
 test.describe('Terminal hidden worktree retention budget', () => {
   test.use({
     orcaAppExtraEnv: {
-      ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS),
+      ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS),
       // Why limit=1: the retention TTL is absolute production timing (45min) and
       // the parking-delay override deliberately no longer shrinks it, so the
       // COUNT CAP is the only knob a test can drive. With a budget of 1 the
       // newest hidden un-parkable worktree takes the last-active exemption and
       // the older one force-parks — cap and exemption proven in one run.
-      ORCA_E2E_TERMINAL_RETENTION_LIMIT: '1'
+      ALICORN_E2E_TERMINAL_RETENTION_LIMIT: '1'
     },
     orcaAppExtraArgs: ['--enable-precise-memory-info']
   })

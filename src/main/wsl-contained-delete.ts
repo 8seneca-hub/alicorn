@@ -1,7 +1,7 @@
 import { posix } from 'node:path'
 import type { WslPathInfo } from './wsl'
 
-const REJECTION_PREFIX = 'ORCA_WSL_DELETE_REJECT:'
+const REJECTION_PREFIX = 'ALICORN_WSL_DELETE_REJECT:'
 
 export type WslDeleteRejection = 'path-outside-known-roots' | 'unexpected-target-kind'
 

@@ -1,19 +1,19 @@
 import { isSkillsCliAgentKeyShaped } from './skills-cli-agent-keys'
 
-export const ORCA_SKILLS_REPOSITORY_URL = 'https://github.com/stablyai/orca'
+export const ALICORN_SKILLS_REPOSITORY_URL = 'https://github.com/stablyai/orca'
 
-export const ORCA_CLI_SKILL_NAME = 'alicorn-cli'
+export const ALICORN_CLI_SKILL_NAME = 'alicorn-cli'
 export const COMPUTER_USE_SKILL_NAME = 'computer-use'
 export const ORCHESTRATION_SKILL_NAME = 'orchestration'
 export const EPHEMERAL_VMS_SKILL_NAME = 'alicorn-per-workspace-env'
-export const ORCA_LINEAR_SKILL_NAME = 'alicorn-linear'
+export const ALICORN_LINEAR_SKILL_NAME = 'alicorn-linear'
 export const LEGACY_ORCA_LINEAR_SKILL_NAME = 'orca-linear'
 export const LINEAR_TICKETS_SKILL_NAME = 'linear-tickets'
 // Why all three: the first is what we install, the other two are what an upgraded
 // machine already has on disk. Detection must see them or it re-prompts an install
 // the user has already done.
 export const LINEAR_AGENT_SKILL_NAMES = [
-  ORCA_LINEAR_SKILL_NAME,
+  ALICORN_LINEAR_SKILL_NAME,
   LEGACY_ORCA_LINEAR_SKILL_NAME,
   LINEAR_TICKETS_SKILL_NAME
 ] as const
@@ -52,7 +52,7 @@ export function buildAgentFeatureSkillInstallArgs(
   return [
     'skills',
     'add',
-    ORCA_SKILLS_REPOSITORY_URL,
+    ALICORN_SKILLS_REPOSITORY_URL,
     ...skillArgs,
     ...(global ? ['--global'] : []),
     // Why: an explicit --agent stops `skills add` calling its own detection, whose
@@ -98,12 +98,12 @@ export function buildAgentFeatureSkillUpdateCommand(
   return `npx ${buildAgentFeatureSkillUpdateArgs(skillNames, options).join(' ')}`
 }
 
-export const ORCA_CLI_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
-  ORCA_CLI_SKILL_NAME
+export const ALICORN_CLI_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
+  ALICORN_CLI_SKILL_NAME
 ])
 
-export const ORCA_CLI_SKILL_UPDATE_COMMAND =
-  buildAgentFeatureSkillUpdateCommand(ORCA_CLI_SKILL_NAME)
+export const ALICORN_CLI_SKILL_UPDATE_COMMAND =
+  buildAgentFeatureSkillUpdateCommand(ALICORN_CLI_SKILL_NAME)
 
 export const COMPUTER_USE_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
   COMPUTER_USE_SKILL_NAME
@@ -126,17 +126,16 @@ export const EPHEMERAL_VMS_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstall
 export const EPHEMERAL_VMS_SKILL_UPDATE_COMMAND =
   buildAgentFeatureSkillUpdateCommand(EPHEMERAL_VMS_SKILL_NAME)
 
-export const ORCA_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
-  ORCA_CLI_SKILL_NAME,
-  ORCHESTRATION_SKILL_NAME
+export const ALICORN_CLI_ORCHESTRATION_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand(
+  [ALICORN_CLI_SKILL_NAME, ORCHESTRATION_SKILL_NAME]
+)
+
+export const ALICORN_LINEAR_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
+  ALICORN_LINEAR_SKILL_NAME
 ])
 
-export const ORCA_LINEAR_SKILL_INSTALL_COMMAND = buildAgentFeatureSkillInstallCommand([
-  ORCA_LINEAR_SKILL_NAME
-])
-
-export const ORCA_LINEAR_SKILL_UPDATE_COMMAND =
-  buildAgentFeatureSkillUpdateCommand(ORCA_LINEAR_SKILL_NAME)
+export const ALICORN_LINEAR_SKILL_UPDATE_COMMAND =
+  buildAgentFeatureSkillUpdateCommand(ALICORN_LINEAR_SKILL_NAME)
 
 export const LINEAR_TICKETS_SKILL_UPDATE_COMMAND =
   buildAgentFeatureSkillUpdateCommand(LINEAR_TICKETS_SKILL_NAME)

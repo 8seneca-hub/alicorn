@@ -37,7 +37,7 @@ export function runRebuildScript(projectDir, extraEnv = {}, args = []) {
     ...process.env,
     npm_config_platform: 'linux',
     npm_config_arch: 'x64',
-    ORCA_ELECTRON_PACKAGE_EXTRACTOR: join(projectDir, 'fake-extractor.cjs')
+    ALICORN_ELECTRON_PACKAGE_EXTRACTOR: join(projectDir, 'fake-extractor.cjs')
   }
   for (const key of Object.keys(env)) {
     if (

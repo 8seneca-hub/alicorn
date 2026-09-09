@@ -244,7 +244,7 @@ test('restarts one ACK-starved paired terminal stream without replacing its PTY 
   const offer = await createRuntimeDesktopPairingOffer(orcaPage)
   const client = await launchPairedWebClient(electronApp, offer, {
     disableRemoteTerminalStallRecovery:
-      process.env.ORCA_E2E_DISABLE_REMOTE_TERMINAL_STALL_RECOVERY === '1'
+      process.env.ALICORN_E2E_DISABLE_REMOTE_TERMINAL_STALL_RECOVERY === '1'
   })
   let observer: Awaited<ReturnType<typeof launchPairedWebClient>> | null = null
   let terminal: string | null = null

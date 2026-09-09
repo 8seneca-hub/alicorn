@@ -1,3 +1,4 @@
+import { withLegacyEnvKeys } from '../../shared/alicorn-env-compat'
 import { chmodSync, existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
@@ -10,8 +11,8 @@ import {
   renderLegacyTerminalWindowsPowerShellTombstone
 } from './legacy-terminal-windows-tombstone'
 
-const LEGACY_TERMINAL_ATTRIBUTION_ENABLE_ENV_KEY = 'ORCA_ENABLE_GIT_ATTRIBUTION'
-const LEGACY_TERMINAL_ATTRIBUTION_BYPASS_ENV_KEY = 'ORCA_ATTRIBUTION_BYPASS'
+const LEGACY_TERMINAL_ATTRIBUTION_ENABLE_ENV_KEY = 'ALICORN_ENABLE_GIT_ATTRIBUTION'
+const LEGACY_TERMINAL_ATTRIBUTION_BYPASS_ENV_KEY = 'ALICORN_ATTRIBUTION_BYPASS'
 
 const LEGACY_SHIM_ROOT_DIR = 'orca-terminal-attribution'
 // Why: must differ from the retired shim's own '7'. A rolled-back build compares this marker and
@@ -19,19 +20,22 @@ const LEGACY_SHIM_ROOT_DIR = 'orca-terminal-attribution'
 // its attribution toggle claimed to be on.
 const LEGACY_SHIM_VERSION = '7-neutralized'
 const NEUTRALIZATION_RETRY_DELAYS_MS = [1_000, 5_000, 15_000, 30_000]
-export const LEGACY_TERMINAL_SHIM_ENV_KEYS = [
-  'ORCA_ENABLE_GIT_ATTRIBUTION',
-  'ORCA_GIT_COMMIT_TRAILER',
-  'ORCA_GH_PR_FOOTER',
-  'ORCA_GH_ISSUE_FOOTER',
-  'ORCA_ATTRIBUTION_SHIM_DIR',
-  'ORCA_REAL_GIT',
-  'ORCA_REAL_GH',
+// Why both spellings, always: the shim these keys belong to was retired *before* the R4
+// rename, so every value still out there in an inherited environment is `ORCA_`-spelled.
+// Deleting a key that was never set costs nothing; missing the real one leaves the shim live.
+export const LEGACY_TERMINAL_SHIM_ENV_KEYS = withLegacyEnvKeys([
+  'ALICORN_ENABLE_GIT_ATTRIBUTION',
+  'ALICORN_GIT_COMMIT_TRAILER',
+  'ALICORN_GH_PR_FOOTER',
+  'ALICORN_GH_ISSUE_FOOTER',
+  'ALICORN_ATTRIBUTION_SHIM_DIR',
+  'ALICORN_REAL_GIT',
+  'ALICORN_REAL_GH',
   LEGACY_TERMINAL_ATTRIBUTION_BYPASS_ENV_KEY
-] as const
-export const LEGACY_TERMINAL_SHIM_REMOTE_ENV_KEYS = [
+])
+export const LEGACY_TERMINAL_SHIM_REMOTE_ENV_KEYS = withLegacyEnvKeys([
   LEGACY_TERMINAL_ATTRIBUTION_ENABLE_ENV_KEY
-] as const
+])
 
 let neutralized = false
 let neutralizationRetryTimer: ReturnType<typeof setTimeout> | null = null
@@ -205,11 +209,15 @@ export function stripLegacyTerminalShimEnv(
   const legacyKeySet = new Set(
     LEGACY_TERMINAL_SHIM_ENV_KEYS.map((key) => (windows ? key.toLowerCase() : key))
   )
-  const shimDirKey = 'ORCA_ATTRIBUTION_SHIM_DIR'.toLowerCase()
-  const explicitShimDirs = Object.entries(env)
-    .filter(([key]) =>
-      windows ? key.toLowerCase() === shimDirKey : key === 'ORCA_ATTRIBUTION_SHIM_DIR'
+  // Why both spellings: the captured directory this reads was exported by the retired shim,
+  // which only ever wrote the pre-rebrand name. Miss it and the PATH entry survives.
+  const shimDirKeys = new Set(
+    withLegacyEnvKeys(['ALICORN_ATTRIBUTION_SHIM_DIR']).map((key) =>
+      windows ? key.toLowerCase() : key
     )
+  )
+  const explicitShimDirs = Object.entries(env)
+    .filter(([key]) => shimDirKeys.has(windows ? key.toLowerCase() : key))
     .map(([, value]) => value)
     .filter(Boolean)
   for (const key of Object.keys(env)) {

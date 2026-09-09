@@ -1,13 +1,14 @@
 // Where in-box hook clients find this relay's loopback hook server: endpoint-directory naming
 // policy (per-user $HOME default, sibling-of-socket layout, Windows named-pipe path flattening) and
-// the ORCA_AGENT_HOOK_* env vars injected into relay-spawned PTYs. IO-free.
+// the ALICORN_AGENT_HOOK_* env vars injected into relay-spawned PTYs. IO-free.
 import { basename, dirname, join } from 'node:path'
 import { homedir } from 'node:os'
 
 import {
-  ORCA_HOOK_PROTOCOL_VERSION,
-  ORCA_HOOK_RAW_JSON_TRANSPORT
+  ALICORN_HOOK_PROTOCOL_VERSION,
+  ALICORN_HOOK_RAW_JSON_TRANSPORT
 } from '../shared/agent-hook-types'
+import { withLegacyEnvAliases } from '../shared/alicorn-env-compat'
 
 // Why: relay's userData equivalent under $HOME so each user on a shared dev box gets their own 0o700 dir.
 const RELAY_HOOKS_DIR_NAME = '.orca-relay'
@@ -49,14 +50,15 @@ export function buildRelayHookPtyEnv(coordinates: {
     return {}
   }
   const env: Record<string, string> = {
-    ORCA_AGENT_HOOK_PORT: String(coordinates.port),
-    ORCA_AGENT_HOOK_TOKEN: coordinates.token,
-    ORCA_AGENT_HOOK_ENV: coordinates.env,
-    ORCA_AGENT_HOOK_VERSION: ORCA_HOOK_PROTOCOL_VERSION,
-    ORCA_AGENT_HOOK_TRANSPORT: ORCA_HOOK_RAW_JSON_TRANSPORT
+    ALICORN_AGENT_HOOK_PORT: String(coordinates.port),
+    ALICORN_AGENT_HOOK_TOKEN: coordinates.token,
+    ALICORN_AGENT_HOOK_ENV: coordinates.env,
+    ALICORN_AGENT_HOOK_VERSION: ALICORN_HOOK_PROTOCOL_VERSION,
+    ALICORN_AGENT_HOOK_TRANSPORT: ALICORN_HOOK_RAW_JSON_TRANSPORT
   }
   if (coordinates.endpointFileWritten) {
-    env.ORCA_AGENT_HOOK_ENDPOINT = coordinates.endpointFilePath
+    env.ALICORN_AGENT_HOOK_ENDPOINT = coordinates.endpointFilePath
   }
-  return env
+  // Why: a managed hook script installed by the previous release reads the pre-rebrand names.
+  return withLegacyEnvAliases(env)
 }

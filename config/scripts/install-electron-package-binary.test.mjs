@@ -100,7 +100,7 @@ describe('install-electron-package-binary', () => {
       writeFakeExtractor(projectDir, { createExecutable: true })
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_CACHE_ROOT: cacheRoot
+        ALICORN_ELECTRON_PACKAGE_CACHE_ROOT: cacheRoot
       })
 
       expect(result.status, result.stderr).toBe(0)
@@ -226,7 +226,7 @@ describe('install-electron-package-binary', () => {
       writeFakeExtractor(projectDir, { createExecutable: true })
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
+        ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
       })
 
       expect(result.status, result.stderr).toBe(0)
@@ -254,8 +254,8 @@ describe('install-electron-package-binary', () => {
       writeFileSync(join(cacheRoot, 'preserved.marker'), 'keep me')
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_CACHE_ROOT: cacheRoot,
-        ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
+        ALICORN_ELECTRON_PACKAGE_CACHE_ROOT: cacheRoot,
+        ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
       })
 
       expect(result.status, result.stderr).toBe(0)
@@ -280,7 +280,7 @@ describe('install-electron-package-binary', () => {
       writeFakeExtractor(projectDir, { createExecutable: true })
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
+        ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
       })
 
       expect(result.status, result.stderr).toBe(0)
@@ -307,7 +307,7 @@ describe('install-electron-package-binary', () => {
       writeFakeExtractor(projectDir, { createExecutable: true })
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
+        ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
       })
 
       expect(result.status, result.stderr).toBe(0)
@@ -332,7 +332,7 @@ describe('install-electron-package-binary', () => {
       writeFakeExtractor(projectDir, { createExecutable: true })
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
+        ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
       })
 
       expect(result.status).toBe(1)
@@ -353,12 +353,12 @@ describe('install-electron-package-binary', () => {
       writeFakeExtractor(projectDir, { createExecutable: true })
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,nope'
+        ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,nope'
       })
 
       expect(result.status).toBe(1)
       expect(result.stderr).toContain(
-        'ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS must contain non-negative integers'
+        'ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS must contain non-negative integers'
       )
       expect(existsSync(join(projectDir, 'electron-get.log'))).toBe(false)
     } finally {
@@ -378,7 +378,7 @@ describe('install-electron-package-binary', () => {
       writeFakeExtractor(projectDir, { createExecutable: true })
 
       const result = runInstallScript(projectDir, {
-        ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
+        ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS: '0,0'
       })
 
       expect(result.status).toBe(1)

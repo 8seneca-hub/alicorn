@@ -32,7 +32,7 @@ export function createWorktreePollerWindowVisibility(
   getWindow: () => WorktreePollerWindow | null
 ): WorktreePollerWindowVisibility {
   // Why: only park a window that has actually been shown and is now hidden. A window
-  // that has NEVER been shown is either headless (ORCA_E2E_HEADLESS keeps a live but
+  // that has NEVER been shown is either headless (ALICORN_E2E_HEADLESS keeps a live but
   // never-shown BrowserWindow) or still starting up — no show/restore signal is coming
   // to resume it, so parking it would starve worktree freshness forever. Treat
   // never-shown as visible and keep polling; only start parking once we've observed the

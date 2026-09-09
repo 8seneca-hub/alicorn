@@ -69,7 +69,7 @@ test.describe('Terminal Panes', () => {
    * mouse API only produces when the Electron window is visible. In headless
    * mode setPointerCapture silently fails, pointermove never fires on the
    * divider, and the resize has no effect. Run with:
-   *   ORCA_E2E_HEADFUL=1 pnpm run test:e2e
+   *   ALICORN_E2E_HEADFUL=1 pnpm run test:e2e
    */
   test('@headful can resize terminal panes by real mouse drag', async ({ orcaPage }) => {
     // Split the terminal to create a resizable divider

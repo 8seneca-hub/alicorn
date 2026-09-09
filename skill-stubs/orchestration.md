@@ -17,9 +17,9 @@ state; never substitute a non-Orca subagent tool.
 
 Choose the executable once and reuse it for every later command:
 
-- If the `ORCA_CLI_COMMAND` environment variable is set, use its value. Orca exports this
+- If the `ALICORN_CLI_COMMAND` environment variable is set, use its value. Orca exports this
   for managed WSL sessions.
-- Otherwise, in a dev checkout whose session exposes `ORCA_DEV_REPO_ROOT`, use `orca-dev`.
+- Otherwise, in a dev checkout whose session exposes `ALICORN_DEV_REPO_ROOT`, use `orca-dev`.
 - Otherwise, on Linux outside an Orca-managed terminal, use `alicorn-ide`. Never run bare
   `orca` there — outside Orca's terminals it normally resolves to the
   GNOME Orca screen reader (`/usr/bin/orca`) and starts speech on the user's machine.

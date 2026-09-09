@@ -1,3 +1,4 @@
+import { isAlicornOwnedEnvName } from '../../shared/alicorn-env-compat'
 // Why (#15117): shape assertions cannot catch a curl line that posts nothing, so this suite
 // pipes a real payload through the installed wrappers and follows it to a live listener.
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -139,7 +140,7 @@ function runWrapper(
 
 function hookEnvironment(extra: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const base = Object.fromEntries(
-    Object.entries(process.env).filter(([key]) => !key.startsWith('ORCA_'))
+    Object.entries(process.env).filter(([key]) => !isAlicornOwnedEnvName(key))
   )
   return { ...base, ...extra }
 }
@@ -160,8 +161,8 @@ describe('Antigravity Windows hook post command', () => {
 
     expect(script).not.toMatch(/powershell/i)
     expect(script).toContain('"%SystemRoot%\\System32\\curl.exe" -sS -X POST')
-    expect(script).toContain('http://127.0.0.1:%ORCA_AGENT_HOOK_PORT%/hook/antigravity')
-    expect(script).toContain('--data-urlencode "hook_event_name=%ORCA_ANTIGRAVITY_EVENT%"')
+    expect(script).toContain('http://127.0.0.1:%ALICORN_AGENT_HOOK_PORT%/hook/antigravity')
+    expect(script).toContain('--data-urlencode "hook_event_name=%ALICORN_ANTIGRAVITY_EVENT%"')
     // Why: keep the payload off the command line so multi-KB tool output cannot trip an
     // EDR oversized-command-line rule.
     expect(script).toContain('--data-urlencode "payload@-"')
@@ -198,10 +199,10 @@ describe.skipIf(process.platform !== 'win32')('Antigravity Windows hook payload 
     const env = hookEnvironment({
       USERPROFILE: home,
       HOME: home,
-      ORCA_AGENT_HOOK_PORT: String(listener.port),
-      ORCA_AGENT_HOOK_TOKEN: HOOK_TOKEN,
-      ORCA_PANE_KEY: PANE_KEY,
-      ORCA_WORKTREE_ID: WORKTREE_ID
+      ALICORN_AGENT_HOOK_PORT: String(listener.port),
+      ALICORN_AGENT_HOOK_TOKEN: HOOK_TOKEN,
+      ALICORN_PANE_KEY: PANE_KEY,
+      ALICORN_WORKTREE_ID: WORKTREE_ID
     })
 
     for (const event of ANTIGRAVITY_EVENTS) {
@@ -248,9 +249,9 @@ describe.skipIf(process.platform !== 'win32')('Antigravity Windows hook payload 
       hookEnvironment({
         USERPROFILE: home,
         HOME: home,
-        ORCA_AGENT_HOOK_PORT: String(listener.port),
-        ORCA_AGENT_HOOK_TOKEN: HOOK_TOKEN,
-        ORCA_PANE_KEY: PANE_KEY
+        ALICORN_AGENT_HOOK_PORT: String(listener.port),
+        ALICORN_AGENT_HOOK_TOKEN: HOOK_TOKEN,
+        ALICORN_PANE_KEY: PANE_KEY
       }),
       ''
     )

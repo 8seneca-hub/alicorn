@@ -12,8 +12,8 @@ vi.mock('../runtime-client', async () => {
     constructor(
       _userDataPath?: string,
       _requestTimeoutMs?: number,
-      remotePairingCode = process.env.ORCA_PAIRING_CODE ?? null,
-      environmentSelector = process.env.ORCA_ENVIRONMENT ?? null
+      remotePairingCode = process.env.ALICORN_PAIRING_CODE ?? null,
+      environmentSelector = process.env.ALICORN_ENVIRONMENT ?? null
     ) {
       this.isRemote = Boolean(remotePairingCode || environmentSelector)
     }
@@ -44,10 +44,10 @@ describe('orca linear CLI handlers', () => {
     // Why: these tests can run inside an Orca-managed terminal, which exports
     // real worktree/terminal/pairing env hints; clear them so handler context
     // assertions stay deterministic.
-    delete process.env.ORCA_WORKTREE_ID
-    delete process.env.ORCA_TERMINAL_HANDLE
-    delete process.env.ORCA_PAIRING_CODE
-    delete process.env.ORCA_ENVIRONMENT
+    delete process.env.ALICORN_WORKTREE_ID
+    delete process.env.ALICORN_TERMINAL_HANDLE
+    delete process.env.ALICORN_PAIRING_CODE
+    delete process.env.ALICORN_ENVIRONMENT
     process.exitCode = undefined
     vi.spyOn(console, 'log').mockImplementation(() => {})
     vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -179,9 +179,9 @@ describe('orca linear CLI handlers', () => {
   })
 
   it('passes verified current-context hints without resolving cwd for remote runtimes', async () => {
-    process.env.ORCA_TERMINAL_HANDLE = 'term_123'
-    process.env.ORCA_WORKTREE_ID = 'repo::/srv/app'
-    process.env.ORCA_PAIRING_CODE = 'orca://pair?payload=bad'
+    process.env.ALICORN_TERMINAL_HANDLE = 'term_123'
+    process.env.ALICORN_WORKTREE_ID = 'repo::/srv/app'
+    process.env.ALICORN_PAIRING_CODE = 'orca://pair?payload=bad'
     queueFixtures(callMock, okFixture('req_linear', issueResult()))
 
     await main(['linear', 'issue', '--current', '--comments', '--json'], '/client/repo')

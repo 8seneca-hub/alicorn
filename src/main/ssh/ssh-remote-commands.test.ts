@@ -44,7 +44,7 @@ const nativePosix = getRemoteHostPlatform(
 )
 const windows = getRemoteHostPlatform('win32-x64')
 const powerShellExecutable = [
-  process.env.ORCA_POWERSHELL_EXECUTABLE,
+  process.env.ALICORN_POWERSHELL_EXECUTABLE,
   ...(process.platform === 'win32' ? ['pwsh.exe', 'powershell.exe'] : ['pwsh'])
 ].find((candidate) => {
   if (!candidate) {

@@ -23,17 +23,17 @@ describe('expandWindowsEnvironmentVariables', () => {
 describe('expandWindowsPathEnvironmentVariables', () => {
   it('expands every Windows PATH casing without changing other variables', () => {
     const env = {
-      ORCA_PATH_ROOT: 'C:\\Users\\orca',
-      Path: '%ORCA_PATH_ROOT%\\bin',
-      PATH: '%orca_path_root%\\tools',
-      TEMPLATE: '%ORCA_PATH_ROOT%\\template'
+      ALICORN_PATH_ROOT: 'C:\\Users\\orca',
+      Path: '%ALICORN_PATH_ROOT%\\bin',
+      PATH: '%alicorn_path_root%\\tools',
+      TEMPLATE: '%ALICORN_PATH_ROOT%\\template'
     }
 
     expandWindowsPathEnvironmentVariables(env, 'win32')
 
     expect(env.Path).toBe('C:\\Users\\orca\\bin')
     expect(env.PATH).toBe('C:\\Users\\orca\\tools')
-    expect(env.TEMPLATE).toBe('%ORCA_PATH_ROOT%\\template')
+    expect(env.TEMPLATE).toBe('%ALICORN_PATH_ROOT%\\template')
   })
 
   it('leaves non-Windows PATH values unchanged', () => {

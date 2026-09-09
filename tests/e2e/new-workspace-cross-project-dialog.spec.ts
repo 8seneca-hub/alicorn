@@ -97,7 +97,7 @@ test('keeps long repository names inside the cross-project confirmation dialog',
     await expect(confirmation).toBeVisible()
     await expect(confirmation).toContainText(LONG_REPOSITORY_NAME)
 
-    if (process.env.ORCA_VISUAL_PROOF === '1') {
+    if (process.env.ALICORN_VISUAL_PROOF === '1') {
       mkdirSync(testInfo.outputDir, { recursive: true })
       await confirmation.screenshot({ path: testInfo.outputPath('cross-project-dialog.png') })
     }

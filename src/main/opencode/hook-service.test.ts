@@ -75,11 +75,11 @@ describe('OpenCode hook plugin source', () => {
     const digest = (source: string): string => createHash('sha256').update(source).digest('hex')
 
     expect(digest(getOpenCodePluginSource())).toBe(
-      'd14859a36c88aefe3a45cd232789503296e0a23438b151c773414bad64ab8eaa'
+      '4a9b275ea6de401218de2543706e24a7e82c1bca5476312b9cf42aeeb2c8b757'
     )
     expect(
       digest(getOpenCodeFamilyPluginSource('/hook/mimo-code', { emitSessionStart: false }))
-    ).toBe('4de14bee0c27ce55f29f70b19aa6ce9967e09b098bba139fb88f0511af7d4fca')
+    ).toBe('a868de21cf02bba8ef8f91420a797cdd0ecc48db0d5d30080ad719a05300a25b')
   })
 
   it('filters child sessions via parentID lookup before forwarding events', () => {
@@ -117,16 +117,16 @@ describe('OpenCode hook plugin source', () => {
     const source = _internals.getOpenCodePluginSource()
 
     expect(source).toContain('function readEndpointFile()')
-    expect(source).toContain('process.env.ORCA_AGENT_HOOK_ENDPOINT')
+    expect(source).toContain('process.env.ALICORN_AGENT_HOOK_ENDPOINT')
     // Parser accepts both `KEY=VALUE` (Unix) and `set KEY=VALUE` (Windows):
     expect(source).toContain('/^(?:set\\s+)?([A-Z0-9_]+)=(.*)$/')
     expect(source).toContain('function resolveHookCoords()')
     // File takes precedence over env — the whole point of v2:
     expect(source).toContain(
-      'port: fileEnv.ORCA_AGENT_HOOK_PORT || process.env.ORCA_AGENT_HOOK_PORT'
+      'port: fileEnv.ALICORN_AGENT_HOOK_PORT || process.env.ALICORN_AGENT_HOOK_PORT'
     )
     expect(source).toContain(
-      'token: fileEnv.ORCA_AGENT_HOOK_TOKEN || process.env.ORCA_AGENT_HOOK_TOKEN'
+      'token: fileEnv.ALICORN_AGENT_HOOK_TOKEN || process.env.ALICORN_AGENT_HOOK_TOKEN'
     )
     // post() uses the resolved coords, not a cached-at-startup url:
     expect(source).toContain('const coords = resolveHookCoords();')

@@ -74,7 +74,7 @@ describe('Antigravity AI Vault discovery', () => {
         source: 'USER_EXPLICIT',
         type: 'USER_INPUT',
         created_at: '2026-07-15T11:39:10.000Z',
-        content: '<USER_REQUEST>ORCA_8742_REPRO</USER_REQUEST>'
+        content: '<USER_REQUEST>ALICORN_8742_REPRO</USER_REQUEST>'
       }
     ])
 
@@ -83,7 +83,7 @@ describe('Antigravity AI Vault discovery', () => {
 
     await writeAntigravityHistory(roots.antigravityBrainDir, [
       {
-        display: 'ORCA_8742_REPRO',
+        display: 'ALICORN_8742_REPRO',
         timestamp: Date.parse('2026-07-15T11:39:10.100Z'),
         workspace
       }

@@ -58,14 +58,14 @@ const reported = (message: string) =>
   classifyNodePtyProbeResult({
     code: 4,
     signal: null,
-    stdout: `ORCA_NODE_PTY_LOAD_ERROR ${JSON.stringify(message)}\n`,
+    stdout: `ALICORN_NODE_PTY_LOAD_ERROR ${JSON.stringify(message)}\n`,
     stderr: '',
     timedOut: false
   })
 
 describe('classifyNodePtyProbeResult', () => {
   it('accepts only a clean exit that printed the token', () => {
-    expect(probe({ code: 0, stdout: 'ORCA_NODE_PTY_LOAD_OK /x/build/Release' })).toBeNull()
+    expect(probe({ code: 0, stdout: 'ALICORN_NODE_PTY_LOAD_OK /x/build/Release' })).toBeNull()
     // A zero exit with no token means the probe never reached the load.
     expect(probe({ code: 0, stdout: '' })?.reason).toBe('load_failed')
   })
@@ -112,7 +112,7 @@ describe('classifyNodePtyProbeResult', () => {
 
   it('distinguishes no binary anywhere from a binary the loader refused', () => {
     // "install node-pty" and "rebuild node-pty for this libc" are different instructions.
-    expect(probe({ code: 3, stdout: 'ORCA_NODE_PTY_NO_BINARY\n' })).toEqual({
+    expect(probe({ code: 3, stdout: 'ALICORN_NODE_PTY_NO_BINARY\n' })).toEqual({
       status: 'blocked',
       reason: 'dependency_missing',
       detail: 'node-pty is installed but has no compiled binary for this platform'
@@ -124,14 +124,14 @@ describe('classifyNodePtyProbeResult', () => {
     // node prints the whole `-e` source above the stack trace, and that source contains
     // every token below. Matching on stderr made a refused binary read as "not installed".
     const echoedSource =
-      '[eval]:1\nif(!f){console.log("ORCA_NODE_PTY_NO_BINARY");process.exit(3)}\n' +
+      '[eval]:1\nif(!f){console.log("ALICORN_NODE_PTY_NO_BINARY");process.exit(3)}\n' +
       '        ^\n\nError: dlopen(/app/pty.node): slice is not valid mach-o file\n'
 
     expect(
       classifyNodePtyProbeResult({
         code: 4,
         signal: null,
-        stdout: `ORCA_NODE_PTY_LOAD_ERROR ${JSON.stringify('dlopen(/app/pty.node): slice is not valid mach-o file')}`,
+        stdout: `ALICORN_NODE_PTY_LOAD_ERROR ${JSON.stringify('dlopen(/app/pty.node): slice is not valid mach-o file')}`,
         stderr: echoedSource,
         timedOut: false
       })

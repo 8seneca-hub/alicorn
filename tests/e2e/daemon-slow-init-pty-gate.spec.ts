@@ -73,7 +73,7 @@ test('reattaches daemon PTYs when daemon init outlasts the first-window timeout'
     // Why: session.launch() inherits this process's env, so this reaches the
     // relaunched app's main process and delays initDaemonPtyProvider past the
     // first-window timeout.
-    process.env.ORCA_E2E_DAEMON_INIT_DELAY_MS = String(DAEMON_INIT_DELAY_MS)
+    process.env.ALICORN_E2E_DAEMON_INIT_DELAY_MS = String(DAEMON_INIT_DELAY_MS)
     try {
       const secondLaunch = await session.launch()
       secondApp = secondLaunch.app
@@ -99,7 +99,7 @@ test('reattaches daemon PTYs when daemon init outlasts the first-window timeout'
       expect(readDaemonPid(session.userDataDir)).toBe(daemonPidBefore)
       expect(await getTerminalContent(secondLaunch.page)).not.toContain('--- session restored ---')
     } finally {
-      delete process.env.ORCA_E2E_DAEMON_INIT_DELAY_MS
+      delete process.env.ALICORN_E2E_DAEMON_INIT_DELAY_MS
     }
   } finally {
     if (secondApp) {

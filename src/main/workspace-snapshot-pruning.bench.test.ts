@@ -1,4 +1,4 @@
-// Opt in: ORCA_WORKSPACE_SNAPSHOT_PRUNE_BENCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/workspace-snapshot-pruning.bench.test.ts
+// Opt in: ALICORN_WORKSPACE_SNAPSHOT_PRUNE_BENCH=1 pnpm exec vitest run --config config/vitest.config.ts src/main/workspace-snapshot-pruning.bench.test.ts
 import { performance } from 'node:perf_hooks'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -15,7 +15,7 @@ import {
   pruneWorkspaceSpaceAnalysisSnapshots
 } from './workspace-space-analysis-snapshot'
 
-const describeBench = process.env.ORCA_WORKSPACE_SNAPSHOT_PRUNE_BENCH ? describe : describe.skip
+const describeBench = process.env.ALICORN_WORKSPACE_SNAPSHOT_PRUNE_BENCH ? describe : describe.skip
 const ROW_COUNT = 610
 const DELETE_COUNT = 100
 

@@ -4,14 +4,17 @@ import { join } from 'node:path'
 import { getAppEnvironment } from '../../shared/app-environment'
 import { createHash } from 'node:crypto'
 import {
-  ORCA_PI_AGENT_STATUS_EXTENSION_FILE,
+  ALICORN_PI_AGENT_STATUS_EXTENSION_FILE,
   getPiAgentStatusExtensionSource
 } from './agent-status-extension-source'
 import {
-  ORCA_PI_PREFILL_EXTENSION_FILE,
+  ALICORN_PI_PREFILL_EXTENSION_FILE,
   getPiPrefillExtensionSource
 } from './prefill-extension-source'
-import { ORCA_PI_EXTENSION_FILE, getPiTitlebarExtensionSource } from './titlebar-extension-source'
+import {
+  ALICORN_PI_EXTENSION_FILE,
+  getPiTitlebarExtensionSource
+} from './titlebar-extension-source'
 import {
   isSafeDescendCandidate as sharedIsSafeDescendCandidate,
   safeRemoveOverlay
@@ -26,7 +29,7 @@ import type { PiAgentKind } from '../../shared/pi-agent-kind'
 export const isSafeDescendCandidate = sharedIsSafeDescendCandidate
 
 const PI_AGENT_SUBDIR = 'agent'
-const ORCA_MANAGED_EXTENSION_MARKER = '@orca-managed-pi-extension'
+const ALICORN_MANAGED_EXTENSION_MARKER = '@orca-managed-pi-extension'
 const OMP_MANAGED_STATUS_EXTENSION_DIR = 'omp-managed-status-extension'
 
 type ManagedExtensionWriteResult = 'written' | 'skipped-user-owned' | 'failed'
@@ -67,9 +70,9 @@ function toSafeOverlayDirName(ptyId: string): string {
 }
 
 function withOrcaManagedExtensionMarker(source: string): string {
-  return source.includes(ORCA_MANAGED_EXTENSION_MARKER)
+  return source.includes(ALICORN_MANAGED_EXTENSION_MARKER)
     ? source
-    : `// ${ORCA_MANAGED_EXTENSION_MARKER}\n${source}`
+    : `// ${ALICORN_MANAGED_EXTENSION_MARKER}\n${source}`
 }
 
 export class PiTitlebarExtensionService {
@@ -102,7 +105,7 @@ export class PiTitlebarExtensionService {
 
   private canOverwriteManagedExtension(path: string): boolean {
     try {
-      return readFileSync(path, 'utf8').includes(ORCA_MANAGED_EXTENSION_MARKER)
+      return readFileSync(path, 'utf8').includes(ALICORN_MANAGED_EXTENSION_MARKER)
     } catch {
       return true
     }
@@ -132,7 +135,7 @@ export class PiTitlebarExtensionService {
       return undefined
     }
 
-    const fallbackPath = join(fallbackDir, ORCA_PI_AGENT_STATUS_EXTENSION_FILE)
+    const fallbackPath = join(fallbackDir, ALICORN_PI_AGENT_STATUS_EXTENSION_FILE)
     return this.writeManagedExtension(fallbackPath, source) === 'written' ? fallbackPath : undefined
   }
 
@@ -149,15 +152,15 @@ export class PiTitlebarExtensionService {
 
     if (kind !== 'prime-agent') {
       this.writeManagedExtension(
-        join(extensionsDir, ORCA_PI_EXTENSION_FILE),
+        join(extensionsDir, ALICORN_PI_EXTENSION_FILE),
         withOrcaManagedExtensionMarker(getPiTitlebarExtensionSource())
       )
       this.writeManagedExtension(
-        join(extensionsDir, ORCA_PI_PREFILL_EXTENSION_FILE),
+        join(extensionsDir, ALICORN_PI_PREFILL_EXTENSION_FILE),
         withOrcaManagedExtensionMarker(getPiPrefillExtensionSource(kind))
       )
     }
-    const statusExtensionPath = join(extensionsDir, ORCA_PI_AGENT_STATUS_EXTENSION_FILE)
+    const statusExtensionPath = join(extensionsDir, ALICORN_PI_AGENT_STATUS_EXTENSION_FILE)
     const statusSource = withOrcaManagedExtensionMarker(getPiAgentStatusExtensionSource(kind))
     const statusResult = this.writeManagedExtension(statusExtensionPath, statusSource)
 
@@ -199,7 +202,7 @@ export class PiTitlebarExtensionService {
       if (kind === 'omp') {
         const statusSource = withOrcaManagedExtensionMarker(getPiAgentStatusExtensionSource(kind))
         const statusExtensionPath = this.writeOmpFallbackStatusExtension(statusSource)
-        return statusExtensionPath ? { ORCA_OMP_STATUS_EXTENSION: statusExtensionPath } : {}
+        return statusExtensionPath ? { ALICORN_OMP_STATUS_EXTENSION: statusExtensionPath } : {}
       }
       return {}
     }
@@ -211,14 +214,14 @@ export class PiTitlebarExtensionService {
     const installed = this.installManagedExtensions(sourceAgentDir, kind)
     const env: Record<string, string> = {}
     if (kind === 'omp') {
-      env.ORCA_OMP_SOURCE_AGENT_DIR = installed.sourceAgentDir
+      env.ALICORN_OMP_SOURCE_AGENT_DIR = installed.sourceAgentDir
       if (installed.statusExtensionPath) {
-        env.ORCA_OMP_STATUS_EXTENSION = installed.statusExtensionPath
+        env.ALICORN_OMP_STATUS_EXTENSION = installed.statusExtensionPath
       }
     } else if (kind === 'prime-agent') {
-      env.ORCA_PRIME_AGENT_SOURCE_AGENT_DIR = installed.sourceAgentDir
+      env.ALICORN_PRIME_AGENT_SOURCE_AGENT_DIR = installed.sourceAgentDir
     } else {
-      env.ORCA_PI_SOURCE_AGENT_DIR = installed.sourceAgentDir
+      env.ALICORN_PI_SOURCE_AGENT_DIR = installed.sourceAgentDir
     }
     return env
   }

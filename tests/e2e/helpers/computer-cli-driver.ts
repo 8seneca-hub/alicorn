@@ -43,9 +43,9 @@ export async function runOrcaCli(
 
 async function runOrcaCliOnce(args: string[]): Promise<CliResult> {
   const devCli = join(process.cwd(), 'config/scripts/orca-dev.mjs')
-  const command = process.env.ORCA_COMPUTER_CLI ?? process.execPath
-  const cliArgs = process.env.ORCA_COMPUTER_CLI ? args : [devCli, ...args]
-  const env = process.env.ORCA_COMPUTER_CLI
+  const command = process.env.ALICORN_COMPUTER_CLI ?? process.execPath
+  const cliArgs = process.env.ALICORN_COMPUTER_CLI ? args : [devCli, ...args]
+  const env = process.env.ALICORN_COMPUTER_CLI
     ? { ...process.env }
     : await createComputerE2ERuntimeEnv()
   try {
@@ -64,7 +64,7 @@ async function runOrcaCliOnce(args: string[]): Promise<CliResult> {
 }
 
 export async function ensureOrcaRuntimeLaunched(): Promise<void> {
-  if (!process.env.ORCA_COMPUTER_CLI && process.platform === 'win32') {
+  if (!process.env.ALICORN_COMPUTER_CLI && process.platform === 'win32') {
     await ensureOrcaRuntimeServed()
     return
   }
@@ -165,7 +165,7 @@ async function ensureOrcaRuntimeServed(): Promise<void> {
 
 async function createComputerE2ERuntimeEnv(): Promise<NodeJS.ProcessEnv> {
   const userDataDir =
-    process.env.ORCA_DEV_USER_DATA_PATH ?? (await getComputerE2eOrcaDevUserDataPath())
+    process.env.ALICORN_DEV_USER_DATA_PATH ?? (await getComputerE2eOrcaDevUserDataPath())
   // Why: agent runtimes export ELECTRON_RUN_AS_NODE, which would make the
   // spawned Electron behave as plain Node; strip it like every other caller.
   const { ELECTRON_RUN_AS_NODE: _electronRunAsNode, ...inheritedEnv } = process.env
@@ -180,7 +180,7 @@ async function createComputerE2ERuntimeEnv(): Promise<NodeJS.ProcessEnv> {
     ...isolation.env,
     // Why: the Node CLI and the Electron child must resolve the same runtime
     // metadata while the E2E boundary owns their home and Codex paths.
-    ORCA_DEV_USER_DATA_PATH: userDataDir
+    ALICORN_DEV_USER_DATA_PATH: userDataDir
   }
 }
 

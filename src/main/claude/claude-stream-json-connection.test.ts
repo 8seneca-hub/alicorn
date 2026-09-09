@@ -62,8 +62,8 @@ function scriptScenario(
     cwd: dir,
     env: {
       PATH: process.env.PATH ?? '',
-      ORCA_SDK_CONTRACT_SCENARIO_PATH: scenarioPath,
-      ORCA_SDK_CONTRACT_REPORT_PATH: reportPath
+      ALICORN_SDK_CONTRACT_SCENARIO_PATH: scenarioPath,
+      ALICORN_SDK_CONTRACT_REPORT_PATH: reportPath
     },
     readReport: () => JSON.parse(readFileSync(reportPath, 'utf8')) as ScriptedCliReport
   }
@@ -162,13 +162,13 @@ describe('Claude stream-json connection', () => {
     vi.stubEnv('NODE_OPTIONS', '--require=/tmp/inject.js')
     // An inherited value wins over the SDK's default, so clear it to pin the default.
     vi.stubEnv('CLAUDE_CODE_ENTRYPOINT', undefined)
-    vi.stubEnv('ORCA_CONNECTION_MARKER', 'inherited')
+    vi.stubEnv('ALICORN_CONNECTION_MARKER', 'inherited')
     const scenario = scriptScenario([HOLD_OPEN])
     const connection = await open(
       launchFor(scenario, {
         CLAUDE_CONFIG_DIR: '/accounts/managed/home',
         ANTHROPIC_AUTH_TOKEN: 'configured-token',
-        ORCA_AGENT_SESSION_SPAWN_TOKEN: 'spawn-9',
+        ALICORN_AGENT_SESSION_SPAWN_TOKEN: 'spawn-9',
         CLAUDE_CODE_CHILD_SESSION: 'configured-child-session',
         CLAUDE_CODE_SESSION_ID: 'configured-session',
         CLAUDE_CODE_BRIDGE_SESSION_ID: 'configured-bridge-session'
@@ -182,8 +182,8 @@ describe('Claude stream-json connection', () => {
     // The managed home is pinned verbatim: the CLI keys credential lookup on the literal string.
     expect(env.CLAUDE_CONFIG_DIR).toBe('/accounts/managed/home')
     expect(env.ANTHROPIC_AUTH_TOKEN).toBe('configured-token')
-    expect(env.ORCA_AGENT_SESSION_SPAWN_TOKEN).toBe('spawn-9')
-    expect(env.ORCA_CONNECTION_MARKER).toBe('inherited')
+    expect(env.ALICORN_AGENT_SESSION_SPAWN_TOKEN).toBe('spawn-9')
+    expect(env.ALICORN_CONNECTION_MARKER).toBe('inherited')
     expect(env.ANTHROPIC_API_KEY).toBeUndefined()
     expect(env.CLAUDE_CODE_CHILD_SESSION).toBeUndefined()
     expect(env.CLAUDE_CODE_SESSION_ID).toBeUndefined()
@@ -558,7 +558,7 @@ describe('Claude stream-json connection', () => {
     const scenario = scriptScenario([HOLD_OPEN])
     const connection = await open({
       ...launchFor(scenario),
-      env: { ...launchFor(scenario).env, ORCA_SDK_CONTRACT_IGNORE_CONTROL_REQUESTS: '1' }
+      env: { ...launchFor(scenario).env, ALICORN_SDK_CONTRACT_IGNORE_CONTROL_REQUESTS: '1' }
     })
 
     await expect(connection.initializationResult({ timeoutMs: 200 })).rejects.toThrow(
@@ -597,7 +597,7 @@ describe('Claude stream-json connection', () => {
       const connection = await open(
         {
           ...launchFor(scenario),
-          env: { ...launchFor(scenario).env, ORCA_SDK_CONTRACT_DESCENDANT: '1' }
+          env: { ...launchFor(scenario).env, ALICORN_SDK_CONTRACT_DESCENDANT: '1' }
         },
         { onExit: (error) => (exit = error) }
       )
@@ -676,7 +676,7 @@ describe('Claude stream-json connection', () => {
     const scenario = scriptScenario([HOLD_OPEN])
     const connection = await open({
       ...launchFor(scenario),
-      env: { ...launchFor(scenario).env, ORCA_SDK_CONTRACT_IGNORE_SIGTERM: '1' }
+      env: { ...launchFor(scenario).env, ALICORN_SDK_CONTRACT_IGNORE_SIGTERM: '1' }
     })
 
     // Keep the lstart capture boundary outside the child's displayed start second.

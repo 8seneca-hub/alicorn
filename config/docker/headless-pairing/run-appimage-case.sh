@@ -2,10 +2,10 @@
 set -euo pipefail
 
 case_name=${1:?launch case is required}
-appimage=${ORCA_TEST_APPIMAGE:-/artifacts/squashfs-root/AppRun}
-timeout_seconds=${ORCA_STARTUP_TIMEOUT_SECONDS:-12}
-pairing_address=${ORCA_PAIRING_ADDRESS:-127.0.0.1}
-port=${ORCA_SERVE_PORT:-0}
+appimage=${ALICORN_TEST_APPIMAGE:-/artifacts/squashfs-root/AppRun}
+timeout_seconds=${ALICORN_STARTUP_TIMEOUT_SECONDS:-12}
+pairing_address=${ALICORN_PAIRING_ADDRESS:-127.0.0.1}
+port=${ALICORN_SERVE_PORT:-0}
 state_dir="/tmp/orca-${case_name}"
 
 if ((EUID == 0)); then
@@ -26,14 +26,14 @@ else
 fi
 
 app_args=("${launcher[@]}")
-if [[ ${ORCA_TEST_NO_SANDBOX:-1} == 1 ]]; then
+if [[ ${ALICORN_TEST_NO_SANDBOX:-1} == 1 ]]; then
   app_args+=(--no-sandbox)
 fi
 app_args+=(serve --port "$port" --pairing-address "$pairing_address")
-if [[ ${ORCA_READY_JSON:-0} == 1 ]]; then
+if [[ ${ALICORN_READY_JSON:-0} == 1 ]]; then
   app_args+=(--json)
 fi
-if [[ ${ORCA_NO_PAIRING:-0} == 1 ]]; then
+if [[ ${ALICORN_NO_PAIRING:-0} == 1 ]]; then
   app_args+=(--no-pairing)
 fi
 
@@ -60,10 +60,10 @@ export HOME="$state_dir"
 export XDG_CONFIG_HOME="$state_dir/config"
 export XDG_CACHE_HOME="$state_dir/cache"
 if [[ $is_appimage == 0 ]]; then
-  export APPDIR=${ORCA_TEST_APPDIR:-"$(dirname "$appimage")"}
+  export APPDIR=${ALICORN_TEST_APPDIR:-"$(dirname "$appimage")"}
 fi
 
-if [[ ${ORCA_KEEP_RUNNING:-0} == 1 ]]; then
+if [[ ${ALICORN_KEEP_RUNNING:-0} == 1 ]]; then
   exec "${command[@]}"
 fi
 

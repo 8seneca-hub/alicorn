@@ -354,8 +354,8 @@ test('paired client keeps revealed remote terminals interactive', async ({
   const offer = await createRuntimeDesktopPairingOffer(orcaPage)
   // Why: the paired client inherits this from the launching process; a reused
   // Playwright worker would otherwise leak the shortened delay into later specs.
-  const previousParkDelay = process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS
-  process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
+  const previousParkDelay = process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS
+  process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS = String(PARK_DELAY_MS)
   const client = await launchPairedElectronClient(offer, testInfo, 'parked-reveal')
   const createdTerminals: string[] = []
   const results: ScenarioResult[] = []
@@ -470,9 +470,9 @@ test('paired client keeps revealed remote terminals interactive', async ({
     }
   } finally {
     if (previousParkDelay === undefined) {
-      delete process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS
+      delete process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS
     } else {
-      process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS = previousParkDelay
+      process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS = previousParkDelay
     }
     for (const terminal of createdTerminals) {
       await callEnvironment(client.page, client.environmentId, 'terminal.closeTab', {

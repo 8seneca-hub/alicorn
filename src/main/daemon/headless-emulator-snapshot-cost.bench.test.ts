@@ -7,7 +7,7 @@ import { HeadlessEmulator } from './headless-emulator'
 
 // Benchmark harness for issue #5096 (terminal output delay / UI lag growing
 // with session history). Run with:
-//   ORCA_TERMINAL_PERF_BENCH=1 pnpm vitest run \
+//   ALICORN_TERMINAL_PERF_BENCH=1 pnpm vitest run \
 //     src/main/daemon/headless-emulator-snapshot-cost.bench.test.ts \
 //     --config config/vitest.config.ts
 //
@@ -17,7 +17,7 @@ import { HeadlessEmulator } from './headless-emulator'
 // (stalling the PTY pump), and history-manager JSON.stringifies the result on
 // the Electron main process (stalling input IPC). Both stalls scale with
 // buffer content, which matches the report that clearing history fixes the lag.
-const benchEnabled = process.env.ORCA_TERMINAL_PERF_BENCH === '1'
+const benchEnabled = process.env.ALICORN_TERMINAL_PERF_BENCH === '1'
 
 const COLS = 200
 const ROWS = 50

@@ -21,7 +21,7 @@ import type { PtyTransport } from './pty-transport-types'
 // opencode/OpenTUI's unconditional startup burst (BEL-terminated, not ST).
 const OPENCODE_STARTUP_QUERY_BURST = '\x1b]10;?\x07\x1b]11;?\x07\x1b]4;0;?\x07'
 // Orca's One Dark terminal theme — the values that appear in the leaked text.
-const ORCA_TERMINAL_THEME = { foreground: '#ffffff', background: '#282c34' }
+const ALICORN_TERMINAL_THEME = { foreground: '#ffffff', background: '#282c34' }
 const OSC10_REPLY = '\x1b]10;rgb:ffff/ffff/ffff\x1b\\'
 const OSC11_REPLY = '\x1b]11;rgb:2828/2c2c/3434\x1b\\'
 const LEAKED_COLOR_REPLY_TEXT = /\d\d;rgb:[0-9a-f]{4}\//
@@ -120,7 +120,7 @@ type RendererPane = {
 /** Real xterm + real capability-reply handlers + the real local IPC transport. */
 async function createRendererPane(): Promise<RendererPane> {
   const terminal = new Terminal({ cols: 80, rows: 24, allowProposedApi: true })
-  terminal.options.theme = { ...ORCA_TERMINAL_THEME }
+  terminal.options.theme = { ...ALICORN_TERMINAL_THEME }
 
   const transport = createIpcPtyTransport({ worktreeId: 'wt-1', tabId: 'tab-1', leafId: 'pane:1' })
   await transport.connect({
@@ -200,7 +200,7 @@ describe('#12112 opencode startup OSC 10/11 replies on the local path', () => {
     // pane and only this pane (pty.ts:4024, terminal-startup-color-query-replies.ts).
     expect(isTuiAgent('opencode')).toBe(true)
     const ingress = new PtyStartupIngress({
-      intent: { colors: ORCA_TERMINAL_THEME, deadlineMs: 5_000 },
+      intent: { colors: ALICORN_TERMINAL_THEME, deadlineMs: 5_000 },
       ownerBackend: 'posix-pty',
       write: (data) => tty.writeToPty(data),
       onEmission: (emission) => pane.deliver(emission.data)
@@ -238,7 +238,7 @@ describe('#12112 opencode startup OSC 10/11 replies on the local path', () => {
       const emitted: string[] = []
       const writes: string[] = []
       const ingress = new PtyStartupIngress({
-        intent: { colors: ORCA_TERMINAL_THEME, deadlineMs: 5_000 },
+        intent: { colors: ALICORN_TERMINAL_THEME, deadlineMs: 5_000 },
         ownerBackend: 'posix-pty',
         write: (data) => writes.push(data),
         onEmission: (emission) => emitted.push(emission.data)
@@ -266,7 +266,7 @@ describe('#12112 opencode startup OSC 10/11 replies on the local path', () => {
       const emitted: string[] = []
       const writes: string[] = []
       const ingress = new PtyStartupIngress({
-        intent: { colors: ORCA_TERMINAL_THEME, deadlineMs: 5_000 },
+        intent: { colors: ALICORN_TERMINAL_THEME, deadlineMs: 5_000 },
         ownerBackend,
         write: (data) => {
           writes.push(data)

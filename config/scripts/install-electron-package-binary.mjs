@@ -148,7 +148,7 @@ async function installElectronPackageBinary(sharedEntry) {
   }
   const tempDir = mkdtempSync(resolve(tmpdir(), 'orca-electron-'))
   const persistentCacheRoot =
-    process.env.ORCA_ELECTRON_PACKAGE_CACHE_ROOT || process.env.ELECTRON_CACHE || null
+    process.env.ALICORN_ELECTRON_PACKAGE_CACHE_ROOT || process.env.ELECTRON_CACHE || null
   const cacheRoot = persistentCacheRoot ?? join(tempDir, 'cache')
   const extractDir = join(tempDir, 'extract')
 
@@ -272,7 +272,7 @@ async function downloadElectronArtifactWithRetry(downloadOptions, { cacheRootIsP
 }
 
 function getDownloadRetryDelays() {
-  const configured = process.env.ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS
+  const configured = process.env.ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS
   if (!configured) {
     // Why: GitHub release CDN returns intermittent 503 / HTTP2 stream refusals
     // under CI fan-out; a few short attempts still exhaust during outages.
@@ -281,7 +281,7 @@ function getDownloadRetryDelays() {
 
   const delays = configured.split(',').map(Number)
   if (delays.some((delay) => !Number.isSafeInteger(delay) || delay < 0)) {
-    throw new Error('ORCA_ELECTRON_PACKAGE_RETRY_DELAYS_MS must contain non-negative integers')
+    throw new Error('ALICORN_ELECTRON_PACKAGE_RETRY_DELAYS_MS must contain non-negative integers')
   }
   return delays
 }
@@ -440,17 +440,17 @@ function stageExtractedElectronDist(extractDir, nextDistDir) {
 }
 
 function getExtractorCommand(zipPath, extractDir) {
-  if (process.env.ORCA_ELECTRON_PACKAGE_EXTRACTOR) {
+  if (process.env.ALICORN_ELECTRON_PACKAGE_EXTRACTOR) {
     return {
       file: process.execPath,
-      args: [process.env.ORCA_ELECTRON_PACKAGE_EXTRACTOR, zipPath, extractDir],
-      label: `node ${process.env.ORCA_ELECTRON_PACKAGE_EXTRACTOR}`
+      args: [process.env.ALICORN_ELECTRON_PACKAGE_EXTRACTOR, zipPath, extractDir],
+      label: `node ${process.env.ALICORN_ELECTRON_PACKAGE_EXTRACTOR}`
     }
   }
 
   if (osPlatform() === 'win32') {
     return {
-      file: process.env.ORCA_POWERSHELL_BIN || 'powershell',
+      file: process.env.ALICORN_POWERSHELL_BIN || 'powershell',
       args: [
         '-NoProfile',
         '-NonInteractive',
@@ -467,7 +467,7 @@ function getExtractorCommand(zipPath, extractDir) {
   }
 
   return {
-    file: process.env.ORCA_UNZIP_BIN || 'unzip',
+    file: process.env.ALICORN_UNZIP_BIN || 'unzip',
     args: ['-q', zipPath, '-d', extractDir],
     label: 'unzip'
   }

@@ -69,11 +69,11 @@ describe('buildHostCliEnv', () => {
     const env = buildHostCliEnv({
       hostEnv: { PATH: '/host/bin', NODE_OPTIONS: '--inspect' },
       remoteEnv: {
-        ORCA_TERMINAL_HANDLE: 'term_remote',
-        ORCA_WORKTREE_ID: 'repo::/home/alice/wt',
-        ORCA_PANE_KEY: 'pane-9',
-        ORCA_AGENT_LAUNCH_TOKEN: 'launch-secret',
-        ORCA_WORKSPACE_ID: 'ws-1',
+        ALICORN_TERMINAL_HANDLE: 'term_remote',
+        ALICORN_WORKTREE_ID: 'repo::/home/alice/wt',
+        ALICORN_PANE_KEY: 'pane-9',
+        ALICORN_AGENT_LAUNCH_TOKEN: 'launch-secret',
+        ALICORN_WORKSPACE_ID: 'ws-1',
         [ORCHESTRATION_COMPATIBILITY_HOST_KIND_ENV]: 'wsl',
         [ORCHESTRATION_COMPATIBILITY_HOST_ID_ENV]: 'caller-host',
         [ORCHESTRATION_COMPATIBILITY_HOST_INCARNATION_ENV]: 'caller-incarnation',
@@ -82,7 +82,7 @@ describe('buildHostCliEnv', () => {
         // subprocess (PATH would break host binary lookup; user-data would
         // retarget the CLI at a different local instance).
         PATH: '/remote/bin',
-        ORCA_USER_DATA_PATH: '/remote/user-data'
+        ALICORN_USER_DATA_PATH: '/remote/user-data'
       },
       userDataPath: '/host/user-data',
       remoteCwd: '/home/alice/wt/sub',
@@ -94,39 +94,39 @@ describe('buildHostCliEnv', () => {
       }
     })
 
-    expect(env.ORCA_TERMINAL_HANDLE).toBe('term_remote')
-    expect(env.ORCA_WORKTREE_ID).toBe('repo::/home/alice/wt')
-    expect(env.ORCA_PANE_KEY).toBe('pane-9')
-    expect(env.ORCA_AGENT_LAUNCH_TOKEN).toBe('launch-secret')
-    expect(env.ORCA_WORKSPACE_ID).toBe('ws-1')
+    expect(env.ALICORN_TERMINAL_HANDLE).toBe('term_remote')
+    expect(env.ALICORN_WORKTREE_ID).toBe('repo::/home/alice/wt')
+    expect(env.ALICORN_PANE_KEY).toBe('pane-9')
+    expect(env.ALICORN_AGENT_LAUNCH_TOKEN).toBe('launch-secret')
+    expect(env.ALICORN_WORKSPACE_ID).toBe('ws-1')
     expect(env[ORCHESTRATION_COMPATIBILITY_HOST_KIND_ENV]).toBe('ssh')
     expect(env[ORCHESTRATION_COMPATIBILITY_HOST_ID_ENV]).toBe('saved-target')
     expect(env[ORCHESTRATION_COMPATIBILITY_HOST_INCARNATION_ENV]).toBe('connection-incarnation')
     expect(env[ORCHESTRATION_COMPATIBILITY_ATTACHMENT_ENV]).toBe('runtime-attachment')
     expect(env.PATH).toBe('/host/bin')
-    expect(env.ORCA_USER_DATA_PATH).toBe('/host/user-data')
-    expect(env.ORCA_CLI_CWD).toBe('/home/alice/wt/sub')
-    expect(env.ORCA_CLI_COMMAND).toBe('orca')
+    expect(env.ALICORN_USER_DATA_PATH).toBe('/host/user-data')
+    expect(env.ALICORN_CLI_CWD).toBe('/home/alice/wt/sub')
+    expect(env.ALICORN_CLI_COMMAND).toBe('orca')
     expect(env.ELECTRON_RUN_AS_NODE).toBe('1')
     expect(env.NODE_OPTIONS).toBeUndefined()
-    expect(env.ORCA_NODE_OPTIONS).toBe('--inspect')
+    expect(env.ALICORN_NODE_OPTIONS).toBe('--inspect')
   })
 
   it.each([
-    ['dev host', { ORCA_DEV_REPO_ROOT: '/repo', ORCA_CLI_COMMAND: 'orca-dev' }],
-    ['packaged Linux host', { ORCA_CLI_COMMAND: 'orca-ide' }],
+    ['dev host', { ALICORN_DEV_REPO_ROOT: '/repo', ALICORN_CLI_COMMAND: 'orca-dev' }],
+    ['packaged Linux host', { ALICORN_CLI_COMMAND: 'orca-ide' }],
     ['local host', {}],
-    ['WSL host', { WSL_DISTRO_NAME: 'Ubuntu', ORCA_CLI_COMMAND: 'orca-ide' }],
+    ['WSL host', { WSL_DISTRO_NAME: 'Ubuntu', ALICORN_CLI_COMMAND: 'orca-ide' }],
     ['Windows host', { ComSpec: 'C:\\Windows\\System32\\cmd.exe' }]
   ])('pins %s recovery to the remote shim', (_name, hostEnv) => {
     const env = buildHostCliEnv({
       hostEnv,
-      remoteEnv: { ORCA_CLI_COMMAND: 'untrusted-remote-command' },
+      remoteEnv: { ALICORN_CLI_COMMAND: 'untrusted-remote-command' },
       userDataPath: '/host/user-data',
       remoteCwd: '/srv/repo'
     })
 
-    expect(env.ORCA_CLI_COMMAND).toBe('orca')
+    expect(env.ALICORN_CLI_COMMAND).toBe('orca')
   })
 
   it('namespaces identical remote artifact paths by stable SSH target', () => {
@@ -248,7 +248,7 @@ describe('runHostOrcaCliPassthrough', () => {
       {
         argv: ['orchestration', 'task-create', '--spec', 'do the thing', '--json'],
         cwd: '/home/alice/wt',
-        env: { ORCA_TERMINAL_HANDLE: 'term_remote' }
+        env: { ALICORN_TERMINAL_HANDLE: 'term_remote' }
       },
       { ...BASE_OPTIONS, spawn: spawn as never }
     )
@@ -277,8 +277,8 @@ describe('runHostOrcaCliPassthrough', () => {
       '--json'
     ])
     expect(options.env.ELECTRON_RUN_AS_NODE).toBe('1')
-    expect(options.env.ORCA_CLI_CWD).toBe('/home/alice/wt')
-    expect(options.env.ORCA_TERMINAL_HANDLE).toBe('term_remote')
+    expect(options.env.ALICORN_CLI_CWD).toBe('/home/alice/wt')
+    expect(options.env.ALICORN_TERMINAL_HANDLE).toBe('term_remote')
     // Why: stdin must be closed even without a payload so CLI handlers that
     // stream stdin see EOF instead of hanging forever.
     expect(child.stdin.end).toHaveBeenCalledWith()

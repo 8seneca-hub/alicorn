@@ -15,15 +15,15 @@ let previousUserDataPath: string | undefined
 
 beforeEach(() => {
   userDataDir = mkdtempSync(join(tmpdir(), 'orca-trust-ledger-'))
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
+  process.env.ALICORN_USER_DATA_PATH = userDataDir
 })
 
 afterEach(() => {
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.ALICORN_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
   }
   rmSync(userDataDir, { recursive: true, force: true })
 })

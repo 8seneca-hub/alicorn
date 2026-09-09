@@ -18,7 +18,7 @@ import { Unicode11Addon } from '@xterm/addon-unicode11'
 import { activateOrcaTerminalUnicodeProvider } from '../../shared/terminal-unicode-provider'
 import { isWideGlyph } from './__fixtures__/terminal-wide-cell-grid'
 
-const ORCA_UNICODE_VERSION = 'orca-11-zwj'
+const ALICORN_UNICODE_VERSION = 'orca-11-zwj'
 const HANGUL_SYLLABLES_FIRST = 0xac00
 const HANGUL_SYLLABLES_LAST = 0xd7a3
 
@@ -98,15 +98,15 @@ function summarize(entries: { codepoint: number; detail: string }[]): string[] {
 describe('Hangul cell width agreement (#15192)', () => {
   it('reaches the Orca provider, not the v11 fallback, on a live terminal', () => {
     const { terminal, unicode } = openWithUnicode11AddonLoaded()
-    expect(unicode.versions).toContain(ORCA_UNICODE_VERSION)
-    expect(unicode.activeVersion).toBe(ORCA_UNICODE_VERSION)
+    expect(unicode.versions).toContain(ALICORN_UNICODE_VERSION)
+    expect(unicode.activeVersion).toBe(ALICORN_UNICODE_VERSION)
     terminal.dispose()
   })
 
   it('budgets every precomposed syllable at two cells under v6, v11 and Orca', () => {
     const { terminal, unicode } = openWithUnicode11AddonLoaded()
     const disagreeing: { codepoint: number; detail: string }[] = []
-    for (const version of ['6', '11', ORCA_UNICODE_VERSION]) {
+    for (const version of ['6', '11', ALICORN_UNICODE_VERSION]) {
       unicode.activeVersion = version
       for (let cp = HANGUL_SYLLABLES_FIRST; cp <= HANGUL_SYLLABLES_LAST; cp += 1) {
         const wcwidth = unicode.wcwidth(cp)

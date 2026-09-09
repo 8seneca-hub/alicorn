@@ -777,8 +777,8 @@ test.describe('Chinese IME terminal chat input repro', () => {
     orcaPage
   }, testInfo) => {
     test.skip(
-      process.env.ORCA_E2E_REAL_CODEX_IME !== '1',
-      'Set ORCA_E2E_REAL_CODEX_IME=1 to exercise the locally installed Codex TUI'
+      process.env.ALICORN_E2E_REAL_CODEX_IME !== '1',
+      'Set ALICORN_E2E_REAL_CODEX_IME=1 to exercise the locally installed Codex TUI'
     )
 
     await waitForSessionReady(orcaPage)

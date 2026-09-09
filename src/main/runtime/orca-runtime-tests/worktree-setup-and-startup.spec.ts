@@ -43,8 +43,8 @@ describe('OrcaRuntimeService', () => {
     vi.mocked(createSetupRunnerScript).mockReturnValue({
       runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-test'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-test'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValueOnce([
@@ -88,8 +88,8 @@ describe('OrcaRuntimeService', () => {
       setup: {
         runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
         envVars: {
-          ORCA_ROOT_PATH: '/tmp/repo',
-          ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-test'
+          ALICORN_ROOT_PATH: '/tmp/repo',
+          ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-test'
         }
       }
     })
@@ -130,8 +130,8 @@ describe('OrcaRuntimeService', () => {
     vi.mocked(createSetupRunnerScript).mockReturnValue({
       runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-activate'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-activate'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValueOnce([
@@ -198,8 +198,8 @@ describe('OrcaRuntimeService', () => {
       runnerScriptPath: 'C:\\repo\\.git\\orca\\setup-runner.sh',
       shell: { family: 'posix' },
       envVars: {
-        ORCA_ROOT_PATH: 'C:\\repo',
-        ORCA_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-activate'
+        ALICORN_ROOT_PATH: 'C:\\repo',
+        ALICORN_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-activate'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValueOnce([
@@ -281,8 +281,8 @@ describe('OrcaRuntimeService', () => {
     vi.mocked(createSetupRunnerScript).mockReturnValue({
       runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-skip'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-skip'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValue([
@@ -332,13 +332,13 @@ describe('OrcaRuntimeService', () => {
       expect.objectContaining({
         cwd: '/tmp/workspaces/runtime-hook-skip',
         command: 'bash /tmp/repo/.git/orca/setup-runner.sh',
-        // Why: createTerminal stamps ORCA_PANE_KEY/TAB_ID/WORKTREE_ID so hook-based agent status can attribute events to a stable pane.
+        // Why: createTerminal stamps ALICORN_PANE_KEY/TAB_ID/WORKTREE_ID so hook-based agent status can attribute events to a stable pane.
         env: expect.objectContaining({
-          ORCA_ROOT_PATH: '/tmp/repo',
-          ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-skip',
-          ORCA_TAB_ID: expect.stringMatching(UUID_RE),
-          ORCA_PANE_KEY: expect.any(String),
-          ORCA_WORKTREE_ID: result.worktree.id
+          ALICORN_ROOT_PATH: '/tmp/repo',
+          ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-hook-skip',
+          ALICORN_TAB_ID: expect.stringMatching(UUID_RE),
+          ALICORN_PANE_KEY: expect.any(String),
+          ALICORN_WORKTREE_ID: result.worktree.id
         }),
         worktreeId: result.worktree.id
       })
@@ -346,7 +346,9 @@ describe('OrcaRuntimeService', () => {
     const setupSpawnEnv =
       (spawn.mock.calls[1]?.[0] as { env?: Record<string, string> } | undefined)?.env ?? {}
     expectStablePaneKeyEnv(setupSpawnEnv)
-    const setupLeafId = setupSpawnEnv.ORCA_PANE_KEY.slice(`${setupSpawnEnv.ORCA_TAB_ID}:`.length)
+    const setupLeafId = setupSpawnEnv.ALICORN_PANE_KEY.slice(
+      `${setupSpawnEnv.ALICORN_TAB_ID}:`.length
+    )
     // Why: a background CLI create adopts its tabs silently — surfaceOwner:false
     // keeps the sidebar from scrolling to a workspace the user never asked for.
     expect(revealTerminalSession).toHaveBeenLastCalledWith(result.worktree.id, {
@@ -354,7 +356,7 @@ describe('OrcaRuntimeService', () => {
       title: 'Setup',
       activate: false,
       surfaceOwner: false,
-      tabId: setupSpawnEnv.ORCA_TAB_ID,
+      tabId: setupSpawnEnv.ALICORN_TAB_ID,
       leafId: setupLeafId
     })
   })
@@ -401,8 +403,8 @@ describe('OrcaRuntimeService', () => {
       runnerScriptPath: 'C:\\repo\\.git\\orca\\setup-runner.sh',
       shell: { family: 'posix', executable: 'wsl.exe' },
       envVars: {
-        ORCA_ROOT_PATH: 'C:\\repo',
-        ORCA_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-wsl'
+        ALICORN_ROOT_PATH: 'C:\\repo',
+        ALICORN_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-wsl'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValue([
@@ -427,11 +429,11 @@ describe('OrcaRuntimeService', () => {
       expect.objectContaining({
         command: 'bash /mnt/c/repo/.git/orca/setup-runner.sh',
         env: expect.objectContaining({
-          ORCA_ROOT_PATH: 'C:\\repo',
-          ORCA_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-wsl',
-          ORCA_TAB_ID: expect.stringMatching(UUID_RE),
-          ORCA_PANE_KEY: expect.any(String),
-          ORCA_WORKTREE_ID: result.worktree.id
+          ALICORN_ROOT_PATH: 'C:\\repo',
+          ALICORN_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-wsl',
+          ALICORN_TAB_ID: expect.stringMatching(UUID_RE),
+          ALICORN_PANE_KEY: expect.any(String),
+          ALICORN_WORKTREE_ID: result.worktree.id
         }),
         worktreeId: result.worktree.id
       })
@@ -484,8 +486,8 @@ describe('OrcaRuntimeService', () => {
       runnerScriptPath: 'C:\\repo\\.git\\orca\\setup-runner.sh',
       shell: { family: 'posix' },
       envVars: {
-        ORCA_ROOT_PATH: 'C:\\repo',
-        ORCA_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-windowless'
+        ALICORN_ROOT_PATH: 'C:\\repo',
+        ALICORN_WORKTREE_PATH: 'C:\\workspaces\\runtime-hook-windowless'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValue([

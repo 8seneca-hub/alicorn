@@ -4,9 +4,10 @@ import {
   writeEndpointFile
 } from '../../../shared/agent-hook-listener/endpoint-publication'
 import {
-  ORCA_HOOK_PROTOCOL_VERSION,
-  ORCA_HOOK_RAW_JSON_TRANSPORT
+  ALICORN_HOOK_PROTOCOL_VERSION,
+  ALICORN_HOOK_RAW_JSON_TRANSPORT
 } from '../../../shared/agent-hook-types'
+import { withLegacyEnvAliases } from '../../../shared/alicorn-env-compat'
 import { AgentHookServerIngestRemote } from './server-ingest-remote'
 
 export abstract class AgentHookServerRuntimeEnv extends AgentHookServerIngestRemote {
@@ -15,17 +16,18 @@ export abstract class AgentHookServerRuntimeEnv extends AgentHookServerIngestRem
       return {}
     }
     const env: Record<string, string> = {
-      ORCA_AGENT_HOOK_PORT: String(this.port),
-      ORCA_AGENT_HOOK_TOKEN: this.token,
-      ORCA_AGENT_HOOK_ENV: this.env,
-      ORCA_AGENT_HOOK_VERSION: ORCA_HOOK_PROTOCOL_VERSION,
-      ORCA_AGENT_HOOK_TRANSPORT: ORCA_HOOK_RAW_JSON_TRANSPORT
+      ALICORN_AGENT_HOOK_PORT: String(this.port),
+      ALICORN_AGENT_HOOK_TOKEN: this.token,
+      ALICORN_AGENT_HOOK_ENV: this.env,
+      ALICORN_AGENT_HOOK_VERSION: ALICORN_HOOK_PROTOCOL_VERSION,
+      ALICORN_AGENT_HOOK_TRANSPORT: ALICORN_HOOK_RAW_JSON_TRANSPORT
     }
     // Why: hooks source this file at invocation; dev namespaces it so parallel `pnpm dev` runs don't steal each other's hooks.
     if (this.endpointFileWritten && this.endpointFilePathCache) {
-      env.ORCA_AGENT_HOOK_ENDPOINT = this.endpointFilePathCache
+      env.ALICORN_AGENT_HOOK_ENDPOINT = this.endpointFilePathCache
     }
-    return env
+    // Why: a managed hook script installed by the previous release reads the pre-rebrand names.
+    return withLegacyEnvAliases(env)
   }
 
   get endpointFilePath(): string | null {
@@ -46,8 +48,8 @@ export abstract class AgentHookServerRuntimeEnv extends AgentHookServerIngestRem
       port: this.port,
       token: this.token,
       env: this.env,
-      version: ORCA_HOOK_PROTOCOL_VERSION,
-      transport: ORCA_HOOK_RAW_JSON_TRANSPORT
+      version: ALICORN_HOOK_PROTOCOL_VERSION,
+      transport: ALICORN_HOOK_RAW_JSON_TRANSPORT
     })
     this.endpointFileWritten = ok
   }

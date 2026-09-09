@@ -105,7 +105,7 @@ test.describe('app menu paste ownership', () => {
       scriptStarted = true
       await waitForTerminalOutput(orcaPage, `APP_MENU_PASTE_READY_${runId}`, 10_000)
 
-      const payload = `ORCA_E2E_APP_MENU_TERMINAL_${runId}`
+      const payload = `ALICORN_E2E_APP_MENU_TERMINAL_${runId}`
       const encodedPayload = Buffer.from(payload, 'utf8').toString('base64')
       await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
       await clearTerminalPtyWriteLog(electronApp)
@@ -139,7 +139,7 @@ test.describe('app menu paste ownership', () => {
     await expect(renameInput).toBeVisible()
     await renameInput.fill('')
 
-    const payload = `ORCA_E2E_APP_MENU_TEXTBOX_${randomUUID()}`
+    const payload = `ALICORN_E2E_APP_MENU_TEXTBOX_${randomUUID()}`
     await orcaPage.evaluate((text) => window.api.ui.writeClipboardText(text), payload)
     await clearTerminalPtyWriteLog(electronApp)
     await expect(renameInput).toBeFocused()

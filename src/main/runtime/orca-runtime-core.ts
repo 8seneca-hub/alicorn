@@ -278,12 +278,12 @@ export function isPathWithinDirectory(directory: string, candidate: string): boo
 }
 
 export const AGENT_HOOK_RUNTIME_ENV_KEYS = [
-  'ORCA_AGENT_HOOK_PORT',
-  'ORCA_AGENT_HOOK_TOKEN',
-  'ORCA_AGENT_HOOK_ENV',
-  'ORCA_AGENT_HOOK_VERSION',
-  'ORCA_AGENT_HOOK_TRANSPORT',
-  'ORCA_AGENT_HOOK_ENDPOINT'
+  'ALICORN_AGENT_HOOK_PORT',
+  'ALICORN_AGENT_HOOK_TOKEN',
+  'ALICORN_AGENT_HOOK_ENV',
+  'ALICORN_AGENT_HOOK_VERSION',
+  'ALICORN_AGENT_HOOK_TRANSPORT',
+  'ALICORN_AGENT_HOOK_ENDPOINT'
 ] as const
 
 // Why: notificationSeq is the desktop-assigned monotonic sequence used for

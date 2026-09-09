@@ -68,8 +68,8 @@ describe('OrcaRuntimeService', () => {
       runnerScriptPath: 'C:\\tmp\\repo\\.git\\orca\\setup-runner.sh',
       shell: { family: 'posix', executable: 'wsl.exe' },
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-headless-startup-setup'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-headless-startup-setup'
       },
       waitForAgentStartup: true
     })
@@ -155,8 +155,8 @@ describe('OrcaRuntimeService', () => {
     vi.mocked(createSetupRunnerScript).mockReturnValue({
       runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-headless-parallel'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-headless-parallel'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValue([
@@ -233,8 +233,8 @@ describe('OrcaRuntimeService', () => {
       runnerScriptPath: 'C:\\tmp\\repo\\.git\\orca\\setup-runner.sh',
       shell: { family: 'posix', executable: 'wsl.exe' },
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-observed-wsl-shell'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-observed-wsl-shell'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValue([
@@ -318,8 +318,8 @@ describe('OrcaRuntimeService', () => {
     const initialSpawnEnv =
       (spawn.mock.calls[0]?.[0] as { env?: Record<string, string> } | undefined)?.env ?? {}
     expectStablePaneKeyEnv(initialSpawnEnv)
-    const initialLeafId = initialSpawnEnv.ORCA_PANE_KEY.slice(
-      `${initialSpawnEnv.ORCA_TAB_ID}:`.length
+    const initialLeafId = initialSpawnEnv.ALICORN_PANE_KEY.slice(
+      `${initialSpawnEnv.ALICORN_TAB_ID}:`.length
     )
     // Why: the renderer treats a missing surfaceOwner as "reveal the owner", which
     // scrolled the sidebar to background CLI creates.
@@ -328,7 +328,7 @@ describe('OrcaRuntimeService', () => {
       title: null,
       activate: false,
       surfaceOwner: false,
-      tabId: initialSpawnEnv.ORCA_TAB_ID,
+      tabId: initialSpawnEnv.ALICORN_TAB_ID,
       leafId: initialLeafId
     })
   })
@@ -557,8 +557,8 @@ describe('OrcaRuntimeService', () => {
     vi.mocked(createSetupRunnerScript).mockReturnValue({
       runnerScriptPath: '/tmp/repo/.git/orca/setup-runner.sh',
       envVars: {
-        ORCA_ROOT_PATH: '/tmp/repo',
-        ORCA_WORKTREE_PATH: '/tmp/workspaces/runtime-cli-setup-split'
+        ALICORN_ROOT_PATH: '/tmp/repo',
+        ALICORN_WORKTREE_PATH: '/tmp/workspaces/runtime-cli-setup-split'
       }
     })
     vi.mocked(listWorktrees).mockResolvedValue([
@@ -583,13 +583,13 @@ describe('OrcaRuntimeService', () => {
     const setupEnv = (spawn.mock.calls[1]![0] as { env?: Record<string, string> }).env ?? {}
     expectStablePaneKeyEnv(mainEnv)
     expectStablePaneKeyEnv(setupEnv)
-    expect(setupEnv.ORCA_TAB_ID).toBe(mainEnv.ORCA_TAB_ID)
-    const mainLeafId = mainEnv.ORCA_PANE_KEY!.slice(`${mainEnv.ORCA_TAB_ID!}:`.length)
+    expect(setupEnv.ALICORN_TAB_ID).toBe(mainEnv.ALICORN_TAB_ID)
+    const mainLeafId = mainEnv.ALICORN_PANE_KEY!.slice(`${mainEnv.ALICORN_TAB_ID!}:`.length)
     expect(revealTerminalSession).toHaveBeenLastCalledWith(
       result.worktree.id,
       expect.objectContaining({
         ptyId: 'pty-cli-setup-setup',
-        tabId: mainEnv.ORCA_TAB_ID,
+        tabId: mainEnv.ALICORN_TAB_ID,
         activate: false,
         splitFromLeafId: mainLeafId,
         splitDirection: 'vertical'

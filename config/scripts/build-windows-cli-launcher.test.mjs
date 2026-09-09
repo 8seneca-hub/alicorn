@@ -113,7 +113,7 @@ describe('Windows CLI launcher', () => {
   argv: process.argv.slice(2),
   electronRunAsNode: process.env.ELECTRON_RUN_AS_NODE,
   nodeOptions: process.env.NODE_OPTIONS ?? null,
-  orcaNodeOptions: process.env.ORCA_NODE_OPTIONS ?? null
+  orcaNodeOptions: process.env.ALICORN_NODE_OPTIONS ?? null
 }))\n`,
         'utf8'
       )
@@ -132,15 +132,15 @@ describe('Windows CLI launcher', () => {
           '-NoProfile',
           '-NonInteractive',
           '-Command',
-          '& $env:ORCA_TEST_LAUNCHER orchestration send --body $env:ORCA_TEST_BODY --json'
+          '& $env:ALICORN_TEST_LAUNCHER orchestration send --body $env:ALICORN_TEST_BODY --json'
         ],
         {
           encoding: 'utf8',
           env: {
             ...process.env,
             NODE_OPTIONS: '--no-warnings',
-            ORCA_TEST_BODY: body,
-            ORCA_TEST_LAUNCHER: launcherPath
+            ALICORN_TEST_BODY: body,
+            ALICORN_TEST_LAUNCHER: launcherPath
           }
         }
       )
@@ -177,7 +177,7 @@ describe('Windows CLI launcher', () => {
       copyFileSync(process.execPath, join(appRoot, 'Orca.exe'))
       writeFileSync(
         cliPath,
-        `require('node:fs').writeFileSync(process.env.ORCA_TEST_OUTPUT, JSON.stringify({
+        `require('node:fs').writeFileSync(process.env.ALICORN_TEST_OUTPUT, JSON.stringify({
   electronRunAsNode: process.env.ELECTRON_RUN_AS_NODE,
   pathKeys: Object.keys(process.env).filter((key) => key.toLowerCase() === 'path')
 }))\n`,

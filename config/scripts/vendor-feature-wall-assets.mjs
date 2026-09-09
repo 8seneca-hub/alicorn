@@ -13,7 +13,7 @@ const DEFAULT_MARKETING_REPO = path.join(
   'Stably',
   'orca-marketing-website'
 )
-const MARKETING_REPO = process.env.ORCA_MARKETING_REPO || DEFAULT_MARKETING_REPO
+const MARKETING_REPO = process.env.ALICORN_MARKETING_REPO || DEFAULT_MARKETING_REPO
 const DEST_ROOT = path.join(ROOT, 'resources', 'onboarding', 'feature-wall')
 
 const TILES = [

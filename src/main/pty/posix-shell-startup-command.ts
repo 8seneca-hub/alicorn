@@ -1,6 +1,6 @@
 import { basename, win32 as pathWin32 } from 'node:path'
 
-export const POSIX_SHELL_STARTUP_COMMAND_ENV = 'ORCA_POSIX_SHELL_STARTUP_COMMAND'
+export const POSIX_SHELL_STARTUP_COMMAND_ENV = 'ALICORN_POSIX_SHELL_STARTUP_COMMAND'
 
 export function supportsPosixShellStartupCommand(shellPath: string): boolean {
   const shellName = pathWin32.basename(basename(shellPath)).toLowerCase()

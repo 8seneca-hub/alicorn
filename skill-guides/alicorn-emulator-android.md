@@ -25,8 +25,8 @@ streaming server.
 
 ## CLI executable
 
-Choose the Orca executable once: use the `ORCA_CLI_COMMAND` environment value when set;
-otherwise use `orca-dev` in a dev session exposing `ORCA_DEV_REPO_ROOT`, `alicorn-ide` on
+Choose the Orca executable once: use the `ALICORN_CLI_COMMAND` environment value when set;
+otherwise use `orca-dev` in a dev session exposing `ALICORN_DEV_REPO_ROOT`, `alicorn-ide` on
 Linux outside an Orca-managed terminal, and `alicorn` everywhere else. Never try bare
 `orca` first on unmanaged Linux because it normally resolves to the GNOME screen reader.
 

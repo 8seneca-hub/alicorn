@@ -56,12 +56,12 @@ let previousUserDataPath: string | undefined
 let previousDisableTrustRpc: string | undefined
 
 beforeEach(() => {
-  previousDisableTrustRpc = process.env.ORCA_DISABLE_CODEX_TRUST_RPC
-  delete process.env.ORCA_DISABLE_CODEX_TRUST_RPC
+  previousDisableTrustRpc = process.env.ALICORN_DISABLE_CODEX_TRUST_RPC
+  delete process.env.ALICORN_DISABLE_CODEX_TRUST_RPC
   tmpHome = mkdtempSync(join(tmpdir(), 'orca-codex-home-'))
   userDataDir = mkdtempSync(join(tmpdir(), 'orca-codex-user-data-'))
-  previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-  process.env.ORCA_USER_DATA_PATH = userDataDir
+  previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
+  process.env.ALICORN_USER_DATA_PATH = userDataDir
   homedirMock.mockReturnValue(tmpHome)
   resolveCodexCommandMock.mockReturnValue(process.execPath)
   getPathMock.mockImplementation((name: string) => {
@@ -80,16 +80,16 @@ afterEach(() => {
   trustGrantInternals.resetDiagnostics()
   codexAppServerCapabilityCache.clear()
   if (previousDisableTrustRpc === undefined) {
-    delete process.env.ORCA_DISABLE_CODEX_TRUST_RPC
+    delete process.env.ALICORN_DISABLE_CODEX_TRUST_RPC
   } else {
-    process.env.ORCA_DISABLE_CODEX_TRUST_RPC = previousDisableTrustRpc
+    process.env.ALICORN_DISABLE_CODEX_TRUST_RPC = previousDisableTrustRpc
   }
   rmSync(tmpHome, { recursive: true, force: true })
   rmSync(userDataDir, { recursive: true, force: true })
   if (previousUserDataPath === undefined) {
-    delete process.env.ORCA_USER_DATA_PATH
+    delete process.env.ALICORN_USER_DATA_PATH
   } else {
-    process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+    process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
   }
   vi.clearAllMocks()
 })
@@ -323,10 +323,10 @@ describe('CodexHookService app-server trust grant lane', () => {
   it('upgrades self-computed trust in place without duplicate logical entries', async () => {
     prepareSystemHome()
     const service = new CodexHookService()
-    process.env.ORCA_DISABLE_CODEX_TRUST_RPC = '1'
+    process.env.ALICORN_DISABLE_CODEX_TRUST_RPC = '1'
     expect((await service.install()).state).toBe('installed')
     const managedHome = join(userDataDir, 'codex-runtime-home', 'home')
-    delete process.env.ORCA_DISABLE_CODEX_TRUST_RPC
+    delete process.env.ALICORN_DISABLE_CODEX_TRUST_RPC
     installCodexLikeGrantRunner()
 
     expect((await service.install()).state).toBe('installed')
@@ -368,7 +368,7 @@ describe('CodexHookService app-server trust grant lane', () => {
 
   it('keeps the forced fallback on self-computed writes', async () => {
     prepareSystemHome()
-    process.env.ORCA_DISABLE_CODEX_TRUST_RPC = '1'
+    process.env.ALICORN_DISABLE_CODEX_TRUST_RPC = '1'
     const runner = vi.fn()
     trustGrantInternals.setGrantSessionRunner(runner)
 
@@ -382,12 +382,12 @@ describe('CodexHookService app-server trust grant lane', () => {
   it('restores exact config bytes before fallback after a mutating RPC failure', async () => {
     prepareSystemHome()
     const service = new CodexHookService()
-    process.env.ORCA_DISABLE_CODEX_TRUST_RPC = '1'
+    process.env.ALICORN_DISABLE_CODEX_TRUST_RPC = '1'
     expect((await service.install()).state).toBe('installed')
     const managedHome = join(userDataDir, 'codex-runtime-home', 'home')
     const baseline = readFileSync(join(managedHome, 'config.toml'))
 
-    delete process.env.ORCA_DISABLE_CODEX_TRUST_RPC
+    delete process.env.ALICORN_DISABLE_CODEX_TRUST_RPC
     rmSync(managedHome, { recursive: true, force: true })
     trustGrantInternals.resetDiagnostics()
     const runner = vi.fn(async (request: CodexHookTrustGrantRequest) => {

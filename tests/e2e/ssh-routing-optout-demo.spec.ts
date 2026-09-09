@@ -4,7 +4,7 @@
 //   forwarding-blocked card -> "Browse from this device instead" -> page loads
 //   locally (Monitor icon in the URL bar) -> Settings lists the host with
 //   "Route again" -> pressing it re-routes and the card returns.
-// Run: ORCA_ROUTING_DEMO=1 ORCA_E2E_SSH_DOCKER=1 pnpm exec playwright test \
+// Run: ALICORN_ROUTING_DEMO=1 ALICORN_E2E_SSH_DOCKER=1 pnpm exec playwright test \
 //   --config tests/playwright.config.ts --project electron-headless --workers=1 \
 //   tests/e2e/ssh-routing-optout-demo.spec.ts
 import { expect, test } from './helpers/orca-app'
@@ -17,7 +17,7 @@ import {
 } from './helpers/docker-ssh-relay-target'
 import { connectDockerSshRelayTarget } from './helpers/docker-ssh-relay-connection'
 
-test.skip(process.env.ORCA_ROUTING_DEMO !== '1', 'Demo only; run with ORCA_ROUTING_DEMO=1')
+test.skip(process.env.ALICORN_ROUTING_DEMO !== '1', 'Demo only; run with ALICORN_ROUTING_DEMO=1')
 
 const HOLD_MINUTES = 25
 

@@ -29,8 +29,8 @@ type WslBrowserNetworkRelayBundle = { jsPath: string; version: string }
 
 export function resolveWslBrowserNetworkRelayBundle(): WslBrowserNetworkRelayBundle | null {
   const candidates: string[] = []
-  if (process.env.ORCA_RELAY_PATH) {
-    candidates.push(join(process.env.ORCA_RELAY_PATH, 'wsl'))
+  if (process.env.ALICORN_RELAY_PATH) {
+    candidates.push(join(process.env.ALICORN_RELAY_PATH, 'wsl'))
   }
   if (process.resourcesPath) {
     candidates.push(join(process.resourcesPath, 'relay', 'wsl'))
@@ -95,13 +95,13 @@ export function buildWslBrowserNetworkGuestInstallScript(bundle: Buffer, version
     'umask 077',
     `d="${guestRelayDir(version)}"`,
     'mkdir -p "$d"',
-    'base64 -d > "$d/bundle.$$.tmp" << \'ORCA_EOF_BUNDLE\'',
+    'base64 -d > "$d/bundle.$$.tmp" << \'ALICORN_EOF_BUNDLE\'',
     encoded,
-    'ORCA_EOF_BUNDLE',
+    'ALICORN_EOF_BUNDLE',
     `mv "$d/bundle.$$.tmp" "$d/${WSL_BROWSER_NETWORK_RELAY_BUNDLE_NAME}"`,
-    'cat > "$d/launch.$$.tmp" << \'ORCA_EOF_LAUNCH\'',
+    'cat > "$d/launch.$$.tmp" << \'ALICORN_EOF_LAUNCH\'',
     buildWslBrowserNetworkGuestLaunchScript(version).trimEnd(),
-    'ORCA_EOF_LAUNCH',
+    'ALICORN_EOF_LAUNCH',
     'mv "$d/launch.$$.tmp" "$d/launch.sh"',
     'chmod 700 "$d/launch.sh"',
     `printf '%s' '${version}' > "$d/${WSL_BROWSER_NETWORK_RELAY_VERSION_FILE}"`,

@@ -14,7 +14,7 @@ import * as pty from 'node-pty'
 import { afterEach, describe, expect, it } from 'vitest'
 import { resolveGitBashPath } from '../git-bash'
 import {
-  ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV,
+  ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV,
   resolveWindowsShellLaunchArgs
 } from './windows-shell-args'
 
@@ -43,7 +43,7 @@ function writeFailingPreflight(root: string): string {
     [
       "const { writeFileSync } = require('node:fs')",
       "if (process.argv.slice(2).join(' ') !== 'hooks prepare-codex') process.exit(2)",
-      "writeFileSync(process.env.ORCA_PREFLIGHT_MARKER, 'ran')",
+      "writeFileSync(process.env.ALICORN_PREFLIGHT_MARKER, 'ran')",
       'process.exit(7)'
     ].join('\n')
   )
@@ -143,9 +143,9 @@ describeWindows('Windows Codex shell preflight runtime', () => {
       cwd: root,
       env: {
         ...process.env,
-        ORCA_CODEX_LAUNCH_PREFLIGHT: preflight,
-        [ORCA_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV]: '"',
-        ORCA_PREFLIGHT_MARKER: preflightMarker
+        ALICORN_CODEX_LAUNCH_PREFLIGHT: preflight,
+        [ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE_ENV]: '"',
+        ALICORN_PREFLIGHT_MARKER: preflightMarker
       }
     })
 
@@ -170,8 +170,8 @@ describeWindows('Windows Codex shell preflight runtime', () => {
     const preflightMarker = join(root, 'git-bash-preflight-ran')
     const codexMarker = join(root, 'git-bash-codex-ran')
     const codexPathMarker = join(root, 'git-bash-codex-path')
-    const previousUserDataPath = process.env.ORCA_USER_DATA_PATH
-    process.env.ORCA_USER_DATA_PATH = join(root, 'user data')
+    const previousUserDataPath = process.env.ALICORN_USER_DATA_PATH
+    process.env.ALICORN_USER_DATA_PATH = join(root, 'user data')
 
     try {
       const resolved = resolveWindowsShellLaunchArgs(
@@ -190,13 +190,13 @@ describeWindows('Windows Codex shell preflight runtime', () => {
           ...withPathEntry(process.env, join(root, 'bin')),
           CHERE_INVOKING: '1',
           HOME: root,
-          ORCA_CODEX_LAUNCH_PREFLIGHT: preflight,
-          ORCA_PREFLIGHT_MARKER: preflightMarker,
-          ORCA_CODEX_MARKER: codexMarker,
+          ALICORN_CODEX_LAUNCH_PREFLIGHT: preflight,
+          ALICORN_PREFLIGHT_MARKER: preflightMarker,
+          ALICORN_CODEX_MARKER: codexMarker,
           TERM: 'xterm-256color'
         },
         input:
-          "type -P codex > git-bash-codex-path\ncodex -e \"require('node:fs').writeFileSync(process.env.ORCA_CODEX_MARKER,'ran')\"\nexit\n",
+          "type -P codex > git-bash-codex-path\ncodex -e \"require('node:fs').writeFileSync(process.env.ALICORN_CODEX_MARKER,'ran')\"\nexit\n",
         // Paired "Windows low spec" QA measured 12.7–15.8s across four runs: Git Bash
         // cold-starts two large Node executables for AV scanning, so allow 25s without
         // inflating the faster cmd.exe budget.
@@ -204,9 +204,9 @@ describeWindows('Windows Codex shell preflight runtime', () => {
       })
     } finally {
       if (previousUserDataPath === undefined) {
-        delete process.env.ORCA_USER_DATA_PATH
+        delete process.env.ALICORN_USER_DATA_PATH
       } else {
-        process.env.ORCA_USER_DATA_PATH = previousUserDataPath
+        process.env.ALICORN_USER_DATA_PATH = previousUserDataPath
       }
     }
 

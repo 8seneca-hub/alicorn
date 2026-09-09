@@ -52,7 +52,7 @@ export const CODEX_TRUST_GRANT_TRANSIENT_RETRY_INTERVAL_MS = 5 * 60_000
  * those sessions simply used to block the main thread instead. Widening the flag
  * to cover the rebase is a follow-up, not something this constant already does.
  */
-const DISABLE_ENV_FLAG = 'ORCA_DISABLE_CODEX_TRUST_RPC'
+const DISABLE_ENV_FLAG = 'ALICORN_DISABLE_CODEX_TRUST_RPC'
 
 export type { CodexManagedTrustGrantPlan }
 export type { CodexTrustGrantFallbackReason, CodexTrustGrantTelemetryLane }

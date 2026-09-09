@@ -507,7 +507,7 @@ describe('PtyHandler', () => {
     await expect(
       dispatcher.callRequest('pty.spawn', {
         cwd: '/repo/removing/nested',
-        env: { ORCA_WORKTREE_ID: 'repo-id::/repo/sibling' }
+        env: { ALICORN_WORKTREE_ID: 'repo-id::/repo/sibling' }
       })
     ).rejects.toThrow('Remote worktree deletion already in progress')
 

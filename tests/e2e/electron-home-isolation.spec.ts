@@ -10,11 +10,11 @@ async function readElectronHomeState(electronApp: ElectronApplication) {
     return {
       appHome: app.getPath('home'),
       nodeHome: nodeOs.homedir(),
-      userDataDir: process.env.ORCA_E2E_USER_DATA_DIR,
+      userDataDir: process.env.ALICORN_E2E_USER_DATA_DIR,
       home: process.env.HOME,
       userProfile: process.env.USERPROFILE,
       codexHome: process.env.CODEX_HOME,
-      orcaCodexHome: process.env.ORCA_CODEX_HOME
+      orcaCodexHome: process.env.ALICORN_CODEX_HOME
     }
   })
 }

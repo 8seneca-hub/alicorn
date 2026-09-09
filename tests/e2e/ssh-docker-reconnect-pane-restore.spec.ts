@@ -19,7 +19,7 @@ import {
 } from './helpers/docker-ssh-relay-connection'
 import { openTerminalTabInActiveGroup } from './helpers/terminal-tab-open'
 
-const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
+const RUN_DOCKER_SSH = process.env.ALICORN_E2E_SSH_DOCKER === '1'
 
 /**
  * The two regressions this covers both shipped and both reached a user, because nothing here
@@ -56,7 +56,7 @@ const RUN_DOCKER_SSH = process.env.ORCA_E2E_SSH_DOCKER === '1'
  * chain and the fix it implies: docs/reference/ssh-reconnect-source-recovery.md.
  */
 test.describe('SSH reconnect pane restore', () => {
-  test.skip(!RUN_DOCKER_SSH, 'Set ORCA_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
+  test.skip(!RUN_DOCKER_SSH, 'Set ALICORN_E2E_SSH_DOCKER=1 to run the dockerized SSH relay tests')
 
   test('restores shell scrollback, a full-screen frame, and a usable new tab across a reconnect', async ({
     orcaPage

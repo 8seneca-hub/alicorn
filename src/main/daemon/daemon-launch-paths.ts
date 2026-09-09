@@ -40,9 +40,9 @@ export function resolvePackagedDarwinAppVersion(): string | null {
   return process.platform === 'darwin' && environment.isPackaged() ? environment.getVersion() : null
 }
 
-// Why: pass a log-file arg so field failures are diagnosable, but honor the ORCA_DIAGNOSTICS_DISABLED privacy switch.
+// Why: pass a log-file arg so field failures are diagnosable, but honor the ALICORN_DIAGNOSTICS_DISABLED privacy switch.
 export function daemonLogArgs(): string[] {
-  const disabled = (process.env.ORCA_DIAGNOSTICS_DISABLED ?? '').trim().toLowerCase()
+  const disabled = (process.env.ALICORN_DIAGNOSTICS_DISABLED ?? '').trim().toLowerCase()
   return disabled === '1' || disabled === 'true' ? [] : ['--log-file', getDaemonLogFilePath()]
 }
 

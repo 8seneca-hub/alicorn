@@ -35,10 +35,10 @@ type ParkingDebugWindow = Window & {
 // window. The fast-park override must be scoped to THIS spec's app launches —
 // mutating process.env at module scope leaked into later specs when a worker
 // reloaded files without replaying this file's afterAll.
-const PARKING_DELAY_MS = Number(process.env.ORCA_E2E_TERMINAL_PARKING_DELAY_MS) || 500
+const PARKING_DELAY_MS = Number(process.env.ALICORN_E2E_TERMINAL_PARKING_DELAY_MS) || 500
 
 test.use({
-  orcaAppExtraEnv: { ORCA_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
+  orcaAppExtraEnv: { ALICORN_E2E_TERMINAL_PARKING_DELAY_MS: String(PARKING_DELAY_MS) }
 })
 
 const PARKED_FRAME_SCRIPT_DELAY_MS = 750

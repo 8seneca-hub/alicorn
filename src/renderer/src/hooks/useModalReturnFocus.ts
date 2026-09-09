@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useAppStore } from '../store'
 import { focusTerminalTabSurface } from '../lib/focus-terminal-tab-surface'
 import {
-  ORCA_BROWSER_FOCUS_REQUEST_EVENT,
+  ALICORN_BROWSER_FOCUS_REQUEST_EVENT,
   queueBrowserFocusRequest,
   type BrowserFocusRequestDetail
 } from '../components/browser-pane/host-guest/browser-focus'
@@ -107,7 +107,7 @@ export function useModalReturnFocus(visible: boolean): {
 
   const requestBrowserFocus = useCallback((detail: BrowserFocusRequestDetail): void => {
     queueBrowserFocusRequest(detail)
-    window.dispatchEvent(new CustomEvent(ORCA_BROWSER_FOCUS_REQUEST_EVENT, { detail }))
+    window.dispatchEvent(new CustomEvent(ALICORN_BROWSER_FOCUS_REQUEST_EVENT, { detail }))
   }, [])
 
   const captureReturnFocus = useCallback((): void => {

@@ -1,8 +1,8 @@
 import type { JSX } from 'react'
 import {
-  ORCA_CLI_SKILL_INSTALL_COMMAND,
-  ORCA_CLI_SKILL_NAME,
-  ORCA_CLI_SKILL_UPDATE_COMMAND
+  ALICORN_CLI_SKILL_INSTALL_COMMAND,
+  ALICORN_CLI_SKILL_NAME,
+  ALICORN_CLI_SKILL_UPDATE_COMMAND
 } from '@/lib/agent-feature-install-commands'
 import {
   AGENT_SKILL_CLI_PREREQUISITE_NOTICE,
@@ -28,11 +28,14 @@ export function BrowserUseSkillSetupCard(props: {
   const { compact, terminalHeightPx, skill } = props
   const activeSkillRuntime = useActiveProjectSkillRuntime()
   const installCommand = !activeSkillRuntime.installDisabledReason
-    ? buildSkillCommandForRuntime(ORCA_CLI_SKILL_INSTALL_COMMAND, activeSkillRuntime.agentRuntime)
-    : ORCA_CLI_SKILL_INSTALL_COMMAND
+    ? buildSkillCommandForRuntime(
+        ALICORN_CLI_SKILL_INSTALL_COMMAND,
+        activeSkillRuntime.agentRuntime
+      )
+    : ALICORN_CLI_SKILL_INSTALL_COMMAND
   const updateCommand = !activeSkillRuntime.installDisabledReason
-    ? buildSkillCommandForRuntime(ORCA_CLI_SKILL_UPDATE_COMMAND, activeSkillRuntime.agentRuntime)
-    : ORCA_CLI_SKILL_UPDATE_COMMAND
+    ? buildSkillCommandForRuntime(ALICORN_CLI_SKILL_UPDATE_COMMAND, activeSkillRuntime.agentRuntime)
+    : ALICORN_CLI_SKILL_UPDATE_COMMAND
 
   const handleBeforeOpenTerminal = async (): Promise<void> => {
     useAppStore.getState().recordFeatureInteraction('agent-browser-setup')
@@ -77,7 +80,7 @@ export function BrowserUseSkillSetupCard(props: {
       showRecheckWhenInstalled={false}
       onRecheck={skill.refresh}
       freshnessSkillName={
-        activeSkillRuntime.canUseLocalSkillFreshness ? ORCA_CLI_SKILL_NAME : undefined
+        activeSkillRuntime.canUseLocalSkillFreshness ? ALICORN_CLI_SKILL_NAME : undefined
       }
     />
   )

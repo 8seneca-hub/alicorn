@@ -87,7 +87,7 @@ describe('headless serve shutdown PR gate', () => {
   it('keeps readiness polling finite and leak-free', () => {
     expect(signalCase).toContain('read_ready_line()')
     expect(signalCase).toContain("sed -u -n 's/^[^{]*//p'")
-    expect(signalCase).toContain('startup_timeout_seconds=${ORCA_STARTUP_TIMEOUT_SECONDS:-180}')
+    expect(signalCase).toContain('startup_timeout_seconds=${ALICORN_STARTUP_TIMEOUT_SECONDS:-180}')
     expect(signalCase).toContain('startup_deadline=$((SECONDS + startup_timeout_seconds))')
     expect(signalCase).toContain('while (( SECONDS < startup_deadline )); do')
     expect(signalCase).toContain('kill -0 "$app_pid" 2>/dev/null || break')
@@ -140,7 +140,7 @@ describe('headless serve shutdown PR gate', () => {
     expect(desktopStartupOracle).toContain(
       'FAIL: desktop launcher exited before ${reason} (status=${observed_status})'
     )
-    expect(desktopStartupOracle).toContain('ORCA_STARTUP_STATE_DIR_CLEANUP=1')
+    expect(desktopStartupOracle).toContain('ALICORN_STARTUP_STATE_DIR_CLEANUP=1')
     expect(desktopStartupOracle).toContain(
       '[[ "$state_dir" =~ ^/tmp/orca-appimage-startup\\.[^/]+$ ]] || return 0'
     )

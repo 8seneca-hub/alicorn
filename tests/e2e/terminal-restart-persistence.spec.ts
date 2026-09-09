@@ -49,7 +49,7 @@ import { attachRepoAndOpenTerminal, createRestartSession } from './helpers/orca-
 import { PTY_SESSION_ID_SEPARATOR } from '../../src/shared/pty-session-id-format'
 
 const REQUIRE_WINDOWS_TERMINAL_RESTART_E2E =
-  process.env.ORCA_REQUIRE_WINDOWS_TERMINAL_RESTART_E2E === '1'
+  process.env.ALICORN_REQUIRE_WINDOWS_TERMINAL_RESTART_E2E === '1'
 const MISSING_SEEDED_REPO_MESSAGE = 'Global setup did not produce a seeded test repo'
 
 // Why: each test in this file does a full quit→relaunch cycle, which spawns
@@ -276,8 +276,8 @@ test.describe('Terminal restart persistence', () => {
       const { worktreeId, ptyId } = await bootstrapFirstLaunch(firstLaunch.page, repoPath)
       expect(ptyId).toContain(PTY_SESSION_ID_SEPARATOR)
 
-      const prompt = `ORCA_RESTART_PROMPT_${Date.now()}_GT `
-      const marker = `ORCA_CURSOR_RESTART_${Date.now()}`
+      const prompt = `ALICORN_RESTART_PROMPT_${Date.now()}_GT `
+      const marker = `ALICORN_CURSOR_RESTART_${Date.now()}`
       const promptCommand =
         process.platform === 'win32'
           ? `function global:prompt { '${prompt}' }`

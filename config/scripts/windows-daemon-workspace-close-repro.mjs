@@ -14,7 +14,7 @@ import { join, resolve } from 'node:path'
 
 const projectDir = resolve(import.meta.dirname, '../..')
 const entryPath = join(projectDir, 'out', 'main', 'daemon-entry.js')
-const iterations = Number(process.env.ORCA_WINDOWS_DAEMON_CLOSE_ITERATIONS ?? 25)
+const iterations = Number(process.env.ALICORN_WINDOWS_DAEMON_CLOSE_ITERATIONS ?? 25)
 const requestTimeoutMs = 15_000
 
 function log(message) {
@@ -300,7 +300,7 @@ async function main() {
     {
       stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
       windowsHide: true,
-      env: { ...process.env, ORCA_USER_DATA_PATH: scratch }
+      env: { ...process.env, ALICORN_USER_DATA_PATH: scratch }
     }
   )
   const daemonPid = child.pid

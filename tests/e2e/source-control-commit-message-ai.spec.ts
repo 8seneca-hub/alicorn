@@ -86,7 +86,7 @@ test.describe('Source Control AI commit messages', () => {
                 actions: {
                   commitMessage: {
                     agentId: 'custom' as const,
-                    commandInputTemplate: 'ORCA_E2E_ISSUE={linkedIssue}\n\n{basePrompt}'
+                    commandInputTemplate: 'ALICORN_E2E_ISSUE={linkedIssue}\n\n{basePrompt}'
                   }
                 }
               }

@@ -60,7 +60,7 @@ describe('isAllowlisted', () => {
   })
 
   it.each([
-    'src/main/pty/wsl-orca-env.ts',
+    'src/main/pty/wsl-alicorn-env.ts',
     'cloud/apps/control-api/src/index.ts',
     'cloud/packages/control-plane-contract/src/wire.ts',
     // `*` does not cross a separator: a relay-shaped path elsewhere is not exempt.

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect } from 'react'
 import {
-  ORCA_BROWSER_FOCUS_REQUEST_EVENT,
+  ALICORN_BROWSER_FOCUS_REQUEST_EVENT,
   queueBrowserFocusRequest
 } from '@/components/browser-pane/host-guest/browser-focus'
 import { captureCmdJActiveGroupSnapshot } from '@/components/cmd-j/quick-action-context'
@@ -205,7 +205,7 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
   const requestBrowserFocus = useCallback(
     (detail: { pageId: string; target: 'webview' | 'address-bar' }) => {
       queueBrowserFocusRequest(detail)
-      window.dispatchEvent(new CustomEvent(ORCA_BROWSER_FOCUS_REQUEST_EVENT, { detail }))
+      window.dispatchEvent(new CustomEvent(ALICORN_BROWSER_FOCUS_REQUEST_EVENT, { detail }))
     },
     []
   )

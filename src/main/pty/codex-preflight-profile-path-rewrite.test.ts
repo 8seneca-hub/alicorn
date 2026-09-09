@@ -98,10 +98,10 @@ function launchCodexThroughRcfile(fixture: Fixture, preflightValue: string): voi
       PATH: ['/usr/bin', '/bin', '/usr/sbin', '/sbin'].join(delimiter),
       TERM: 'dumb',
       SHELL: '/bin/bash',
-      // Why no ORCA_SHELL_FEATURES: absent means no features, so the rcfile
+      // Why no ALICORN_SHELL_FEATURES: absent means no features, so the rcfile
       // emits neither the identity nor the readiness marker into stdout.
-      ORCA_CODEX_HOME: join(fixture.root, 'codex-home'),
-      ORCA_CODEX_LAUNCH_PREFLIGHT: preflightValue
+      ALICORN_CODEX_HOME: join(fixture.root, 'codex-home'),
+      ALICORN_CODEX_LAUNCH_PREFLIGHT: preflightValue
     }
   })
 }
@@ -117,7 +117,7 @@ describe.skipIf(!bashAvailable)('Codex preflight under a profile-rewritten PATH'
     const rcfile = getDaemonBashShellReadyRcfileContent()
 
     expect(rcfile.indexOf('source "$HOME/.bash_profile"')).toBeLessThan(
-      rcfile.indexOf('ORCA_CODEX_LAUNCH_PREFLIGHT')
+      rcfile.indexOf('ALICORN_CODEX_LAUNCH_PREFLIGHT')
     )
   })
 

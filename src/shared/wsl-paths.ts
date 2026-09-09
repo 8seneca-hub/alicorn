@@ -42,7 +42,7 @@ export function isWslUncPath(path: string): boolean {
  * Why: WSL hook/setup environments may need both the worktree UNC path
  * (\\wsl.localhost\...) and regular Windows install paths (C:\Users\...)
  * translated before passing them to bash. Leaving drive paths untouched
- * breaks scripts that read ORCA_ROOT_PATH or similar env vars inside WSL.
+ * breaks scripts that read ALICORN_ROOT_PATH or similar env vars inside WSL.
  */
 export function toLinuxPath(windowsPath: string): string {
   // Why the platform guard: on a POSIX host a literal `//wsl$/x` path is an

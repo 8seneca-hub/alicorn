@@ -69,7 +69,7 @@ test('new-tab file results prioritize the filename and reveal the full path on h
     orcaPage.locator('[data-slot="tooltip-content"]').filter({ hasText: relativeFilePath })
   ).toBeVisible()
 
-  const proofPath = process.env.ORCA_STA3424_PROOF_PATH
+  const proofPath = process.env.ALICORN_STA3424_PROOF_PATH
   if (proofPath) {
     await orcaPage.screenshot({ path: proofPath })
   }

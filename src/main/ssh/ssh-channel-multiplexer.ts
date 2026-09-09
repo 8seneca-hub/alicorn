@@ -360,7 +360,7 @@ export class SshChannelMultiplexer {
     if (this.disposed) {
       return
     }
-    if (process.env.ORCA_SSH_MUX_DEBUG === '1') {
+    if (process.env.ALICORN_SSH_MUX_DEBUG === '1') {
       console.warn(
         `[ssh-mux] Disposing multiplexer (reason: ${reason})`,
         new Error('dispose trace').stack

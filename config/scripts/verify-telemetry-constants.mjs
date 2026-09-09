@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-// Asserts that the telemetry compile-time constants — `ORCA_BUILD_IDENTITY`
-// and `ORCA_POSTHOG_WRITE_KEY` — were substituted into the shipped binary.
+// Asserts that the telemetry compile-time constants — `ALICORN_BUILD_IDENTITY`
+// and `ALICORN_POSTHOG_WRITE_KEY` — were substituted into the shipped binary.
 // Closes the gap PR #1385 flagged: a release built without those env vars
 // produces an `IS_OFFICIAL_BUILD === false` binary that ships silently and
 // transmits nothing. This script runs after `electron-builder` has packed
@@ -117,7 +117,7 @@ for (const m of asarMatches) {
 }
 
 // Why these regexes: electron-vite's `define` block substitutes the bare
-// identifiers `ORCA_BUILD_IDENTITY` and `ORCA_POSTHOG_WRITE_KEY` with their
+// identifiers `ALICORN_BUILD_IDENTITY` and `ALICORN_POSTHOG_WRITE_KEY` with their
 // JSON-stringified values at build time. `src/main/telemetry/client.ts`
 // then assigns those into module-local declarations named `BUILD_IDENTITY`
 // and `WRITE_KEY`. Rollup may preserve `const` or lower it to `var`.

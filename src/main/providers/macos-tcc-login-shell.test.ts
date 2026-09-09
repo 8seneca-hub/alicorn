@@ -31,7 +31,7 @@ import {
 const ACCEPTED_RESULT = {
   code: 0,
   signal: null,
-  stdout: 'ORCA_LOGIN_PREFLIGHT_OK',
+  stdout: 'ALICORN_LOGIN_PREFLIGHT_OK',
   stderr: '',
   timedOut: false
 }
@@ -57,14 +57,14 @@ describe('wrapShellSpawnForMacosTccAttribution', () => {
 
   beforeEach(() => {
     origPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
-    origDisable = process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL
-    delete process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL
+    origDisable = process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL
+    delete process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL
     existsSyncMock.mockReturnValue(true)
     userInfoMock.mockReturnValue({ username: 'ada', homedir: '/Users/ada' })
     runProcessMock.mockResolvedValue({
       code: 0,
       signal: null,
-      stdout: 'ORCA_LOGIN_PREFLIGHT_OK',
+      stdout: 'ALICORN_LOGIN_PREFLIGHT_OK',
       stderr: '',
       timedOut: false
     })
@@ -77,9 +77,9 @@ describe('wrapShellSpawnForMacosTccAttribution', () => {
       Object.defineProperty(process, 'platform', origPlatform)
     }
     if (origDisable === undefined) {
-      delete process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL
+      delete process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL
     } else {
-      process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL = origDisable
+      process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL = origDisable
     }
     vi.restoreAllMocks()
     vi.clearAllMocks()
@@ -107,7 +107,7 @@ describe('wrapShellSpawnForMacosTccAttribution', () => {
     })
     expect(runProcessMock).toHaveBeenCalledWith({
       program: '/usr/bin/login',
-      args: ['-flpq', 'ada', '/usr/bin/printf', 'ORCA_LOGIN_PREFLIGHT_OK'],
+      args: ['-flpq', 'ada', '/usr/bin/printf', 'ALICORN_LOGIN_PREFLIGHT_OK'],
       // Why cwd: detached daemons can outlive their launch worktree, and the
       // PAM probe must not inherit a deleted one.
       cwd: '/Users/ada',
@@ -304,7 +304,7 @@ describe('wrapShellSpawnForMacosTccAttribution', () => {
     runProcessMock.mockReturnValue({
       code: null,
       signal: 'SIGKILL' as const,
-      stdout: 'ORCA_LOGIN_PREFLIGHT_OK',
+      stdout: 'ALICORN_LOGIN_PREFLIGHT_OK',
       stderr: '',
       timedOut: true
     })
@@ -499,7 +499,7 @@ describe('wrapShellSpawnForMacosTccAttribution', () => {
 
   it('falls back to the plain spawn when disabled via env', () => {
     setPlatform('darwin')
-    process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL = '1'
+    process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL = '1'
     expect(wrapShellSpawnForMacosTccAttribution('/bin/zsh', ['-l'])).toEqual({
       file: '/bin/zsh',
       args: ['-l']
@@ -518,14 +518,14 @@ describe('probeMacosLoginSessionAlive', () => {
 
   beforeEach(() => {
     origPlatform = Object.getOwnPropertyDescriptor(process, 'platform')
-    origDisable = process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL
-    delete process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL
+    origDisable = process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL
+    delete process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL
     existsSyncMock.mockReturnValue(true)
     userInfoMock.mockReturnValue({ username: 'ada', homedir: '/Users/ada' })
     runProcessMock.mockResolvedValue({
       code: 0,
       signal: null,
-      stdout: 'ORCA_LOGIN_PREFLIGHT_OK',
+      stdout: 'ALICORN_LOGIN_PREFLIGHT_OK',
       stderr: '',
       timedOut: false
     })
@@ -538,9 +538,9 @@ describe('probeMacosLoginSessionAlive', () => {
       Object.defineProperty(process, 'platform', origPlatform)
     }
     if (origDisable === undefined) {
-      delete process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL
+      delete process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL
     } else {
-      process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL = origDisable
+      process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL = origDisable
     }
     vi.restoreAllMocks()
     vi.clearAllMocks()
@@ -660,7 +660,7 @@ describe('probeMacosLoginSessionAlive', () => {
     runProcessMock.mockResolvedValue({
       code: 0,
       signal: null,
-      stdout: 'ORCA_LOGIN_PREFLIGHT_OK',
+      stdout: 'ALICORN_LOGIN_PREFLIGHT_OK',
       stderr: '',
       timedOut: false
     })
@@ -676,7 +676,7 @@ describe('probeMacosLoginSessionAlive', () => {
     setPlatform('linux')
     expect(await probeMacosLoginSessionAlive()).toBeNull()
     setPlatform('darwin')
-    process.env.ORCA_DISABLE_MACOS_LOGIN_SHELL = '1'
+    process.env.ALICORN_DISABLE_MACOS_LOGIN_SHELL = '1'
     expect(await probeMacosLoginSessionAlive()).toBeNull()
     expect(runProcessMock).not.toHaveBeenCalled()
   })

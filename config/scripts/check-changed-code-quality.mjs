@@ -81,7 +81,7 @@ export function isRootCodeQualityPath(file) {
 function resolveBase(root, requestedBase) {
   for (const candidate of [
     requestedBase,
-    process.env.ORCA_CODE_QUALITY_BASE,
+    process.env.ALICORN_CODE_QUALITY_BASE,
     'origin/main',
     'main'
   ]) {

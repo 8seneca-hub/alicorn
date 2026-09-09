@@ -245,10 +245,11 @@ Gate: scans `src/**/*.{ts,tsx,mjs,cjs}`, `config/**`, `.github/**`, `cloud/apps/
 ### Task 7 (R4): `ORCA_*` → `ALICORN_*` codemod, hook version bump
 
 **Files:** Create `config/scripts/rename-orca-env.mjs` (one-shot; tested on a fixture); Modify ~all files with `ORCA_*` identifiers outside the allowlist (963 identifiers; the top 30 in the research); `src/shared/agent-hook-endpoint-file.ts` (parse `ALICORN_AGENT_HOOK_VERSION`, accept `ORCA_AGENT_HOOK_VERSION` via `readAlicornEnv`; bump the version *value* — find the current constant and add 1 — so old-name endpoint files are treated as outdated); every per-backend hook script writer in `src/main/{claude,codex,cursor,gemini,grok,devin,droid,copilot,command-code}/*hook*.ts` emits `ALICORN_*` **and** `ORCA_*` (via `withLegacyEnvAliases`) this release; `src/main/pty/wsl-orca-env.ts` → `wsl-alicorn-env.ts`; `src/relay/agent-hook-endpoint-coordinates.ts`; `config/rebrand-env-baseline.txt` → empty.
-- [ ] **Step 1:** run the codemod (`--check` first, prints counts per dir); review template-literal prefixes (`ORCA_WEB_CLIENT__`, `ORCA_REMOTE_PLATFORM__`) by hand.
-- [ ] **Step 2:** failing tests updated first for the hook endpoint file (old-name file parses; new-name file parses; version mismatch → reinstall required), then implement.
-- [ ] **Step 3:** `pnpm tc && pnpm test` (full suite — this touches everything; expect ~15 min); `pnpm run verify:rebrand-env-gate` with an empty baseline → zero-tolerance; `pnpm lint`.
-- [ ] **Step 4: Commit** `feat(rebrand): ALICORN_* environment (all 963 identifiers) with one-release ORCA_* aliases`.
+- [x] **Step 1:** run the codemod (`--check` first, prints counts per dir); review template-literal prefixes (`ORCA_WEB_CLIENT__`, `ORCA_REMOTE_PLATFORM__`) by hand.
+- [x] **Step 2:** failing tests updated first for the hook endpoint file (old-name file parses; new-name file parses; version mismatch → reinstall required), then implement.
+- [x] **Step 3:** `pnpm tc && pnpm test` (full suite — this touches everything; expect ~15 min); `pnpm run verify:rebrand-env-gate` with an empty baseline → zero-tolerance; `pnpm lint`.
+  **As built:** the baseline is 2 rows, not empty. `secrets.ORCA_POSTHOG_WRITE_KEY` names a GitHub *secret store* entry that only a human renames in repository settings, and a missing secret resolves to the empty string with no error. Both spellings are read (`ALICORN_… || ORCA_…`) until then. Those two rows are baselined rather than allowlisted: exempting the whole workflow file would blind a 1300-line file to a genuinely new name — R3's lesson from run 6.
+- [x] **Step 4: Commit** `feat(rebrand): ALICORN_* environment (all 963 identifiers) with one-release ORCA_* aliases`.
 
 ---
 

@@ -25,7 +25,7 @@ const DESKTOP_VALUE_FLAGS = new Set(['--disable-features'])
 const CLI_LAUNCH_VALUE_FLAG_NAMES = [...VALUE_TAKING_FLAGS].map((flag) => flag.slice(2))
 
 // Fence recursion if a wrapper drops ELECTRON_RUN_AS_NODE again.
-const REDIRECT_ATTEMPT_ENV = 'ORCA_CLI_LAUNCH_REDIRECTED'
+const REDIRECT_ATTEMPT_ENV = 'ALICORN_CLI_LAUNCH_REDIRECTED'
 
 // Redirect packaged CLI-shaped launches before Chromium initializes.
 export function maybeRedirectCliLaunch(
@@ -235,8 +235,8 @@ function getPathApi(platform: NodeJS.Platform): typeof win32 | typeof posix {
 function buildElectronRunAsNodeEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const childEnv = { ...env }
   // Preserve user values without exposing them to Electron's bootstrap.
-  childEnv.ORCA_NODE_OPTIONS = env.NODE_OPTIONS ?? ''
-  childEnv.ORCA_NODE_REPL_EXTERNAL_MODULE = env.NODE_REPL_EXTERNAL_MODULE ?? ''
+  childEnv.ALICORN_NODE_OPTIONS = env.NODE_OPTIONS ?? ''
+  childEnv.ALICORN_NODE_REPL_EXTERNAL_MODULE = env.NODE_REPL_EXTERNAL_MODULE ?? ''
   childEnv.ELECTRON_RUN_AS_NODE = '1'
   childEnv[REDIRECT_ATTEMPT_ENV] = '1'
   delete childEnv.NODE_OPTIONS

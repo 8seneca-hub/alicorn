@@ -10,7 +10,7 @@ import {
   findWorkspace,
   mirrorWorkspaceFromActivePage
 } from '../browser-page-records'
-import { ORCA_BROWSER_BLANK_URL } from '../../../../../shared/constants'
+import { ALICORN_BROWSER_BLANK_URL } from '../../../../../shared/constants'
 import { closeRemoteBrowserPageInOwningEnvironment } from './browser-remote-close'
 import { releaseDocPreviewGrant } from '@/lib/doc-preview-grants'
 
@@ -53,7 +53,7 @@ export function createBrowserPageCreateActions(
         const shouldFocusAddressBar =
           shouldUpdateGlobalActiveSurface &&
           !page.docLocation &&
-          (page.url === 'about:blank' || page.url === ORCA_BROWSER_BLANK_URL)
+          (page.url === 'about:blank' || page.url === ALICORN_BROWSER_BLANK_URL)
 
         return {
           browserPagesByWorkspace: {

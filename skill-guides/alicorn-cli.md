@@ -28,9 +28,9 @@ Use plain shell tools when Orca state does not matter.
 
 Choose the executable once for the current session:
 
-- If the `ORCA_CLI_COMMAND` environment variable is set, use its value. Orca exports this
+- If the `ALICORN_CLI_COMMAND` environment variable is set, use its value. Orca exports this
   for managed WSL sessions.
-- Otherwise, in a dev checkout whose session exposes `ORCA_DEV_REPO_ROOT`, use `orca-dev`.
+- Otherwise, in a dev checkout whose session exposes `ALICORN_DEV_REPO_ROOT`, use `orca-dev`.
 - Otherwise, on Linux outside an Orca-managed terminal, use `alicorn-ide`. Never use bare
   `orca` there because it normally resolves to the GNOME screen reader.
 - Otherwise, use `alicorn`.
@@ -273,8 +273,8 @@ ORCA artifacts delete <id> --json
 - If an upload exceeds the CLI transport limit, use the browser upload page as directed
   by the error.
 - For local or staging development, `--api-url <url>` overrides the artifact service;
-  `ORCA_ARTIFACTS_API_URL` provides the same override for the session.
-- `ORCA_CLOUD_AUTH_TOKEN` is a development-only authentication override. Prefer the active
+  `ALICORN_ARTIFACTS_API_URL` provides the same override for the session.
+- `ALICORN_CLOUD_AUTH_TOKEN` is a development-only authentication override. Prefer the active
   Orca profile's normal PropelAuth session and never expose the token in logs or agent output.
 
 ## Skill Sharing

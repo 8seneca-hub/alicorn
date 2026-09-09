@@ -41,7 +41,7 @@ import {
 } from './helpers/terminal-host-focus-storm-oracle'
 
 const REPORT_DIR = path.join(process.cwd(), 'test-results', 'freeze-repro')
-const USE_DESKTOP_PAIR = process.env.ORCA_E2E_FREEZE_DESKTOP_PAIR === '1'
+const USE_DESKTOP_PAIR = process.env.ALICORN_E2E_FREEZE_DESKTOP_PAIR === '1'
 
 test('paired client host-focus storm keeps the latest terminal @freeze-repro', async ({
   orcaPage

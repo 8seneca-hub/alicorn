@@ -13,8 +13,8 @@ import {
 import { waitForSessionReady } from './helpers/store'
 
 test.skip(
-  process.env.ORCA_E2E_WEB_CLIENT !== '1',
-  'Run with ORCA_E2E_WEB_CLIENT=1 so the paired web client is built'
+  process.env.ALICORN_E2E_WEB_CLIENT !== '1',
+  'Run with ALICORN_E2E_WEB_CLIENT=1 so the paired web client is built'
 )
 
 type HostHealth = 'blocked' | 'disconnected'

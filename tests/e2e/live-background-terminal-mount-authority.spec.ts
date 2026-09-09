@@ -44,7 +44,7 @@ if (args.includes('app-server')) {
   process.stderr.write("error: unrecognized subcommand 'app-server'\\n")
   process.exit(2)
 }
-appendFileSync(process.env.ORCA_E2E_CODEX_SPAWN_LEDGER, JSON.stringify({ args, pid: process.pid }) + '\\n')
+appendFileSync(process.env.ALICORN_E2E_CODEX_SPAWN_LEDGER, JSON.stringify({ args, pid: process.pid }) + '\\n')
 process.stdout.write('LIVE_AGENT_READY:' + process.pid + '\\n')
 let inputBuffer = ''
 process.stdin.on('data', (chunk) => {
@@ -53,7 +53,7 @@ process.stdin.on('data', (chunk) => {
   inputBuffer = lines.pop() || ''
   for (const line of lines) if (line) process.stdout.write('AGENT_INPUT:' + process.pid + ':' + line + '\\n')
 })
-for (const signal of ['SIGINT', 'SIGHUP', 'SIGTERM']) process.on(signal, () => appendFileSync(process.env.ORCA_E2E_SIGNAL_LEDGER, JSON.stringify({ kind: 'agent', pid: process.pid, signal }) + '\\n'))
+for (const signal of ['SIGINT', 'SIGHUP', 'SIGTERM']) process.on(signal, () => appendFileSync(process.env.ALICORN_E2E_SIGNAL_LEDGER, JSON.stringify({ kind: 'agent', pid: process.pid, signal }) + '\\n'))
 process.stdin.resume()
 setInterval(() => {}, 60_000)
 `
@@ -74,10 +74,10 @@ const test = base.extend({
   launchEnv: [
     {
       PATH: `${fakeCliDir}${path.delimiter}${process.env.PATH ?? ''}`,
-      ORCA_E2E_CODEX_SPAWN_LEDGER: spawnLedgerPath,
-      ORCA_E2E_SETUP_LEDGER: setupLedgerPath,
-      ORCA_E2E_CANARY_LEDGER: canaryLedgerPath,
-      ORCA_E2E_SIGNAL_LEDGER: signalLedgerPath
+      ALICORN_E2E_CODEX_SPAWN_LEDGER: spawnLedgerPath,
+      ALICORN_E2E_SETUP_LEDGER: setupLedgerPath,
+      ALICORN_E2E_CANARY_LEDGER: canaryLedgerPath,
+      ALICORN_E2E_SIGNAL_LEDGER: signalLedgerPath
     },
     { option: true }
   ]
@@ -107,11 +107,11 @@ function createSourceRepo(): string {
   const repoPath = mkdtempSync(path.join(os.tmpdir(), 'orca-live-mount-repo-'))
   writeFileSync(
     path.join(repoPath, 'setup-live.js'),
-    `const { appendFileSync } = require('node:fs')\nappendFileSync(process.env.ORCA_E2E_SETUP_LEDGER, JSON.stringify({ pid: process.pid }) + '\\n')\nconsole.log('SETUP_READY:' + process.pid)\nlet inputBuffer = ''\nprocess.stdin.on('data', chunk => {\n  inputBuffer += chunk.toString()\n  const lines = inputBuffer.split(/[\\r\\n]+/)\n  inputBuffer = lines.pop() || ''\n  for (const line of lines) if (line) console.log('SETUP_INPUT:' + process.pid + ':' + line)\n})\nfor (const signal of ['SIGINT', 'SIGHUP', 'SIGTERM']) process.on(signal, () => appendFileSync(process.env.ORCA_E2E_SIGNAL_LEDGER, JSON.stringify({ kind: 'setup', pid: process.pid, signal }) + '\\n'))\nprocess.stdin.resume()\nsetInterval(() => {}, 60000)\n`
+    `const { appendFileSync } = require('node:fs')\nappendFileSync(process.env.ALICORN_E2E_SETUP_LEDGER, JSON.stringify({ pid: process.pid }) + '\\n')\nconsole.log('SETUP_READY:' + process.pid)\nlet inputBuffer = ''\nprocess.stdin.on('data', chunk => {\n  inputBuffer += chunk.toString()\n  const lines = inputBuffer.split(/[\\r\\n]+/)\n  inputBuffer = lines.pop() || ''\n  for (const line of lines) if (line) console.log('SETUP_INPUT:' + process.pid + ':' + line)\n})\nfor (const signal of ['SIGINT', 'SIGHUP', 'SIGTERM']) process.on(signal, () => appendFileSync(process.env.ALICORN_E2E_SIGNAL_LEDGER, JSON.stringify({ kind: 'setup', pid: process.pid, signal }) + '\\n'))\nprocess.stdin.resume()\nsetInterval(() => {}, 60000)\n`
   )
   writeFileSync(
     path.join(repoPath, 'canary-live.js'),
-    `const { appendFileSync } = require('node:fs')\nappendFileSync(process.env.ORCA_E2E_CANARY_LEDGER, JSON.stringify({ pid: process.pid }) + '\\n')\nconsole.log('CANARY_READY:' + process.pid)\nlet inputBuffer = ''\nprocess.stdin.on('data', chunk => {\n  inputBuffer += chunk.toString()\n  const lines = inputBuffer.split(/[\\r\\n]+/)\n  inputBuffer = lines.pop() || ''\n  for (const line of lines) if (line) console.log('CANARY_INPUT:' + process.pid + ':' + line)\n})\nfor (const signal of ['SIGINT', 'SIGHUP', 'SIGTERM']) process.on(signal, () => appendFileSync(process.env.ORCA_E2E_SIGNAL_LEDGER, JSON.stringify({ kind: 'canary', pid: process.pid, signal }) + '\\n'))\nprocess.stdin.resume()\nsetInterval(() => {}, 60000)\n`
+    `const { appendFileSync } = require('node:fs')\nappendFileSync(process.env.ALICORN_E2E_CANARY_LEDGER, JSON.stringify({ pid: process.pid }) + '\\n')\nconsole.log('CANARY_READY:' + process.pid)\nlet inputBuffer = ''\nprocess.stdin.on('data', chunk => {\n  inputBuffer += chunk.toString()\n  const lines = inputBuffer.split(/[\\r\\n]+/)\n  inputBuffer = lines.pop() || ''\n  for (const line of lines) if (line) console.log('CANARY_INPUT:' + process.pid + ':' + line)\n})\nfor (const signal of ['SIGINT', 'SIGHUP', 'SIGTERM']) process.on(signal, () => appendFileSync(process.env.ALICORN_E2E_SIGNAL_LEDGER, JSON.stringify({ kind: 'canary', pid: process.pid, signal }) + '\\n'))\nprocess.stdin.resume()\nsetInterval(() => {}, 60000)\n`
   )
   writeFileSync(path.join(repoPath, 'orca.yaml'), 'scripts:\n  setup: node setup-live.js\n')
   execFileSync('git', ['init'], { cwd: repoPath })

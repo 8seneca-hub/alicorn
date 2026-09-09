@@ -69,12 +69,12 @@ describe('orca claude-teams CLI handler', () => {
       }
     })
     previousRunAsNode = process.env.ELECTRON_RUN_AS_NODE
-    previousPaneKey = process.env.ORCA_PANE_KEY
+    previousPaneKey = process.env.ALICORN_PANE_KEY
     previousExitCode = process.exitCode
     // The `orca` launcher runs Orca's Electron binary as Node, so the CLI process
     // itself carries ELECTRON_RUN_AS_NODE=1. Reproduce that inherited flag here.
     process.env.ELECTRON_RUN_AS_NODE = '1'
-    process.env.ORCA_PANE_KEY = 'tab-1:leaf-1'
+    process.env.ALICORN_PANE_KEY = 'tab-1:leaf-1'
   })
 
   afterEach(() => {
@@ -84,9 +84,9 @@ describe('orca claude-teams CLI handler', () => {
       process.env.ELECTRON_RUN_AS_NODE = previousRunAsNode
     }
     if (previousPaneKey === undefined) {
-      delete process.env.ORCA_PANE_KEY
+      delete process.env.ALICORN_PANE_KEY
     } else {
-      process.env.ORCA_PANE_KEY = previousPaneKey
+      process.env.ALICORN_PANE_KEY = previousPaneKey
     }
     process.exitCode = previousExitCode
   })
@@ -112,20 +112,20 @@ describe('orca claude-teams CLI handler', () => {
   it.skipIf(isWindows)(
     'still forwards non-Electron parent env and prepareLaunch env to claude',
     async () => {
-      const previousMarker = process.env.ORCA_TEST_MARKER
-      process.env.ORCA_TEST_MARKER = 'keep-me'
+      const previousMarker = process.env.ALICORN_TEST_MARKER
+      process.env.ALICORN_TEST_MARKER = 'keep-me'
       try {
         await runClaudeTeams()
       } finally {
         if (previousMarker === undefined) {
-          delete process.env.ORCA_TEST_MARKER
+          delete process.env.ALICORN_TEST_MARKER
         } else {
-          process.env.ORCA_TEST_MARKER = previousMarker
+          process.env.ALICORN_TEST_MARKER = previousMarker
         }
       }
 
       const spawnEnv = spawnMock.mock.calls.at(-1)?.[2].env as SpawnEnv
-      expect(spawnEnv.ORCA_TEST_MARKER).toBe('keep-me')
+      expect(spawnEnv.ALICORN_TEST_MARKER).toBe('keep-me')
       expect(spawnEnv.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS).toBe('1')
       expect(spawnEnv.PATH).toBe('/shim:/usr/bin')
     }

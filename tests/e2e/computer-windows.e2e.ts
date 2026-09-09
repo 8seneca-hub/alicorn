@@ -17,7 +17,7 @@ import {
 } from './helpers/computer-driver'
 
 const isWindows = process.platform === 'win32'
-const e2eOptIn = process.env.ORCA_COMPUTER_E2E === '1'
+const e2eOptIn = process.env.ALICORN_COMPUTER_E2E === '1'
 const editableRolePattern = /^\s*(\d+)\s+(document|edit|text|pane)(?:\s|$)/im
 const pasteMutationTimeoutMs = 5_000
 

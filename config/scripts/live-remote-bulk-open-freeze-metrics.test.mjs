@@ -145,12 +145,12 @@ describe('live-remote-bulk-open-freeze-metrics', () => {
   })
 
   it('rejects invalid numeric environment values', () => {
-    process.env.ORCA_FREEZE_TEST_NUMBER = 'not-a-number'
-    expect(() => readFreezeNumberEnv('ORCA_FREEZE_TEST_NUMBER', 5)).toThrow(
-      'Invalid ORCA_FREEZE_TEST_NUMBER'
+    process.env.ALICORN_FREEZE_TEST_NUMBER = 'not-a-number'
+    expect(() => readFreezeNumberEnv('ALICORN_FREEZE_TEST_NUMBER', 5)).toThrow(
+      'Invalid ALICORN_FREEZE_TEST_NUMBER'
     )
-    delete process.env.ORCA_FREEZE_TEST_NUMBER
-    expect(readFreezeNumberEnv('ORCA_FREEZE_TEST_NUMBER', 5)).toBe(5)
+    delete process.env.ALICORN_FREEZE_TEST_NUMBER
+    expect(readFreezeNumberEnv('ALICORN_FREEZE_TEST_NUMBER', 5)).toBe(5)
   })
 
   it('distinguishes recovered hard stall from permanent lockup', () => {

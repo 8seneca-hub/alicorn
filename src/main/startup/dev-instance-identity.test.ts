@@ -14,8 +14,8 @@ describe('dev-instance-identity', () => {
   })
 
   it('pins a stable dev appName across branches so the safeStorage key does not churn', () => {
-    const a = getDevInstanceIdentity(true, { ORCA_DEV_BRANCH: 'feature/a' })
-    const b = getDevInstanceIdentity(true, { ORCA_DEV_BRANCH: 'feature/b' })
+    const a = getDevInstanceIdentity(true, { ALICORN_DEV_BRANCH: 'feature/a' })
+    const b = getDevInstanceIdentity(true, { ALICORN_DEV_BRANCH: 'feature/b' })
 
     // Per-branch label differs (window title / app menu)...
     expect(a.name).not.toBe(b.name)
@@ -38,9 +38,9 @@ describe('dev-instance-identity', () => {
 
   it('derives a readable dev label from worktree and branch env', () => {
     const identity = getDevInstanceIdentity(true, {
-      ORCA_DEV_REPO_ROOT: '/repo/worktrees/dev-indicator',
-      ORCA_DEV_WORKTREE_NAME: 'dev-indicator',
-      ORCA_DEV_BRANCH: 'nwparker/dev-indicator'
+      ALICORN_DEV_REPO_ROOT: '/repo/worktrees/dev-indicator',
+      ALICORN_DEV_WORKTREE_NAME: 'dev-indicator',
+      ALICORN_DEV_BRANCH: 'nwparker/dev-indicator'
     })
 
     expect(identity).toMatchObject({
@@ -57,9 +57,9 @@ describe('dev-instance-identity', () => {
 
   it('includes the branch when it differs from the worktree basename', () => {
     const identity = getDevInstanceIdentity(true, {
-      ORCA_DEV_REPO_ROOT: '/repo/worktrees/payment-ui',
-      ORCA_DEV_WORKTREE_NAME: 'payment-ui',
-      ORCA_DEV_BRANCH: 'feature/billing-shell'
+      ALICORN_DEV_REPO_ROOT: '/repo/worktrees/payment-ui',
+      ALICORN_DEV_WORKTREE_NAME: 'payment-ui',
+      ALICORN_DEV_BRANCH: 'feature/billing-shell'
     })
 
     expect(identity.devLabel).toBe('payment-ui @ feature/billing-shell')
@@ -69,9 +69,9 @@ describe('dev-instance-identity', () => {
 
   it('allows an explicit label override', () => {
     const identity = getDevInstanceIdentity(true, {
-      ORCA_DEV_INSTANCE_LABEL: 'manual label',
-      ORCA_DEV_WORKTREE_NAME: 'dev-indicator',
-      ORCA_DEV_BRANCH: 'feature/other'
+      ALICORN_DEV_INSTANCE_LABEL: 'manual label',
+      ALICORN_DEV_WORKTREE_NAME: 'dev-indicator',
+      ALICORN_DEV_BRANCH: 'feature/other'
     })
 
     expect(identity.devLabel).toBe('manual label')

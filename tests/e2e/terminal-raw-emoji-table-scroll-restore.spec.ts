@@ -484,7 +484,7 @@ test.describe('Terminal raw emoji table scroll restore repro', () => {
     await ensureTerminalVisible(orcaPage)
     await waitForActiveTerminalManager(orcaPage, 30_000)
     const ptyId = await waitForActivePanePtyId(orcaPage)
-    const marker = `ORCA_AUTO_WEBGL_SMOKE_${randomUUID()}`
+    const marker = `ALICORN_AUTO_WEBGL_SMOKE_${randomUUID()}`
 
     await sendToTerminal(orcaPage, ptyId, `printf ${JSON.stringify(`${marker}\\n`)}\r`)
     await waitForTerminalOutput(orcaPage, marker, 10_000)

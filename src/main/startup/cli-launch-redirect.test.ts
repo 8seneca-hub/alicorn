@@ -288,9 +288,9 @@ describe('CLI launch redirect: spawning', () => {
         timeoutMs: null,
         env: expect.objectContaining({
           ELECTRON_RUN_AS_NODE: '1',
-          ORCA_CLI_LAUNCH_REDIRECTED: '1',
-          ORCA_NODE_OPTIONS: '--inspect',
-          ORCA_NODE_REPL_EXTERNAL_MODULE: 'external-loader'
+          ALICORN_CLI_LAUNCH_REDIRECTED: '1',
+          ALICORN_NODE_OPTIONS: '--inspect',
+          ALICORN_NODE_REPL_EXTERNAL_MODULE: 'external-loader'
         })
       })
     )
@@ -304,7 +304,7 @@ describe('CLI launch redirect: spawning', () => {
 
     const result = maybeRedirectCliLaunch({
       argv: [linux.execPath, 'status'],
-      env: { ORCA_CLI_LAUNCH_REDIRECTED: '1' },
+      env: { ALICORN_CLI_LAUNCH_REDIRECTED: '1' },
       platform: 'linux',
       isPackaged: true,
       resourcesPath: linux.resourcesPath,
