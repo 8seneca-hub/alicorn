@@ -32,6 +32,8 @@ import { startRunCostPublisher } from '../alicorn/run-cost-publisher'
 import { ALICORN_EVENTS } from '../../shared/alicorn/ipc-channels'
 import { ALICORN_RUN_COST_EVENT } from '../../shared/alicorn/run-cost'
 import { createVerificationRunner } from '../alicorn/diff-coverage/verification-runner'
+import { runContractAcknowledgedCheck } from '../alicorn/contracts/contract-acknowledged-check'
+import { fetchAcknowledgedContractNames } from '../alicorn/contracts/contract-acknowledgements-fetch'
 import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fetch'
 import { runDiffCoverageCheck } from '../alicorn/diff-coverage/diff-coverage-check'
 import { createBaseRefResolver } from '../alicorn/diff-coverage/base-ref-resolver'
@@ -145,6 +147,11 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
   const verificationRunner = createVerificationRunner({
     fetchRequiredChecks,
     runDiffCoverageCheck,
+    runContractAcknowledgedCheck: (input) =>
+      runContractAcknowledgedCheck({
+        ...input,
+        listAcknowledgedNames: fetchAcknowledgedContractNames
+      }),
     resolveBaseRef: createBaseRefResolver({
       store,
       showManagedWorktree: (selector) => runtime.showManagedWorktree(selector)

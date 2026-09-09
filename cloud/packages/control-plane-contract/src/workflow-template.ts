@@ -36,7 +36,7 @@ export const WorkflowTemplateSchema = z.object({
  * before any track record is consulted, so a new project is gated where it should be on run one.
  *
  * No required checks are authored here. The prototype verifies these stages with test/types/lint,
- * security, e2e and smoke, and `RequiredCheckSchema` currently expresses only `diff_coverage` — so
+ * security, e2e and smoke, and `RequiredCheckSchema` expresses only `diff_coverage` and `contract_acknowledged` — so
  * authoring a coverage threshold on Build would be inventing a policy nobody asked for. Checks stay
  * the operator's call until a second check kind exists.
  */

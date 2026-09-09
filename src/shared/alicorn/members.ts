@@ -44,4 +44,9 @@ export type DiffCoverageCheck = {
   timeoutMs: number
 }
 
-export type RequiredCheck = DiffCoverageCheck
+/** CR2: no parameters — what is breaking is the registry's answer, who may accept it is the API's. */
+export type ContractAcknowledgedCheck = {
+  kind: 'contract_acknowledged'
+}
+
+export type RequiredCheck = DiffCoverageCheck | ContractAcknowledgedCheck

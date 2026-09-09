@@ -254,7 +254,12 @@ export const electronViteConfig: UserConfig = {
             'src/main/agent-hooks/managed-agent-hook-controls.ts'
           ),
           // Why: account import mutates the user's macOS Keychain from the CLI.
-          'claude-accounts/keychain': resolve('src/main/claude-accounts/keychain.ts')
+          'claude-accounts/keychain': resolve('src/main/claude-accounts/keychain.ts'),
+          // Why: `orca contracts mock` reads the worktree's OpenAPI documents from the CLI, with
+          // no runtime call — so the module has to survive the build that cleans out/main.
+          'alicorn/contracts/mock-from-worktree': resolve(
+            'src/main/alicorn/contracts/mock-from-worktree.ts'
+          )
         },
         // Why: Rolldown's SSR default is ESM, but Electron and sidecar launchers
         // consume these stable CommonJS paths.

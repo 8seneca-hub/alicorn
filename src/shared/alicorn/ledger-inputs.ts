@@ -33,7 +33,7 @@ export type StepVerificationInput = {
   runId: string
   taskId: string
   dispatchId: string
-  kind: 'diff_coverage'
+  kind: 'diff_coverage' | 'contract_acknowledged'
   name: string
   required: boolean
   status: 'passed' | 'failed' | 'skipped' | 'error'

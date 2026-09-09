@@ -70,7 +70,7 @@ export const StepVerificationInputSchema = z.object({
   runId: z.string().min(1),
   taskId: z.string().min(1),
   dispatchId: z.string().min(1),
-  kind: z.enum(['diff_coverage']),
+  kind: z.enum(['diff_coverage', 'contract_acknowledged']),
   name: z.string().min(1).max(200),
   required: z.boolean(),
   status: z.enum(['passed', 'failed', 'skipped', 'error']),

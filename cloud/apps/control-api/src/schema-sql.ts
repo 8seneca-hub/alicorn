@@ -49,6 +49,18 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      PRIMARY KEY (tenant_id, project_id))`,
   tenantRlsPolicySql('project_protected_paths'),
+  // CR2: who accepted a breaking interface change, per run. The contracts themselves live in the
+  // run's journal on disk; only the acknowledgement is server-side, because only the
+  // acknowledgement has to be out of reach of the member whose contract broke.
+  `CREATE TABLE IF NOT EXISTS contract_acknowledgements (
+     tenant_id TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     run_id TEXT NOT NULL,
+     contract_name TEXT NOT NULL,
+     acknowledged_by TEXT NOT NULL,
+     acknowledged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, project_id, run_id, contract_name))`,
+  tenantRlsPolicySql('contract_acknowledgements'),
   // Workflows — authored stage graphs (WF1). Stages are addressed on the wire by `key`;
   // ids stay internal so a save is idempotent and a reorder is one request.
   `CREATE TABLE IF NOT EXISTS workflows (

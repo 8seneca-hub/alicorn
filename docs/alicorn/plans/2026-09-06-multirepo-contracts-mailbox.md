@@ -87,7 +87,38 @@ Control API `contracts (id, tenant_id, project_id, repo_id, kind CHECK IN ('http
 
 ### Task 5 (CR2): breaking-change gate and mocks
 `RequiredCheckSchema` variant `{ kind: 'contract_acknowledged' }`; check evaluator (`src/main/alicorn/checks/contract-acknowledged-check.ts`) per Decision 4; `src/main/alicorn/contracts/generate-mock.ts` (Decision 5) + CLI `alicorn contracts mock <name> [--out file]`; PR body (D6, Nghia) gains a *Contracts* section listing breaking deltas and acknowledgements (additive). Tests: unacknowledged breaking → check fails; acknowledged → passes; mock generation for a fixture schema.
-- [ ] Commit `feat(alicorn): breaking contract changes gate the PR; mocks from registered shapes`.
+- [x] **Landed 2026-09-09 (CR2).** Shipped: the `contract_acknowledged` variant on
+      `RequiredCheckSchema` (and its desktop mirror in `shared/alicorn/members.ts`), the evaluator
+      (`src/main/alicorn/contracts/contract-acknowledged-check.ts`) run by the existing
+      `createVerificationRunner`, which now walks every authored check rather than only
+      `diff_coverage`; `generate-mock.ts` plus `openapi-mock-lookup.ts` / `mock-from-worktree.ts`
+      and the local CLI `orca contracts mock <name> [--out <file>]`.
+
+      **Three deviations from Decision 4/5, each forced by what CR1 actually built.**
+
+      - **There is no `contracts` table, so the gate reads the journal.** CR1 put the Contract
+        Registry in the Feature Journal on disk (`foreman/contract-registry.ts`), not in the Control
+        API. Building a Postgres registry now would be the parallel store CR1 already replaced, so
+        the check reads `journal.contractRegistry.entries` for the run instead of `contract` rows.
+      - **Only the *acknowledgement* is server-side** — `contract_acknowledgements
+        (tenant_id, project_id, run_id, contract_name, acknowledged_by, acknowledged_at)`, RLS
+        forced, with `POST /v1/projects/:projectId/contracts/acknowledge` and
+        `GET …/contracts/acknowledgements?runId=`. That split is the invariant, not a compromise: the
+        journal is writable by the run that broke the contract, so an acknowledgement kept there is
+        one a member could grant itself. Acknowledgement is keyed on the contract *name*; the failure
+        detail is repo-qualified so a human knows where to look. First writer wins — a re-post must
+        not reassign who accepted the break.
+      - **Mocks resolve back to the OpenAPI document, not to the registry row.** A registry `shape`
+        is a clamped ~200-token *description*, never a JSON Schema, so `generateMock(schema)` has no
+        input there. `orca contracts mock` finds the named component schema or operation in the
+        worktree's own OpenAPI documents and mocks that. TypeScript-extracted contracts are not
+        mockable and say so. The command is local — no RPC, no token — so it works in a worker's
+        terminal.
+
+      **Not done:** the PR body's *Contracts* section. A failing `contract_acknowledged` check
+      already renders in the PR body's **Checks** list via `renderProvenanceMarkdown`; listing each
+      breaking delta by name would mean widening `ProvenanceView.checks` across the desktop and its
+      canonical cloud copy (and the parity test between them) for a cosmetic gain. Its own ticket.
 
 ### Task 6 (IV1): integration verify as a required check
 `RequiredCheckSchema` variant `{ kind: 'integration_verify', command: z.string().min(1).max(500), repoId: z.string() }`; evaluator `integration-verify-check.ts` (Decision 6; runs through `runProcess`, never `child_process`; SSH worktrees via the provider's exec; folder workspaces allowed if the command is set; timeout 15 min → `unverifiable` with reason). Tests: passing/failing fixture commands; env carries the other tuples' paths.

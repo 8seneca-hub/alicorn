@@ -8,6 +8,7 @@ import { registerOrgPolicyRoutes } from './org-policy-routes.js'
 import { registerAutonomyPolicyRoutes } from './autonomy-policy-routes.js'
 import { registerRequiredChecksRoutes } from './required-checks-routes.js'
 import { registerProtectedPathsRoutes } from './protected-paths-routes.js'
+import { registerContractAcknowledgementRoutes } from './contract-acknowledgements-routes.js'
 import { registerRuleProposalsRoutes } from './rule-proposals-routes.js'
 import { registerWorkflowsRoutes } from './workflows-routes.js'
 import { requestLog } from './request-log.js'
@@ -54,6 +55,7 @@ export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
   registerAutonomyPolicyRoutes(app, deps)
   registerRequiredChecksRoutes(app, deps)
   registerProtectedPathsRoutes(app, deps)
+  registerContractAcknowledgementRoutes(app, deps)
   registerRuleProposalsRoutes(app, deps)
   registerWorkflowsRoutes(app, deps)
   return app

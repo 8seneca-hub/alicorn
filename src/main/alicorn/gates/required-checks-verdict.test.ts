@@ -67,3 +67,31 @@ describe('resolveRequiredChecksPassed', () => {
     ).toBeNull()
   })
 })
+
+// CR2: the gate reads the new kind through the same authored-list mechanism, so the only thing
+// worth asserting is that a second kind is not silently answered by the first one's result.
+describe('contract_acknowledged', () => {
+  const CONTRACTS: RequiredCheck = { kind: 'contract_acknowledged' }
+
+  it('gates on an unacknowledged breaking contract', () => {
+    const failed = result({
+      kind: 'contract_acknowledged',
+      name: 'Breaking contracts acknowledged',
+      status: 'failed'
+    })
+    expect(resolveRequiredChecksPassed([CONTRACTS], [failed])).toBe(false)
+    expect(resolveRequiredChecksPassed([COVERAGE, CONTRACTS], [result(), failed])).toBe(false)
+  })
+
+  it('does not let a passing coverage result answer for the contract check', () => {
+    expect(resolveRequiredChecksPassed([COVERAGE, CONTRACTS], [result()])).toBeNull()
+  })
+
+  it('passes once the acknowledged verdict is recorded', () => {
+    const passed = result({
+      kind: 'contract_acknowledged',
+      name: 'Breaking contracts acknowledged'
+    })
+    expect(resolveRequiredChecksPassed([COVERAGE, CONTRACTS], [result(), passed])).toBe(true)
+  })
+})

@@ -22,6 +22,13 @@
     "../src/main/alicorn/agent-pane-role.ts",
     "../src/main/alicorn/foreman/lead-tool-gate-hook.ts",
     "../src/main/alicorn/foreman/lead-tool-gate-script.ts",
+    // Why: `orca contracts mock` derives a mock from the worktree's own OpenAPI documents. Only
+    // the document *finder* is listed — the extractors it sits next to pull in the TypeScript
+    // compiler API, which has no business in the CLI's module graph.
+    "../src/main/alicorn/foreman/contract-source-scan.ts",
+    "../src/main/alicorn/contracts/generate-mock.ts",
+    "../src/main/alicorn/contracts/openapi-mock-lookup.ts",
+    "../src/main/alicorn/contracts/mock-from-worktree.ts",
     "../src/main/amp/agent-status-plugin-source.ts",
     "../src/main/amp/hook-service.ts",
     "../src/main/amp/managed-plugin-install-status.ts",

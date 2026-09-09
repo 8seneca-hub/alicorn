@@ -260,7 +260,7 @@ describe('workflow templates', () => {
     expect(findWorkflowTemplate('nope')).toBeUndefined()
   })
 
-  it('authors no required checks — only diff_coverage is expressible today', () => {
+  it('authors no required checks — a stage-authored check has no home yet', () => {
     expect(WorkflowTemplateSchema.parse(FEATURE_DELIVERY_TEMPLATE).stages.every((s) => !('requiredChecks' in s))).toBe(true)
   })
 })

@@ -25,7 +25,8 @@ describePostgres('control schema', () => {
         `SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
          WHERE n.nspname = $1 AND c.relforcerowsecurity ORDER BY relname`, [schema])
       expect(rows.map((r) => r.relname)).toEqual([
-        'autonomy_policies', 'member_skills', 'members', 'org_invites', 'org_policies', 'org_roles',
+        'autonomy_policies', 'contract_acknowledgements', 'member_skills', 'members',
+        'org_invites', 'org_policies', 'org_roles',
         'project_protected_paths', 'project_required_checks', 'project_stage_config',
         'rule_proposals', 'seats', 'stages', 'transitions', 'workflows'
       ])

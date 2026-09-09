@@ -31,12 +31,18 @@ function makeWriter(): LedgerWriter {
 
 const RESOLVE_ORIGIN_MAIN = async () => ({ baseRef: 'origin/main', gitOptions: {} })
 
+const NO_CONTRACT_CHECK = async (): Promise<{
+  status: 'passed'
+  detail: Record<string, unknown>
+}> => ({ status: 'passed', detail: {} })
+
 describe('createVerificationRunner', () => {
   it('resolves without posting when no diff_coverage check is configured', async () => {
     const writer = makeWriter()
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [],
       runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local'
     })
@@ -51,6 +57,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => false
@@ -78,6 +85,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'remote',
       pathExists
@@ -98,6 +106,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'unknown',
       pathExists: async () => true
@@ -124,6 +133,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       resolveBaseRef: async () => ({ baseRef: 'develop', gitOptions: { wslDistro: 'Ubuntu' } }),
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -168,6 +178,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -186,6 +197,7 @@ describe('createVerificationRunner', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -194,5 +206,76 @@ describe('createVerificationRunner', () => {
     await runner(PAYLOAD, writer, { signal: controller.signal })
 
     expect(runCheck).toHaveBeenCalledWith(expect.objectContaining({ signal: controller.signal }))
+  })
+})
+
+describe('contract_acknowledged', () => {
+  const CONTRACT_CHECK = { kind: 'contract_acknowledged' } as const
+
+  it('posts the contract verdict under its own kind, with no git worktree needed', async () => {
+    const writer = makeWriter()
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [CONTRACT_CHECK],
+      runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: async () => ({
+        status: 'failed' as const,
+        detail: { unacknowledged: 1 }
+      }),
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'local',
+      pathExists: async () => false
+    })
+
+    await runner(PAYLOAD, writer)
+
+    expect(writer.postStepVerification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'contract_acknowledged',
+        name: 'Breaking contracts acknowledged',
+        required: true,
+        status: 'failed',
+        detail: { unacknowledged: 1 }
+      })
+    )
+  })
+
+  it('skips a remote worktree — the registry is a file on the execution host', async () => {
+    const writer = makeWriter()
+    const runContract = vi.fn()
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [CONTRACT_CHECK],
+      runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: runContract,
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'remote'
+    })
+
+    await runner(PAYLOAD, writer)
+
+    expect(runContract).not.toHaveBeenCalled()
+    expect(writer.postStepVerification).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'contract_acknowledged', status: 'skipped' })
+    )
+  })
+
+  it('runs every authored check, resolving the host once', async () => {
+    const writer = makeWriter()
+    const resolveWorktreeHost = vi.fn().mockResolvedValue('local')
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [CHECK, CONTRACT_CHECK],
+      runDiffCoverageCheck: vi.fn().mockResolvedValue({ status: 'passed', detail: {} }),
+      runContractAcknowledgedCheck: async () => ({ status: 'passed' as const, detail: {} }),
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost,
+      pathExists: async () => true
+    })
+
+    await runner(PAYLOAD, writer)
+
+    expect(resolveWorktreeHost).toHaveBeenCalledTimes(1)
+    const kinds = vi
+      .mocked(writer.postStepVerification)
+      .mock.calls.map(([input]) => (input as { kind: string }).kind)
+    expect(kinds).toEqual(['diff_coverage', 'contract_acknowledged'])
   })
 })

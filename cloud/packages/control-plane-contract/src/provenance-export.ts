@@ -65,7 +65,7 @@ export const ProvenanceViewSchema = z.object({
   checks: z.array(
     z.object({
       dispatchId: z.string(),
-      kind: z.enum(['diff_coverage']),
+      kind: z.enum(['diff_coverage', 'contract_acknowledged']),
       name: z.string(),
       required: z.boolean(),
       status: z.enum(['passed', 'failed', 'skipped', 'error']),

@@ -15,6 +15,7 @@ export const CLI_COMMAND_NAMES = [
   'clipboard',
   'computer',
   'console',
+  'contracts',
   'cookie',
   'dblclick',
   'diagnostics',
