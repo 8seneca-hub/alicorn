@@ -20,6 +20,12 @@
  * which was real. A gate that cries wolf trains people to re-baseline without
  * reading, which is how the one real finding gets laundered through.
  *
+ * Why the invocation and not the whole line: `src/cli/bundled-skill-guides.ts` is
+ * generated and holds each guide as one single-line string literal, so keying on
+ * the line meant *any* edit to *any* guide rewrote that line and reported it as a
+ * new call site. That is the same false positive in a new costume — the unit has
+ * to be the call site itself, which is what the baseline claims to hold.
+ *
  * Usage: node config/scripts/verify-rebrand-cli-gate.mjs [--write]
  */
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
@@ -58,6 +64,9 @@ const SCAN_EXTENSIONS = new Set([
  */
 export const BARE_ORCA_INVOCATION = /(^|[^A-Za-z0-9_/-])orca(?:-dev)? [a-z]/
 
+/** The same match, capturing command plus subcommand so a finding names the call site. */
+const BARE_ORCA_INVOCATION_GLOBAL = /(^|[^A-Za-z0-9_/-])(orca(?:-dev)? [a-z][\w-]*)/g
+
 /**
  * Trim and collapse runs of whitespace, so re-indenting a list item or a
  * Prettier reflow does not read as a different call site. Collapsing tabs is
@@ -77,9 +86,13 @@ export function findBareOrcaInvocations(files) {
   const findings = []
   for (const [filePath, content] of files) {
     const lines = content.split('\n')
-    for (const [index, text] of lines.entries()) {
-      if (BARE_ORCA_INVOCATION.test(text)) {
-        findings.push({ path: filePath, line: index + 1, text: normalizeInvocationText(text) })
+    for (const [index, line] of lines.entries()) {
+      for (const match of line.matchAll(BARE_ORCA_INVOCATION_GLOBAL)) {
+        findings.push({
+          path: filePath,
+          line: index + 1,
+          text: normalizeInvocationText(match[2])
+        })
       }
     }
   }

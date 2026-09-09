@@ -49,9 +49,9 @@ describe('normalizeInvocationText', () => {
 })
 
 describe('findBareOrcaInvocations', () => {
-  it('reports each hit with its 1-based line and normalised text', () => {
+  it('reports each hit with its 1-based line and the invocation, not the line', () => {
     const files = new Map([
-      ['skill-guides/a.md', 'intro\n  orca status\nend'],
+      ['skill-guides/a.md', 'intro\n  run `orca status` first\nend'],
       ['skill-guides/b.md', 'nothing here']
     ])
 
@@ -190,5 +190,22 @@ describe('the checked-in baseline', () => {
       Array.from({ length: entry.count }, () => ({ path: entry.path, text: entry.text }))
     )
     expect(`${renderBaseline(rerendered)}\n`).toBe(onDisk)
+  })
+})
+
+describe('generated single-line bundles', () => {
+  // The bundle holds a whole guide as one string literal. Keying on the line meant editing any
+  // guide rewrote that line and reported a new call site; the unit has to be the invocation.
+  it('reports every invocation on a line, and is unmoved by unrelated text on it', () => {
+    const before = new Map([
+      ['src/cli/bundled-skill-guides.ts', 'const A = "orca status and orca run"']
+    ])
+    const after = new Map([
+      ['src/cli/bundled-skill-guides.ts', 'const A = "orca status, edited, and orca run"']
+    ])
+
+    const texts = (files) => findBareOrcaInvocations(files).map((f) => f.text)
+    expect(texts(before)).toEqual(['orca status', 'orca run'])
+    expect(texts(after)).toEqual(texts(before))
   })
 })
