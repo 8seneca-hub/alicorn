@@ -53,7 +53,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - name: Bind the request to the checked-in staging C4 image

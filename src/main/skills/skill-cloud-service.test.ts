@@ -118,7 +118,7 @@ describe('SkillCloudService bearer links', () => {
     vi.stubEnv('ALICORN_CLOUD_AUTH_TOKEN', 'desktop-e2e-token')
 
     await expect(
-      new SkillCloudService(userDataPath()).listOwnedShares({ apiUrl: 'https://share.onorca.dev' })
+      new SkillCloudService(userDataPath()).listOwnedShares({ apiUrl: 'https://share.alicorn.8seneca.com' })
     ).rejects.toThrow('available only in development builds')
   })
 })

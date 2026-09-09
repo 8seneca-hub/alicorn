@@ -27,7 +27,7 @@ const item: ArtifactListItem = {
     byteSize: 12,
     deletedAt: null
   },
-  shareUrl: 'https://share.onorca.dev/a/artifact-1'
+  shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-1'
 }
 
 afterEach(() => vi.restoreAllMocks())

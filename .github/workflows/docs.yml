@@ -210,7 +210,7 @@ jobs:
     timeout-minutes: 15
     environment:
       name: docs-production
-      url: https://www.onorca.dev/docs
+      url: https://www.alicorn.8seneca.com/docs
     env:
       VERCEL_TELEMETRY_DISABLED: '1'
     steps:

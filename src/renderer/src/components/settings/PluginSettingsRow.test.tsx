@@ -37,7 +37,7 @@ const plugin: PluginHostListEntry = {
   restarts: 0,
   blockedByKillList: {
     reason: 'A vulnerable release was revoked',
-    advisoryUrl: 'https://onorca.dev/advisories/orca-skills'
+    advisoryUrl: 'https://alicorn.8seneca.com/advisories/orca-skills'
   },
   source: {
     kind: 'bundled',

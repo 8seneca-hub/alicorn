@@ -69,8 +69,8 @@ jobs:
       cancel-in-progress: false
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
-      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
-      CELL_ORIGIN: https://c4.relay-staging.onorca.dev
+      DIRECTOR_ORIGIN: https://relay-staging.alicorn.8seneca.com
+      CELL_ORIGIN: https://c4.relay-staging.alicorn.8seneca.com
       TARGET_CELL_ID: staging-gce-c4
       TARGET_ZONE: asia-east2-a
       MIG_NAME: orca-cloud-staging-relay-gce-c4
@@ -110,7 +110,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - name: Inspect the exact C4 recovery state
@@ -245,7 +245,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - name: Fence C4 before predecessor recovery
@@ -367,7 +367,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_CAPACITY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - name: Verify the recovered image and unchanged isolation

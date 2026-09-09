@@ -52,13 +52,13 @@ export async function DocsHeader() {
               Docs
             </Link>
             <a
-              href="https://www.onorca.dev"
+              href="https://www.alicorn.8seneca.com"
               className="rounded-md px-2 py-1 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               Home
             </a>
             <a
-              href="https://www.onorca.dev/download"
+              href="https://www.alicorn.8seneca.com/download"
               className="rounded-md px-2 py-1 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
             >
               Download

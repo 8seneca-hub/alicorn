@@ -299,7 +299,7 @@ activation policy. Terraform does not create that role in production.
 
 `relay_gce_domain` creates the shared private network/NAT, LB address, and Certificate Manager
 wildcard authorization used by fixed-one GCE cell MIGs. Cells use exact hosts one label below the
-domain, such as `c1.relay-staging.onorca.dev`; future cells therefore reuse one DNS-only wildcard
+domain, such as `c1.relay-staging.alicorn.8seneca.com`; future cells therefore reuse one DNS-only wildcard
 A record while the HTTPS URL map still admits only Terraform-configured exact hosts.
 
 After the foundation apply, publish both Terraform outputs and leave them in place for renewal:

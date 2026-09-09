@@ -2,7 +2,7 @@ import { pathToFileURL } from 'node:url'
 import { fetchAdminOnceMore } from './relay-admin-transient-retry.mjs'
 
 const PRODUCTION_CELL = /^production-gce-c(?:7|8|9|10|13|14|15|16|19|20|21|22|23|24|25|26)$/
-const DIRECTOR_ORIGIN = 'https://relay.onorca.dev'
+const DIRECTOR_ORIGIN = 'https://relay.alicorn.8seneca.com'
 
 export function parseRehomeTrustProbeArguments(argv, environment = process.env) {
   const values = {}

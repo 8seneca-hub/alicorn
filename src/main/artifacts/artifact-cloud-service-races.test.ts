@@ -37,7 +37,7 @@ function createResponse(slug: string): Response {
         byteSize: 12,
         deletedAt: null
       },
-      shareUrl: `https://share.onorca.dev/a/${slug}`,
+      shareUrl: `https://share.alicorn.8seneca.com/a/${slug}`,
       editToken: `edit-${slug}`
     }),
     { status: 200, headers: { 'content-type': 'application/json' } }

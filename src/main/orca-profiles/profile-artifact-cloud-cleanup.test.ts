@@ -206,7 +206,7 @@ function shareScope(cloudOrganizationId: string): ArtifactShareScope {
     cloudUserId: 'user-a',
     cloudProfileId: 'cloud-profile-a',
     cloudOrganizationId,
-    apiOrigin: 'https://share.onorca.dev'
+    apiOrigin: 'https://share.alicorn.8seneca.com'
   }
 }
 

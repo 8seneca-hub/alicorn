@@ -11,7 +11,7 @@ relative to repo root unless noted. Commands were run from
 | Bare `orca ` invocations in skill corpus | **428** | `grep -rEo "(^\|[^a-zA-Z_/-])orca [a-z]" skills skill-guides skill-stubs src/cli/bundled-skill-guides.ts \| wc -l` |
 | — by directory | skills:14, skill-guides:282, skill-stubs:4, `src/cli/bundled-skill-guides.ts`:128 | same pattern, one dir at a time |
 | Distinct `ORCA_[A-Z0-9_]+` identifiers | **963** | `grep -rhoE "ORCA_[A-Z0-9_]+" src cloud mobile config .github \| sort -u \| wc -l` |
-| `onorca.dev` / `stably` references in `src`+`cloud` `.ts` | **1675** | `grep -rn "onorca\|stably" src cloud --include=*.ts \| wc -l` (includes bundle-id-shaped test fixtures like `stablyai.orca.helper`, not all are URLs — see §7) |
+| `alicorn.8seneca.com` / `stably` references in `src`+`cloud` `.ts` | **1675** | `grep -rn "onorca\|stably" src cloud --include=*.ts \| wc -l` (includes bundle-id-shaped test fixtures like `stablyai.orca.helper`, not all are URLs — see §7) |
 | Locale catalog entries containing "Orca" | en 713, es 570, fr 673, ja 558, ko 584, zh 582 (**≈3680 total**, one string can hit multiple catalogs) | `grep -c "Orca" src/renderer/src/i18n/locales/<lang>.json` |
 | Locale catalog file sizes | en 889KB, es 824KB, fr 948KB, ja 948KB, ko 865KB, zh 754KB | `ls -la src/renderer/src/i18n/locales/` |
 | Mobile i18n catalogs | **none found** — `mobile/` has no `locales/*.json`; branding lives directly in `mobile/app.json` and components (`OrcaLogo.tsx`) | `find mobile -iname "*.json" -path "*locale*"` (empty) |
@@ -174,20 +174,20 @@ same template-prefix caveat), `ORCA_ROOT_PATH`(104), `ORCA_SHELL_FEATURES`(103),
 
 ### Backend endpoints (BC2)
 - Distinct hosts (`grep -rhoE "[a-zA-Z0-9.-]*onorca\.dev|stably[a-zA-Z0-9.-]*\.[a-z]+" src cloud --include=*.ts | sort -u`):
-  `onorca.dev`, `www.onorca.dev`, `api.onorca.dev`, `login.onorca.dev`, `auth-staging.onorca.dev`,
-  `share.onorca.dev`, `relay.onorca.dev`, `relay-staging.onorca.dev`, `relay-c1/c2.onorca.dev`,
-  `c2/c9/c27/c28/c29.relay.onorca.dev`, `stably.ai`. (The 1675 raw count in §1 also matches
+  `alicorn.8seneca.com`, `www.alicorn.8seneca.com`, `api.alicorn.8seneca.com`, `login.alicorn.8seneca.com`, `auth-staging.alicorn.8seneca.com`,
+  `share.alicorn.8seneca.com`, `relay.alicorn.8seneca.com`, `relay-staging.alicorn.8seneca.com`, `relay-c1/c2.alicorn.8seneca.com`,
+  `c2/c9/c27/c28/c29.relay.alicorn.8seneca.com`, `stably.ai`. (The 1675 raw count in §1 also matches
   `stablyai.orca*` **bundle-id-shaped test fixtures**, e.g. `stablyai.orca.helper` — not endpoints,
   don't conflate when scoping BC2.)
 - Production-endpoint definition sites: `src/main/orca-profiles/profile-cloud-auth-config.ts`
-  (`PRODUCTION_API_BASE_URL = 'https://login.onorca.dev'`, `PRODUCTION_CLIENT_ID = 'orca-desktop'`,
-  `PRODUCTION_RELAY_DIRECTOR_URL = 'https://relay.onorca.dev'`, all overridable via
+  (`PRODUCTION_API_BASE_URL = 'https://login.alicorn.8seneca.com'`, `PRODUCTION_CLIENT_ID = 'orca-desktop'`,
+  `PRODUCTION_RELAY_DIRECTOR_URL = 'https://relay.alicorn.8seneca.com'`, all overridable via
   `ORCA_CLOUD_*`/`ORCA_RELAY_URL` but hardcoded for packaged builds); `artifact-cloud-config.ts`
-  (`PRODUCTION_ARTIFACTS_API_URL = 'https://share.onorca.dev'`, plus a hardcoded allowlist check
-  `hostname === 'onorca.dev' || hostname.endsWith('.onorca.dev')` that must move with any new host);
-  `plugin-kill-list-service.ts:9` (`PLUGIN_KILL_LIST_URL = 'https://onorca.dev/plugins/kill-list.json'`);
-  `feedback.ts:17` (`FEEDBACK_API_URL = 'https://www.onorca.dev/v1/feedback'`);
-  `telemetry.ts:11` (`PRIVACY_URL = 'https://www.onorca.dev/docs/telemetry'`).
+  (`PRODUCTION_ARTIFACTS_API_URL = 'https://share.alicorn.8seneca.com'`, plus a hardcoded allowlist check
+  `hostname === 'alicorn.8seneca.com' || hostname.endsWith('.alicorn.8seneca.com')` that must move with any new host);
+  `plugin-kill-list-service.ts:9` (`PLUGIN_KILL_LIST_URL = 'https://alicorn.8seneca.com/plugins/kill-list.json'`);
+  `feedback.ts:17` (`FEEDBACK_API_URL = 'https://www.alicorn.8seneca.com/v1/feedback'`);
+  `telemetry.ts:11` (`PRIVACY_URL = 'https://www.alicorn.8seneca.com/docs/telemetry'`).
 - `updater/updater-release-feed.ts:206` and `updater-prerelease-feed.ts:5-13`
   (`ATOM_FEED_URL`/`RELEASES_DOWNLOAD_BASE`/`TAG_HREF_RE`) hardcode `github.com/stablyai/orca` —
   `TAG_HREF_RE` is a regex matched **against fetched Atom feed content**, a parse-time dependency on
@@ -226,8 +226,8 @@ same template-prefix caveat), `ORCA_ROOT_PATH`(104), `ORCA_SHELL_FEATURES`(103),
   `relay-observability.tf`, `relay-fence-broker.tf`, `relay-asia-*-iam.tf`,
   `environments/{production,staging}.tfvars`, `backend/{production,staging}.hcl`.
   `environments/production.tfvars`: `project_id = "onorca-cloud"`, `name_prefix = "orca-cloud"`,
-  `github_repo = "orca"`, `auth_base_url = "https://login.onorca.dev"`,
-  `relay_cloud_run_service_name = "orca-cloud-relay"`, `relay_base_url = "https://relay.onorca.dev"`.
+  `github_repo = "orca"`, `auth_base_url = "https://login.alicorn.8seneca.com"`,
+  `relay_cloud_run_service_name = "orca-cloud-relay"`, `relay_base_url = "https://relay.alicorn.8seneca.com"`.
   **A new GCP project + domain is a `.tfvars`+DNS/cert change, not a code change** — provision the
   project, update `backend/*.hcl` (remote state location) and `.tfvars`, cut DNS over.
 - `cloud/apps/relay-ops/src/environment-config.ts` mirrors the Terraform shape in TypeScript,
@@ -347,7 +347,7 @@ same template-prefix caveat), `ORCA_ROOT_PATH`(104), `ORCA_SHELL_FEATURES`(103),
 | Confirm all 24 `docs/reference/*.md` + associated ratchet tests still pass post-rebrand file moves | R5 | `docs/reference/*.md`, `child-process-import-boundary.test.ts`, `check-runtime-electron-ratchet.mjs` | `pnpm run check:runtime-electron-ratchet` + child-process ratchet test green |
 | Re-translate ~3680 "Orca"-bearing catalog values across 6 locales; extend `locale-brand-mistranslations.mjs` with Alicorn's own mistranslation set | L1 | `src/renderer/src/i18n/locales/*.json`, `config/scripts/locale-brand-mistranslations.mjs` | `pnpm run verify:localization-coverage`, `verify:localization-catalog` |
 | Build stale-translation audit (new tooling, §5 risk 4) | L1 | new `config/scripts/audit-stale-translations.mjs` (or extend `audit-localization-coverage.mjs`) | new script's own self-test |
-| Repoint `PRODUCTION_API_BASE_URL`/`PRODUCTION_RELAY_DIRECTOR_URL`/`PRODUCTION_ARTIFACTS_API_URL`/`PLUGIN_KILL_LIST_URL`/`FEEDBACK_API_URL`/`PRIVACY_URL` to alicorn.dev-equivalent hosts, update the `onorca.dev`-suffix allowlist check in `artifact-cloud-config.ts` | BC2 | `profile-cloud-auth-config.ts`, `artifact-cloud-config.ts`, `plugin-kill-list-service.ts`, `feedback.ts`, `telemetry.ts` | targeted unit tests per file (`.test.ts` siblings exist for each) |
+| Repoint `PRODUCTION_API_BASE_URL`/`PRODUCTION_RELAY_DIRECTOR_URL`/`PRODUCTION_ARTIFACTS_API_URL`/`PLUGIN_KILL_LIST_URL`/`FEEDBACK_API_URL`/`PRIVACY_URL` to alicorn.dev-equivalent hosts, update the `alicorn.8seneca.com`-suffix allowlist check in `artifact-cloud-config.ts` | BC2 | `profile-cloud-auth-config.ts`, `artifact-cloud-config.ts`, `plugin-kill-list-service.ts`, `feedback.ts`, `telemetry.ts` | targeted unit tests per file (`.test.ts` siblings exist for each) |
 | Update-feed cutover with compatibility window (dual feed or redirect) | BC2/R5 boundary | `updater-release-feed.ts`, `updater-prerelease-feed.ts`, electron-builder `publish` block | `updater.*.test.ts` suite; manual old-client-polls-new-feed smoke |
 | Cut new GCP project + domain for relay infra: new `.tfvars`, `backend/*.hcl`, DNS cutover, update `relay-ops/environment-config.ts` parsing | BC1 | `cloud/infra/terraform/environments/`, `backend/`, `relay-dns.tf`, `cloud/apps/relay-ops/src/environment-config.ts` | `terraform plan` against new project; `cloud-verify.yml` CI |
 | Rename `ORCA_RELAY_*` env vars used by the relay stack (`ORCA_RELAY_ROLE`, `ORCA_RELAY_TEST_POSTGRES_URL`, `ORCA_RELAY_ASSIGNMENT_SIGNING_KEY`, etc.) | BC1 | `cloud/apps/relay/**`, `cloud/README.md`, relay GH workflows (`cloud-*.yml`) | `cloud/README.md`'s documented local-dev flow still works; relay test suite green against `ALICORN_RELAY_TEST_POSTGRES_URL` |

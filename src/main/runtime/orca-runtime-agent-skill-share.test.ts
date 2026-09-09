@@ -108,7 +108,7 @@ function runtimeWithCloud(options: {
   })
   const createShare = vi.fn(async () => ({
     status: 'ok' as const,
-    value: { id: 'share-id', url: 'https://share.onorca.dev/skills/share/share-id' }
+    value: { id: 'share-id', url: 'https://share.alicorn.8seneca.com/skills/share/share-id' }
   }))
   const runtime = new OrcaRuntimeService({
     getSettings: () => ({

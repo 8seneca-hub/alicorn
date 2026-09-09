@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship Alicorn as its own product: app identity, the `alicorn` CLI with a one-release `orca` shim, a skill corpus with zero bare `orca ` invocations enforced by CI, `ALICORN_*` environment variables with a versioned hook reinstall across local/WSL/SSH hosts, re-translated catalogs, every backend endpoint off `onorca.dev`, signed and notarised installers, and the upstream cut recorded in `UPSTREAM_BASE`.
+**Goal:** Ship Alicorn as its own product: app identity, the `alicorn` CLI with a one-release `orca` shim, a skill corpus with zero bare `orca ` invocations enforced by CI, `ALICORN_*` environment variables with a versioned hook reinstall across local/WSL/SSH hosts, re-translated catalogs, every backend endpoint off `alicorn.8seneca.com`, signed and notarised installers, and the upstream cut recorded in `UPSTREAM_BASE`.
 
 **Architecture:** Mechanical, CI-enforced renames staged so that every intermediate commit still builds and updates still reach installed clients. Four seams carry most of the work: `config/electron-builder.config.cjs` (identity), `src/shared/orca-cli-command-name.ts` + `src/main/runtime/orchestration/cli-command.ts` (CLI name), `src/shared/agent-hook-endpoint-file.ts` + the per-backend hook services (env names, already versioned by `ORCA_AGENT_HOOK_VERSION`), and the five `PRODUCTION_*_URL` constants (endpoints). Two new gates keep it honest: `verify:rebrand-cli-gate` (skill corpus) and `verify:rebrand-env-gate` (no `ORCA_*` outside the compat shim). The upstream cut is the last commit of the plan.
 
@@ -275,10 +275,10 @@ Model on `src/main/ssh/ssh-relay-versioned-install.ts` (immutable version dir + 
 
 ---
 
-### Task 10 (BC2): Backend endpoints off onorca.dev
+### Task 10 (BC2): Backend endpoints off alicorn.8seneca.com
 
 **Files:** Modify `src/main/orca-profiles/profile-cloud-auth-config.ts` (`PRODUCTION_API_BASE_URL 'https://login.alicorn.8seneca.com'` — placeholder host to be confirmed by Huy; `PRODUCTION_CLIENT_ID 'alicorn-desktop'`; `PRODUCTION_RELAY_DIRECTOR_URL`), `artifact-cloud-config.ts` (`PRODUCTION_ARTIFACTS_API_URL` + the hostname allowlist), `plugin-kill-list-service.ts`, `feedback.ts`, `telemetry.ts` (`PRIVACY_URL`), `updater/updater-release-feed.ts` + `updater-prerelease-feed.ts` (`ATOM_FEED_URL`, `RELEASES_DOWNLOAD_BASE`; `TAG_HREF_RE` accepts `stablyai/orca` **and** `8seneca-hub/alicorn` for two releases — decision 3), electron-builder `publish` block (Task 3 already set owner/repo).
-- [ ] Failing tests per file (each has a `.test.ts` sibling): new production defaults; allowlist accepts the new host and rejects `onorca.dev`; feed regex parses both owners. Implement. `pnpm test src/main/updater src/main/orca-profiles/profile-cloud-auth-config.test.ts src/main/artifact-cloud-config.test.ts …`.
+- [ ] Failing tests per file (each has a `.test.ts` sibling): new production defaults; allowlist accepts the new host and rejects `alicorn.8seneca.com`; feed regex parses both owners. Implement. `pnpm test src/main/updater src/main/orca-profiles/profile-cloud-auth-config.test.ts src/main/artifact-cloud-config.test.ts …`.
 - [ ] Dual-feed mechanics documented in `docs/alicorn/RELEASE-CUTOVER.md` (new, short): order of operations for the first Alicorn release (publish to the new repo; mirror the release to the old repo's feed for two releases; last Orca-branded build's notes link the new installer).
 - [ ] Commit `feat(rebrand): production endpoints on Alicorn hosts; dual update feed for two releases`.
 

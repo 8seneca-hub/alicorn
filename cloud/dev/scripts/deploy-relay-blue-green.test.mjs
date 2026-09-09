@@ -106,7 +106,7 @@ test('validates optional director capacity configuration', () => {
   const cells = [
     {
       id: 'staging-gce-c3',
-      url: 'https://c3.relay-staging.onorca.dev',
+      url: 'https://c3.relay-staging.alicorn.8seneca.com',
       capacityRequests: 4_000,
       initiallyEnabled: false,
       region: 'us-central1',
@@ -168,7 +168,7 @@ test('validates optional director capacity configuration', () => {
           id: 'staging-gce-c3',
           initiallyEnabled: false,
           region: 'us-central1',
-          url: 'https://c3.relay-staging.onorca.dev'
+          url: 'https://c3.relay-staging.alicorn.8seneca.com'
         }
       ]),
       JSON.stringify([{ ...cells[0], connectionHardCap: 1_000 }]),
@@ -185,7 +185,7 @@ test('validates optional director capacity configuration', () => {
     () =>
       directorTopologyChange(
         JSON.stringify(cells),
-        JSON.stringify([{ ...cells[0], url: 'https://wrong.relay-staging.onorca.dev' }]),
+        JSON.stringify([{ ...cells[0], url: 'https://wrong.relay-staging.alicorn.8seneca.com' }]),
         'staging-gce-c3'
       ),
     /outside the reviewed capacity pair/
@@ -211,13 +211,13 @@ test('validates exact director runtime and regional rehome identities', () => {
     '--rehome-director-service-account',
     'relay-director@onorca-cloud.iam.gserviceaccount.com',
     '--rehome-audience',
-    'https://relay.onorca.dev/v1/admin/host-drain',
+    'https://relay.alicorn.8seneca.com/v1/admin/host-drain',
     '--expected-rehome-generation',
     '7',
     '--rehome-control-origin',
-    'https://relay.onorca.dev',
+    'https://relay.alicorn.8seneca.com',
     '--admin-audience',
-    'https://relay.onorca.dev/v1/admin/drain'
+    'https://relay.alicorn.8seneca.com/v1/admin/drain'
   ]
   const config = parseArguments(base)
   assert.deepEqual(directorDeploymentEnvironment(config), {
@@ -227,14 +227,14 @@ test('validates exact director runtime and regional rehome identities', () => {
     [DIRECTOR_REHOME_IDENTITY_ENV]:
       'relay-director@onorca-cloud.iam.gserviceaccount.com',
     [DIRECTOR_REHOME_AUDIENCE_ENV]:
-      'https://relay.onorca.dev/v1/admin/host-drain'
+      'https://relay.alicorn.8seneca.com/v1/admin/host-drain'
   })
   const missingAudience = [...base]
   missingAudience.splice(missingAudience.indexOf('--rehome-audience'), 2)
   assert.throws(() => parseArguments(missingAudience), /configured together/)
   const invalidOrigin = [...base]
   invalidOrigin[invalidOrigin.indexOf('--rehome-control-origin') + 1] =
-    'http://relay.onorca.dev'
+    'http://relay.alicorn.8seneca.com'
   assert.throws(
     () => parseArguments(invalidOrigin),
     /HTTPS origin/
@@ -246,7 +246,7 @@ test('validates exact director runtime and regional rehome identities', () => {
 
 test('requires durable regional rehome control to be disabled at the exact generation', async () => {
   const config = {
-    'admin-audience': 'https://relay.onorca.dev/v1/admin/drain',
+    'admin-audience': 'https://relay.alicorn.8seneca.com/v1/admin/drain',
     'expected-rehome-generation': '7'
   }
   const environment = process.env.ORCA_RELAY_ADMIN_ID_TOKEN
@@ -311,7 +311,7 @@ test('appends disabled Asia cells without changing the existing director topolog
   const current = [
     {
       id: 'production-gce-c26',
-      url: 'https://c26.relay.onorca.dev',
+      url: 'https://c26.relay.alicorn.8seneca.com',
       capacityRequests: 4_000,
       initiallyEnabled: true,
       connectionHardCap: 1_000,
@@ -320,7 +320,7 @@ test('appends disabled Asia cells without changing the existing director topolog
   ]
   const asia = {
     id: 'production-gce-c27',
-    url: 'https://c27.relay.onorca.dev',
+    url: 'https://c27.relay.alicorn.8seneca.com',
     region: 'asia-east2',
     capacityRequests: 6_000,
     initiallyEnabled: false,
@@ -382,7 +382,7 @@ test('derives and validates a Cloud Run tagged revision origin', () => {
     ),
     'https://candidate-123---orca-cloud-relay-staging-c1-gjzz5mc7ka-uc.a.run.app'
   )
-  assert.throws(() => taggedRevisionOrigin('https://relay-staging.onorca.dev', 'candidate-123'))
+  assert.throws(() => taggedRevisionOrigin('https://relay-staging.alicorn.8seneca.com', 'candidate-123'))
   assert.throws(() =>
     taggedRevisionOrigin(
       'https://orca-cloud-relay-staging-c1-gjzz5mc7ka-uc.a.run.app',
@@ -607,7 +607,7 @@ test('bootstraps both rollback and candidate onto the distinct director identity
     'predecessor-image-digest': `sha256:${'f'.repeat(64)}`,
     'bootstrap-runtime-identity': 'true',
     'expected-rehome-generation': '0',
-    'rehome-control-origin': 'https://relay.onorca.dev'
+    'rehome-control-origin': 'https://relay.alicorn.8seneca.com'
   }, 'candidate-new', harness.operations)
   assert.equal(
     harness.state.revisions.get(harness.state.activeRevision).serviceAccount,

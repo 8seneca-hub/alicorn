@@ -11,12 +11,12 @@ github_repo                 = "orca"
 github_repo_id              = "1183888342"
 github_workflow_file_prefix = "cloud-"
 
-# Our first-party auth service. auth.onorca.dev is PropelAuth's prod domain, so
-# our service lives at login.onorca.dev (desktop points ORCA_CLOUD_API_URL here).
-auth_base_url = "https://login.onorca.dev"
+# Our first-party auth service. auth.alicorn.8seneca.com is PropelAuth's prod domain, so
+# our service lives at login.alicorn.8seneca.com (desktop points ORCA_CLOUD_API_URL here).
+auth_base_url = "https://login.alicorn.8seneca.com"
 
 relay_cloud_run_service_name = "orca-cloud-relay"
-relay_base_url               = "https://relay.onorca.dev"
+relay_base_url               = "https://relay.alicorn.8seneca.com"
 # Why: public admission is a per-instance semaphore, so fleet assignment capacity is
 # concurrency x instances. Scaling to 2 instances took placement failures 35% -> 70%.
 relay_min_instances = 5
@@ -25,9 +25,9 @@ relay_max_instances = 5
 relay_cells                 = {}
 manage_relay_domain_mapping = true
 
-# Production GCE cells use exact hosts such as c1.relay.onorca.dev.
+# Production GCE cells use exact hosts such as c1.relay.alicorn.8seneca.com.
 # The wildcard only handles DNS/TLS; the load balancer rejects unknown hosts.
-relay_gce_domain          = "relay.onorca.dev"
+relay_gce_domain          = "relay.alicorn.8seneca.com"
 relay_gce_subnetwork_cidr = "10.42.0.0/24"
 relay_gce_additional_region_subnetwork_cidrs = {
   "asia-east2" = "10.42.1.0/24"

@@ -18,8 +18,8 @@ export function createMobileRelayPairingFixtures(now: number): PairingFixture[] 
   }
   const relay = {
     v: 1 as const,
-    directorUrl: 'https://relay.onorca.dev',
-    cellUrl: 'https://relay-c1.onorca.dev',
+    directorUrl: 'https://relay.alicorn.8seneca.com',
+    cellUrl: 'https://relay-c1.alicorn.8seneca.com',
     assignmentEpoch: 7,
     relayHostId: 'AbCdEf0123_-xyZ9',
     inviteToken: INVITE_TOKEN,
@@ -65,12 +65,12 @@ export function createMobileRelayPairingFixtures(now: number): PairingFixture[] 
     },
     {
       name: 'non-canonical director origin is invalid',
-      payload: { ...directOffer, relay: { ...relay, directorUrl: 'https://relay.onorca.dev/' } },
+      payload: { ...directOffer, relay: { ...relay, directorUrl: 'https://relay.alicorn.8seneca.com/' } },
       expected: null
     },
     {
       name: 'non-HTTPS cell origin is invalid',
-      payload: { ...directOffer, relay: { ...relay, cellUrl: 'http://relay-c1.onorca.dev' } },
+      payload: { ...directOffer, relay: { ...relay, cellUrl: 'http://relay-c1.alicorn.8seneca.com' } },
       expected: null
     },
     {

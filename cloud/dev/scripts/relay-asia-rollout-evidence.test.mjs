@@ -90,7 +90,7 @@ function loadReport({
     readerQueuedBytesPeak: slow > 0 ? 1_024 : 0,
     generatorCpuPercent: 25, generatorEventLoopP99Ms: 20, generatorRssGrowthMiB: 10,
     readerQueueEvidence: slow > 0 ? [{
-      origin: 'https://c4.relay-staging.onorca.dev',
+      origin: 'https://c4.relay-staging.alicorn.8seneca.com',
       baselineBytes: 128,
       peakBytes: 1_152,
       increaseBytes: 1_024

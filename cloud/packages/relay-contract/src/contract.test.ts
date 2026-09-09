@@ -99,7 +99,7 @@ describe('relay protocol contract', () => {
     expect(
       AssignmentResponseSchema.safeParse({
         v: 1,
-        cellUrl: 'https://relay-c1.onorca.dev',
+        cellUrl: 'https://relay-c1.alicorn.8seneca.com',
         assignmentEpoch: 3,
         lease: 'signed-lease'
       }).success
@@ -158,20 +158,20 @@ describe('relay protocol contract', () => {
   it('accepts moves only from the configured director at a strictly newer epoch', () => {
     const move = RelayMovedSchema.parse({
       v: 1,
-      cellUrl: 'https://relay-c2.onorca.dev',
+      cellUrl: 'https://relay-c2.alicorn.8seneca.com',
       assignmentEpoch: 4
     })
     const base = {
-      configuredDirectorOrigin: 'https://relay.onorca.dev',
+      configuredDirectorOrigin: 'https://relay.alicorn.8seneca.com',
       currentAssignmentEpoch: 3,
       move
     }
-    expect(isTrustedNewerMove({ ...base, sourceOrigin: 'https://relay.onorca.dev' })).toBe(true)
+    expect(isTrustedNewerMove({ ...base, sourceOrigin: 'https://relay.alicorn.8seneca.com' })).toBe(true)
     expect(isTrustedNewerMove({ ...base, sourceOrigin: move.cellUrl })).toBe(false)
     expect(
       isTrustedNewerMove({
         ...base,
-        sourceOrigin: 'https://relay.onorca.dev',
+        sourceOrigin: 'https://relay.alicorn.8seneca.com',
         currentAssignmentEpoch: 4
       })
     ).toBe(false)
@@ -232,7 +232,7 @@ describe('relay protocol contract', () => {
 
   it('locks the complete host key-possession transcript', () => {
     const transcript = buildHostProofTranscript({
-      relayOrigin: 'https://relay.onorca.dev',
+      relayOrigin: 'https://relay.alicorn.8seneca.com',
       relayEphemeralPublicKey: new Uint8Array(32).fill(1),
       challengeNonce: new Uint8Array(24).fill(4),
       challengeId: 'challenge-1',
@@ -260,7 +260,7 @@ describe('relay protocol contract', () => {
     )
     expect(() =>
       buildHostProofTranscript({
-        relayOrigin: 'https://relay.onorca.dev',
+        relayOrigin: 'https://relay.alicorn.8seneca.com',
         relayEphemeralPublicKey: new Uint8Array(32),
         challengeNonce: new Uint8Array(32),
         challengeId: 'challenge-1',

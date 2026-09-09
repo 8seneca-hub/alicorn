@@ -1333,7 +1333,7 @@ jobs:
           # the macOS release runner, leaving v1.4.2-rc.8 as an incomplete draft.
           NODE_OPTIONS: --max-old-space-size=4096
           ALICORN_BUILD_IDENTITY: ${{ steps.tag-classify.outputs.identity }}
-          ALICORN_DIAGNOSTICS_TOKEN_URL: https://www.onorca.dev/diagnostics/token
+          ALICORN_DIAGNOSTICS_TOKEN_URL: https://www.alicorn.8seneca.com/diagnostics/token
           ALICORN_POSTHOG_WRITE_KEY: ${{ secrets.ALICORN_POSTHOG_WRITE_KEY || secrets.ORCA_POSTHOG_WRITE_KEY }}
 
       - name: Gate runtime file-watcher process isolation

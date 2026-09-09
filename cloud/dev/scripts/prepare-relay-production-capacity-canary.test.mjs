@@ -7,8 +7,8 @@ import {
 } from './prepare-relay-production-capacity-canary.mjs'
 
 const config = {
-  directorOrigin: 'https://relay.onorca.dev',
-  cellOrigin: 'https://c26.relay.onorca.dev',
+  directorOrigin: 'https://relay.alicorn.8seneca.com',
+  cellOrigin: 'https://c26.relay.alicorn.8seneca.com',
   cellId: 'production-gce-c26'
 }
 
@@ -82,25 +82,25 @@ describe('production Relay capacity cell admission', () => {
       'production-gce-c26'
     ])
     assert.deepEqual(parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.onorca.dev',
-      '--cell-origin', 'https://c7.relay.onorca.dev',
+      '--director-origin', 'https://relay.alicorn.8seneca.com',
+      '--cell-origin', 'https://c7.relay.alicorn.8seneca.com',
       '--cell-id', 'production-gce-c7',
       '--mode', 'isolate'
     ]), {
-      directorOrigin: 'https://relay.onorca.dev',
-      cellOrigin: 'https://c7.relay.onorca.dev',
+      directorOrigin: 'https://relay.alicorn.8seneca.com',
+      cellOrigin: 'https://c7.relay.alicorn.8seneca.com',
       cellId: 'production-gce-c7',
       mode: 'isolate'
     })
     assert.throws(() => parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.onorca.dev',
-      '--cell-origin', 'https://c17.relay.onorca.dev',
+      '--director-origin', 'https://relay.alicorn.8seneca.com',
+      '--cell-origin', 'https://c17.relay.alicorn.8seneca.com',
       '--cell-id', 'production-gce-c17',
       '--mode', 'isolate'
     ]), /not approved/)
     assert.throws(() => parseProductionCapacityCellArguments([
-      '--director-origin', 'https://relay.onorca.dev',
-      '--cell-origin', 'https://c8.relay.onorca.dev',
+      '--director-origin', 'https://relay.alicorn.8seneca.com',
+      '--cell-origin', 'https://c8.relay.alicorn.8seneca.com',
       '--cell-id', 'production-gce-c7',
       '--mode', 'isolate'
     ]), /origin is not exact/)

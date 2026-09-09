@@ -62,7 +62,7 @@ describe('buildCostModel', () => {
   it('prices durable machine inventory and network floors by region', () => {
     const cells = relayOpsCellsFromTerraform({
       environment: 'staging',
-      domain: 'relay-staging.onorca.dev',
+      domain: 'relay-staging.alicorn.8seneca.com',
       source: regionalCellsSource
     })
     const environment = { ...RELAY_OPS_ENVIRONMENTS.staging, cells }

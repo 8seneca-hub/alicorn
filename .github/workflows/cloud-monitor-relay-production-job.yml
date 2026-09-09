@@ -98,7 +98,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -158,7 +158,7 @@ jobs:
           workload_identity_provider: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.PRODUCTION_GCP_RELAY_MONITOR_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - name: Run remaining relay monitor window

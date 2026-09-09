@@ -33,7 +33,7 @@ const published = {
   change: 'created' as const,
   item: {
     artifact: { slug: 'artifact-a' },
-    shareUrl: 'https://share.onorca.dev/a/artifact-a'
+    shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-a'
   }
 }
 

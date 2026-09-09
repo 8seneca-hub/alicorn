@@ -44,8 +44,8 @@ jobs:
     environment: staging
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
-      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
-      AUTH_ORIGIN: https://auth-staging.onorca.dev
+      DIRECTOR_ORIGIN: https://relay-staging.alicorn.8seneca.com
+      AUTH_ORIGIN: https://auth-staging.alicorn.8seneca.com
       IMAGE_DIGEST: ${{ inputs.image-digest }}
       INITIAL_SELECTOR_GENERATION: ${{ inputs.selector-generation }}
       PROMOTE_ATTEMPT_ID: ${{ inputs.promote-attempt-id }}
@@ -72,7 +72,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - uses: google-github-actions/setup-gcloud@v2
@@ -164,7 +164,7 @@ jobs:
                 boundary_args=(
                   --region-behavior-probes 1
                   --capacity-cell-id staging-gce-c4
-                  --capacity-cell-origin https://c4.relay-staging.onorca.dev
+                  --capacity-cell-origin https://c4.relay-staging.alicorn.8seneca.com
                   --capacity-unobserved-bound 60
                   --rebind-probes 2
                   --skip-rebind-overflow-check
@@ -301,7 +301,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_ASIA_PROOF_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - uses: actions/setup-node@v4

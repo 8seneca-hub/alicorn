@@ -164,7 +164,7 @@ export function registerAutoUpdaterHandlers({
     // momentarily resolves an older tag must not destroy a still-valid recovery path.
     linuxPackageRecovery.clearTrackedLinuxPackageArtifactForOtherVersion(info.version)
 
-    // Why: fetch the changelog in main to avoid renderer-side CORS on onorca.dev.
+    // Why: fetch the changelog in main to avoid renderer-side CORS on alicorn.8seneca.com.
     markUpdateAvailableEventPending(attemptId)
     void (async () => {
       try {

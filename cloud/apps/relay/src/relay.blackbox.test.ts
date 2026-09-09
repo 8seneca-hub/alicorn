@@ -2282,7 +2282,7 @@ describe('served relay URL', () => {
         ...process.env,
         PORT: String(directorPort),
         ORCA_RELAY_PUBLIC_URL: relayUrl,
-        ORCA_RELAY_CELL_URL: 'https://relay-c2.onorca.dev',
+        ORCA_RELAY_CELL_URL: 'https://relay-c2.alicorn.8seneca.com',
         ORCA_RELAY_AUTH_ISSUER: issuer,
         ORCA_RELAY_JWKS_URL: `${issuer}/jwks`,
         ORCA_RELAY_ASSIGNMENT_SIGNING_KEY: assignmentKey,
@@ -2291,7 +2291,7 @@ describe('served relay URL', () => {
         ORCA_RELAY_CELLS_JSON: JSON.stringify([
           {
             id: 'cell-c2',
-            url: 'https://relay-c2.onorca.dev',
+            url: 'https://relay-c2.alicorn.8seneca.com',
             capacityRequests: 900
           }
         ]),
@@ -2305,7 +2305,7 @@ describe('served relay URL', () => {
     expect(
       await postCellHeartbeat(relayUrl, {
         id: 'cell-c2',
-        url: 'https://relay-c2.onorca.dev'
+        url: 'https://relay-c2.alicorn.8seneca.com'
       })
     ).toMatchObject({ status: 200 })
 
@@ -2328,7 +2328,7 @@ describe('served relay URL', () => {
     expect(await movedPromise).toEqual({
       type: 'relay-moved',
       v: 1,
-      cellUrl: 'https://relay-c2.onorca.dev',
+      cellUrl: 'https://relay-c2.alicorn.8seneca.com',
       assignmentEpoch: 1
     })
     expect(await closed).toBe(4503)

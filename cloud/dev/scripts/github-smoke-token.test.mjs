@@ -19,7 +19,7 @@ test('exchanges the runner OIDC token without returning request credentials', as
     })
   }
   const result = await requestGitHubSmokeTokens(
-    'https://auth-staging.onorca.dev',
+    'https://auth-staging.alicorn.8seneca.com',
     fetchImpl,
     {
       ACTIONS_ID_TOKEN_REQUEST_URL: 'https://actions.example.test/token?api-version=1',
@@ -35,7 +35,7 @@ test('exchanges the runner OIDC token without returning request credentials', as
 test('fails with bounded errors and never includes credentials', async () => {
   await assert.rejects(
     requestGitHubSmokeTokens(
-      'https://auth-staging.onorca.dev',
+      'https://auth-staging.alicorn.8seneca.com',
       async () => new Response('denied', { status: 403 }),
       {
         ACTIONS_ID_TOKEN_REQUEST_URL: 'https://actions.example.test/token',
@@ -62,7 +62,7 @@ test('requests and validates an exact Relay Asia principal batch', async () => {
     }
   })
   const result = await requestGitHubSmokeTokens(
-    'https://auth-staging.onorca.dev',
+    'https://auth-staging.alicorn.8seneca.com',
     async (url, init) => {
       requests.push({ url: String(url), init })
       return requests.length === 1
@@ -95,7 +95,7 @@ test('rejects malformed or duplicate Relay Asia principal batches', async () => 
   }
   let request = 0
   await assert.rejects(requestGitHubSmokeTokens(
-    'https://auth-staging.onorca.dev',
+    'https://auth-staging.alicorn.8seneca.com',
     async () => ++request === 1
       ? Response.json({ value: jwt('github') })
       : Response.json({

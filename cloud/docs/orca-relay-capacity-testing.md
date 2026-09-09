@@ -33,8 +33,8 @@ For staging, keep the signing key process-local and out of the filesystem:
 
 ```sh
 node dev/scripts/load-relay-controls.mjs \
-  --director-origin https://relay-staging.onorca.dev \
-  --auth-origin https://auth-staging.onorca.dev \
+  --director-origin https://relay-staging.alicorn.8seneca.com \
+  --auth-origin https://auth-staging.alicorn.8seneca.com \
   --signing-key-file <(gcloud secrets versions access latest \
     --secret=orca-cloud-auth-signing-key \
     --project=onorca-cloud-staging) \
@@ -59,8 +59,8 @@ Against the stable director and stamped cells:
 
 ```sh
 ORCA_RELAY_LOAD_ACCESS_TOKEN="$ACCESS_TOKEN" pnpm load:relay:controls -- \
-  --director-origin https://relay-staging.onorca.dev \
-  --auth-origin https://auth-staging.onorca.dev \
+  --director-origin https://relay-staging.alicorn.8seneca.com \
+  --auth-origin https://auth-staging.alicorn.8seneca.com \
   --controls 800 \
   --ramp-seconds 210 \
   --duration-seconds 900
@@ -74,8 +74,8 @@ Run one process per shard when the client machine becomes the bottleneck. Every 
 
 ```sh
 pnpm load:relay:controls -- \
-  --director-origin https://relay-staging.onorca.dev \
-  --auth-origin https://auth-staging.onorca.dev \
+  --director-origin https://relay-staging.alicorn.8seneca.com \
+  --auth-origin https://auth-staging.alicorn.8seneca.com \
   --controls 1000 \
   --shard-count 4 \
   --shard-index 0
@@ -112,8 +112,8 @@ fresh assignments and exposes the exact physical boundary:
 
 ```sh
 node dev/scripts/load-relay-controls.mjs \
-  --director-origin https://relay-staging.onorca.dev \
-  --auth-origin https://auth-staging.onorca.dev \
+  --director-origin https://relay-staging.alicorn.8seneca.com \
+  --auth-origin https://auth-staging.alicorn.8seneca.com \
   --signing-key-file <(gcloud secrets versions access latest \
     --secret=orca-cloud-auth-signing-key \
     --project=onorca-cloud-staging) \
@@ -138,10 +138,10 @@ ORCA_RELAY_ADMIN_ID_TOKEN="$(gcloud auth print-identity-token \
   --impersonate-service-account="${CAPACITY_SA}" \
   --project=onorca-cloud-staging \
   --include-email \
-  --audiences=https://relay-staging.onorca.dev/v1/admin/drain)" \
+  --audiences=https://relay-staging.alicorn.8seneca.com/v1/admin/drain)" \
 node dev/scripts/load-relay-controls.mjs \
-  --director-origin https://relay-staging.onorca.dev \
-  --auth-origin https://auth-staging.onorca.dev \
+  --director-origin https://relay-staging.alicorn.8seneca.com \
+  --auth-origin https://auth-staging.alicorn.8seneca.com \
   --signing-key-file <(gcloud secrets versions access latest \
     --secret=orca-cloud-auth-signing-key \
     --project=onorca-cloud-staging) \

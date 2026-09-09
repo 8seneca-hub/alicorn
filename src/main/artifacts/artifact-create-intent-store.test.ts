@@ -25,7 +25,7 @@ const scope: ArtifactShareScope = {
   cloudUserId: 'user-a',
   cloudProfileId: 'cloud-a',
   cloudOrganizationId: 'org-a',
-  apiOrigin: 'https://share.onorca.dev'
+  apiOrigin: 'https://share.alicorn.8seneca.com'
 }
 const body = {
   content: '<h1>Original</h1>',

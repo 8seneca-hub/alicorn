@@ -1,6 +1,6 @@
 import { app } from 'electron'
 
-const PRODUCTION_ARTIFACTS_API_URL = 'https://share.onorca.dev'
+const PRODUCTION_ARTIFACTS_API_URL = 'https://share.alicorn.8seneca.com'
 
 function isPackaged(): boolean {
   try {
@@ -18,12 +18,12 @@ export function resolveArtifactCloudApiUrl(
   const candidate = override?.trim() || env.ALICORN_ARTIFACTS_API_URL?.trim()
   const url = new URL(candidate || PRODUCTION_ARTIFACTS_API_URL)
   const loopback = ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)
-  const firstParty = url.hostname === 'onorca.dev' || url.hostname.endsWith('.onorca.dev')
+  const firstParty = url.hostname === 'alicorn.8seneca.com' || url.hostname.endsWith('.alicorn.8seneca.com')
   if (url.protocol !== 'https:' && !(url.protocol === 'http:' && loopback && !packaged)) {
     throw new Error('Artifact API URLs must use HTTPS; local development may use loopback HTTP.')
   }
   if (!firstParty && !loopback) {
-    throw new Error('Artifact API URLs must use an onorca.dev or loopback host.')
+    throw new Error('Artifact API URLs must use an alicorn.8seneca.com or loopback host.')
   }
   if (url.username || url.password || url.search || url.hash || url.pathname !== '/') {
     throw new Error('Artifact API URL must be an origin without credentials, paths, or parameters.')

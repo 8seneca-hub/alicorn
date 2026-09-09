@@ -139,7 +139,7 @@ test('rejects production provenance and unexpected report fields', () => {
   )
 
   const productionOrigin = passingReport()
-  productionOrigin.environment.directorOrigin = 'https://relay.onorca.dev'
+  productionOrigin.environment.directorOrigin = 'https://relay.alicorn.8seneca.com'
   assert.throws(
     () => evaluateRecoveryWaveReport(productionOrigin),
     /isolated non-production origin/
@@ -155,7 +155,7 @@ function passingReport() {
     schemaVersion: 1,
     environment: {
       projectId: 'onorca-cloud-staging',
-      directorOrigin: 'https://relay-staging.onorca.dev',
+      directorOrigin: 'https://relay-staging.alicorn.8seneca.com',
       databaseVcpu: 2,
       databasePoolMax: 3,
       publicConcurrentMax: 2,

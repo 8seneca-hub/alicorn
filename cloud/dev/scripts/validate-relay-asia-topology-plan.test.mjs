@@ -65,7 +65,7 @@ const resources = [
       before: { host_rule: [], path_matcher: [], fingerprint: 'old' },
       after: {
         host_rule: [{
-          hosts: ['c4.relay-staging.onorca.dev'], path_matcher: 'cell-c4'
+          hosts: ['c4.relay-staging.alicorn.8seneca.com'], path_matcher: 'cell-c4'
         }],
         path_matcher: [{
           name: 'cell-c4',
@@ -142,7 +142,7 @@ test('rejects shared URL-map changes outside exact host routing', () => {
 
 test('rejects removal of an existing exact route', () => {
   const plan = structuredClone(resources)
-  plan[6].change.before.host_rule = [{ hosts: ['c1.relay-staging.onorca.dev'] }]
+  plan[6].change.before.host_rule = [{ hosts: ['c1.relay-staging.alicorn.8seneca.com'] }]
   assert.throws(
     () => validateRelayAsiaTopologyPlan({ resource_changes: plan }, config),
     /preserve every existing exact route/
@@ -158,11 +158,11 @@ test('accepts provider normalization of preserved route descriptions', () => {
       'https://www.googleapis.com/compute/v1/projects/p/global/backendServices/orca-cloud-staging-relay-gce-c1'
   }
   plan[6].change.before.host_rule = [{
-    description: '', hosts: ['c1.relay-staging.onorca.dev'], path_matcher: 'cell-c1'
+    description: '', hosts: ['c1.relay-staging.alicorn.8seneca.com'], path_matcher: 'cell-c1'
   }]
   plan[6].change.before.path_matcher = [matcher]
   plan[6].change.after.host_rule.unshift({
-    description: null, hosts: ['c1.relay-staging.onorca.dev'], path_matcher: 'cell-c1'
+    description: null, hosts: ['c1.relay-staging.alicorn.8seneca.com'], path_matcher: 'cell-c1'
   })
   plan[6].change.after.path_matcher.unshift({
     ...matcher,

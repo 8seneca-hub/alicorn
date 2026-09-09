@@ -15,25 +15,25 @@ function topologyFile(overrides = {}) {
     'staging-gce-c1': {
       mig_name: 'orca-cloud-staging-relay-gce-c1',
       zone: 'us-central1-b',
-      origin: 'https://c1.relay-staging.onorca.dev',
+      origin: 'https://c1.relay-staging.alicorn.8seneca.com',
       initially_enabled: true
     },
     'staging-gce-c2': {
       mig_name: 'orca-cloud-staging-relay-gce-c2',
       zone: 'us-central1-c',
-      origin: 'https://c2.relay-staging.onorca.dev',
+      origin: 'https://c2.relay-staging.alicorn.8seneca.com',
       initially_enabled: true
     },
     'staging-gce-c3': {
       mig_name: 'orca-cloud-staging-relay-gce-c3',
       zone: 'us-central1-a',
-      origin: 'https://c3.relay-staging.onorca.dev',
+      origin: 'https://c3.relay-staging.alicorn.8seneca.com',
       initially_enabled: false
     },
     'staging-gce-c4': {
       mig_name: 'orca-cloud-staging-relay-gce-c4',
       zone: 'asia-east2-a',
-      origin: 'https://c4.relay-staging.onorca.dev',
+      origin: 'https://c4.relay-staging.alicorn.8seneca.com',
       initially_enabled: false
     },
     ...overrides
@@ -251,7 +251,7 @@ test('accepts only explicit staging power arguments and topology', () => {
     'staging-gce-c1': {
       mig_name: 'orca-cloud-relay-gce-c1',
       zone: 'us-central1-a',
-      origin: 'https://c1.relay.onorca.dev',
+      origin: 'https://c1.relay.alicorn.8seneca.com',
       initially_enabled: true
     }
   })
@@ -261,7 +261,7 @@ test('accepts only explicit staging power arguments and topology', () => {
     'staging-gce-c4': {
       mig_name: 'orca-cloud-staging-relay-gce-c4',
       zone: 'europe-west1-b',
-      origin: 'https://c4.relay-staging.onorca.dev',
+      origin: 'https://c4.relay-staging.alicorn.8seneca.com',
       initially_enabled: false
     }
   })

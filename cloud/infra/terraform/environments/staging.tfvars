@@ -11,11 +11,11 @@ github_repo                 = "orca"
 github_repo_id              = "1183888342"
 github_workflow_file_prefix = "cloud-"
 
-auth_base_url = "https://auth-staging.onorca.dev"
+auth_base_url = "https://auth-staging.alicorn.8seneca.com"
 
 relay_cloud_run_service_name          = "orca-cloud-relay-staging"
 relay_staging_power_auth_service_name = "orca-cloud-auth-staging"
-relay_base_url                        = "https://relay-staging.onorca.dev"
+relay_base_url                        = "https://relay-staging.alicorn.8seneca.com"
 relay_min_instances                   = 0
 relay_max_instances                   = 2
 # Staging now exercises the production-shaped GCE data plane exclusively.
@@ -24,8 +24,8 @@ relay_cells = {}
 manage_relay_domain_mapping = true
 
 # GCE cells use exact hosts below this wildcard, for example
-# c1.relay-staging.onorca.dev. Cloudflare records remain out-of-band.
-relay_gce_domain          = "relay-staging.onorca.dev"
+# c1.relay-staging.alicorn.8seneca.com. Cloudflare records remain out-of-band.
+relay_gce_domain          = "relay-staging.alicorn.8seneca.com"
 relay_gce_subnetwork_cidr = "10.42.0.0/24"
 relay_gce_additional_region_subnetwork_cidrs = {
   "asia-east2" = "10.42.1.0/24"

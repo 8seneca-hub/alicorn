@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 const REGION = 'asia-east2'
 const CELL_SHAPES = {
   production: {
-    domain: 'relay.onorca.dev',
+    domain: 'relay.alicorn.8seneca.com',
     project: 'onorca-cloud',
     cells: {
       'production-gce-c27': 'asia-east2-a',
@@ -13,7 +13,7 @@ const CELL_SHAPES = {
     }
   },
   staging: {
-    domain: 'relay-staging.onorca.dev',
+    domain: 'relay-staging.alicorn.8seneca.com',
     project: 'onorca-cloud-staging',
     cells: { 'staging-gce-c4': 'asia-east2-a' }
   }

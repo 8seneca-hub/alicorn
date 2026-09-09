@@ -78,7 +78,7 @@ it('keeps durable artifact records usable when directory fsync is unsupported', 
         cloudUserId: 'user-a',
         cloudProfileId: 'profile-a',
         cloudOrganizationId: 'org-a',
-        apiOrigin: 'https://share.onorca.dev'
+        apiOrigin: 'https://share.alicorn.8seneca.com'
       },
       'key-a',
       { content: 'hello', contentType: 'text/markdown', fileName: 'report.md' }

@@ -95,28 +95,28 @@ export const RELAY_OPS_ENVIRONMENTS: Record<RelayOpsEnvironmentId, RelayOpsEnvir
     label: 'Production',
     project: 'onorca-cloud',
     region: 'us-central1',
-    directorOrigin: 'https://relay.onorca.dev',
-    authOrigin: 'https://login.onorca.dev',
+    directorOrigin: 'https://relay.alicorn.8seneca.com',
+    authOrigin: 'https://login.alicorn.8seneca.com',
     directorService: 'orca-cloud-relay',
     authService: 'orca-cloud-auth',
     sqlInstance: 'orca-cloud-auth-db',
     migPrefix: 'orca-cloud-relay-gce-',
     certificateName: 'orca-cloud-relay-gce',
-    cells: durableCells('production', 'relay.onorca.dev')
+    cells: durableCells('production', 'relay.alicorn.8seneca.com')
   },
   staging: {
     id: 'staging',
     label: 'Staging',
     project: 'onorca-cloud-staging',
     region: 'us-central1',
-    directorOrigin: 'https://relay-staging.onorca.dev',
-    authOrigin: 'https://auth-staging.onorca.dev',
+    directorOrigin: 'https://relay-staging.alicorn.8seneca.com',
+    authOrigin: 'https://auth-staging.alicorn.8seneca.com',
     directorService: 'orca-cloud-relay-staging',
     authService: 'orca-cloud-auth-staging',
     sqlInstance: 'orca-cloud-staging-auth-db',
     migPrefix: 'orca-cloud-staging-relay-gce-',
     certificateName: 'orca-cloud-staging-relay-gce',
-    cells: durableCells('staging', 'relay-staging.onorca.dev')
+    cells: durableCells('staging', 'relay-staging.alicorn.8seneca.com')
   }
 }
 

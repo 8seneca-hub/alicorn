@@ -10,13 +10,13 @@ import {
 
 const SHAPES = {
   staging: {
-    directorOrigin: 'https://relay-staging.onorca.dev',
-    domain: 'relay-staging.onorca.dev',
+    directorOrigin: 'https://relay-staging.alicorn.8seneca.com',
+    domain: 'relay-staging.alicorn.8seneca.com',
     allCells: ['staging-gce-c4']
   },
   production: {
-    directorOrigin: 'https://relay.onorca.dev',
-    domain: 'relay.onorca.dev',
+    directorOrigin: 'https://relay.alicorn.8seneca.com',
+    domain: 'relay.alicorn.8seneca.com',
     allCells: ['production-gce-c27', 'production-gce-c28', 'production-gce-c29']
   }
 }

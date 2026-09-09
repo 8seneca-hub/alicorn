@@ -49,7 +49,7 @@ unavailable telemetry fails closed.
 ## Local use
 
 The active `gcloud` identity must be a service account that can mint an ID token for the exact
-audience `https://relay.onorca.dev/v1/admin/drain`, and it needs read access to the monitored GCP
+audience `https://relay.alicorn.8seneca.com/v1/admin/drain`, and it needs read access to the monitored GCP
 resources. A user account normally needs Token Creator on an approved service account.
 
 For a short run, an already minted JWT may instead be supplied through

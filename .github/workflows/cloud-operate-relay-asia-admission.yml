@@ -71,8 +71,8 @@ jobs:
     timeout-minutes: 30
     environment: ${{ inputs.environment }}
     env:
-      DIRECTOR_ORIGIN: ${{ inputs.environment == 'production' && 'https://relay.onorca.dev' || 'https://relay-staging.onorca.dev' }}
-      AUTH_ORIGIN: ${{ inputs.environment == 'production' && 'https://login.onorca.dev' || 'https://auth-staging.onorca.dev' }}
+      DIRECTOR_ORIGIN: ${{ inputs.environment == 'production' && 'https://relay.alicorn.8seneca.com' || 'https://relay-staging.alicorn.8seneca.com' }}
+      AUTH_ORIGIN: ${{ inputs.environment == 'production' && 'https://login.alicorn.8seneca.com' || 'https://auth-staging.alicorn.8seneca.com' }}
       DIRECTOR_SERVICE: ${{ inputs.environment == 'production' && 'orca-cloud-relay' || 'orca-cloud-relay-staging' }}
       REGIONAL_PLACEMENT_SECRET: orca-cloud-relay-regional-placement-enabled
       GCP_PROJECT_ID: ${{ inputs.environment == 'production' && 'onorca-cloud' || 'onorca-cloud-staging' }}

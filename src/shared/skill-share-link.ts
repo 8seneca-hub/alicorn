@@ -1,7 +1,7 @@
 import { isAcceptedDeepLinkProtocol } from './deep-link-scheme'
 
 const SHARE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
-const PRODUCTION_HOSTS = new Set(['app.orca.dev', 'share.onorca.dev'])
+const PRODUCTION_HOSTS = new Set(['app.orca.dev', 'share.alicorn.8seneca.com'])
 
 export function parseSkillShareId(value: string): string | null {
   const trimmed = value.trim()

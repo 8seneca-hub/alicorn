@@ -28,7 +28,7 @@ jobs:
     env:
       GCP_PROJECT_ID: onorca-cloud-staging
       GCP_REGION: us-central1
-      DIRECTOR_ORIGIN: https://relay-staging.onorca.dev
+      DIRECTOR_ORIGIN: https://relay-staging.alicorn.8seneca.com
       CAPACITY_SERVICE_ACCOUNT: ${{ vars.STAGING_GCP_RELAY_CAPACITY_SERVICE_ACCOUNT }}
       LEGACY_C3_IMAGE_DIGEST: sha256:2d0f6e6db2b0eb9d6aba188698de8330f8c30b4e76badfcf0fac3f3eb9508a87
     steps:
@@ -40,7 +40,7 @@ jobs:
           workload_identity_provider: ${{ vars.STAGING_GCP_RELAY_DEPLOY_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ vars.STAGING_GCP_RELAY_DEPLOY_SERVICE_ACCOUNT }}
           token_format: id_token
-          id_token_audience: https://relay-staging.onorca.dev/v1/admin/drain
+          id_token_audience: https://relay-staging.alicorn.8seneca.com/v1/admin/drain
           id_token_include_email: true
 
       - id: capacity-auth
@@ -348,7 +348,7 @@ jobs:
               staging-gce-c3 general \
               "${legacy_c3_metrics_boundary}" "${legacy_c3_instance_id}"
             node dev/scripts/probe-relay-legacy-admission.mjs \
-              --cell-origin https://c3.relay-staging.onorca.dev
+              --cell-origin https://c3.relay-staging.alicorn.8seneca.com
             legacy_c3_restart_started_after=
             legacy_c3_old_incarnation=
           }
@@ -362,7 +362,7 @@ jobs:
           verify_legacy_cell \
             staging-gce-c2 general "${legacy_pre_boundary}" "${legacy_c2_instance_id}"
           node dev/scripts/probe-relay-legacy-admission.mjs \
-            --cell-origin https://c2.relay-staging.onorca.dev
+            --cell-origin https://c2.relay-staging.alicorn.8seneca.com
 
           legacy_c3_isolated=false
           restore_legacy_c3_fallback() {
@@ -381,7 +381,7 @@ jobs:
           legacy_c3_isolated=true
           node dev/scripts/prepare-relay-capacity-canary.mjs \
             --director-origin "${DIRECTOR_ORIGIN}" \
-            --cell-origin https://c3.relay-staging.onorca.dev \
+            --cell-origin https://c3.relay-staging.alicorn.8seneca.com \
             --cell-id staging-gce-c3 \
             --mode isolate
           legacy_c3_drain_boundary="$(node -e \
@@ -665,7 +665,7 @@ jobs:
           for number in 2 3; do
             node dev/scripts/verify-relay-capacity-transition.mjs \
               --director-origin "${DIRECTOR_ORIGIN}" \
-              --cell-origin "https://c${number}.relay-staging.onorca.dev" \
+              --cell-origin "https://c${number}.relay-staging.alicorn.8seneca.com" \
               --cell-id "staging-gce-c${number}" \
               --hard-cap 600 \
               --unobserved-bound 60 \

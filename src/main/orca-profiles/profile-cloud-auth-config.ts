@@ -16,9 +16,9 @@ export type OrcaCloudAuthConfig = {
 }
 
 const DEFAULT_SCOPE = 'openid profile email offline_access'
-const PRODUCTION_API_BASE_URL = 'https://login.onorca.dev'
+const PRODUCTION_API_BASE_URL = 'https://login.alicorn.8seneca.com'
 const PRODUCTION_CLIENT_ID = 'orca-desktop'
-const PRODUCTION_RELAY_DIRECTOR_URL = 'https://relay.onorca.dev'
+const PRODUCTION_RELAY_DIRECTOR_URL = 'https://relay.alicorn.8seneca.com'
 
 // Why: packaged main bundles never define NODE_ENV, so packaged-ness is the
 // only reliable production signal for gating dev-only auth escape hatches.

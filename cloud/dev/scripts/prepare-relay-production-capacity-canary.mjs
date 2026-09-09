@@ -7,7 +7,7 @@ import {
   selectorCellState
 } from './relay-admission-selector.mjs'
 
-const DIRECTOR_ORIGIN = 'https://relay.onorca.dev'
+const DIRECTOR_ORIGIN = 'https://relay.alicorn.8seneca.com'
 export const PRODUCTION_CAPACITY_CELL_IDS = [
   'production-gce-c7',
   'production-gce-c8',
@@ -28,7 +28,7 @@ export const PRODUCTION_CAPACITY_CELL_IDS = [
 ]
 
 function cellOrigin(cellId) {
-  return `https://${cellId.slice('production-gce-'.length)}.relay.onorca.dev`
+  return `https://${cellId.slice('production-gce-'.length)}.relay.alicorn.8seneca.com`
 }
 
 export function parseProductionCapacityCellArguments(argv) {

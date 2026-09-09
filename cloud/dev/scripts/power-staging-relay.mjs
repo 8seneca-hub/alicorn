@@ -8,12 +8,12 @@ import {
 
 const PROJECT = 'onorca-cloud-staging'
 const REGION = 'us-central1'
-const DIRECTOR_ORIGIN = 'https://relay-staging.onorca.dev'
+const DIRECTOR_ORIGIN = 'https://relay-staging.alicorn.8seneca.com'
 const ADMIN_AUDIENCE = `${DIRECTOR_ORIGIN}/v1/admin/drain`
 const SQL_INSTANCE = 'orca-cloud-staging-auth-db'
 const CLOUD_RUN_SERVICES = [
   { name: 'orca-cloud-relay-staging', healthOrigin: DIRECTOR_ORIGIN },
-  { name: 'orca-cloud-auth-staging', healthOrigin: 'https://auth-staging.onorca.dev' }
+  { name: 'orca-cloud-auth-staging', healthOrigin: 'https://auth-staging.alicorn.8seneca.com' }
 ]
 const POLL_INTERVAL_MS = 5_000
 const WAKE_TIMEOUT_MS = 12 * 60 * 1_000
@@ -64,7 +64,7 @@ function canonicalStagingCell(cellId, value) {
   if (
     origin.protocol !== 'https:' ||
     origin.origin !== cell.origin ||
-    !origin.hostname.endsWith('.relay-staging.onorca.dev')
+    !origin.hostname.endsWith('.relay-staging.alicorn.8seneca.com')
   ) {
     throw new Error(`${cellId} has an unsafe origin`)
   }
