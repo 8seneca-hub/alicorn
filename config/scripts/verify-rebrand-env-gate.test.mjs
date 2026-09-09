@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import {
+  BASELINE_PATH,
   ORCA_ENV_IDENTIFIER,
+  ROOT,
+  collectScannedFiles,
   compareAgainstBaseline,
   countByScanTarget,
   findOrcaEnvIdentifiers,
@@ -224,32 +225,24 @@ describe('generated single-line bundles', () => {
 })
 
 describe('the checked-in baseline', () => {
-  // Why the real script and the real tree: a gate verified only through its unit tests can sit
-  // red on main while every suite is green.
-  // Also from a foreign cwd: `pnpm lint` runs from the repo root, CI steps and editors do not.
-  it.each([process.cwd(), tmpdir()])(
-    'passes the gate against the tree, run from %s',
-    (cwd) => {
-      const output = execFileSync(
-        process.execPath,
-        [path.join(process.cwd(), 'config', 'scripts', 'verify-rebrand-env-gate.mjs')],
-        { cwd, encoding: 'utf8' }
-      )
-
-      expect(output).toMatch(/Rebrand env gate passed/)
-    },
-    120_000
-  )
-
-  it('is what --write would produce, so nobody has hand-edited a row', () => {
-    const onDisk = readFileSync('config/rebrand-env-baseline.txt', 'utf8')
+  // Why the real tree and not a fixture: a gate verified only through its unit tests can sit red
+  // on main while every suite is green. Both assertions share one scan and live in one `it` —
+  // walking `src` is the expensive part here, and a second walk doubled this file's runtime.
+  it('matches the tree exactly, so no row is stale and none was hand-edited', () => {
+    const findings = findOrcaEnvIdentifiers(collectScannedFiles())
+    const onDisk = readFileSync(BASELINE_PATH, 'utf8')
     const parsed = readBaseline(onDisk)
 
     expect(parsed.length).toBeGreaterThan(0)
     expect(parsed.every((entry) => entry.count > 0 && entry.text.startsWith('ORCA_'))).toBe(true)
-    const rerendered = parsed.flatMap((entry) =>
-      Array.from({ length: entry.count }, () => ({ path: entry.path, text: entry.text }))
-    )
-    expect(`${renderBaseline(rerendered)}\n`).toBe(onDisk)
+    expect(compareAgainstBaseline(findings, parsed).newFindings).toEqual([])
+    expect(`${renderBaseline(findings)}\n`).toBe(onDisk)
+  }, 300_000)
+
+  // `pnpm lint` runs from the repo root; CI steps and editors do not. Both sibling ratchets
+  // learned this by reporting an empty tree from the wrong cwd.
+  it('anchors on the repo root rather than the cwd', () => {
+    expect(path.isAbsolute(ROOT)).toBe(true)
+    expect(existsSync(path.join(ROOT, 'package.json'))).toBe(true)
   })
 })

@@ -27,8 +27,8 @@ import process from 'node:process'
 
 // Why absolute, not cwd-relative: `pnpm lint` runs from the repo root but CI steps and
 // editors do not always — both sibling ratchets learned this the same way.
-const ROOT = path.join(import.meta.dirname, '..', '..')
-const BASELINE_PATH = path.join(ROOT, 'config', 'rebrand-env-baseline.txt')
+export const ROOT = path.join(import.meta.dirname, '..', '..')
+export const BASELINE_PATH = path.join(ROOT, 'config', 'rebrand-env-baseline.txt')
 
 /** Source extensions, for `src` where only real code carries an env name. */
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.mjs', '.cjs'])
@@ -201,7 +201,8 @@ export function compareAgainstBaseline(findings, baseline) {
   return { newFindings, allowedCount: findings.length, baselineCount, retiredCount }
 }
 
-function collectFiles() {
+/** @returns {Map<string, string>} repo-relative path → content, for every scanned file. */
+export function collectScannedFiles() {
   const files = new Map()
   const walk = (dir, extensions) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -263,7 +264,7 @@ export function renderBaseline(findings) {
 }
 
 function main() {
-  const findings = findOrcaEnvIdentifiers(collectFiles())
+  const findings = findOrcaEnvIdentifiers(collectScannedFiles())
 
   if (process.argv.includes('--write')) {
     writeFileSync(BASELINE_PATH, `${renderBaseline(findings)}\n`)
