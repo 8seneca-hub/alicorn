@@ -1,9 +1,9 @@
 import type pg from 'pg'
-async function transaction<T>(pool: pg.Pool, prepare: (c: pg.PoolClient) => Promise<void>, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
+
+export async function inTransaction<T>(pool: pg.Pool, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
-    await prepare(client)
     const value = await fn(client)
     await client.query('COMMIT')
     return value
@@ -14,8 +14,19 @@ async function transaction<T>(pool: pg.Pool, prepare: (c: pg.PoolClient) => Prom
     client.release()
   }
 }
+
 // Why: set_config(..., true) is transaction-local, so a pooled connection never leaks a tenant.
+// Exported on its own because a write that spans several tenants atomically — syncing one user's
+// organisation memberships (I3) — has to re-scope between statements, which `withTenant` cannot do.
+export async function setTenantScope(client: pg.PoolClient, tenantId: string): Promise<void> {
+  if (!tenantId) throw new Error('tenant_required')
+  await client.query(`SELECT set_config('app.tenant_id', $1, true)`, [tenantId])
+}
+
 export function withTenant<T>(pool: pg.Pool, tenantId: string, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
   if (!tenantId) throw new Error('tenant_required')
-  return transaction(pool, async (c) => { await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [tenantId]) }, fn)
+  return inTransaction(pool, async (c) => {
+    await setTenantScope(c, tenantId)
+    return fn(c)
+  })
 }

@@ -13,6 +13,9 @@ describePostgres('control schema', () => {
     appUrl = result.appUrl
   })
   afterAll(() => dropTestSchema(databaseUrl!, schema))
+  // Why the identity tables are not all in the list below: `users`, `tenants` and
+  // `cloud_profiles` are not tenant-scoped — a user is one human across organisations, and the
+  // tenant directory is what `tenant_id` points at. `org_roles`, the membership, is, and is here.
   it('applies twice without error and forces RLS on tenant tables', async () => {
     const pool = await openControlPlanePool({ databaseUrl: appUrl, schema, applicationName: 't' })
     try {
@@ -22,9 +25,9 @@ describePostgres('control schema', () => {
         `SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
          WHERE n.nspname = $1 AND c.relforcerowsecurity ORDER BY relname`, [schema])
       expect(rows.map((r) => r.relname)).toEqual([
-        'autonomy_policies', 'member_skills', 'members', 'org_policies', 'project_protected_paths',
-        'project_required_checks', 'project_stage_config', 'rule_proposals', 'stages', 'transitions',
-        'workflows'
+        'autonomy_policies', 'member_skills', 'members', 'org_policies', 'org_roles',
+        'project_protected_paths', 'project_required_checks', 'project_stage_config',
+        'rule_proposals', 'stages', 'transitions', 'workflows'
       ])
     } finally {
       await pool.end()

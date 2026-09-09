@@ -38,8 +38,10 @@ export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
     requireTenant({
       config: deps.config.auth,
       verifyAccessToken: deps.verifyAccessToken,
-      // No lookupUserId until the identity tables land (I3), so `auth.userId` stays null and
-      // `actor` is the verified subject — the same shape the ledger API already runs with.
+      // I3: with the identity tables in place `auth.userId` is the internal `users.id`, and
+      // `actor` follows it — a subject never reaches a product row. Absent (tests, and mode
+      // `local`, which has no subject to map) it stays null, exactly as before.
+      lookupUserId: deps.lookupUserId,
       resolveOrgAliases: deps.identityStore
         ? (aliases) => deps.identityStore!.resolveOrgAliases(aliases)
         : undefined

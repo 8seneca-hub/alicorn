@@ -132,15 +132,30 @@ does not scale past a few hundred.
 
 ## 6. Data model
 
-Core tables. All carry `tenant_id`; row-level security is enabled on every one.
+Core tables. Every tenant-scoped one carries `tenant_id` with row-level security forced on it.
+Identity tables are the exception and are global — a person belongs to several organisations, so a
+user row scoped to a tenant would have to be duplicated per organisation. The tenancy of a person
+is `org_roles`, which *is* tenant-scoped and RLS-forced like everything else.
 
-*Status:* identity tables land with the Keycloak plan; tier 1 runs auth mode `local` with a constant
-`tenant_id`.
+*Status:* identity tables built (I3); tier 1 runs auth mode `local`, which has no subject to map and
+a constant `tenant_id`.
 
 ```sql
--- Identity mapping ------------------------------------------------------
-users            (id, tenant_id, idp_subject UNIQUE, email, created_at)
-org_roles        (tenant_id, user_id, role)          -- owner|admin|member
+-- Identity mapping (global — no tenant_id; see the note above) -----------
+users            (id, idp_subject UNIQUE, idp_issuer, email, display_name,
+                  created_at, updated_at, last_seen_at)
+                  -- id is minted here ('usr_' || uuid). Everything internal keys off it; the IdP
+                  -- subject is a lookup column and is referenced by no foreign key anywhere.
+tenants          (id, alias UNIQUE, name, created_at, updated_at)
+                  -- id is the verified Keycloak organisation id; alias is nullable so a realm can
+                  -- move one between organisations
+cloud_profiles   (id, user_id UNIQUE, local_profile_id, active_tenant_id,
+                  linked_at, updated_at)
+                  -- one per user while /profile answers 501; active_tenant_id is a remembered
+                  -- preference, honoured only while the presented token still proves it
+org_roles        (tenant_id, user_id, role, granted_at, last_seen_at)  -- owner|admin|member
+                  -- tenant-scoped, RLS forced; first person to sign in for an org bootstraps as
+                  -- its owner until OP1 lands real assignment
 seats            (tenant_id, user_id, kind)          -- builder|collaborator
 
 -- Product configuration -------------------------------------------------

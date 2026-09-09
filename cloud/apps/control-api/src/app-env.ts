@@ -26,4 +26,7 @@ export type ControlApiDeps = {
   verifyIdToken?: KeycloakIdTokenVerifier
   tokenClient?: KeycloakTokenClient
   identityStore?: DesktopIdentityStore
+  // I3. Keycloak mode only: maps the verified subject to the internal `users.id` that every
+  // product row keys off. Optional so a test can still build the app without a database.
+  lookupUserId?: (idpSubject: string) => Promise<string | null>
 }

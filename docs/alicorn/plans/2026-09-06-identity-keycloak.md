@@ -246,7 +246,36 @@ CREATE INDEX IF NOT EXISTS cloud_profiles_user_recent ON cloud_profiles(user_id,
 
 - [ ] **Step 1: Failing tests** — postgres-package: `withoutTenant` runs with no `app.tenant_id` set (a `SELECT current_setting('app.tenant_id', true)` returns null). Control-api `identity-repository-postgres.test.ts` (harness as `members-routes-postgres.test.ts`; note identity tables are readable by the non-superuser role because they are not RLS'd): (1) upsert twice by subject → same id, display name updated; (2) `syncOrganizations` with `[{ id: 'org-acme', alias: 'acme' }]` → user is `owner`; a second user syncing the same org → `member`; removing an org from the list deletes that user's role only; (3) `resolveOrgAliases(['acme', 'nope'])` → `{ acme: 'org-acme' }`; (4) `ensureCloudProfile` idempotent per `localProfileId`, `activeTenantId === 'org-acme'`; (5) `setActiveTenant` to a non-member org throws `not_a_member`; to a member org bumps `last_selected_at` and `getMostRecentCloudProfile` returns it.
 - [ ] **Step 2: Run → FAIL.** **Step 3: Implement** with parameterised SQL (`INSERT … ON CONFLICT (idp_subject) DO UPDATE SET email = EXCLUDED.email, display_name = COALESCE(EXCLUDED.display_name, users.display_name) RETURNING *`; owner rule: `INSERT INTO org_roles … SELECT $1, $2, CASE WHEN EXISTS (SELECT 1 FROM org_roles WHERE tenant_id = $1) THEN 'member' ELSE 'owner' END ON CONFLICT DO NOTHING`; stale roles: `DELETE FROM org_roles WHERE user_id = $1 AND tenant_id <> ALL($2::text[])`). Schema test's forced-RLS list stays exactly `['member_skills','members','org_policies','project_required_checks']` — assert additionally that `users` has `relforcerowsecurity = false`.
-- [ ] **Step 4: Run → PASS**; `pnpm --dir cloud typecheck`. **Step 5: Commit** — `feat(control-api): identity tables and repository (users, tenants, org roles, cloud profiles)`.
+- [x] **Step 4: Run → PASS**; `pnpm --dir cloud typecheck`. **Step 5: Commit** — `feat(control-api): identity tables and repository (users, tenants, org roles, cloud profiles)`.
+
+**As built (2026-09-09).** Four differences from the sketch above, each deliberate:
+
+1. **`org_roles` carries forced RLS**; `users`, `tenants` and `cloud_profiles` do not. The sketch
+   left all four un-RLS'd, but CLAUDE.md's invariant is `tenant_id` on every tenant-scoped row
+   *with forced RLS*, and "who is in this organisation" is the most sensitive row here. The price
+   is that memberships can only be read or written inside their own tenant's scope, so the sketch's
+   `listOrganizationsForUser` and its cross-tenant stale-role `DELETE` are neither possible nor
+   built — and neither is needed, because organisations are always re-proven from the presented
+   token (I2's rule) and a stale row can only under-grant. Reaping one is an operator sweep (OP1).
+   The schema test's forced-RLS list therefore gained `org_roles` and nothing else.
+2. **The seam is I2's `DesktopIdentityStore`, not a set of free functions.** I2 shipped the
+   interface and the broker routes against it, so I3 is a second implementation
+   (`postgres-desktop-identity-store.ts`) over `identity-repository.ts`; the in-process store
+   survives as the broker tests' double. `upsertUserFromClaims`/`syncOrganizations`/
+   `ensureCloudProfile`/`setActiveTenant` collapse into one `syncIdentity` transaction, because a
+   half-synced identity is a user with no profile and the desktop reads that as a hijacked session.
+3. **One cloud profile per user** (`user_id UNIQUE`), no `name` and no `last_selected_at`. Those
+   exist in the sketch to pick a profile on `/refresh`; while `/profile` answers 501 the desktop
+   cannot create a second one, so there is nothing to pick. Drop the UNIQUE and add
+   `last_selected_at` when multi-profile actually lands.
+4. **`withoutTenant` is `inTransaction` + `setTenantScope`.** The identity sync does set a tenant
+   scope — one per organisation, inside a single transaction, which is what forced RLS on
+   `org_roles` requires and what `withTenant` cannot express. `withoutTenant` would have named it
+   wrongly.
+
+Also: `users.idp_issuer` is recorded but is **not** part of the key. Keycloak's `sub` is a
+per-realm UUID, so cross-realm collision is not a real hazard, whereas moving the realm's public
+URL is ordinary — keying on it would sign every user out and orphan every row they own.
 
 ---
 

@@ -1,6 +1,9 @@
 import { tenantRlsPolicySql } from '@alicorn-cloud/control-plane-postgres'
+import { IDENTITY_SCHEMA_STATEMENTS } from './identity-schema-sql.js'
 export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
-  // Identity tables (users, tenants, org_roles, cloud_profiles) arrive with the Keycloak plan.
+  // Identity first: every product row's `created_by` is a `users.id`, so the identity tables have
+  // to exist before anything that references one.
+  ...IDENTITY_SCHEMA_STATEMENTS,
   // Product configuration — tenant-scoped, RLS forced.
   `CREATE TABLE IF NOT EXISTS members (
      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
