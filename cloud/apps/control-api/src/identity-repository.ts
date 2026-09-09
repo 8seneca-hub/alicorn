@@ -113,13 +113,28 @@ async function syncMemberships(
     const { rows } = await client.query<{ role: string }>(
       // DO UPDATE rather than DO NOTHING only so the row is returned either way — the role itself
       // is never rewritten here, or a second sign-in would demote the organisation's owner.
+      //
+      // OP1: a pending invite decides the role, which is the whole of "accepting" one — there is
+      // no accept endpoint, because the realm has already proven this person is in the
+      // organisation by the time we get here. Falls back to the bootstrap-owner rule.
       `INSERT INTO org_roles (tenant_id, user_id, role)
-       SELECT $1, $2, CASE WHEN EXISTS (SELECT 1 FROM org_roles WHERE tenant_id = $1) THEN 'member' ELSE 'owner' END
+       SELECT $1, $2, COALESCE(
+         (SELECT i.role FROM org_invites i JOIN users u ON lower(u.email) = i.email WHERE u.id = $2),
+         CASE WHEN EXISTS (SELECT 1 FROM org_roles WHERE tenant_id = $1) THEN 'member' ELSE 'owner' END)
        ON CONFLICT (tenant_id, user_id) DO UPDATE SET last_seen_at = now()
        RETURNING role`,
       [org.orgId, userId]
     )
     roles[org.orgId] = rows[0]!.role
+    await client.query(
+      `INSERT INTO seats (tenant_id, user_id, kind)
+       SELECT $1, $2, COALESCE((SELECT i.seat FROM org_invites i JOIN users u ON lower(u.email) = i.email WHERE u.id = $2), 'builder')
+       ON CONFLICT (tenant_id, user_id) DO NOTHING`,
+      [org.orgId, userId]
+    )
+    // Consumed, not kept: a spent invite left behind would re-apply its role on the next sign-in
+    // after an admin demoted the member.
+    await client.query(`DELETE FROM org_invites WHERE email = (SELECT lower(email) FROM users WHERE id = $1)`, [userId])
   }
   return roles
 }

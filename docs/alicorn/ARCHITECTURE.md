@@ -154,9 +154,16 @@ cloud_profiles   (id, user_id UNIQUE, local_profile_id, active_tenant_id,
                   -- one per user while /profile answers 501; active_tenant_id is a remembered
                   -- preference, honoured only while the presented token still proves it
 org_roles        (tenant_id, user_id, role, granted_at, last_seen_at)  -- owner|admin|member
-                  -- tenant-scoped, RLS forced; first person to sign in for an org bootstraps as
-                  -- its owner until OP1 lands real assignment
+                  -- tenant-scoped, RLS forced; a pending invite decides the role, else the first
+                  -- person to sign in for an org bootstraps as its owner (OP1)
+org_invites      (tenant_id, email, role, seat, invited_by, created_at)  -- admin|member
+                  -- tenant-scoped, RLS forced; a row until Keycloak sends the mail (I5). There is
+                  -- no accept endpoint: sign-in consumes it, which is the only way a membership
+                  -- is created. An invite can never mint an owner.
 seats            (tenant_id, user_id, kind)          -- builder|collaborator
+                  -- tenant-scoped, RLS forced; what a membership may *run* (OP3 scopes MCP
+                  -- connectors to one), as against the role, which is what it may administer.
+                  -- Materialised from the invite at sign-in; removed with the membership.
 
 -- Product configuration -------------------------------------------------
 members          (id, tenant_id, name, role, backend, workspace_kind,

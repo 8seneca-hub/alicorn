@@ -66,6 +66,32 @@ export const IDENTITY_SCHEMA_STATEMENTS: readonly string[] = [
      PRIMARY KEY (tenant_id, user_id))`,
   `CREATE INDEX IF NOT EXISTS org_roles_user ON org_roles(user_id)`,
   tenantRlsPolicySql('org_roles'),
+  // OP1. An invite is a row and nothing else until Keycloak sends the mail (identity plan I5):
+  // it is consumed at the invitee's first sign-in, which is the only place a membership is ever
+  // created. Deliberately no FK to `tenants` — an organisation can be invited into before anyone
+  // has signed in for it, which is when the `tenants` row appears.
+  //
+  // The email is the key because that is all an inviter knows; it is stored already lower-cased
+  // and trimmed by the contract, so the PK is the match.
+  `CREATE TABLE IF NOT EXISTS org_invites (
+     tenant_id TEXT NOT NULL,
+     email TEXT NOT NULL,
+     role TEXT NOT NULL CHECK (role IN ('admin', 'member')),
+     seat TEXT NOT NULL DEFAULT 'builder' CHECK (seat IN ('builder', 'collaborator')),
+     invited_by TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, email))`,
+  tenantRlsPolicySql('org_invites'),
+  // A seat is what a membership may run; the role is what it may administer. Separate because a
+  // collaborator seat is a *narrower* execution surface (OP3 scopes MCP connectors to one), and
+  // tying it to the admin role would make every reviewer a builder.
+  `CREATE TABLE IF NOT EXISTS seats (
+     tenant_id TEXT NOT NULL,
+     user_id TEXT NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('builder', 'collaborator')),
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, user_id))`,
+  tenantRlsPolicySql('seats'),
   // `active_tenant_id` is a remembered *preference*, not a grant: it is honoured only while the
   // presented token still proves that membership, and rewritten to a proven one when it does not.
   `CREATE TABLE IF NOT EXISTS cloud_profiles (
