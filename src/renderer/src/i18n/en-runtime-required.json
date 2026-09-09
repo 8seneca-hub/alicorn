@@ -11,12 +11,21 @@
       "title": "Meet your Agents tab"
     }
   },
+  "app": {
+    "recoverableError": {
+      "rootDescription": "The app shell could not finish rendering. Retry to remount it, or relaunch Alicorn if the error persists.",
+      "rootTitle": "Alicorn hit a renderer error.",
+      "webTitle": "Alicorn web hit a renderer error."
+    }
+  },
   "auto": {
     "App": {
+      "03a14f6b5b": "Retry the page or navigate to another Alicorn surface.",
       "1b9d9d065f": "settings",
       "332dbfa497": "Workspace uploaded",
       "3443924e91": "automations",
       "4f08ae8311": "tasks",
+      "5096cbbc86": "Alicorn",
       "62ca9895a7": "space",
       "844eb0f4f4": "activity",
       "9f0152563e": "mobile",
@@ -24,6 +33,9 @@
       "d54e66004c": "terminal"
     },
     "components": {
+      "BrowserCookieImportDisclosure": {
+        "description": "Sign in to Google directly in Alicorn."
+      },
       "CodexRestartChip": {
         "9263e75f49": "Codex is using the previous account"
       },
@@ -51,6 +63,9 @@
         "881e522e04": "merge",
         "cae2712a23": "close"
       },
+      "HostedReviewUnlinkMenuItem": {
+        "description": "Alicorn will hide {{value0}} {{value1}} details for this workspace. The {{value0}} and branch on {{value2}} won’t be changed."
+      },
       "JiraIssueWorkspace": {
         "2a829a2f00": "priority",
         "693be070d0": "transition",
@@ -60,6 +75,9 @@
       },
       "Landing": {
         "16e9e3df89": "starred",
+        "520304a067": "Alicorn logo",
+        "6ca6ff404e": "ALICORN",
+        "73e1ad4282": "Alicorn uses the GitHub CLI (gh) to show pull requests, issues, and checks.",
         "ce44fad849": "Missing dependencies",
         "f05d237049": "Add a project first"
       },
@@ -72,11 +90,19 @@
         "af6e02c44a": "page",
         "f5a6b38a14": "sheet"
       },
+      "LinuxPackageInstallRecoveryCard": {
+        "82c6dbea00": "Copy the command, quit Alicorn, and run it in a system terminal on the computer where Alicorn is installed. Reopen Alicorn after it finishes.",
+        "a7ac6ec78b": "Alicorn downloaded the system package. Quit Alicorn before finishing the update from a terminal.",
+        "aa57fa4f80": "Command copied. Quit Alicorn, run it in a system terminal to install {{value0}}, then reopen Alicorn.",
+        "b7e7c5bc95": "Alicorn checks the downloaded file against the release metadata at the moment it builds this command. The system package itself is not signature-checked, and Alicorn cannot vouch for the file after that point."
+      },
       "NewWorkspaceComposerCard": {
         "0e587e31fb": "yaml",
         "2132b670da": "both",
         "7711ad5122": "Local setup command",
-        "addHostHint": "Register another machine or Orca server",
+        "addHostHint": "Register another machine or Alicorn server",
+        "addRemoteOrcaServer": "Add Remote Alicorn Server",
+        "addRemoteOrcaServerHint": "Pair another Alicorn runtime",
         "cloneDestinationPlaceholder": "/parent/directory/on/host",
         "cloneHostSetup": "Clone",
         "cloneProjectOnHost": "Clone project",
@@ -125,6 +151,8 @@
         "ff84e1f54c": "{{value0}} {{value1}} as viewed"
       },
       "StarNagCard": {
+        "30c36231c1": "Alicorn is open source. If it helped today, a GitHub star helps other developers find it.",
+        "5f6df21046": "Enjoying Alicorn?",
         "68a41bc3aa": "Could not star with",
         "73dfd4eb8d": "Don't ask again",
         "92b0f9d921": "is authenticated and try again.",
@@ -178,6 +206,11 @@
         "duplicateIssueNumberPlaceholder": "Issue number",
         "f294c500ef": "No GitLab work matches this filter.",
         "fe28c9821f": "view",
+        "linearEmptyHasWorktree": "No Linear tickets are linked to an Alicorn workspace yet. Start work from a Linear issue to see it here.",
+        "linearHasWorktreeLoadFailed": "Unable to load Linear issues linked to an Alicorn workspace.",
+        "linearHasWorktreePartialLoadFailed": "Some Linear issues linked to an Alicorn workspace could not be loaded. Refresh to try again.",
+        "linearHasWorktreeSearchPlaceholder": "Filter issues linked to an Alicorn workspace...",
+        "linearModeHasWorktreeTooltip": "Linear tickets linked to an Alicorn workspace",
         "planeConnect": "Connect a Plane workspace",
         "planeConnectHint": "Connect Plane in Settings to use it as a task source.",
         "planeHide": "Hide Plane",
@@ -185,16 +218,26 @@
         "planeListPendingHint": "The workspace is connected. Browsing issues from here is not available yet."
       },
       "Terminal": {
+        "b7c1f0a934": "A remote host could not be reached, so Alicorn cannot tell whether work is still running there. Close the window anyway?",
         "cdc9ac4b2d": "editor"
       },
       "UpdateCard": {
+        "05ad78a6d1": "Alicorn v{{value0}} is ready.",
+        "092f09fc14": "The installer's publisher doesn't match Alicorn, so we stopped the update. Don't install this download; check official releases for a corrected version.",
         "522df222b9": "spinner",
+        "6714206e5a": "Alicorn v{{value0}} is downloaded. Restart when you're ready.",
+        "7f1a4c9e02": "Your system package manager installed Alicorn, so update it from there — Alicorn cannot install this release itself.",
         "7ffc08506e": "check",
+        "93794ea932": "Alicorn v{{value0}} is downloading.",
         "d5253b54af": "error"
+      },
+      "WorktreeBaseFallbackDialog": {
+        "description": "The remote-tracking ref \"{{value0}}\" was unavailable, so Alicorn used local \"{{value1}}\" instead. This workspace may not include the latest remote changes."
       },
       "WorktreeJumpPalette": {
         "c4afa68159": "Try a worktree, setting, action, tab title, agent prompt, URL, PR, or port.",
-        "dabd819ca1": "Type to see all {{value0}} worktrees"
+        "dabd819ca1": "Type to see all {{value0}} worktrees",
+        "f7fda8d562": "Create a worktree or open a tab in Alicorn to get started."
       },
       "activity": {
         "ActivityPrototypePage": {
@@ -212,13 +255,22 @@
         }
       },
       "artifacts": {
+        "ArtifactPublishButton": {
+          "accountTitle": "Alicorn account"
+        },
         "ArtifactsPage": {
           "openArtifact": "Open artifact",
+          "reconnectHeading": "Sign in to Alicorn again",
+          "signIn": "Sign in to Alicorn",
+          "signInAgain": "Sign in to Alicorn again to load artifacts.",
           "signInCopy": "Sign in to view and manage artifacts shared through your account.",
-          "signInHeading": "Sign in to Orca"
+          "signInHeading": "Sign in to Alicorn",
+          "unconfiguredCopy": "Alicorn account sign-in is not configured on this machine yet."
         },
         "artifact-publish-flow": {
-          "5cb4f5ec36": "Copy link"
+          "5cb4f5ec36": "Copy link",
+          "bba20daa6d": "Sign in to Alicorn and try again.",
+          "e2ed5acd8c": "Alicorn couldn't read this file. Open it from a workspace and try again."
         }
       },
       "automations": {
@@ -228,17 +280,22 @@
         "AutomationDetail": {
           "007c8ad874": "Prompt",
           "51a470b966": "ssh",
+          "dbef8dc110": "This SSH automation runs only while Alicorn can reach the SSH host. If reconnect needs interactive credentials or the host is unavailable, the run is recorded as skipped.",
           "de0fedac06": "new_per_run"
         },
         "AutomationEditorDialog": {
           "ff5db28639": "existing"
         },
         "AutomationEditorDialogHeader": {
-          "4c8e1a72b9": "A recurring agent task"
+          "4c8e1a72b9": "A recurring agent task",
+          "6f309eef8d": "Alicorn"
         },
         "AutomationListSortHeader": {
           "sortedAscending": "{{value0}}, sorted ascending",
           "sortedDescending": "{{value0}}, sorted descending"
+        },
+        "AutomationMissedRunGraceField": {
+          "3d70c185c8": "If Alicorn or the execution host was unavailable at the scheduled time, Alicorn runs one missed occurrence when it becomes available within this window. Older missed runs are skipped."
         },
         "AutomationRunHistory": {
           "fdb3caa8fb": "known"
@@ -253,6 +310,9 @@
           "837d902bba": "Weekly",
           "ddba78647e": "Custom cron",
           "f0202f3a89": "Daily"
+        },
+        "AutomationSessionField": {
+          "b675112193": "Reuse sends future runs to the previous live automation session. If that session is gone, Alicorn starts a fresh one."
         },
         "AutomationsPage": {
           "2695883141": "delete",
@@ -299,9 +359,13 @@
         "HermesCronOutputView": {
           "88d48157fc": "default"
         },
+        "capturedOwner": {
+          "unfenced": "Alicorn on this host needs an update before you can view run history or manage this automation. Scheduled runs may still continue on the host."
+        },
         "createDestination": {
           "stale": "{host} changed while this form was open. Choose it again before saving.",
-          "unavailable": "That host cannot hold a new automation yet. Choose another host to create this one on."
+          "unavailable": "That host cannot hold a new automation yet. Choose another host to create this one on.",
+          "updateRequired": "Update the Alicorn server on {hosts} to store automations there."
         },
         "externalScope": {
           "unknownManager": "This external automation is no longer listed for any host in view."
@@ -328,6 +392,7 @@
             "a3508d7e6e": "{{value0}} annotation{{value1}} ready. Select another element or copy all feedback.",
             "a5dcd0fd1d": "confirming",
             "b2856516e2": "Can't load this page",
+            "b5b87d6cbb": "Open Link In Alicorn Browser",
             "c6be71329e": "Refresh",
             "c8bc7f1f9e": "requested",
             "da68d35f7b": "Open failed page in default browser",
@@ -354,7 +419,7 @@
         "report": {
           "CrashReportDialog": {
             "56a3dfa283": "Failed to send crash report.",
-            "835037edc9": "· Orca",
+            "835037edc9": "· Alicorn",
             "b175e90213": "No crash report is available.",
             "b2e36f53a1": "Failed to send crash report. Diagnostic ticket {{value0}} was uploaded but not linked."
           }
@@ -364,6 +429,11 @@
         "DashboardAgentRow": {
           "019b74d93a": "eligible",
           "92a7017987": "sending"
+        }
+      },
+      "dictation": {
+        "DictationController": {
+          "2d5b9fabf9": "Microphone access denied. Grant access in system settings, then restart Alicorn."
         }
       },
       "editor": {
@@ -381,6 +451,10 @@
         "EditorContent": {
           "d07e4b8553": "branch",
           "d16e037f40": "rich"
+        },
+        "HtmlDocPreview": {
+          "assetUnreadableNotice": "Alicorn could not read {{path}} from the workspace.",
+          "documentUnreadablePanel": "Alicorn could not read this file from the workspace."
         },
         "IpynbViewer": {
           "59b6cd874b": "code",
@@ -421,12 +495,28 @@
         "RichMarkdownDocLinkMenu": {
           "142a7d51cd": "document"
         },
+        "RichMarkdownErrorBoundary": {
+          "dfdf1cacd4": "The rich markdown editor hit an unexpected error and was reset to keep the rest of Alicorn responsive."
+        },
         "RichMarkdownSlashMenu": {
           "e2e12b0e98": "component"
         }
       },
       "emulator": {
         "pane": {
+          "MobileEmulatorAgentSetupGuide": {
+            "72736b051f": "Set up Alicorn CLI + skill when you want agents to drive this simulator."
+          },
+          "MobileEmulatorAgentSetupGuideSteps": {
+            "21f5687c07": "Alicorn CLI skill",
+            "3941719a56": "Checking Alicorn CLI before opening skill setup.",
+            "3d34423e88": "Registering the Alicorn CLI",
+            "3d8dc52c93": "Registers the alicorn command for emulator control in agent shells.",
+            "5c59ea96ca": "Mobile emulator Alicorn CLI skill setup",
+            "64fb057667": "Teaches agents the alicorn emulator commands for this worktree.",
+            "9b49d892e3": "Enable Alicorn CLI",
+            "bff5341ac3": "Mobile emulator Alicorn CLI skill install terminal"
+          },
           "emulator": {
             "device": {
               "frame": {
@@ -439,18 +529,54 @@
                 "f630b9ca9f": "Mobile Emulator requires a Mac with Xcode and the iOS Simulator runtime. On Linux or Windows, use a physical device or a remote Mac build host."
               }
             }
+          },
+          "use": {
+            "mobile": {
+              "emulator": {
+                "agent": {
+                  "setup": {
+                    "state": {
+                      "15986a1080": "Alicorn CLI is ready. Install the skill to finish setup.",
+                      "2b519eed94": "Registered the Alicorn CLI in PATH.",
+                      "9dff3a6338": "Skill is installed. Enable the Alicorn CLI to finish setup."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "error": {
+        "boundaries": {
+          "RecoverableRenderErrorBoundary": {
+            "ab855c11f4": "This part of Alicorn hit an error."
           }
         }
       },
       "feature": {
         "tips": {
+          "CliSkillSetupTerminal": {
+            "1953e90447": "Press Enter to install the Alicorn CLI orchestration skill for your agents.",
+            "43b60ec5c3": "Alicorn CLI and orchestration skill install terminal"
+          },
           "CmdJPaletteFeatureTipVisual": {
             "0418f9becc": "open",
             "379d776971": "typing",
             "d20ccf1e61": "done"
+          },
+          "FeatureTipsModal": {
+            "1da82af45b": "Alicorn CLI needs attention"
           }
         },
         "wall": {
+          "AgentCapabilitiesSetupAction": {
+            "5e8fe5a72d": "Give agents direct access to Alicorn's browser so they can test pages, capture screenshots, and act on what they see.",
+            "c61c91e642": "Let agents coordinate through Alicorn to keep large, multi-step tasks moving to completion."
+          },
+          "BrowserUseSkillSetupCard": {
+            "cbc45022d4": "Enables agents to navigate and verify pages in Alicorn's browser."
+          },
           "ComputerUseAnimatedVisual": {
             "1719b28a81": "found \"Approve\"",
             "2adb561b44": "Claude Code session started",
@@ -466,6 +592,15 @@
             "d8401975b1": "approved",
             "f27676a92c": "status:"
           },
+          "ConnectIntegrationsList": {
+            "33b650af52": "Connect where your team tracks work. Alicorn starts workspaces with the issue title, link, and context already attached.",
+            "review_step_description": "Connect a review provider so Alicorn can show PR or MR status, checks, and reviews.",
+            "task_step_title": "Start agents on your tasks without leaving Alicorn"
+          },
+          "FeatureWallModal": {
+            "33dca8bbbe": "A short, workflow-by-workflow tour of Alicorn.",
+            "3567e147c8": "Get to know Alicorn"
+          },
           "FeatureWallSetupChecklist": {
             "b1f1981c5e": "See tasks"
           },
@@ -476,6 +611,15 @@
           "TasksAnimatedVisual": {
             "72f9e516a3": "pressing"
           },
+          "agent": {
+            "capability": {
+              "setup": {
+                "status": {
+                  "4c8e1f92a7": "open Alicorn Desktop on this Mac"
+                }
+              }
+            }
+          },
           "agents": {
             "orchestration": {
               "orchestration": {
@@ -484,7 +628,7 @@
                 }
               },
               "steps": {
-                "description": "Enable agents to manage and coordinate Orca workspaces to execute larger tasks.",
+                "description": "Enable agents to manage and coordinate Alicorn workspaces to execute larger tasks.",
                 "name": "Orchestration",
                 "subtitle": "Orchestration"
               },
@@ -496,6 +640,23 @@
                 "coordinatorBeat1": "PR 1/2 ready",
                 "coordinatorBeat2": "PR 2/2 ready",
                 "coordinatorInitial": "Splitting auth rewrite into 2 PRs…"
+              }
+            }
+          },
+          "feature": {
+            "wall": {
+              "setup": {
+                "checklist": {
+                  "localized": {
+                    "copy": {
+                      "42525ba8a4": "Bring your key repos into Alicorn so you can start agent work without hunting for folders.",
+                      "43781563c3": "Browse your web app without leaving Alicorn. Grab any element and send its exact source and styles to an agent with one click.",
+                      "7bcb4097fa": "Register the Alicorn shell command and install agent skills for browser, computer, and orchestration workflows.",
+                      "908898c3ee": "Use Alicorn's browser",
+                      "fee5557b02": "Enable Alicorn CLI"
+                    }
+                  }
+                }
               }
             }
           },
@@ -514,8 +675,13 @@
       },
       "floating": {
         "terminal": {
+          "FloatingTerminalOrchestrationDialog": {
+            "6f0aed26b8": "Install the Alicorn CLI and orchestration skill so agents can coordinate through Alicorn.",
+            "f726054620": "Enables agents to hand off context and coordinate work through Alicorn."
+          },
           "FloatingTerminalPanel": {
-            "25d7817f79": "terminal"
+            "25d7817f79": "terminal",
+            "8cf80db43b": "Set up the Alicorn CLI and agent skill so agents can coordinate through Alicorn."
           },
           "FloatingTerminalWindowControls": {
             "1e502f1284": "Open"
@@ -566,6 +732,15 @@
           "712c5abdbf": "label",
           "7bf3a6e5ac": "author"
         },
+        "github": {
+          "rate": {
+            "limit": {
+              "display": {
+                "d5e5de9070": "Alicorn uses REST, Search, and GraphQL through the GitHub CLI."
+              }
+            }
+          }
+        },
         "githubIssueCloseReasons": {
           "completed": {
             "description": "Done, closed, fixed, resolved",
@@ -592,6 +767,23 @@
           },
           "ProjectRow": {
             "c3b81ddea2": "DRAFT_ISSUE"
+          },
+          "ProjectViewWrapper": {
+            "1850fceac8": "{{value0}}/{{value1}} isn't added to Alicorn. Add it to start work, or open in GitHub.",
+            "1bf8c01c8b": "Switch to a Table view to work with this project in Alicorn.",
+            "2edf5e7e77": "{{value0}} — Alicorn doesn't support {{value1}} project views yet. File a feature request at {{value2}}.",
+            "7037c8f5f1": "Repository not in Alicorn"
+          }
+        }
+      },
+      "gitlab": {
+        "gitlab": {
+          "rate": {
+            "limit": {
+              "display": {
+                "2f9c16d6c3": "Alicorn uses REST through the GitLab CLI."
+              }
+            }
           }
         }
       },
@@ -603,6 +795,7 @@
           "key": {
             "dialog": {
               "57a66522c8": "connecting",
+              "d56d3629f4": "Prefer full access when Alicorn should show every team the account can access in that workspace. Restricted keys only expose permitted teams, and private teams require the key owner to have access.",
               "e689a4d0a6": "error"
             }
           }
@@ -616,12 +809,43 @@
           }
         }
       },
+      "link": {
+        "routing": {
+          "preference": {
+            "dialog": {
+              "description": "Use Alicorn's browser for terminal links, or keep your system browser.",
+              "keep": {
+                "orca": {
+                  "button": "Keep Alicorn"
+                },
+                "title": "Keep terminal links in Alicorn's browser?"
+              },
+              "orca": {
+                "button": "Open in Alicorn",
+                "note": "Alicorn can use imported cookies for logged-in sites."
+              },
+              "shortcut": {
+                "note": {
+                  "prefix": "When links open in Alicorn,"
+                }
+              },
+              "title": "Open terminal links in Alicorn's browser?"
+            }
+          }
+        }
+      },
       "mobile": {
         "MobileHero": {
+          "266c18c105": "Open Alicorn Mobile to pick up where you left off, or pair another device.",
+          "5410d55d79": "Alicorn Mobile",
           "79d2f480da": "Network interface to advertise",
           "7af266b80d": "Install QR code",
+          "b4ccce5cb7": "Control Alicorn from your phone. Check on agents, review changes, and kick off tasks while you're away from your desk.",
           "bb0074ce11": "Pairing QR code",
           "ca85e595a7": "No interfaces found",
+          "d1495e5e64": "Open Alicorn Mobile, tap",
+          "e75647ace0": "Scan the QR with your phone or open the install link to grab Alicorn Mobile.",
+          "pairingQrError": "This pairing code couldn’t be rendered as a QR code. Copy it into Alicorn Mobile instead.",
           "relayDegradedNotice": "Relay couldn’t be reached — this code only works on your LAN or Tailscale."
         },
         "MobilePage": {
@@ -629,8 +853,26 @@
           "c5909374cf": "intro"
         },
         "MobilePageToolbar": {
+          "9883b58693": "Close Alicorn Mobile",
           "a4f8c2d91e": "Hide from sidebar",
           "b7e3d1c84a": "Show in sidebar"
+        },
+        "MobileRelayMintFailureNotice": {
+          "reconnectBody": "Sign in again to use Alicorn Relay, or use LAN to pair over Tailscale or the same Wi‑Fi.",
+          "reconnectTitle": "Your Alicorn account session expired.",
+          "retryingTitle": "Retrying Alicorn Relay…",
+          "unavailableTitle": "Alicorn Relay isn’t available on this desktop."
+        },
+        "PhoneCarousel": {
+          "89c7713645": "Alicorn Mobile home screen"
+        },
+        "WindowsFirewallNotice": {
+          "blocked-description": "An existing inbound Block rule can override the pairing exception. Repair removes conflicting TCP rules for this Alicorn app, then allows port {{port}} on Private networks.",
+          "blocked-title": "Windows may be blocking Alicorn Mobile",
+          "missing-description": "Windows may block the pairing server. Add a rule for this Alicorn app and TCP port {{port}} on Private networks.",
+          "public-description": "Change this trusted Wi-Fi network to Private before allowing Alicorn Mobile connections.",
+          "relay-note": "Pairing still works over Alicorn Relay — allowing this only adds the faster local connection.",
+          "repair-success": "Windows Firewall now allows Alicorn Mobile on private networks"
         },
         "mobile": {
           "platform": {
@@ -641,6 +883,9 @@
           }
         },
         "slides": {
+          "HomeSlide": {
+            "5d94e8ddcc": "Alicorn"
+          },
           "WorktreeListSlide": {
             "c5ad56786d": "spinner"
           }
@@ -655,34 +900,58 @@
         }
       },
       "onboarding": {
+        "AgentStep": {
+          "69af7e9c1c": "isn't on your PATH yet. Alicorn will set it as your default and you can install it any time."
+        },
         "IntegrationsStep": {
           "93f0c49ad1": "not-authenticated",
           "a3bcf13694": "connected",
           "a74c6d6b18": "not-installed"
         },
         "NotificationStep": {
-          "2c47f5465f": "Turn on Allow notifications for Orca in System Settings. This step updates automatically once enabled.",
+          "0fe570690c": "Pick the alert Alicorn plays after a desktop notification is delivered.",
+          "2c47f5465f": "Turn on Allow notifications for Alicorn in System Settings. This step updates automatically once enabled.",
           "8124d085a6": "Open Mac Settings",
+          "90b5d2e363": "macOS is not delivering Alicorn notifications",
           "94562ba367": "macOS is asking for permission. Click Allow in the dialog and this step updates automatically.",
-          "aa36281b00": "Open System Settings and make sure Orca is allowed to send notifications.",
-          "d2dba86837": "Allow Orca in macOS"
+          "95d99b52fa": "Allow notifications for Alicorn",
+          "aa36281b00": "Open System Settings and make sure Alicorn is allowed to send notifications.",
+          "d2dba86837": "Allow Alicorn in macOS"
         },
         "OnboardingFlow": {
+          "1b5e182e9f": "Welcome to Alicorn",
+          "277ba45540": "Alicorn onboarding",
+          "322fc50a18": "Alicorn works with every CLI agent. Choose the one you'll reach for most. Switch any time.",
           "35bbaf5ae0": "notifications",
           "984338477a": "theme",
+          "a249f81538": "Alicorn",
           "a5e5da02f7": "integrations",
           "c47e1bd149": "agent",
-          "ff92d15436": "Orca will notify you know when agents are done or need help."
+          "ff92d15436": "Alicorn will notify you know when agents are done or need help."
         },
         "ThemeStep": {
           "ad19e5c916": "Importing…"
+        },
+        "WindowsTerminalStep": {
+          "defaultShellDescription": "Choose the shell Alicorn opens for new Windows terminal panes."
         },
         "mac": {
           "notification": {
             "permission": {
               "card": {
-                "3d18cf71f9": "Updates automatically."
+                "3d18cf71f9": "Updates automatically.",
+                "721d2bedb6": "Turn on Allow notifications for Alicorn in System Settings."
               }
+            }
+          }
+        }
+      },
+      "orca": {
+        "profiles": {
+          "signout": {
+            "confirm": {
+              "description": "Artifacts and Alicorn Relay will be unavailable until you sign in again. Your local projects and worktrees won't be affected.",
+              "title": "Sign out of Alicorn?"
             }
           }
         }
@@ -740,15 +1009,21 @@
             "workingDir": "Working dir"
           },
           "AiVaultSessionRow": {
+            "deleteReasonSyntheticPath": "This session can't be deleted from Alicorn.",
+            "deleteReasonUnsupportedAgent": "{{value0}} sessions can't be deleted from Alicorn.",
             "resumeAgentSession": "Resume {{value0}} session",
             "tokenCount": "{{value0}} tok"
           },
           "ChecksPanel": {
             "3c3ad3a1d2": "Started the agent. No selected comments can be marked resolved on the host.",
+            "5eb2163b6b": "Review the prompt before starting an agent. After the prompt is delivered, Alicorn resolves the selected host threads and replies to comments it cannot resolve.",
             "7202f4a40a": "unlink PR",
             "abf59262fb": "Review the prompt before starting an agent.",
             "e56c42122e": "destructive",
-            "gitlabUnlink": "Unlink MR"
+            "gitlabUnlink": "Unlink MR",
+            "review": {
+              "auto_retry": "Alicorn will retry at {{time}}."
+            }
           },
           "CreatePullRequestDialog": {
             "02b2ce911f": "Description (optional)",
@@ -788,7 +1063,9 @@
           "FileExplorerRow": {
             "128a99ed5e": "Unassigned",
             "2de3b21934": "markdown",
-            "3161c4e425": "folder"
+            "3161c4e425": "folder",
+            "clipboardStagingUnavailable": "Could not copy the file because Alicorn's temporary storage is unavailable",
+            "dd112c81d2": "Open in Alicorn Browser"
           },
           "FileExplorerToolbar": {
             "693cbeadd0": "Search"
@@ -818,6 +1095,7 @@
           },
           "SourceControl": {
             "03d238218c": "Details",
+            "0453ca3a9a": "{{value0}} created, but Alicorn could not refresh it yet.",
             "04832d8047": "rebase",
             "0fad573938": "Uncommitted",
             "15b7f210d7": "Review the prompt before starting an agent.",
@@ -849,10 +1127,12 @@
             "tooManyChanges": "Too many changes detected. Only the first {{value0}} changes are shown."
           },
           "SourceControlAgentActionDialogForm": {
-            "1bb611240f": "Use {basePrompt} for Orca's default prompt.",
+            "1bb611240f": "Use {basePrompt} for Alicorn's default prompt.",
+            "23280cbab1": "This template does not include {basePrompt}, so the agent will not receive Alicorn's default prompt.",
             "3e8f21954f": "error",
+            "5c75b24735": "Customize what the agent receives before Alicorn starts it.",
             "74168d7ada": "idle",
-            "d8f40128ee": "{basePrompt} is Orca's default prompt."
+            "d8f40128ee": "{basePrompt} is Alicorn's default prompt."
           },
           "activity": {
             "bar": {
@@ -867,6 +1147,7 @@
                 "07eccfa397": "No details are available for this check.",
                 "0fc6f743b3": "by",
                 "49ea0937e4": "Add comment to resolve list",
+                "5856874b59": "Alicorn will refresh checks while this panel stays open.",
                 "7c1f0a2b11": "Open",
                 "90206b6353": "comment",
                 "95ad090b01": "thread",
@@ -895,12 +1176,15 @@
                 }
               },
               "review": {
+                "active": {
+                  "body": "Alicorn is checking {{provider}} for a {{reviewLabel}} on this branch."
+                },
                 "auth": {
                   "body": "{{provider}} could not authenticate the credentials available in this environment. Check the {{provider}} login or environment token, then retry.",
                   "title": "{{provider}} authentication failed"
                 },
                 "auth_required": {
-                  "body": "{{provider}} must be connected in this environment before Orca can create a {{reviewLabel}}.",
+                  "body": "{{provider}} must be connected in this environment before Alicorn can create a {{reviewLabel}}.",
                   "title": "Connect {{provider}}"
                 },
                 "base_missing": {
@@ -908,7 +1192,7 @@
                   "title": "Base branch not on remote"
                 },
                 "cli": {
-                  "body": "Orca could not run {{provider}} CLI in this environment. Set it up here, then retry.",
+                  "body": "Alicorn could not run {{provider}} CLI in this environment. Set it up here, then retry.",
                   "title": "{{provider}} CLI unavailable"
                 },
                 "default_branch": {
@@ -919,13 +1203,28 @@
                   "body": "Check out a branch before creating a {{reviewLabel}}.",
                   "title": "No current branch"
                 },
+                "detail": {
+                  "network": "Alicorn also could not check {{reviewLabel}} status because this environment could not reach {{provider}}.",
+                  "positive": "Alicorn also has saved {{reviewLabel}} information that it could not verify.",
+                  "rate_limited": "Alicorn also could not check {{reviewLabel}} status because {{provider}} is temporarily limiting requests.",
+                  "untyped": "Alicorn also could not confirm whether this branch already has a {{reviewLabel}}."
+                },
                 "dirty": {
                   "body": "Commit or stash your changes before creating a {{reviewLabel}}.",
                   "title": "Commit changes first"
                 },
+                "existing": {
+                  "body": "Alicorn found an existing {{reviewLabel}} for this branch."
+                },
                 "fork": {
-                  "body": "Orca cannot create a {{reviewLabel}} from this fork head here.",
+                  "body": "Alicorn cannot create a {{reviewLabel}} from this fork head here.",
                   "title": "Fork head unsupported"
+                },
+                "git_error": {
+                  "body": "Alicorn could not confirm this branch's upstream from this environment. Retry before publishing or creating a {{reviewLabel}}."
+                },
+                "git_loading": {
+                  "body": "Alicorn is checking this branch before showing create or publish actions."
                 },
                 "needs_sync": {
                   "body": "Sync this branch with its upstream before creating a {{reviewLabel}}.",
@@ -939,13 +1238,16 @@
                   "body": "The current {{provider}} credentials cannot read this repository's {{reviewLabel}}s. Check the account, token scopes, and repository access, then retry.",
                   "title": "{{provider}} access denied"
                 },
+                "positive": {
+                  "body": "Alicorn has saved {{reviewLabel}} information for this branch but could not confirm its current status."
+                },
                 "repo": {
                   "body": "{{provider}} could not resolve or access the repository for the current remote and account. Check the remote and repository access, then retry.",
                   "title": "{{provider}} repository unavailable"
                 },
                 "skipped": {
                   "archived": {
-                    "body": "This repository is archived, so Orca is not refreshing {{reviewLabel}} status.",
+                    "body": "This repository is archived, so Alicorn is not refreshing {{reviewLabel}} status.",
                     "title": "Repository archived"
                   },
                   "bare": {
@@ -953,21 +1255,30 @@
                     "title": "Bare repository"
                   },
                   "disconnected": {
-                    "body": "This repository's execution host is disconnected, so Orca cannot refresh {{reviewLabel}} status.",
+                    "body": "This repository's execution host is disconnected, so Alicorn cannot refresh {{reviewLabel}} status.",
                     "title": "Host disconnected"
                   },
                   "not_git": {
-                    "body": "Orca could not treat this folder as a Git repository for {{reviewLabel}} status.",
+                    "body": "Alicorn could not treat this folder as a Git repository for {{reviewLabel}} status.",
                     "title": "Not a Git repository"
                   },
                   "remote": {
-                    "body": "Orca could not refresh {{reviewLabel}} status for this remote context. Retry after the host is available.",
+                    "body": "Alicorn could not refresh {{reviewLabel}} status for this remote context. Retry after the host is available.",
                     "title": "Remote-only context"
                   }
                 },
+                "unknown": {
+                  "body": "Alicorn has not confirmed the {{reviewLabel}} status for this branch. Retry to check again."
+                },
+                "unknown_error": {
+                  "body": "The lookup failed, so Alicorn could not confirm whether this branch already has a {{reviewLabel}}."
+                },
                 "unsupported": {
-                  "body": "This repository provider does not support creating a {{reviewLabel}} from Orca.",
+                  "body": "This repository provider does not support creating a {{reviewLabel}} from Alicorn.",
                   "title": "{{reviewLabelCap}} not supported here"
+                },
+                "untyped": {
+                  "body": "Alicorn could not confirm whether this branch already has a {{reviewLabel}}. Retry to check again."
                 }
               }
             }
@@ -991,6 +1302,13 @@
                 "mergeDescription": "Create a merge commit when local and remote both changed.",
                 "rebase": "Rebase",
                 "rebaseDescription": "Replay local commits on top of the remote branch."
+              }
+            }
+          },
+          "run": {
+            "view": {
+              "RunView": {
+                "812f26e81d": "A floor, not a total — some dispatches ran on a backend Alicorn does not price, or have not been measured yet."
               }
             }
           },
@@ -1059,17 +1377,33 @@
       },
       "settings": {
         "AccountsPane": {
+          "340d6f7a85": "Each account keeps its own local sign-in context in Alicorn. Account auth stays on this device.",
           "3455cf43fa": "Claude login.",
           "350b2a1aa7": "Use your current",
+          "380a7736cc": "Removing this account permanently deletes its managed Codex home, including all Codex session history and MCP logins stored inside. This cannot be undone. If the account is currently active, Alicorn falls back to the system default Codex login.",
+          "3fe7862418": "No managed Claude accounts for {{value0}}. Alicorn will use that environment's system default Claude login until you add one here.",
+          "4e32e030b2": "Stored locally. Alicorn sends it only to platform.minimax.io for usage refreshes.",
           "566d9a99ab": "_token=…; minimax_group_id_v2=…",
+          "72b36ea174": "Optional. Alicorn can use your normal Claude login; add accounts only if you want quick switching without moving chat sessions.",
+          "854ebbcc45": "Alicorn will delete the managed Claude auth for this saved account. If it is currently active, Alicorn falls back to the system default Claude login.",
           "9107406589": "Could not load Claude accounts.",
           "b10cb4f696": "adding",
           "b11078a9c2": "wsl",
-          "b8c2905c2b": "Could not load Codex accounts."
+          "b4c9450319": "No managed Codex accounts for {{value0}}. Alicorn will use that environment's system default Codex login until you add one here.",
+          "b8c2905c2b": "Could not load Codex accounts.",
+          "c2aee76420": "Extracts OAuth credentials from your local Gemini CLI installation to authenticate with Google for {{value0}}. This uses credentials issued to the Gemini CLI app, not Alicorn. May break if Google updates the CLI. Use at your own risk.",
+          "cedfab35ab": "Optional. Alicorn can use your normal Codex login; add accounts only if you want quick switching in Alicorn.",
+          "codexConfigSyncManagedHomeUnavailable": "Alicorn could not read this account’s Codex files just now, so settings may not be syncing. This usually clears on its own — antivirus or a backup tool briefly locks them.",
+          "d0d53b7eb0": "Manage which Codex account Alicorn uses for live rate limit fetching.",
+          "d676c41fc6": "Extracts OAuth credentials from your local Gemini CLI installation to authenticate with Google. This uses credentials issued to the Gemini CLI app, not Alicorn. May break if Google updates the CLI. Use at your own risk."
         },
         "AdvancedNetworkSettingsSection": {
+          "823e0f15b1": "Proxy URL for Alicorn network requests and local terminal children.",
           "d93c7cd531": "Configure app-level network routing.",
           "fb7130dcb9": "Hosts that should bypass the configured HTTP proxy."
+        },
+        "AdvancedPane": {
+          "87a2cb2ac8": "Alicorn applies this networking mode at startup."
         },
         "AgentLocationSetting": {
           "43663b5e69": "WSL",
@@ -1088,21 +1422,26 @@
         },
         "AgentsPane": {
           "9b175d0f5e": "Pre-selected agent when opening a new workspace.",
+          "agentPermissionsDescription": "Choose whether Alicorn launches agents with fewer permission prompts or with manual checks.",
           "c8794e622e": "Detected",
+          "codexSessionSourceTooltip": "Alicorn runs Codex in an isolated home. Point this at your existing Codex home to import that session history. Empty uses ~/.codex.",
           "db9e9e5887": "Customize command",
           "df123171d1": "Not installed"
         },
         "AppearancePane": {
-          "0f28e7b30c": "Choose how Orca looks in the app window.",
-          "2df8f79aa5": "Show Orca in the titlebar.",
-          "42554f615f": "Choose the font used by the Orca interface.",
+          "0f28e7b30c": "Choose how Alicorn looks in the app window.",
+          "2df8f79aa5": "Show Alicorn in the titlebar.",
+          "42554f615f": "Choose the font used by the Alicorn interface.",
           "4de76f6902": "Control what appears in the application titlebar.",
-          "5db6ba961f": "Show the Orca Mobile button at the top of the left sidebar.",
+          "5db6ba961f": "Show the Alicorn Mobile button at the top of the left sidebar.",
+          "61d842eca0": "Show the Alicorn Mobile shortcut in the sidebar. It remains available from Toolbox.",
           "622e1c3465": "Scale the entire application interface.",
           "661942ab7f": "Show the Tasks button at the top of the left sidebar.",
           "6a272ca553": "Titlebar",
           "75f07ab60c": "Show files matched by .gitignore in the file explorer.",
           "872af9556e": "System Tray",
+          "9da1020447": "Show Alicorn Mobile Button",
+          "b707773a0d": "When enabled, closing the window keeps Alicorn running in the system tray instead of quitting.",
           "e9f2ca5582": "Turn off to hide files matched by .gitignore from the file explorer.",
           "ea943d0db0": "Choose which indicators appear at the bottom of the window. You can also right-click the status bar for the same toggles.",
           "f687711a9b": "Scale the entire application interface. Use",
@@ -1111,12 +1450,16 @@
           "workspaceCardLayoutGuidance": "Managed from the workspace sidebar."
         },
         "AutoRenameBranchFromWorkSetting": {
+          "12ea4a408d": "When an agent starts working in a new workspace, Alicorn renames its auto-generated branch (e.g.",
+          "5d569f5199": ". Alicorn generates only the final segment, like",
+          "69bf4830c2": "to include Alicorn's",
+          "d9b65054ef": ") to a short name summarizing the task. Only branches Alicorn named itself are renamed, and never after they have been pushed.",
           "ef787db0e3": "Auto-Rename Branch"
         },
         "AutoRenameBranchPromptEditor": {
           "0691753cf2": "Unsaved changes",
           "182d419b97": "built-in branch-name prompt",
-          "2f5dc661fe": "Appended to Orca's",
+          "2f5dc661fe": "Appended to Alicorn's",
           "39278f4411": "; your branch prefix setting still applies.",
           "4416b25d29": "Prefer domain nouns from the task, avoid ticket IDs, and keep names reviewer-friendly.",
           "54ac229ad4": "Saving...",
@@ -1124,35 +1467,66 @@
           "63121132c0": "Discard",
           "7d6176f506": "Prompt",
           "af0831a590": "Saved",
-          "af2d9a2cc6": ". Orca generates only the final segment, like",
+          "af2d9a2cc6": ". Alicorn generates only the final segment, like",
           "ebb942a2ec": "fix-login-flow"
         },
+        "BrowserLinkRoutingModifierSetting": {
+          "descriptionOrca": "Links open in your system browser. When enabled, {{chord}}+click opens one in Alicorn's built-in browser instead.",
+          "descriptionSystem": "Links open in Alicorn, so {{chord}}+click sends one to your system browser instead.",
+          "titleOrca": "Hold Shift to open in Alicorn"
+        },
+        "BrowserLinkRoutingSetting": {
+          "description": "Open http(s) links in Alicorn's built-in browser — from the terminal, markdown, and the editor. {{shortcut}} always uses your system browser.",
+          "descriptionBase": "Open http(s) links in Alicorn's built-in browser — from the terminal, markdown, and the editor."
+        },
+        "BrowserLocalhostWorktreeLabelsSetting": {
+          "1db3c8b983": "Open workspace ports as worktree-specific Alicorn localhost URLs so browser tabs are easier to tell apart."
+        },
         "BrowserPane": {
-          "4af9a17947": "kagi"
+          "4af9a17947": "kagi",
+          "c0f85056d9": "Browser profiles on this Alicorn server."
         },
         "BrowserProfileRow": {
           "7df818977e": "From",
           "d420c43729": "Imported {{value0}} cookies from {{value1}}{{value2}} into {{value3}}."
         },
         "BrowserUsePane": {
+          "68ea76eb71": "Install the Browser Use skill so agents can operate Alicorn's browser.",
+          "721aee31b4": "Registered the Alicorn CLI in PATH.",
+          "72d4815523": "Bring your existing logins into Alicorn so agents can reach authenticated pages. Imports into the default profile.",
+          "9fca1f7f5d": "Registers the Alicorn CLI command so agents can orchestrate the browser from their shell.",
+          "c6065d205d": "Enable Alicorn CLI",
+          "c79eff0213": "Register the Alicorn CLI so agents can drive the browser.",
           "e44c5d681e": "From"
         },
+        "BrowserUseSkillStep": {
+          "0871b6998d": "Enables agents to navigate and verify pages in Alicorn's browser."
+        },
         "CliSection": {
+          "36a6f919ba": "Give agents Alicorn-aware workspace, terminal, and progress workflows.",
           "4c7e3e4c5f": "install",
           "5d432fe44d": "installed",
+          "6930feda9e": "Use Alicorn from your terminal to open the app, manage worktrees, and interact with Alicorn terminals.",
           "8a9b784c60": "stale",
           "8d96213669": "remove",
+          "a030816e3e": "This removes the shell command symlink. Alicorn itself remains installed.",
+          "aa6536977e": "Alicorn will register {{value0}} so the command works from your terminal.",
+          "c5c0f2641d": "Alicorn CLI",
           "cliSkillTerminalAria": "CLI skill install terminal",
-          "cliSkillTerminalTitle": "CLI skill setup"
+          "cliSkillTerminalTitle": "CLI skill setup",
+          "e8012c03a1": "Enables agents to use Alicorn workspace, terminal, and progress commands.",
+          "installFailureUnknownReason": "Alicorn could not finish CLI registration and reported no reason."
         },
         "CliSkillRuntimeSetup": {
           "04325573f8": "WSL",
-          "0c9f3cf9da": "Choose where Orca checks and installs global agent skills.",
+          "0c9f3cf9da": "Choose where Alicorn checks and installs global agent skills.",
           "7c776ff9d8": "wsl",
           "a58ba464ad": "Skill location",
           "f00d6aa9b5": "WSL is not available on this machine."
         },
         "CommitMessageAiPane": {
+          "1ef29f8c29": "Command line Alicorn runs when a text recipe uses Custom command.",
+          "3f1b26cc91": "to pass the command input as an argument; otherwise Alicorn pipes it on stdin.",
           "841ed9884a": "Used by repositories that have not customized Source Control AI."
         },
         "ComputerUsePane": {
@@ -1161,6 +1535,18 @@
           "4b65070096": "darwin",
           "4d03dec2d0": "Read app interface trees and perform requested actions.",
           "6b5a2cd3a5": "Accessibility"
+        },
+        "DevToolsPane": {
+          "orcaCloud": "Alicorn Cloud",
+          "orcaCloudNotConfigured": "Set ALICORN_CLOUD_API_URL and ALICORN_CLOUD_CLIENT_ID to preview Alicorn Cloud sign-in in this dev build."
+        },
+        "DeveloperPermissionsPane": {
+          "6326a4c5cc": "Use these controls when a CLI, local app, or automation tool needs macOS privacy access. Alicorn does not ask at startup.",
+          "6f011b9bf6": "Terminal tools inherit Alicorn's macOS privacy envelope.",
+          "7ca17b62c8": "macOS names Alicorn when the agents it runs read other apps' data, because Alicorn is the responsible process for terminal commands. Grant this to Alicorn to reduce those prompts. Then quit and reopen Alicorn.",
+          "connectionTestDescription": "Enter a service on another device on your local network. Alicorn tests the same network path used by terminal tools.",
+          "f903bf20b5": "Allows terminals and development tools to connect to services on your local network. macOS does not report this permission's current status to Alicorn.",
+          "localNetworkPromptGuidance": "If prompted, choose Allow. If no prompt appears, open System Settings and enable Alicorn under Privacy & Security → Local Network."
         },
         "EphemeralVmRuntimesSection": {
           "cleaned": "Cleaned up temporary VM runtime.",
@@ -1172,29 +1558,49 @@
           "refresh": "Refresh temporary VM runtimes",
           "title": "Temporary VM runtimes"
         },
+        "EphemeralVmsPane": {
+          "whatScaffold": "Writes the recipe & scripts for your provider — connected over an Alicorn server or SSH."
+        },
         "ExperimentalPane": {
           "0277901cf7": "Adds an Agents entry to the left sidebar with a threaded worktree feed for completed agents, blocking questions, unread state, and worktree creation events. Experimental — the event model and UI may change.",
           "24416f42cd": "Shared paths on worktrees",
           "9762364929": "Uses APFS clone-copy on macOS when possible, otherwise symlinks configured folders or files into created worktrees.",
           "a05bcdaf57": "Agents View",
+          "agentHibernation": {
+            "copy": "Stops idle background agent terminals after the configured idle window and resumes supported sessions when you open them again. Agent sleep preserves launch options for agents started by Alicorn. Manually started agents may resume with your current Alicorn defaults. Experimental while we tune the safety model.",
+            "idleMinutesDescription": "How many idle minutes a completed background agent must wait before Alicorn can sleep it."
+          },
           "f63ea281e3": "Threaded left-sidebar feed for agent completions and blocking states.",
           "fb82ea1d7a": "Automatically materialize configured files or folders into newly created worktrees.",
           "nativeChat": {
             "copy": "Enables the experimental Chat UI for newly created supported local sessions. Existing terminal sessions keep the terminal chat path while we tune transcript fidelity, streaming, and parity.",
-            "description": "Preview the desktop chat surface for supported agent terminal sessions."
+            "description": "Preview the desktop chat surface for supported agent terminal sessions.",
+            "structuredScope": "Local sessions only for now. WSL and remote execution hosts (including SSH) continue to use terminal chat, and Windows falls back to it unless Alicorn can read process start times."
           },
           "newWorktreeCardStyle": {
             "copy": "Preview updated worktree-card layout, metadata placement, card-display menu options, and status presentation."
           }
         },
+        "FloatingWorkspacePane": {
+          "81afb79785": "New floating terminal tabs start here. Markdown notes are saved in Alicorn's app-owned floating workspace."
+        },
+        "GeneralEditorSettingsSection": {
+          "1bec6d8318": "How long Alicorn waits after your last edit before saving automatically.",
+          "8112cd6dcf": "How long Alicorn waits after your last edit before saving automatically. First launch defaults to",
+          "d21136d9ef": "Configure how Alicorn persists file edits."
+        },
         "GeneralRemoteServerUpdates": {
+          "description": "Check and update paired Alicorn servers from this client.",
           "reviewUpdateOne": "1 update available",
-          "reviewUpdates": "{{value0}} updates available"
+          "reviewUpdates": "{{value0}} updates available",
+          "title": "Remote Alicorn Servers"
         },
         "GeneralSupportSection": {
           "1e29570462": "starring",
           "511782265b": "Support the project with a GitHub star via the gh CLI.",
+          "55a87e5fd1": "Support Alicorn",
           "5c49f02662": "hidden",
+          "6922c1fa2b": "Star Alicorn on GitHub",
           "73b327e793": "Try Again",
           "9d181300e3": "starred",
           "b3f0584f5d": "loading",
@@ -1207,19 +1613,25 @@
           "7173352632": "idle",
           "82465b2444": "available",
           "90eb7309d7": "not-available",
-          "a0832ccdb1": "downloaded"
+          "a0832ccdb1": "downloaded",
+          "ceb579abaf": "Check for app updates and install a newer Alicorn version.",
+          "e3b9d21c07": "is available. Update Alicorn through your system package manager — Alicorn cannot install this release itself."
         },
         "GeneralWorkspaceSettingsSection": {
-          "externalWorktreesDescription": "Choose whether worktrees created outside Orca appear by default.",
+          "externalWorktreesDescription": "Choose whether worktrees created outside Alicorn appear by default.",
           "hide": "Hide",
           "show": "Show"
         },
         "GitPane": {
+          "36e3de3619": "from comparing against stale history. Alicorn skips the update if that branch has uncommitted changes or local-only commits.",
+          "976afc6b3e": "When you create a workspace, Alicorn refreshes the remote base and safely fast-forwards your matching local branch, such as",
           "f35007e6e8": "git-username"
         },
         "GrokAccountsSection": {
-          "c3d4e5f6a7": "Signed in. Orca only reads that file on disk — run grok login again if usage fails.",
-          "d4e5f6a7b8": "Session expired — run grok login in a terminal to refresh."
+          "b36fa2c908": "Signed in. Alicorn reads the Grok CLI session stored on disk.",
+          "c3d4e5f6a7": "Signed in. Alicorn only reads that file on disk — run grok login again if usage fails.",
+          "d4e5f6a7b8": "Session expired — run grok login in a terminal to refresh.",
+          "f08c41de73": "Session expired — run grok on the computer running Alicorn and wait for it to start. If prompted, complete sign-in, then click Refresh usage. No chat message is needed."
         },
         "IntegrationsPane": {
           "01f6c7582e": "Learn more",
@@ -1229,7 +1641,8 @@
           "0879860c58": "Pull requests and build statuses via Bitbucket Cloud API tokens.",
           "09285e9fe6": "The GitHub CLI is installed but not authenticated. Run this command in a terminal:",
           "15cf990798": "Not authenticated",
-          "1a62c295c6": "Gitea credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Orca if environment variables changed.",
+          "1683acbac4": "Connect the source hosts Alicorn can use for pull requests, merge requests, checks, and review status.",
+          "1a62c295c6": "Gitea credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Alicorn if environment variables changed.",
           "1fac9b4910": "{{value0}} · Pull requests and commit statuses",
           "2122e15517": "Each connected Linear workspace has one key stored by the active runtime. Full-access keys can cover all teams the key owner can access; restricted keys can be replaced any time.",
           "264a9b6128": "Linear",
@@ -1240,7 +1653,8 @@
           "35a3379372": "Install the GitLab CLI to enable merge requests, issues, and pipelines.",
           "3614887c40": "checking",
           "399cf46867": "Install GitHub CLI",
-          "3c3cf05c63": "Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart Orca if environment variables changed.",
+          "3ba07f933b": "Connect issue trackers Alicorn can use to browse tasks and start workspaces with linked context.",
+          "3c3cf05c63": "Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart Alicorn if environment variables changed.",
           "44cde4aa01": "ALICORN_BITBUCKET_API_TOKEN",
           "45bf5e6e4b": "Auth failed",
           "4831ba1083": "Re-check",
@@ -1250,7 +1664,7 @@
           "4ee74d1470": "Set",
           "51000487c4": "gh auth login",
           "513abfe47d": "GitLab",
-          "5a1f86225a": "only when Orca cannot derive the API URL from the remote.",
+          "5a1f86225a": "only when Alicorn cannot derive the API URL from the remote.",
           "5ee6ef6405": "ALICORN_AZURE_DEVOPS_TOKEN",
           "5efce6953d": "Azure DevOps",
           "6193444689": "ALICORN_GITEA_API_BASE_URL",
@@ -1261,12 +1675,12 @@
           "67a9f26a80": ". Set",
           "6bd148dcb5": "Pull requests and commit statuses via the Gitea REST API.",
           "6e0ff3403e": "ALICORN_BITBUCKET_ACCESS_TOKEN",
-          "6f317f5132": "only when Orca cannot derive the API base URL from the git remote.",
+          "6f317f5132": "only when Alicorn cannot derive the API base URL from the git remote.",
           "70c5f74f36": "GitHub",
           "8489c0aa49": "Bitbucket",
           "8e078e480c": "Disconnect {{value0}}",
           "8f960935c1": "ALICORN_AZURE_DEVOPS_ACCESS_TOKEN",
-          "953b7bf6f7": "Azure DevOps credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Orca if environment variables changed.",
+          "953b7bf6f7": "Azure DevOps credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Alicorn if environment variables changed.",
           "95b9a87e7e": "Test",
           "9707523939": "Pull requests and build statuses",
           "98ded79cd7": "{{value0}} workspace{{value1}} connected",
@@ -1294,6 +1708,16 @@
           "f92fbf11aa": "Not configured",
           "fe4d378dc4": "Verified"
         },
+        "KeybindingsFileActions": {
+          "1c2be2b2c6": "Edit File in Alicorn",
+          "dd532a01ce": "Failed to open keybindings in Alicorn."
+        },
+        "LinearAgentSkillGuide": {
+          "setupConnectBody": "Personal API key so Alicorn can list issues and open linked workspaces."
+        },
+        "LinearAgentSkillPane": {
+          "description": "How Linear works in Alicorn: browse issues, start linked workspaces, and let agents update tickets with /orca-linear."
+        },
         "ManageSessionsSection": {
           "9c940434af": "Switch back to the local runtime to restart or kill local daemon sessions.",
           "a06ababda0": "killAll",
@@ -1305,11 +1729,26 @@
         },
         "MobileEmulatorAgentControlRow": {
           "1861982430": "Failed to load CLI status.",
-          "cdeaed9e37": "Registered the Orca CLI in PATH."
+          "2fef055608": "Registers the Alicorn CLI command so agents can control the active emulator from their shell.",
+          "3941719a56": "Checking Alicorn CLI before opening skill setup.",
+          "3d34423e88": "Registering the Alicorn CLI",
+          "4f2205f3b6": "Enable Alicorn CLI",
+          "67e19ee03c": "Alicorn CLI skill",
+          "cdeaed9e37": "Registered the Alicorn CLI in PATH.",
+          "d94ca6a623": "Enables agents to use Alicorn CLI commands, including mobile emulator control.",
+          "ff4b7e65d6": "Let coding agents control the active mobile emulator with Alicorn CLI commands."
+        },
+        "MobileEmulatorExamples": {
+          "4daa95f25a": "Paste any of these into Claude Code, Codex, or another agent in a project where the Alicorn CLI skill is installed."
         },
         "MobileEmulatorSdkStatus": {
           "536026130e": "Emulator SDKs",
-          "dde0ec1cd8": "Toolchains Orca uses to run emulators. Android works on any OS via the Android SDK; iOS Simulators need Xcode on macOS."
+          "dde0ec1cd8": "Toolchains Alicorn uses to run emulators. Android works on any OS via the Android SDK; iOS Simulators need Xcode on macOS."
+        },
+        "MobileEmulatorSettingsPane": {
+          "19d39113b6": "Let coding agents control the active mobile emulator with Alicorn CLI commands.",
+          "bc39d0f115": "Configure mobile emulator support for Alicorn and coding agents.",
+          "f62a1bb759": "Alicorn will auto-select an emulator device after devices are detected."
         },
         "MobileNetworkInterfaceSection": {
           "1dc87a7fbc": "Tailscale",
@@ -1318,23 +1757,38 @@
           "39fad211d9": "Connect outside your Wi-Fi with a tailnet",
           "406a35121c": "Network Interface",
           "51d29927eb": "Install",
-          "63d5e4ae1e": "Regenerate the QR code and scan it from the Orca mobile app.",
+          "63d5e4ae1e": "Regenerate the QR code and scan it from the Alicorn mobile app.",
           "668016be7a": "on your computer and phone.",
           "87985ba6f5": "In this Network Interface menu, choose the Tailscale address, usually a 100.x.y.z IP.",
-          "9fc5d203ff": "Orca Mobile connects directly to this computer. To use it away from the same LAN, put your computer and phone on the same private overlay network, then generate the QR code with that network address selected.",
+          "9fc5d203ff": "Alicorn Mobile connects directly to this computer. To use it away from the same LAN, put your computer and phone on the same private overlay network, then generate the QR code with that network address selected.",
           "a9db5d771d": "Refresh network interfaces",
           "c541f67790": "Generate QR Code",
           "d536b5e20d": "Choose which network address to advertise in the QR code. Use your LAN address for same-network pairing, or an overlay network address (Tailscale, ZeroTier) for cross-network access."
         },
+        "MobilePairingConnectionOptions": {
+          "anywhereTitle": "Alicorn Relay",
+          "relayUnavailable": "Alicorn Relay isn’t available in this build. Use LAN."
+        },
+        "MobilePairingSetupSection": {
+          "overview": "Generate a QR code, then scan it in Alicorn Mobile under Pair Desktop."
+        },
         "MobilePane": {
+          "1592afcc7a": "No devices paired yet. Scan the QR code with the Alicorn mobile app.",
+          "310924ad2c": "Scan this code with the Alicorn mobile app. Each code creates a unique device token.",
+          "35100bca5d": "While you're using a terminal on your phone, Alicorn shrinks it to fit your phone screen. When you close the app or switch away, this controls whether it stays at phone size (so interactive CLI tools don't reflow) or resizes back to your desktop. You can always use Restore this terminal or Restore all terminals on the banner to resize manually.",
+          "dd3cd78d04": "Scan with Alicorn Mobile",
+          "pairingQrError": "This pairing code couldn’t be rendered as a QR code. Copy it into Alicorn Mobile instead.",
           "relayDegradedNotice": "Relay couldn’t be reached — this code only works on your LAN or Tailscale. Regenerate to try again."
         },
         "MobileRelayBetaAvailability": {
-          "about": "About the Orca Relay beta",
+          "about": "About the Alicorn Relay beta",
           "androidApk": "Android APK",
           "availability": "Available on",
           "beta": "Beta",
           "testFlight": "TestFlight"
+        },
+        "MobileRelayBetaNotice": {
+          "notice": "Alicorn Relay is in beta."
         },
         "MobileRelayStatusSection": {
           "automatic": "Connect from anywhere when a phone is paired",
@@ -1347,23 +1801,71 @@
           "signIn": "Sign in",
           "signInPrompt": "Sign in on this desktop to connect from anywhere",
           "standby": "Standby — no relay devices",
-          "title": "Orca Relay",
+          "title": "Alicorn Relay",
           "unavailable": "Unavailable"
         },
         "MobileSettingsPane": {
+          "1de96ec8a6": "Show Alicorn Mobile Button",
+          "682293cadf": "Show the Alicorn Mobile button at the top of the left sidebar.",
           "9a3c280e49": "GitHub Releases",
           "b0088412a1": "or the Android APK from",
-          "c8491c17ef": "Control Orca from your phone by scanning a QR code. Beta / early preview - expect bugs and breaking changes. Get the iOS app from the"
+          "c8491c17ef": "Control Alicorn from your phone by scanning a QR code. Beta / early preview - expect bugs and breaking changes. Get the iOS app from the",
+          "d4f2b65f30": "Show the Alicorn Mobile shortcut in the sidebar.",
+          "installIntro": "Install Alicorn Mobile from the"
         },
         "NotificationsPane": {
+          "115437bc35": "If no macOS banner appeared, enable Allow notifications for Alicorn.",
           "274af61bc0": "system",
+          "2a2033c388": "Choose the alert Alicorn plays when a desktop notification is delivered.",
+          "4676a95bc3": "Check your desktop notification settings for Alicorn.",
           "d3756cf5bc": "disabled"
+        },
+        "OrchestrationPane": {
+          "9bedd2a6e5": "Enables agents to hand off context and coordinate work through Alicorn."
+        },
+        "OrchestrationSetupCard": {
+          "e7d2a5146c": "Enables agents to hand off context and coordinate work through Alicorn."
         },
         "OrchestrationSkillAgentCoverage": {
           "fullCoverage_one": "All 1 detected agent has the skill.",
           "fullCoverage_other": "All {{value0}} detected agents have the skill."
         },
+        "PluginConsentDialog": {
+          "declarativeWarning": "This plugin contributes validated content only. It does not run a background worker or receive access to Alicorn's API.",
+          "panelWarning": "These permissions limit how the plugin uses Alicorn's API. This plugin has no background worker.",
+          "warning": "These permissions limit how the plugin uses Alicorn's API. Its worker still runs as a normal process on your computer with full access to your files, network, and other processes."
+        },
+        "PluginConsentProvenance": {
+          "bundled": "Bundled with Alicorn"
+        },
+        "PluginDevelopmentSection": {
+          "help": "Load plugins directly from folders on this computer while you develop them. Dev plugins still require permission review. Workers run on this desktop host; SSH workspace actions route through Alicorn, so paths here are desktop paths."
+        },
+        "PluginInstallDialog": {
+          "description": "Installing copies the plugin into Alicorn and shows its permissions for review. No plugin code runs until you enable it."
+        },
+        "PluginMarketplaceListingRow": {
+          "blocked": "Blocked by Alicorn's safety list: {{value0}}"
+        },
+        "PluginMarketplacePreviewDialog": {
+          "blocked": "Alicorn's safety list blocks this plugin: {{value0}}",
+          "workerWarning": "Capabilities limit how this plugin uses Alicorn's API. Its worker still runs as a normal process on this computer with full access to your files, network, and other processes."
+        },
+        "PluginMarketplaceSourceDialog": {
+          "description": "Marketplaces are pinned Git repositories. Alicorn uses your existing system Git credentials for private repositories."
+        },
+        "PluginRollbackDialog": {
+          "description": "This deactivates {{value0}} and restores its previous immutable version. If that version requests different access or instructional content, Alicorn will require another review."
+        },
+        "PluginSettingsRow": {
+          "killListMessage": "Alicorn's safety list disabled this plugin: {{value0}}"
+        },
+        "PluginsSettingsSection": {
+          "description": "Install and manage Alicorn plugins. Plugins run on this computer, even for SSH workspaces.",
+          "systemDescription": "Discovers installed plugins and lets you enable them individually. Nothing runs until you review and enable it. Workers always run on this computer; SSH workspace actions route through Alicorn."
+        },
         "PrivacyPane": {
+          "8bfdd23a88": "Help us figure out what to build next. Alicorn sends anonymous counts of which features you use and where things break.",
           "afec8b03be": "ci"
         },
         "ProjectWindowsRuntimeSetting": {
@@ -1375,6 +1877,7 @@
         "QuickCommandsPane": {
           "44923dd982": "destructive",
           "7784912ed6": "repo",
+          "d59bd333c3": "Update this Alicorn server to manage its quick commands.",
           "f91b649324": "Saved Commands"
         },
         "ReleaseChannelSection": {
@@ -1384,15 +1887,29 @@
         },
         "RemoteServerUpdateDialog": {
           "checkAgain": "Check for Server Updates",
+          "description": "Review paired servers and update supported installs from this Alicorn client.",
+          "empty": "No paired Remote Alicorn Servers.",
           "restartWarning": "Updating restarts these servers. {{value0}} live tabs and {{value1}} terminal panes may briefly disconnect.",
+          "title": "Update Remote Alicorn Servers",
           "updateOne": "Update server",
           "updating": "Updating servers…"
         },
+        "RemoteServerUpdateStatus": {
+          "serviceManagerHelp": "Update Alicorn on the server host — through its system package manager if it was installed from a .deb or .rpm, otherwise through the service manager that starts it."
+        },
+        "RepositoryForkSyncSection": {
+          "blockedFallback": "Alicorn could not fast-forward this fork safely.",
+          "longDescription": "When this fork is behind upstream, Alicorn can safely fast-forward its default branch. Alicorn skips the update if the branch has local-only commits or conflicts."
+        },
         "RepositoryHooksSection": {
+          "0cc712b823": "The core configuration file exists in the repo root, but Alicorn could not parse the supported hook definitions yet.",
           "0e0dd5b9a5": "loaded",
           "32f417fe17": "text-emerald-700 dark:text-emerald-300",
+          "7f78e5eea6": "Local scripts are saved. Alicorn is still checking orca.yaml before it can recommend which script source to use.",
           "8dbe6bedf5": "invalid",
           "925f9e0dc4": "text-foreground",
+          "aba825233f": "The file contains configuration keys that this version of Alicorn does not recognize. You may need to update Alicorn, or check the file for typos.",
+          "af49e2a19e": "The file is present, but Alicorn could not find valid `scripts` or `issueCommand` definitions.",
           "b5e3e77e89": "action",
           "c90b858573": "text-amber-700 dark:text-amber-300"
         },
@@ -1402,6 +1919,11 @@
         "RepositoryPane": {
           "createPendingSetup": "Track setup",
           "creatingPendingSetup": "Creating...",
+          "externalWorktreesDescription": "Override whether worktrees created outside Alicorn appear for this project.",
+          "hostSetupBlockedVersion": "Alicorn server version is incompatible",
+          "hostSetupMissingCapability": "Update Alicorn on this host to set up projects",
+          "hostWorkspaceWindowClosedHelp": "The server is reachable but its Alicorn window is closed. Open Alicorn on {{value0}} to use this setup.",
+          "removeProjectAllHosts": "Remove this project from Alicorn on all configured hosts.",
           "settingUpHost": "Importing...",
           "setupExistingFolder": "Import existing folder",
           "setupExistingFolderHelp": "Make this project available on another host by linking a checkout that already exists there.",
@@ -1426,63 +1948,118 @@
         "RuntimeEnvironmentsPane": {
           "163671f7b5": "Run",
           "1826bd0608": "Saved Servers",
+          "2c85efb3e8": "Selecting a saved server makes this browser use that paired Alicorn runtime as its default Host.",
           "54ebacc600": "Server name",
           "55fcc964cd": "on the server and paste the printed pairing URL.",
+          "6e1280ca55": "Share this Alicorn server",
           "7b5986c8df": "Saved {{value0}}. Use Active Server to switch when ready.",
-          "8cf8790697": "Saved servers route this browser through a paired Orca runtime.",
-          "960e901ae4": "orca serve --pairing-address <host>",
+          "84b9b2be05": "Create a revocable access grant so a browser or another Alicorn client can connect.",
+          "8cf8790697": "Saved servers route this browser through a paired Alicorn runtime.",
+          "960e901ae4": "alicorn serve --pairing-address <host>",
           "9bc9b83474": "Pairing code",
-          "9f7665a01b": "Removing the active server first switches Orca back to Local desktop. Existing host sessions are left alone.",
+          "9f7665a01b": "Removing the active server first switches Alicorn back to Local desktop. Existing host sessions are left alone.",
+          "advertiseThisAppHelp": "Create access links for browsers, mobile clients, or another Alicorn client to connect back to this running app.",
+          "b2290ed203": "Alicorn will focus this host and load its projects. Existing terminals and browser tabs on other hosts stay alive.",
           "b2fda48c39": "Removing the active server disconnects this browser from that host. Existing host sessions are left alone.",
           "c3d772c514": "orca://pair?code=...",
+          "connectToRemoteServersHelp": "Pair another Alicorn runtime, then connect or disconnect it here.",
           "e038625857": "Dev box",
+          "ed3e3f069d": "This removes the saved server from Alicorn. It does not change the active server.",
           "f3a3d6d834": "{{value0}} capabilities",
           "f75ce1c7a5": "Local keeps today's desktop behavior. Saved servers route supported client calls through the remote runtime.",
+          "orcaVersion": "Alicorn v{{value0}}",
+          "serverRuntimeUnavailable": "Alicorn unavailable",
+          "serverRuntimeUnavailableDescription": "SSH transport is connected, but the Alicorn runtime did not answer. The host may still be running.",
           "updateAvailableOne": "1 update available",
-          "updatesAvailable": "{{value0}} updates available"
+          "updatesAvailable": "{{value0}} updates available",
+          "versionUnavailable": "Alicorn version unavailable"
+        },
+        "RuntimeHostAccessForm": {
+          "accessLinkHelp": "Alicorn shows the destination before connecting. Credentials stay hidden.",
+          "headlessHelp": "Using headless alicorn serve? Run alicorn serve --pairing-address <reachable-host> on the other computer.",
+          "identityMismatch": "The reached Alicorn host does not match this access link",
+          "identityMismatchHelp": "Alicorn reached {{endpoint}}, but that host does not match this link. Generate a new link on the other host.",
+          "incompatible": "Alicorn versions are not compatible",
+          "incompatibleHelp": "Update Alicorn on this device and the other host, then try again.",
+          "name": "Name in Alicorn",
+          "nameHelp": "This only changes how the computer appears in Alicorn.",
+          "saveFailedHelp": "The host was verified, but Alicorn could not save it. Check the name and local settings storage, then try again.",
+          "stepCopyLink": "Generate the link, then copy the “Pair another Alicorn client” link.",
+          "stepOpenShare": "Open Settings → Remote Alicorn Servers → Share this host.",
+          "unavailableHelp": "Make sure Alicorn is running on the other host and that the network or SSH tunnel can reach {{endpoint}}."
         },
         "RuntimePairingUrlGenerator": {
           "279e0dcb57": "127.0.0.1 only works on this computer. Use a LAN, Tailscale, or custom address for another device.",
+          "2e5c4e3c93": "Pair another Alicorn client",
+          "849825e829": "Paste this pairing URL into another Alicorn client.",
           "add-custom": "Add custom address…",
           "b91e36a986": "web",
-          "de6d5cff95": "This computer ("
+          "de6d5cff95": "This computer (",
+          "f7cafdc9f3": "Browser link unavailable in this build. The pairing URL still works for Alicorn clients.",
+          "f8500e134a": "Share this Alicorn server",
+          "localLinkHelp": "This link only works in a browser or Alicorn client running on this computer.",
+          "localOnlyHelp": "A browser or Alicorn client on this computer"
         },
         "Settings": {
+          "01f9d36292": "Configure mobile emulator support for Alicorn and coding agents.",
           "084d8fac5b": "Privacy & Security",
+          "21f09426ea": "Optional. Alicorn works with your existing provider logins; add accounts only if you want Alicorn to help switch between them.",
           "2309068a6f": "destructive",
           "23931df7e8": "Remote Hosts",
           "23c6874fdf": "AI Capabilities",
+          "475980f53d": "Coordinate multiple coding agents through Alicorn.",
+          "6855b0f77d": "Finish the core workflows that make Alicorn useful for parallel agent work.",
+          "7686cb5c36": "Connect this browser to a saved Alicorn server.",
+          "8acf3f22e0": "Alicorn stats plus Claude, Codex, OpenCode token analytics and Grok subscription usage.",
           "8bd117d669": "Interface",
           "9abb9be3bc": "Set Up",
+          "b5ee17826b": "Pair remote Alicorn runtimes for persistent sessions, richer remote state, and web or mobile handoff.",
+          "bd0181eeca": "Remote Alicorn Servers",
           "dd72ed437a": "Choose which task providers appear in the Tasks page and sidebar.",
           "e1578cd4bc": "Workflows",
+          "linearDescription": "How Linear works in Alicorn, setup checklist, agent skill, and example prompts.",
           "mobile_group": "Mobile"
         },
         "SettingsFormControls": {
           "3119c012a5": "string",
           "fac59213fc": "Search builtin themes"
         },
+        "ShortcutTerminalPolicyControl": {
+          "0f55c6f15c": "Choose whether Alicorn or the focused terminal wins when shortcuts overlap.",
+          "63308571d8": "Alicorn first"
+        },
+        "ShortcutsPane": {
+          "2a0e8aeccf": "Alicorn first"
+        },
         "SourceControlAiActionRecipeDefaults": {
-          "a9359c8aa9": "Unknown error"
+          "a9359c8aa9": "Unknown error",
+          "bf84dea6af": "Use variables only when you want Alicorn to inject context. Leave the agent as default to follow your normal agent preference."
         },
         "SparsePresetSettingsSection": {
           "68bbcd864a": "new"
         },
         "SshPane": {
           "94c5284560": "Targets",
-          "a7d28dff81": "Add a remote host to connect to it in Orca."
+          "a7d28dff81": "Add a remote host to connect to it in Alicorn."
         },
         "SshTargetCard": {
           "47e94bd6ba": "connected",
           "f0871e6bfb": "connect"
         },
         "SshTargetForm": {
-          "137e88ce8d": "Remote terminals keep running after Orca disconnects from this host.",
+          "137e88ce8d": "Remote terminals keep running after Alicorn disconnects from this host.",
           "29af933cd5": "New SSH Target",
           "4a342f44c1": "Advanced Connection",
           "92f80edbfd": "Remote Terminal Persistence",
           "e9609ddca6": "Proxy, jump host, and connection reuse",
           "f2331ce599": "Edit SSH Target"
+        },
+        "TaskSourceLinearSetup": {
+          "connectDescription": "Add a Personal API key so Alicorn can browse issues and open workspaces with ticket context."
+        },
+        "TasksPane": {
+          "connectCodeHostDescription": "Install and authenticate the CLI under Integrations so Alicorn can load issues.",
+          "connectionCheckUnavailable": "Alicorn couldn't check this connection. Try again, or open Integrations for setup details."
         },
         "TerminalAppearanceSection": {
           "16c471ee03": "on",
@@ -1492,6 +2069,7 @@
           "711e589f18": "Default terminal typography for new panes and live updates.",
           "7233d594bf": "Render programming ligatures (e.g. =>, !=, ===) for fonts that ship them. \"Auto\" enables ligatures only for known ligature fonts (Fira Code, JetBrains Mono, Cascadia Code, Iosevka, etc.).",
           "bafc80efbc": "Controls the terminal line height multiplier.",
+          "d455f2ef4f": "Default cursor appearance for Alicorn terminal panes.",
           "e90afcc44f": "off",
           "f04b17a50e": "Default terminal font family for new panes and live updates.",
           "typographyAdvanced": "Typography"
@@ -1515,31 +2093,43 @@
         "TerminalSettingsPreview": {
           "d06664e889": "dark"
         },
+        "TerminalTccAttributionNotice": {
+          "body": "The terminal daemon was started by an Alicorn install that no longer exists, so macOS can’t attribute its commands to Alicorn — Accessibility and Automation grants are silently ignored (osascript fails with error -25211). Restarting the daemon fixes this; running terminal sessions will close."
+        },
         "TerminalThemeSections": {
           "catalog_description": "Choose terminal themes and divider colors for dark and light mode.",
+          "d56af60e6f": "Choose the theme used when Alicorn is in light mode.",
           "f012172e21": "Choose the theme used for terminal panes in dark mode.",
           "target_label": "Theme Mode"
+        },
+        "TerminalWindowSection": {
+          "53ce336e15": "Restart Alicorn to apply the window blur change."
         },
         "VoicePane": {
           "901985625d": "toggle",
           "b6536a1d12": "extracting"
         },
         "WarpThemeImportModal": {
+          "builtin_themes_hint": "Warp's preloaded themes are part of the Warp app and can't be read from disk. Alicorn already includes most of them, like Dracula, Gruvbox, Solarized, and Tokyo Night.",
+          "description": "Import Warp themes as Alicorn terminal themes.",
           "found_theme_one": "Found 1 theme",
           "found_theme_other": "Found {{value0}} themes",
           "import_theme_one": "Import 1 Theme",
-          "import_theme_other": "Import {{value0}} Themes"
+          "import_theme_other": "Import {{value0}} Themes",
+          "yaml_description": "Import theme YAML files (Warp format) as Alicorn terminal themes."
         },
         "WslCliRegistration": {
           "41a1480d3e": "install",
           "7c3bb36706": "remove",
+          "7ee4e52b99": "Alicorn will register {{value0}} so the command works from WSL terminals.",
+          "d8216eb22e": "This removes the WSL shell command. Alicorn itself remains installed on Windows.",
           "e2b0ee267f": "stale"
         },
         "agent-awake-copy": {
           "95d3031db2": "Keeps this computer and display awake while agents are working. Lid-close behavior follows this device's power settings.",
-          "a42f6fbdd8": "Keeps this computer and display awake while agents are working. Orca also asks this device to stay awake when the lid is closed, subject to its power policy.",
+          "a42f6fbdd8": "Keeps this computer and display awake while agents are working. Alicorn also asks this device to stay awake when the lid is closed, subject to its power policy.",
           "e5995ce268": "Keep computer awake while agents are working",
-          "modeDescriptionDefault": "Choose On, Agent, or Off. Agent mode stays awake while agents are working. Orca also asks this device to stay awake when the lid is closed, subject to its power policy.",
+          "modeDescriptionDefault": "Choose On, Agent, or Off. Agent mode stays awake while agents are working. Alicorn also asks this device to stay awake when the lid is closed, subject to its power policy.",
           "modeDescriptionWindows": "Choose On, Agent, or Off. Agent mode stays awake while agents are working; lid-close behavior follows this device's power settings.",
           "modeTitle": "Keep computer awake"
         },
@@ -1549,7 +2139,7 @@
         },
         "agent-status-hooks-copy": {
           "7707c15abb": "Agent status hooks",
-          "a68a642835": "Shows working, waiting, and done states in Orca. Turn off to remove Orca-managed hooks and stop reinstalling them."
+          "a68a642835": "Shows working, waiting, and done states in Alicorn. Turn off to remove Alicorn-managed hooks and stop reinstalling them."
         },
         "agents": {
           "search": {
@@ -1595,12 +2185,27 @@
             "ff8de8a2ad": "display"
           }
         },
+        "appearance": {
+          "search": {
+            "0709c794f7": "Choose how Alicorn looks in the app window.",
+            "07c7c38fac": "Choose the font used by the Alicorn interface.",
+            "18b4c4c30b": "Show Alicorn in the titlebar.",
+            "1de96ec8a6": "Show Alicorn Mobile Button",
+            "4d5b9427b5": "When enabled, closing the window keeps Alicorn running in the system tray instead of quitting.",
+            "682293cadf": "Show the Alicorn Mobile button at the top of the left sidebar."
+          }
+        },
         "artifacts": {
-          "account": "Orca account",
+          "account": "Alicorn account",
+          "allowPublishingSearchDescription": "Allow Alicorn to publish HTML and Markdown files as public links.",
           "connected": "Connected",
           "enable": "Enable Artifacts",
           "enableDescription": "Add Artifacts to the sidebar so you can open and delete shared files.",
+          "enableStepWebDescription": "Open Settings → Artifacts in the Alicorn desktop app on the host device and enable publishing.",
+          "manageStepTitle": "Manage it in Alicorn",
           "openArtifactsDescription": "View and delete links shared through your account.",
+          "signIn": "Sign in to Alicorn",
+          "signInDescription": "Use your Alicorn account to upload artifacts and manage their public links.",
           "signInRequired": "Sign in is required to upload and manage artifacts."
         },
         "auto": {
@@ -1612,10 +2217,35 @@
             }
           }
         },
+        "automations": {
+          "howItWorksDescription": "Schedule agent work once, then let Alicorn create each run and keep its results together.",
+          "runStepTitle": "Alicorn starts each run"
+        },
         "bitbucket": {
           "credentials": {
             "dialog": {
+              "description": "Use a Bitbucket Cloud credential to browse pull requests and build statuses. Alicorn verifies it before saving.",
+              "environmentManaged": "Bitbucket is already configured through ALICORN_BITBUCKET_* environment variables, which take precedence. Unset them to save a credential in Alicorn.",
               "remoteRuntime": "Bitbucket credentials saved here are stored on this local machine only. Set ALICORN_BITBUCKET_* environment variables on the remote runtime instead."
+            }
+          },
+          "integration": {
+            "card": {
+              "envManaged": "Configured via environment variables. Unset the ALICORN_BITBUCKET_* variables to manage this credential in Alicorn.",
+              "storedCredential": "Saved in Alicorn on this machine. ALICORN_BITBUCKET_* environment variables take precedence when set."
+            }
+          }
+        },
+        "browser": {
+          "search": {
+            "060ac1fcba": "Import cookies from Chrome, Edge, or other browsers to use existing logins inside Alicorn.",
+            "4e0fdf0a3f": "Open workspace ports as worktree-specific Alicorn localhost URLs so browser tabs are easier to tell apart."
+          },
+          "use": {
+            "search": {
+              "50f0860e18": "Enable Alicorn CLI",
+              "890ddf943d": "Register the Alicorn CLI so agents can drive the browser.",
+              "a7e82445fa": "Install the Browser Use skill so agents can operate Alicorn's browser."
             }
           }
         },
@@ -1623,6 +2253,7 @@
           "thisDevice": "This device"
         },
         "computerUseSummary": {
+          "checkingDescription": "Alicorn is checking macOS privacy permissions for the Computer Use helper.",
           "permissionsRequired_one": "1 permission required before agents can operate app windows.",
           "permissionsRequired_other": "{{value0}} permissions required before agents can operate app windows."
         },
@@ -1638,6 +2269,9 @@
             "603d29ed74": "Automatically materialize configured files or folders into newly created worktrees using APFS clone-copy on macOS when possible, otherwise symlinks.",
             "78c2a8dc74": "Shared paths on worktrees",
             "92a9357d1f": "agents view",
+            "agentHibernation": {
+              "description": "Stops idle background agent terminals after the configured idle window and resumes supported sessions when opened again. Agent sleep preserves launch options for agents started by Alicorn; manually started agents may resume with current Alicorn defaults."
+            },
             "bff1ff7768": "symlinks",
             "c387565812": "symlink",
             "ca5d1f3f46": "timeline",
@@ -1655,26 +2289,38 @@
         },
         "general": {
           "search": {
+            "244e3fb4c8": "Install the Alicorn skill so agents know to use the Alicorn CLI.",
             "27d9b996ba": "codex",
+            "327e3fa70d": "Alicorn CLI",
+            "36a72f0d9e": "Star Alicorn on GitHub",
             "3c30fe2d51": "gemini",
             "41c2f9a025": "default",
             "5baf51c4d9": "open claude",
             "5d9ba08673": "copilot",
             "5fdf1dc2d1": "omp",
+            "79ff46776e": "Check for app updates and install a newer Alicorn version.",
             "8436ff6f8e": "Proxy Bypass Rules",
             "882c4896fd": "opencode",
             "8ea37a05bc": "agent",
+            "8ea61ad55c": "How long Alicorn waits after your last edit before saving automatically.",
             "9b0bc30160": "pi",
             "9da6c875e5": "dock",
             "aea7d2cccb": "openclaude",
             "c29f23ab57": "HTTP Proxy",
             "c61b14be7c": "grok",
+            "ca529079bf": "Register or remove the Alicorn CLI command.",
             "db11502270": "Default Agent",
             "e2da948f59": "Pre-select an AI coding agent in the new-workspace composer.",
-            "e3b1d42f95": "Proxy URL for Orca network requests and local terminal children.",
+            "e3b1d42f95": "Proxy URL for Alicorn network requests and local terminal children.",
             "e55d62dfa4": "launchpad",
             "eb8946b2c9": "Hosts that should bypass the configured HTTP proxy.",
+            "externalWorktreesDescription": "Choose whether worktrees created outside Alicorn appear by default.",
             "f472e97440": "aider"
+          }
+        },
+        "git": {
+          "search": {
+            "0e993bf00f": "When you create a workspace, Alicorn refreshes the remote base and safely fast-forwards your matching local branch, such as main or master. This keeps commands like git diff main...HEAD from comparing against stale history. Alicorn skips the update if that branch has uncommitted changes or local-only commits."
           }
         },
         "integrations": {
@@ -1713,19 +2359,70 @@
           }
         },
         "mobile": {
+          "emulator": {
+            "search": {
+              "2348045036": "Choose which emulator device Alicorn opens by default.",
+              "2e0b45b2ba": "Use Alicorn CLI commands to list, attach, tap, and type into a mobile emulator.",
+              "9353854ff3": "alicorn emulator",
+              "9595354cff": "Configure mobile emulator support for Alicorn and coding agents.",
+              "d4b7833894": "alicorn cli"
+            }
+          },
           "settings": {
             "search": {
+              "1de96ec8a6": "Show Alicorn Mobile Button",
+              "682293cadf": "Show the Alicorn Mobile button at the top of the left sidebar.",
               "b730ff7049": "experimental"
             }
           }
         },
+        "notifications": {
+          "search": {
+            "0534c76311": "Master switch for Alicorn desktop notifications.",
+            "7247b97a31": "Avoid notifying when Alicorn is focused on the active worktree.",
+            "c718793e95": "Choose the built-in, system, or local audio file Alicorn plays for desktop notifications."
+          }
+        },
+        "orcaAccount": {
+          "account": "Alicorn account",
+          "artifactsDescription": "Publish HTML and Markdown files, then manage every shared link from Alicorn.",
+          "description": "Share work instantly and reach your desktop from Alicorn Mobile wherever you are.",
+          "relayDescription": "Connect Alicorn Mobile to this desktop across cellular or any Wi-Fi.",
+          "relayTitle": "Alicorn Relay",
+          "searchDescription": "Sign in or out of the account used by Artifacts and Alicorn Relay.",
+          "signIn": "Sign in to Alicorn",
+          "signedOut": "Sign in to extend Alicorn with cloud features, including Artifacts and Alicorn Relay.",
+          "title": "Alicorn Account",
+          "unavailable": "Alicorn sign-in is unavailable in this build."
+        },
+        "pluginError": {
+          "incompatible": "This plugin requires a different Alicorn version.",
+          "installGit": "Alicorn could not fetch the pinned Git revision. Check the URL, #ref, access, and system Git setup.",
+          "installLimit": "The plugin exceeds Alicorn's install size or file-count limits."
+        },
+        "plugins": {
+          "search": {
+            "description": "Install and manage experimental Alicorn plugins."
+          }
+        },
+        "privacy": {
+          "search": {
+            "b707cc3981": "Help improve Alicorn by sending anonymous feature-usage events."
+          }
+        },
         "providerAccountScope": {
-          "localMac": "Local Mac"
+          "localCredentials": "Credentials and account checks for this provider are owned by this desktop client. Use Settings > Remote Alicorn Servers > Advanced to edit server-owned credentials.",
+          "localMac": "Local Mac",
+          "localRateLimit": "{{value0}} API budget is fetched from the CLI on this desktop client. Use Settings > Remote Alicorn Servers > Advanced to view server-owned budgets.",
+          "remoteServerCredentials": "Credentials and account checks for this provider are owned by this remote server. Use Settings > Remote Alicorn Servers > Advanced to edit another default runtime scope.",
+          "remoteServerRateLimit": "{{value0}} API budget is fetched from the CLI on this remote server. Use Settings > Remote Alicorn Servers > Advanced to view another default runtime budget."
         },
         "repository": {
           "search": {
             "availableHosts": "Available Hosts",
             "availableHostsDescription": "Hosts where this project is set up.",
+            "c86478c3d8": "Remove this project from Alicorn.",
+            "externalWorktreesDescription": "Override whether worktrees created outside Alicorn appear for this project.",
             "host": "host",
             "remote": "remote",
             "ssh": "ssh",
@@ -1736,17 +2433,42 @@
           "environments": {
             "search": {
               "3517fb2ec0": "Active Server",
-              "4575341c77": "Choose local desktop, add a saved remote Orca server, or generate a pairing URL."
+              "4575341c77": "Choose local desktop, add a saved remote Alicorn server, or generate a pairing URL.",
+              "baec27aa8f": "Connect this browser to a saved Alicorn server."
             }
           }
         },
         "settingOwnership": {
           "clientDefaultProjectScopes": "Client default + project scopes",
+          "terminalQuickCommandHostCollections": "Commands are saved on the selected Alicorn host, then scoped globally or to a project setup. Commands from this device also remain available in remote workspaces.",
           "terminalQuickCommands": "Commands are saved on this client, then scoped globally or to a project setup so they run from the selected terminal context."
         },
         "shareSkills": {
+          "allowAgentPublishing": "Allow agents and the Alicorn CLI to publish skill links",
+          "linkDescription": "Shared bundles are not searchable or listed in Alicorn. The link is the credential, so send it only to people you trust.",
           "refreshLinks": "Refresh",
-          "showButton": "Show Skills button"
+          "revokeFailed": "Alicorn could not revoke this link.",
+          "showButton": "Show Skills button",
+          "signIn": "Sign in to Alicorn",
+          "signInDescription": "Use your Alicorn account to publish bundles and manage their links. Recipients do not need an account.",
+          "signInWebDescription": "Publishing and link management are available in the Alicorn desktop app."
+        },
+        "shortcuts": {
+          "search": {
+            "afda131738": "alicorn first",
+            "ebd7d81e1d": "Choose whether Alicorn or the focused terminal wins when shortcuts overlap."
+          }
+        },
+        "source": {
+          "control": {
+            "action": {
+              "recipe": {
+                "options": {
+                  "branchName": "Rename Alicorn-created branches from the initial agent task."
+                }
+              }
+            }
+          }
         },
         "ssh": {
           "search": {
@@ -1755,6 +2477,16 @@
           }
         },
         "terminal": {
+          "search": {
+            "1dee533bd9": "Choose the theme used when Alicorn is in light mode.",
+            "275a9d6395": "Default cursor appearance for Alicorn terminal panes.",
+            "warp_import": {
+              "description": "Import Warp themes as Alicorn terminal themes."
+            },
+            "yaml_import": {
+              "description": "Import theme YAML files as Alicorn terminal themes."
+            }
+          },
           "windows": {
             "search": {
               "02c772582a": "linux",
@@ -1774,7 +2506,12 @@
               "integration": {
                 "cards": {
                   "19416c874c": "ALICORN_BITBUCKET_API_TOKEN",
+                  "19fb419c12": "Gitea credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Alicorn if environment variables changed.",
+                  "40f678df73": "Azure DevOps credentials are configured but could not authenticate. Check the token, API base URL, and repository permissions, then restart Alicorn if environment variables changed.",
+                  "60708f23da": "only when Alicorn cannot derive the API URL from the remote.",
+                  "6154b02093": "Bitbucket credentials are configured but could not authenticate. Check the token and repository permissions, then restart Alicorn if environment variables changed.",
                   "63a7f47392": "ALICORN_BITBUCKET_EMAIL",
+                  "7bd345e3f6": "only when Alicorn cannot derive the API base URL from the git remote.",
                   "a924e8dcd1": "Pull requests and build statuses via Bitbucket Cloud API tokens.",
                   "e63fe8f627": "ALICORN_BITBUCKET_ACCESS_TOKEN",
                   "fc71a0e7aa": "and",
@@ -1796,6 +2533,13 @@
           "over_limit_other": "Importing these themes would exceed the {{value0}} custom terminal theme limit. Deselect {{value1}} new themes and try again."
         }
       },
+      "setup": {
+        "guide": {
+          "SetupGuideModal": {
+            "3598a3ca0c": "Finish the core workflows that make Alicorn useful for parallel agent work."
+          }
+        }
+      },
       "shared": {
         "useDaemonActions": {
           "28c8e53176": "This force-quits every running terminal pane across all workspaces. Any unsaved work in those sessions is lost. The daemon itself keeps running, and new terminals can be opened immediately. This can't be undone.",
@@ -1811,18 +2555,35 @@
         }
       },
       "sidebar": {
+        "AddProjectFromFolderDialog": {
+          "046751dbfb": "Add this folder as a separate Alicorn project."
+        },
         "AddRemoteHostDialog": {
+          "identityFileFromConfigHint": "Left empty on purpose: Alicorn uses every key ~/.ssh/config resolves for {{value0}}. Type a path to use just that key.",
           "pairingCode": "Pairing code",
-          "pairingCommand": "orca serve --pairing-address <host>",
+          "pairingCommand": "alicorn serve --pairing-address <host>",
           "pairingHelpPrefix": "Run",
           "pairingHelpSuffix": "on the server and paste the printed pairing URL.",
+          "serverDescription": "Pair with Alicorn running on another computer.",
           "serverName": "Server name",
+          "sshAlreadyExists": "That SSH host is already in Alicorn.",
+          "sshConfigPickerAddAll": "Add all {{value0}} to Alicorn",
+          "sshConfigPickerAddAllEmpty": "Add all to Alicorn",
           "sshConfigPickerBulkHint": "Bulk sync stays in Settings → SSH",
           "sshConfigPickerDescription": "Pick a host to fill the form. Nothing is saved until you click Save.",
+          "sshConfigPickerInOrca": "In Alicorn",
+          "sshConfigPickerPreviouslyRemoved": "Removed from Alicorn",
+          "sshConfigPickerRestartRequired": "Restart Alicorn to finish applying the SSH config picker update.",
+          "sshImportSynced": "Added {{value0}} host{{value1}} to Alicorn.",
           "sshPersistenceDefault": "Remote terminals on this host stay alive until you end them or reset the relay."
         },
+        "AddRepoCreateStep": {
+          "b100311784": "Name it and Alicorn will create a real project with sensible defaults."
+        },
         "AddRepoHostSelector": {
-          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for an Orca server.",
+          "addRemoteHostDetail": "SSH host or Alicorn server",
+          "addRemoteHostTooltip": "Choose SSH for a machine you can log into, or remote server for an Alicorn server.",
+          "addRemoteServerDetail": "Pair with Alicorn running on another computer.",
           "local": "Local",
           "runtime": "Server",
           "ssh": "SSH"
@@ -1832,10 +2593,20 @@
           "4df0d08cc5": "Found",
           "5b2e6fe3c8": "Import separately",
           "5f857ba8e6": "in",
-          "cf9d382ca1": "Import"
+          "cf9d382ca1": "Import",
+          "d75170194e": "Choose this if these projects belong together — a monorepo, or just a set of related repos. Alicorn will group them and let you work from the parent folder."
+        },
+        "AddRepoStartSteps": {
+          "acf895cb42": "Add a project to get started with Alicorn."
         },
         "AddRepoSteps": {
           "04a4c4e84a": "Clone location"
+        },
+        "AutoRenameFailedDialog": {
+          "ff62a18580": "Alicorn couldn't generate a branch name for"
+        },
+        "BoardAutomationSwitch": {
+          "globallyOff": "Automation is stopped for every board. Resume it with: alicorn board-automation resume"
         },
         "CacheTimer": {
           "07729cc155": "expired"
@@ -1847,13 +2618,32 @@
           "noRepos": "Add a Git project under this folder to attach GitHub or GitLab tasks.",
           "sourceProject": "Task Source"
         },
+        "ForgetSshWorkspaceDialog": {
+          "disconnectedBody": "The SSH host for this workspace is not connected. Reconnect to delete it on the remote too, or remove it from Alicorn only.",
+          "forget": "Remove from Alicorn",
+          "forgetBody": "Removes this workspace from Alicorn only. Files, the Git worktree, and branches on {{host}} are left untouched.",
+          "ghostBody": "{{host}} is no longer a saved SSH host, so this workspace is no longer connected to a live host. It can only be removed from Alicorn — files and branches on the remote are left untouched."
+        },
+        "HostRemoveDialog": {
+          "4d5e6f7a8b": "This opens the Alicorn servers settings where you can remove this server.",
+          "alsoForgetLocal": "Also remove these {{value0}} from Alicorn",
+          "alsoForgetLocalHint": "Clears them from Alicorn only. Remote files, worktrees, and branches are left untouched.",
+          "hostHasWorkspacesDefault": "Removes {{value0}} and its credentials from this computer. Its {{value1}} stay in Alicorn — remote files are not touched."
+        },
         "HostSectionHeaderMenu": {
           "63f36455cc": "Reconnect"
         },
         "LinearAgentSkillSetupPrompt": {
-          "missingBoth": "Orca CLI and Linear agent skill are missing.",
+          "missingBoth": "Alicorn CLI and Linear agent skill are missing.",
+          "missingCli": "Alicorn CLI is missing.",
+          "missingCliAndSkill": "Alicorn CLI and Linear agent skill are missing.",
           "panelDescription": "Install the host agent skill for linked Linear task handoffs.",
-          "panelTitle": "Linear agent skill"
+          "panelTitle": "Linear agent skill",
+          "toastInstallCliAndSkillDescription": "Install the Alicorn CLI and the Linear skill to enable your agents to read and edit Linear tasks.",
+          "toastInstallCliDescription": "Install the Alicorn CLI to enable your agents to read and edit Linear tasks.",
+          "toastInstallSkillDescription": "Install the Linear skill to enable your agents to read and edit Linear tasks through the Alicorn CLI.",
+          "toastMissingCli": "Alicorn CLI is missing",
+          "toastMissingCliAndSkill": "Alicorn CLI and Linear skill are missing"
         },
         "NewExternalWorktreesInboxLine": {
           "5e1b8d3f62": "Hide external worktrees permanently"
@@ -1865,7 +2655,7 @@
         "ProjectGroupDeleteDialog": {
           "897e5d3d4c": "Delete Group and Remove Projects",
           "9be10d49ea": "and ungroup its projects.",
-          "eeabb8e8e4": "Remove {{value0}} contained {{value1}} from Orca"
+          "eeabb8e8e4": "Remove {{value0}} contained {{value1}} from Alicorn"
         },
         "ProjectOrderManualDefaultNotice": {
           "822ff300ad": "Dismiss",
@@ -1873,8 +2663,21 @@
           "b7e3a91c4f": "Drag project headers to reorder, or switch to",
           "e8c1f4a2b9": "in workspace options."
         },
+        "RemoveFolderDialog": {
+          "removeDescriptionLocal": "This only removes {{name}} from Alicorn. It is still on your disk.",
+          "removeDescriptionSsh": "This only removes {{name}} from Alicorn. Its files stay on {{host}} — re-add that SSH host to recover it.",
+          "removeDescriptionVmRecipe": "This removes {{name}} from Alicorn. Its VM recipe determines whether the environment and its files are permanently deleted."
+        },
         "SetupScriptPromptCard": {
+          "a49196d538": "Runs when Alicorn creates a new worktree.",
           "dcaa645da5": "ok"
+        },
+        "SetupScriptPromptCardViews": {
+          "0a98169776": "Add a setup command to run when Alicorn creates new worktrees.",
+          "aef6c0a213": "Save the detected command to run it whenever Alicorn creates a worktree."
+        },
+        "SidebarFeedbackDialog": {
+          "a828fa4aee": "Share what's working, what's broken, or what Alicorn should do next."
         },
         "SidebarHeader": {
           "49f62c5665": "Workspace board",
@@ -1889,21 +2692,32 @@
           "scopedTo": "{{value0}} visible"
         },
         "SidebarNav": {
+          "1b5c41caee": "Alicorn Mobile",
           "9c95e1ce91": "Agents"
         },
         "SidebarSettingsHelpMenu": {
+          "4e8f5710d3": "Couldn't restart Alicorn.",
+          "5161eef55d": "Restarting Alicorn…",
+          "ad3d3ed7f1": "Restart Alicorn",
           "d396773ef0": "checking"
         },
         "SidebarToolbar": {
           "19e32d0e5f": "Open folder picker to add a project",
           "abc62b6328": "Add Project"
         },
+        "SidebarWorkspaceFilterSection": {
+          "otherClientsAria": "Hide workspaces created from other Alicorn clients on shared remote servers"
+        },
         "SidebarWorkspaceOptionsMenu": {
           "2d4f0eb933": "Default",
           "631b97eea9": "Host scope",
           "680043342f": "compact",
           "bc96dbd041": "Workspace options ({{value0}})",
-          "c7591b6014": "repo"
+          "c7591b6014": "repo",
+          "cli": "Alicorn CLI"
+        },
+        "SuppressExternalWorktreeInboxDialog": {
+          "8c0b2e7a41": "Open Non-Alicorn worktrees settings"
         },
         "WorkspaceKanbanSettingsMenu": {
           "b45b350eb0": "Move {{value0}} left"
@@ -1919,11 +2733,18 @@
           "automationCreated": "Created by automation",
           "branchFolderPathIdentity": "Branch or folder path",
           "branchIdentity": "Branch",
-          "ca74db7550": "Project on SSH host"
+          "ca74db7550": "Project on SSH host",
+          "runtimeHostProject": "Project on Alicorn server"
         },
         "WorktreeCardMeta": {
+          "2c67730e07": "Open in Alicorn",
           "ae76907ca6": "Unlink {{value0}}",
-          "eace1d2cf6": "neutral"
+          "cliCreated": "Created by Alicorn CLI",
+          "cliCreatedFromAgent": "Created by an agent via `alicorn worktree create`",
+          "cliCreatedFromShell": "Created via `alicorn worktree create`",
+          "cliHeader": "Alicorn CLI",
+          "eace1d2cf6": "neutral",
+          "openInOrcaBrowser": "Open in Alicorn browser"
         },
         "WorktreeCardMetadataStatusBadges": {
           "29df45afa2": "MR"
@@ -1932,13 +2753,18 @@
           "34f733dda2": "Go to Worktree",
           "3e5f66564e": "Workspace unavailable"
         },
+        "WorktreeContextMenu": {
+          "f5ac91531d": "Remove Project from Alicorn"
+        },
         "WorktreeList": {
           "2ca6e29a3c": "repo",
           "45fbfe0335": "rename",
           "5fc9d1891b": "Deleting…",
           "84a2238242": "Show child workspaces",
+          "b667b59632": "Some projects could not be removed from Alicorn",
           "ebadb7eadb": "{{value0}} {{value1}} child {{value2}}",
-          "ebc5c7dcef": "Hide child workspaces"
+          "ebc5c7dcef": "Hide child workspaces",
+          "groupRenameFailedDesc": "Alicorn could not confirm the new name with the group's host. Recheck the group after reconnecting."
         },
         "WorktreeMetaDialog": {
           "029ea5ec57": "Open GitHub issue",
@@ -1948,6 +2774,7 @@
           "7c454be4c5": "Paste an issue URL, or enter a number. Leave blank to remove the link."
         },
         "WorktreeOpenInMenu": {
+          "0bed8727db": "It may have been moved or deleted. Refresh workspaces or remove it from Alicorn.",
           "3ec372b664": "file-manager"
         },
         "WorktreeVisibilityDialog": {
@@ -1956,7 +2783,17 @@
           "5d02a5647f": "Hidden from sidebar",
           "759371df43": "Hide",
           "8372e4bbd9": "{{value0}} currently shown",
-          "f1f71b9f02": "Always show"
+          "83a5ba8dd1": "Non-Alicorn worktrees",
+          "appearWhenDetected": "New worktrees will appear here when Alicorn detects them.",
+          "f1f71b9f02": "Always show",
+          "noneFound": "No non-Alicorn worktrees found",
+          "unsupportedHost": "This host doesn't support source-specific worktree visibility. Update Alicorn on the host to change this setting."
+        },
+        "WorktreeVisibilityHelpPopover": {
+          "8db4e19a26": "This setting never hides worktrees created through Alicorn."
+        },
+        "WorktreeVisibilitySourceList": {
+          "rootHelp": "Alicorn will recognize worktrees beneath this folder."
         },
         "add": {
           "repo": {
@@ -1969,8 +2806,28 @@
             }
           }
         },
+        "delete": {
+          "worktree": {
+            "toast": {
+              "905fc8efac": "Git already removed this workspace. Use Force Delete to clear it from Alicorn.",
+              "unstoppedPty": "Alicorn could not confirm every terminal in this workspace has exited, so it stopped before deleting any files. Use Force Delete to remove it anyway.",
+              "unstoppedPtyLive": "This workspace still has running terminals, so Alicorn stopped before deleting any files. Force Delete will kill them and discard any uncommitted work they hold."
+            }
+          }
+        },
         "index": {
           "b826a98b6f": "busy"
+        },
+        "local": {
+          "base": {
+            "ref": {
+              "suggestion": {
+                "toast": {
+                  "f15fd80989": "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind, so AI diffs may compare to stale history. Let Alicorn keep it up to date automatically. Change this anytime in"
+                }
+              }
+            }
+          }
         },
         "preserved": {
           "branch": {
@@ -1980,8 +2837,9 @@
                 "0e0379f24a_other": "{{count}} branches kept",
                 "6310412304_one": "Review {{count}} Branch",
                 "6310412304_other": "Review {{count}} Branches",
-                "a3cdd9d9e6_one": "Git kept {{count}} local branch because it may contain unmerged commits. Kept branches do not retain workspace folders; their commits remain in the repository. Orca may continue freeing workspace disk space in the background.",
-                "a3cdd9d9e6_other": "Git kept {{count}} local branches because they may contain unmerged commits. Kept branches do not retain workspace folders; their commits remain in the repository. Orca may continue freeing workspace disk space in the background.",
+                "a3cdd9d9e6": "Git kept {{count}} local branches because they may contain unmerged commits. Kept branches do not retain workspace folders; their commits remain in the repository. Alicorn may continue freeing workspace disk space in the background.",
+                "a3cdd9d9e6_one": "Git kept {{count}} local branch because it may contain unmerged commits. Kept branches do not retain workspace folders; their commits remain in the repository. Alicorn may continue freeing workspace disk space in the background.",
+                "a3cdd9d9e6_other": "Git kept {{count}} local branches because they may contain unmerged commits. Kept branches do not retain workspace folders; their commits remain in the repository. Alicorn may continue freeing workspace disk space in the background.",
                 "cea24c2b7d_one": "{{count}} workspace removed",
                 "cea24c2b7d_other": "{{count}} workspaces removed",
                 "d42f1f14e0_one": "Retry {{count}} Branch",
@@ -2013,6 +2871,7 @@
           "01c5a11e0e": "No description",
           "01c5a11e0f": "{{value0}} files · {{value1}} scripts",
           "01c5a11e10": "{{value0}} executable",
+          "01c5a11e12": "Alicorn will keep these local copies by default. Select only the copies you want to discard and replace.",
           "01c5a11e14": "{{value0}} new",
           "01c5a11e15": "{{value0}} unchanged",
           "01c5a11e16": "{{value0}} updates",
@@ -2038,19 +2897,58 @@
           "ed753624c0": "Delete Cloud package",
           "linkCopied": "Share link copied"
         },
+        "SkillDelete": {
+          "hostUpdateRequired": "Update Alicorn on the selected machine to delete skills.",
+          "reasonBundled": "Bundled with Alicorn — it would be restored",
+          "reasonUnowned": "This skill lives outside Alicorn’s skill folders — delete it where it is stored"
+        },
+        "SkillFreshnessNudge": {
+          "description": "Update {{value0}} so agents follow the current instructions for this version of Alicorn.",
+          "titleMany": "{{value0}} installed Alicorn skills are out of date",
+          "titleOne": "An installed Alicorn skill is out of date"
+        },
+        "SkillFreshnessRow": {
+          "cantUpdateReason": "Alicorn left this skill out of the update command.",
+          "skippedReasonBrokenLink": "This copy is a shortcut to something that no longer exists, so Alicorn left it out — you can safely delete it.",
+          "skippedReasonExternalLink": "This copy is a shortcut pointing outside Alicorn’s skill folders, so Alicorn left it out of the update.",
+          "skippedReasonInRepo": "This is a project skill, not a global one — Alicorn only updates your global skills, so it left this out of the update.",
+          "skippedReasonInaccessible": "Alicorn couldn’t read this copy, so it left the skill out of the update.",
+          "skippedReasonNewer": "This copy is a later version than the one this build of Alicorn ships, so Alicorn left it alone rather than roll it back. Updating Alicorn will bring the two back in line.",
+          "skippedReasonPluginCache": "A plugin manages this skill, so Alicorn left it out of the update — update the plugin instead.",
+          "skippedReasonReadOnly": "This copy is in a read-only location, so Alicorn left it out of the update. Change its permissions to let Alicorn update it.",
+          "skippedReasonUnrecognized": "The copy here doesn’t match the official version — it may be modified, or a different skill with the same name. Alicorn left it out of the update so it won’t overwrite it. Remove it if you want Alicorn to update this skill.",
+          "tipExternalLink": "A shortcut pointing outside Alicorn’s skill folders.",
+          "tipInaccessible": "Alicorn couldn’t read this copy (a permissions or file error).",
+          "tipNewer": "This copy is a later version than the one this build of Alicorn ships."
+        },
+        "SkillFreshnessUpdateDialog": {
+          "attention": "Some installed Alicorn skills were left out of the update.",
+          "checking": "Checking installed Alicorn skills…",
+          "none": "No installed Alicorn skills found.",
+          "scanCandidateLimit": "Alicorn found more same-named skill folders than it can safely inspect.",
+          "scanDepthLimit": "Alicorn reached its plugin scan depth limit before checking this folder.",
+          "scanEntryLimit": "Alicorn reached its plugin scan entry limit before checking the rest of this cache.",
+          "scanIncomplete": "Alicorn could not finish checking plugin-managed skills.",
+          "scanIoError": "Alicorn could not read this plugin path.",
+          "scanIoErrorWithCode": "Alicorn could not read this plugin path ({{value0}}).",
+          "scanIssueLimit": "Alicorn found too many skipped plugin folders to list individually.",
+          "scanManifestLimit": "Alicorn skipped this plugin manifest because it exceeded a safe limit.",
+          "scanOutsideRoot": "Alicorn skipped this plugin path because it points outside the plugin cache.",
+          "success": "All installed Alicorn skills are up to date."
+        },
         "SkillInstallDialog": {
-          "4a00d133c5": "Orca verifies access and package identity before changing the selected machine."
+          "4a00d133c5": "Alicorn verifies access and package identity before changing the selected machine."
         },
         "SkillInstallManagementDialog": {
-          "070654c6d1": "Orca will preserve them unless you explicitly discard the local changes.",
+          "070654c6d1": "Alicorn will preserve them unless you explicitly discard the local changes.",
           "1c9e7f420a": "Installed bundle skills",
           "2ae587d39c": "Retry incomplete coverage",
           "34c2ef9e71": "Install {{count}} skills",
-          "3677ae58e7": "Update, roll back, or safely remove versions installed by Orca.",
+          "3677ae58e7": "Update, roll back, or safely remove versions installed by Alicorn.",
           "44d118a8f7": "Manage installed skills",
           "470d8d2476": "Confirm remove",
           "561e49ccd1": "Install selected version",
-          "64c71cf7b9": "No Orca-managed skill installs were found on this machine.",
+          "64c71cf7b9": "No Alicorn-managed skill installs were found on this machine.",
           "74b70892ea": "Local files were modified",
           "86ed219b55": "Choose a version",
           "9c04bd0120": "Installed version",
@@ -2064,9 +2962,11 @@
         },
         "SkillInstallReviewContent": {
           "27672470d9": "Opening the link does not install anything. Review the immutable version first.",
+          "2a31912f14": "Alicorn found",
           "3d8421ca2f": "executable",
           "87137bcb8d": "scripts",
           "8f9833d509": "Immutable version",
+          "93eb0fe8c7": "Alicorn skill link",
           "98ed90e523": "A skill contains instructions and may include scripts. Treat it as code from its author.",
           "f72ee4022a": "SHA-256",
           "fab8fce842": "files"
@@ -2083,12 +2983,15 @@
           "selectAll": "Select all {{count}} eligible"
         },
         "SkillShareDialog": {
+          "cancelRequestFailed": "Alicorn could not send the cancellation request. The upload may still finish.",
           "description": "Review the exact files, choose who can access them, then publish an immutable version.",
           "descriptionV2": "Review the exact files, then publish an immutable version behind an unlisted link.",
           "newVersionDescription": "Review the exact files, then publish an immutable version to the existing Cloud package.",
           "peopleRequired": "Select at least one teammate.",
-          "readyDescription": "Recipients authenticate with Orca before they can inspect or install it.",
-          "readyDescriptionV2": "Anyone with this unlisted link can inspect and install the skills."
+          "readyDescription": "Recipients authenticate with Alicorn before they can inspect or install it.",
+          "readyDescriptionV2": "Anyone with this unlisted link can inspect and install the skills.",
+          "reconnect": "Reconnect your Alicorn account before sharing.",
+          "unconfigured": "Connect an Alicorn Cloud account before sharing."
         },
         "SkillShareReviewContent": {
           "01c5a17e01": "{{value0}} skills",
@@ -2105,6 +3008,7 @@
           "8188f5d765": "can access the link.",
           "8edd32622f": "scripts",
           "ad940367a5": "Validating and publishing…",
+          "c15d90c10b": "A connected Alicorn Cloud account is required.",
           "e3caf6baeb": "Revoking this link blocks future access. It does not remove copies already installed on recipients’ machines.",
           "f25429e266": "Selected people",
           "fe204e06f0": "the organization",
@@ -2117,6 +3021,9 @@
           "01c5a15e03": "{{value0}} selected",
           "01c5a15e04": "Select all results",
           "01c5a15e05": "Share {{value0}} skills"
+        },
+        "SkillSharedLinkRow": {
+          "deleteFailed": "Alicorn could not delete this from the Cloud."
         },
         "SkillsPage": {
           "08a321a984": "Adjust the search or filters.",
@@ -2147,9 +3054,19 @@
           "agentsNoneChosen": "No extra agents",
           "agentsSummary": "Also: {{value0}}",
           "bundleDestinationSummary": "{{value0}} new · {{value1}} already installed · {{value2}} need a decision",
+          "bundleVerificationFailed": "Installation failed before Alicorn could verify the requested bundle.",
+          "canonicalExplanation": "These agents natively read {{root}}, which Alicorn installs to by default:",
           "deselectAll": "Deselect optional",
+          "enterShareLink": "Enter an Alicorn skill share link.",
+          "inspectManagedFailed": "Alicorn could not inspect managed installs on this machine.",
+          "reconnectBeforeInstalling": "Reconnect your Alicorn account before installing.",
+          "reconnectBeforeVersionChange": "Reconnect your Alicorn account before changing versions.",
+          "reconnectForVersionHistory": "Reconnect your Alicorn account to load version history.",
+          "removeFailed": "Alicorn could not safely remove this skill.",
+          "requestedVersionVerificationFailed": "Installation failed before Alicorn could verify the requested version.",
           "reviewSupportingFiles": "Includes supporting files",
-          "trustNote": "Skills are instructions and code from their author. Install what you trust."
+          "trustNote": "Skills are instructions and code from their author. Install what you trust.",
+          "versionVerificationFailed": "Alicorn could not verify the requested version."
         },
         "managedInstall": {
           "sendToMachine": "Send to another machine"
@@ -2167,12 +3084,21 @@
           "bd6cec2056": "new"
         }
       },
+      "star": {
+        "nag": {
+          "StarNagToastHost": {
+            "body": "If you’re enjoying Alicorn so far, a GitHub star helps other developers discover it."
+          }
+        }
+      },
       "stats": {
         "ClaudeUsagePane": {
           "02a046792e": "sessions •",
-          "32176e1d44": "turns"
+          "32176e1d44": "turns",
+          "4f8368c272": "Alicorn worktrees only"
         },
         "CodexUsagePane": {
+          "201766b754": "Alicorn worktrees only",
           "247c93ca92": "• inferred pricing",
           "79a69522a5": "events",
           "ae255c3dba": "n/a",
@@ -2181,7 +3107,11 @@
         "OpenCodeUsagePane": {
           "1e5d410df0": "events",
           "8095a63426": "n/a",
-          "bc0cb89901": "sessions •"
+          "bc0cb89901": "sessions •",
+          "e04c58327c": "Alicorn worktrees only"
+        },
+        "ShareUsageCard": {
+          "0eb31e79ee": "Alicorn IDE"
         },
         "StatsPane": {
           "908c470587": "codex",
@@ -2200,6 +3130,11 @@
           "f6a2c8d019": "Model",
           "faf3444859": "Input"
         },
+        "stats": {
+          "search": {
+            "26bb901fcd": "Alicorn stats plus Claude, Codex, OpenCode token analytics and Grok subscription usage."
+          }
+        },
         "usage": {
           "overview": {
             "sections": {
@@ -2215,14 +3150,30 @@
             "9aa11005bf": "workspace ·",
             "a11ed266ce": "workspace"
           },
+          "RemoteServerUpdateStatusSegment": {
+            "failedTooltip": "Open Remote Alicorn Server updates to review and retry",
+            "updatedTooltip": "Remote Alicorn Server updates completed",
+            "updatingTooltip": "Remote Alicorn Server updates are in progress"
+          },
           "ResourceUsageStatusSegment": {
             "1b24a32d3a": "Memory",
+            "288a4dd177": "Alicorn",
             "4bb076fa89": "Kill",
-            "6449a95c78": "How much of this machine's physical RAM the Orca-tracked processes are sitting on.",
+            "53dd5560ae": "Collapse Alicorn",
+            "6449a95c78": "How much of this machine's physical RAM the Alicorn-tracked processes are sitting on.",
             "6d9793d4bc": "Resource Manager - Terminals",
             "996295bff2": "orphan terminal",
-            "9e2525c89f": "Resident memory held by Orca plus the processes under each worktree's terminals.",
+            "9e2525c89f": "Resident memory held by Alicorn plus the processes under each worktree's terminals.",
+            "e419d27083": "Expand Alicorn",
             "e7ccce7e87": "of system RAM"
+          },
+          "RuntimeHostStatusRow": {
+            "checking_host": "Alicorn is checking whether this host is reachable",
+            "contact_note": "The host may still be running; only the Alicorn connection is unavailable.",
+            "host_unreachable": "Alicorn isn’t reachable on this host",
+            "restoring_connection": "Alicorn is trying to restore the connection",
+            "runtime_unavailable": "SSH transport is connected, but the Alicorn runtime is unavailable",
+            "runtime_unavailable_explanation": "The remote host may still be running; only the Alicorn runtime connection is unavailable."
           },
           "SshStatusSegment": {
             "3d0128b105": "connected",
@@ -2233,7 +3184,8 @@
             "connectedHostCount_other": "{{count}} hosts",
             "d09ec41831": "Remote Hosts",
             "fbb3f9f05e": "conflict",
-            "fd9a3c600e": "error"
+            "fd9a3c600e": "error",
+            "runtime_unavailable_transport_up": "Alicorn unavailable"
           },
           "StatusBar": {
             "06741a2f3d": "Open MiniMax usage details",
@@ -2250,6 +3202,10 @@
             "d7a0668acc": "opencode-go",
             "fda8146810": "Open Kimi usage details",
             "grokUsageAria": "Open Grok usage details"
+          },
+          "UpdateStatusSegment": {
+            "248ee5d8ef": "Alicorn v{{value0}} downloading… {{value1}}%",
+            "9d13213a56": "Alicorn v{{value0}} ready to install"
           },
           "WorkspaceSpaceCompactPanel": {
             "2837dc7c72": "cancelling",
@@ -2273,7 +3229,9 @@
           },
           "tooltip": {
             "7567cd1c6b": "Usage unavailable",
-            "cedb7b99e3": "% used"
+            "a37e8c15d4": "Run kimi in a terminal on the computer running Alicorn and wait for it to start, then retry usage.",
+            "cedb7b99e3": "% used",
+            "d1b7f509ac": "Run grok in a terminal on the computer running Alicorn and wait for it to start. If prompted, complete sign-in, then retry usage. You do not need to send a chat message."
           }
         }
       },
@@ -2438,6 +3396,9 @@
           }
         }
       },
+      "taskPageEmptyState": {
+        "noProjectSourcesDescription": "Select at least one project source so Alicorn knows which host/account to fetch tasks from."
+      },
       "terminal": {
         "pane": {
           "CloseTerminalDialog": {
@@ -2448,12 +3409,32 @@
           "MobileDriverOverlay": {
             "3eed73394f": "Your keyboard is paused"
           },
+          "TerminalErrorToast": {
+            "42b283ecfc": "Alicorn couldn't safely reconnect this terminal because the host couldn't verify its saved session. Alicorn left the saved session unchanged. Click Retry to try reconnecting now. If it still cannot reconnect, open a new terminal.",
+            "ownerUnknown": "Alicorn couldn't verify this terminal's owner.",
+            "sessionUnavailable": "Alicorn couldn't reattach to this pane's terminal session on the host. Open a new terminal to continue."
+          },
+          "TerminalLinkActionPopover": {
+            "orcaBrowser": "Alicorn Browser"
+          },
           "TerminalRemoteRuntimeReconnectBanner": {
-            "retryingBody": "Orca will retry for up to one minute. This terminal will resume if the connection returns."
+            "retryingBody": "Alicorn will retry for up to one minute. This terminal will resume if the connection returns."
+          },
+          "TerminalSessionStateSaveFailureDialog": {
+            "e2fcf07c0d": "Alicorn could not save this terminal session because local storage is full or not writable. Open the disk space analyzer to find workspace storage you can clean up."
           },
           "TerminalSshReconnectOverlay": {
             "connectButton": "Connect",
             "connectingButton": "Connecting..."
+          },
+          "osc52": {
+            "clipboard": {
+              "failed": {
+                "toast": {
+                  "fdd3e7e977": "The terminal app requested a copy, but Alicorn could not confirm that it reached the system clipboard."
+                }
+              }
+            }
           },
           "terminal": {
             "drop": {
@@ -2522,11 +3503,11 @@
             "d1094dd529": "Needs review",
             "d3eef9463d": "No inactive workspaces to delete.",
             "dba753e94f": "to delete",
-            "e0b5a4deaa": "Review inactive workspaces before deleting their local files and Orca state.",
+            "e0b5a4deaa": "Review inactive workspaces before deleting their local files and Alicorn state.",
             "e94b1f8bb4": "Clear filters",
             "ee81adfcef": "View",
             "efb3843e75": "Filter and sort workspaces",
-            "f637f63882": "Resource Manager counts {{value0}}; this list found {{value1}}. That counter reads Orca's activity record alone, while this scan also checks each workspace's git history and skips disconnected remotes.",
+            "f637f63882": "Resource Manager counts {{value0}}; this list found {{value1}}. That counter reads Alicorn's activity record alone, while this scan also checks each workspace's git history and skips disconnected remotes.",
             "f68d538c63": "No workspaces in this cleanup set.",
             "fc49f79434": "mixed",
             "gitFilter": "Git",
@@ -2546,29 +3527,109 @@
       }
     },
     "hooks": {
+      "ipc": {
+        "events": {
+          "browserStateIpcBridge": {
+            "docPreviewLinkFailed": "Could not open this link in Alicorn Browser."
+          }
+        }
+      },
       "useIpcEvents": {
+        "11992d0337": "If this was your phone or another Alicorn client, re-pair it from Settings → Mobile.",
         "60428567b4": "Local terminal reveal is unavailable while a remote runtime is active",
         "f6300deb8b": "New Browser Tab"
       },
+      "useMacTccAttributionSeveredNotice": {
+        "description": "Running Alicorn terminals are hosted by a daemon started by a previous Alicorn installation. macOS may not apply Alicorn’s Accessibility, Automation, or protected-file permissions to them. Restart the daemon from Manage Sessions to restore access. This will close all running Alicorn terminals.",
+        "title": "macOS permissions may not reach Alicorn terminals"
+      },
+      "useMacosTccPromptNotice": {
+        "description": "Permission messages from macOS may appear when an agent or terminal tool running in Alicorn attempts to access protected files. Grant Full Disk Access in Settings to reduce these prompts.",
+        "title": "Seeing “Alicorn would like to access…” prompts?"
+      },
       "useSettingsNavigationMetadata": {
-        "5235c215ca": "Choose which task providers appear in the Tasks page and sidebar."
+        "0505d0df29": "get started with Alicorn",
+        "3d65d3f1b9": "Configure mobile emulator support for Alicorn and coding agents.",
+        "5235c215ca": "Choose which task providers appear in the Tasks page and sidebar.",
+        "5f32ac08f3": "Finish the onboarding checklist for core Alicorn workflows.",
+        "b351014180": "Alicorn stats plus Claude, Codex, OpenCode token analytics and Grok subscription usage.",
+        "cd50cec5d7": "Coordinate multiple coding agents through Alicorn.",
+        "de0c2907a1": "Remote Alicorn Servers",
+        "linearDescription": "How Linear works in Alicorn, setup checklist, agent skill, and example prompts.",
+        "pluginsDescription": "Install and manage experimental Alicorn plugins."
       }
     },
     "lib": {
+      "agent": {
+        "skill": {
+          "cli": {
+            "prerequisite": {
+              "0f116999f1": "Restart your shell or add the Alicorn CLI directory to PATH before setup.",
+              "15cbedc3e3": "Install the Alicorn CLI before running agent skill setup.",
+              "2db0bd7515": "Alicorn CLI registration is unavailable",
+              "79371593b0": "Alicorn CLI is not visible on PATH yet",
+              "8d6eedf97e": "Failed to register the Alicorn CLI in PATH.",
+              "e99d7dc36f": "Alicorn CLI registration needs attention",
+              "windowsPathUnknown": "Alicorn could not check your Windows user PATH"
+            }
+          }
+        }
+      },
+      "blocked": {
+        "notification": {
+          "fallback": {
+            "de50bef680": "macOS is blocking Alicorn notifications"
+          }
+        }
+      },
       "browser": {
         "cookie": {
           "import": {
             "toast": {
-              "googleCookiesSkipped": "Google cookies were not imported. Open a browser in Orca on {{value0}} with this profile, then sign into Google."
+              "googleCookiesSkipped": "Google cookies were not imported. Open a browser in Alicorn on {{value0}} with this profile, then sign into Google.",
+              "googleCookiesSkippedLocal": "Google cookies were not imported. Open a browser in Alicorn with this profile, then sign into Google.",
+              "partitionSkipped": "{{value0}} cookies were not imported because their site-partition could not be read. Sign in to those sites again in Alicorn.",
+              "undecryptableAppBound": "Alicorn cannot decrypt {{value0}} of this browser's cookies because they use app-bound encryption. You can import cookies from a file using “From File…”.",
+              "undecryptableAppBoundMixed": "Alicorn cannot decrypt {{value0}} of this browser's cookies because they use app-bound encryption; {{value1}} more could not be decrypted for another reason. You can import cookies from a file using “From File…”.",
+              "undecryptableUnrecognizedReason": "{{value0}} cookies could not be decrypted and were skipped for a reason this version of Alicorn does not recognize. Update Alicorn to see the details, then try the import again.",
+              "unrecognizedWarning": "The cookie import finished with a warning this version of Alicorn does not recognize. Update Alicorn to see the details, then check this profile before relying on its cookies."
             }
           }
         }
+      },
+      "folderWorkspacePathStatus": {
+        "createError": {
+          "description": {
+            "ambiguousConnection": "Alicorn cannot tell which SSH connection owns this folder scope.",
+            "missing": "Alicorn cannot find {{path}}. Remove and re-import the folder.",
+            "unavailable": "Alicorn cannot verify this folder right now. Check the runtime or SSH connection and try again."
+          }
+        },
+        "description": {
+          "ambiguousConnection": "Alicorn cannot tell which SSH connection owns this folder scope.",
+          "missing": "Alicorn cannot find {{path}}. Remove and re-import this folder workspace.",
+          "unavailable": "Alicorn cannot verify this folder right now. Check the runtime or SSH connection and try again.",
+          "unrecognized": "Alicorn cannot use {{path}}, and this version does not recognize the reason. Update Alicorn to see the details."
+        }
+      },
+      "remotePairingCopy": {
+        "invalidInput": "Enter an Alicorn access link or bare pairing code.",
+        "mobileOnly": "This link grants mobile-only access. Generate a link for another Alicorn client."
       },
       "terminal": {
         "shortcut": {
           "capture": {
             "notification": {
               "0ab0cd001a": "size-4 text-muted-foreground"
+            }
+          }
+        }
+      },
+      "workspace": {
+        "create": {
+          "error": {
+            "format": {
+              "37cf0bc991": "Alicorn could not resolve a usable base ref for this workspace."
             }
           }
         }
@@ -2587,30 +3648,79 @@
     "runtime": {
       "githubCheckDetailsTimeout": {
         "timedOut": "Timed out loading check details."
+      },
+      "remoteServerUpdateErrors": {
+        "requestedVersionUnavailable": "The server updater did not offer the requested Alicorn version."
+      },
+      "webRuntimeSession": {
+        "remoteHostDisconnected": "The workspace is not connected to a remote Alicorn host."
       }
     },
     "store": {
       "slices": {
+        "orca": {
+          "profiles": {
+            "8b8fa73174": "Alicorn Cloud sign-in is not configured"
+          }
+        },
+        "repos": {
+          "2975400634": "Update Alicorn server to open non-Git folders on this runtime."
+        },
+        "runtime": {
+          "status": {
+            "runtimeHostDisconnectedDescription": "Check that Alicorn is running on this server and that your network connection is working, then try again.",
+            "runtimeHostUnreachable": "Can't reach Alicorn server"
+          }
+        },
         "settings": {
           "faa8fb83dd": "Save or close unsaved editor tabs before switching servers."
+        },
+        "workspace": {
+          "cleanup": {
+            "gitStatusUnavailable": "Alicorn couldn't check this workspace's git status. Try again, or delete it from its host-specific sidebar or project list.",
+            "gitStatusUnavailableOlderPeer": "Alicorn couldn't match this git-status failure to a host. Update the older connected peer, or delete the workspace from its host-specific sidebar or project list.",
+            "hostUnresolved": "Alicorn cannot tell which host owns this workspace. Refresh projects and review it again."
+          }
         },
         "worktrees": {
           "2b0afc7f14": "Could not keep local {{value0}} up to date",
           "34a03a6565": "Keep {{value0}} up to date",
+          "3b57982bf6": "Git could not safely delete branch \"{{value0}}\" after deleting workspace \"{{value1}}\", so Alicorn kept it to avoid losing local commits.",
           "4a18052018": "Local {{value0}} is behind {{value1}}",
           "4e6496f3d2": "{{value0}} deleted, branch kept",
           "670864ab52": "Keeping local {{value0}} up to date",
+          "78e08cd877": "Git could not safely delete branch \"{{value0}}\", so Alicorn kept it to avoid losing local commits.",
+          "81f13f48d2": "Git could not safely delete branch \"{{value0}}\" after deleting worktree \"{{value1}}\", so Alicorn kept it to avoid losing local commits.",
           "889487d8bb": "Dismiss",
-          "d1d78a7baa": "Git could not safely delete branch \"{{value0}}\"{{value1}}, so Orca kept it to avoid losing local commits.",
+          "903b51c2ed": "Workspace created from {{value0}}, but Alicorn could not fast-forward local {{value1}}. {{value2}}",
+          "d1d78a7baa": "Git could not safely delete branch \"{{value0}}\"{{value1}}, so Alicorn kept it to avoid losing local commits.",
           "f4503ca505": "Open Settings > Git and try again.",
-          "fa9299a66f": "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind. AI diffs may miss recent commits."
+          "fa9299a66f": "Your new worktree is current, but local {{value0}} is {{value1}} {{value2}} behind. AI diffs may miss recent commits.",
+          "localBaseRefRefreshFailedDescriptionNamed": "Workspace \"{{value0}}\" was created from {{value1}}, but Alicorn could not fast-forward local {{value2}}. {{value3}}",
+          "runtimeScopeForbiddenDescription": "Workspaces are unavailable on a mobile-scope pairing. Reconnect using the browser access link from Settings → Runtime Environments → Share this Alicorn server."
         }
+      }
+    },
+    "web": {
+      "WebConnect": {
+        "3affe7de3a": "Paste a pairing URL from an Alicorn server that this browser can reach.",
+        "e3bcd082ac": "Connect to Alicorn",
+        "mobileScopeRejected": "This QR code grants limited (mobile) access. To use the full web app, open the browser access link from Settings → Runtime Environments → Share this Alicorn server → New Link."
+      },
+      "webPreloadApi": {
+        "remotePairingSaveFailed": "Alicorn verified the host but could not save it. Check browser storage and try again.",
+        "remotePairingUnreachable": "Cannot reach Alicorn at {{endpoint}}."
       }
     }
   },
   "browser": {
     "clientHosted": {
       "popupBlocked": "Popup blocked: {{origin}}"
+    },
+    "loadFailure": {
+      "certificateAuthorityInvalid": "Alicorn doesn't trust the authority that issued the certificate for {{value0}}.",
+      "certificateProceedFailed": "Alicorn could not approve this certificate request. Retry the page and try again.",
+      "certificateVerificationFailed": "Alicorn couldn't verify the certificate for {{value0}}."
     },
     "sshEgress": {
       "localChip": "This device"
@@ -2623,6 +3733,10 @@
     "native-chat": {
       "composer": {
         "effort": "Effort"
+      },
+      "orchestrationPaused": {
+        "command": "alicorn orchestration check",
+        "message": "Structured Chat blocks terminal prompts and sends. Orchestration messages remain queued; switch to Terminal, then check the Alicorn inbox with"
       },
       "question": {
         "other": "Other…"
@@ -2661,8 +3775,8 @@
     "onboarding": {
       "integrations": {
         "capabilities": {
-          "browseIssues": "Browse GitHub issues and pull requests in the Tasks view without leaving Orca",
-          "managePullRequests": "Read, comment on, and merge pull requests without leaving Orca",
+          "browseIssues": "Browse GitHub issues and pull requests in the Tasks view without leaving Alicorn",
+          "managePullRequests": "Read, comment on, and merge pull requests without leaving Alicorn",
           "reviewStatus": "See issue state, review status, and CI checks on every worktree",
           "startWorkspaceFromIssue": "Start a workspace from any GitHub issue or pull request, prefilled with its title and context"
         }
@@ -2710,6 +3824,10 @@
       "subagents_one": "{{count}} subagent",
       "subagents_other": "{{count}} subagents"
     },
+    "host": {
+      "remote": "Remote Alicorn host",
+      "remoteNamed": "Remote Alicorn host · {{host}}"
+    },
     "map": {
       "agentCount": "{{count}} agents",
       "agentCount_one": "{{count}} agent",
@@ -2728,24 +3846,46 @@
       "description": "This is where all your agents will show up at a glance. The board is coming soon.",
       "title": "Agent dashboard"
     },
+    "recoverableError": {
+      "title": "Alicorn dashboard hit an error."
+    },
     "view": {
       "board": "Dashboard",
       "label": "Dashboard view",
       "map": "Agent Map"
     }
   },
+  "menu": {
+    "exploreOrca": "Explore Alicorn",
+    "gettingStarted": "Getting Started with Alicorn",
+    "showMobileButton": "Show Alicorn Mobile Button"
+  },
   "runtimeRpc": {
     "startupFailure": {
+      "detail": "Alicorn will continue to work, but commands such as alicorn status, alicorn terminal, and orchestration are unavailable for this session.\n\n{{guidance}}\n\nCause: {{cause}}",
       "guidance": {
-        "addressInUse": "Another process may be holding the port. Restart Orca to try again.",
-        "invalidPath": "Orca's data folder may be missing, moved, or at a path that is too long. Restore it or use a shorter path, then restart Orca.",
-        "permissionDenied": "Orca couldn't write its runtime file. Check permissions on Orca's data folder, then restart.",
-        "storageUnavailable": "Your disk may be full or read-only. Free up space, then restart Orca.",
-        "unknown": "Restart Orca to try again."
-      }
+        "addressInUse": "Another process may be holding the port. Restart Alicorn to try again.",
+        "invalidPath": "Alicorn's data folder may be missing, moved, or at a path that is too long. Restore it or use a shorter path, then restart Alicorn.",
+        "permissionDenied": "Alicorn couldn't write its runtime file. Check permissions on Alicorn's data folder, then restart.",
+        "storageUnavailable": "Your disk may be full or read-only. Free up space, then restart Alicorn.",
+        "unknown": "Restart Alicorn to try again."
+      },
+      "message": "Alicorn couldn't start its local command transport.",
+      "title": "Alicorn CLI unavailable"
     }
   },
   "settings": {
+    "appearance": {
+      "language": {
+        "description": "Choose the language used by the Alicorn interface."
+      },
+      "menuBarIcon": {
+        "description": "Keep an Alicorn shortcut and activity indicator in the macOS menu bar."
+      },
+      "statusBar": {
+        "sshToggleDescription": "Show configured SSH and remote Alicorn hosts when any are available."
+      }
+    },
     "browser": {
       "clientHostedRemote": {
         "description": "Render remote workspace pages on this desktop; network traffic still goes through the remote host. Applies to new pages only.",
@@ -2759,6 +3899,13 @@
         "title": "Browse through SSH workspace hosts"
       }
     }
+  },
+  "tray": {
+    "activityWaiting": "Alicorn - activity waiting",
+    "minimizeNotice": {
+      "body": "Alicorn is still running in the system tray"
+    },
+    "openOrca": "Open Alicorn"
   },
   "worktreeJumpPalette": {
     "filter": {
