@@ -2,16 +2,16 @@ import { evaluateGate } from './evaluate-gate'
 import { resolveRequiredChecksPassed } from './required-checks-verdict'
 import type { RunBlastRadius } from './run-blast-radius'
 import { resolveProtectedPathReach } from '../../../shared/alicorn/protected-paths'
-import { defaultAutonomyPolicy, type GateDecision } from '../../../shared/alicorn/gate-policy'
-import { resolveGateRetirement } from '../../../shared/alicorn/gate-retirement'
+import { resolveGateRetirement, type GateRetirement } from '../../../shared/alicorn/gate-retirement'
 import { DEFAULT_STAGE_KEY } from '../../../shared/alicorn/stage-keys'
-import type { GateRetirement } from '../../../shared/alicorn/gate-retirement'
-import type {
-  AutonomyPolicy,
-  GateEvidence,
-  GateStep,
-  StageConfig,
-  TrackRecord
+import {
+  defaultAutonomyPolicy,
+  type AutonomyPolicy,
+  type GateDecision,
+  type GateEvidence,
+  type GateStep,
+  type StageConfig,
+  type TrackRecord
 } from '../../../shared/alicorn/gate-policy'
 import type { ProtectedPath, ProtectedPathMatch } from '../../../shared/alicorn/protected-paths'
 import type { RequiredCheck } from '../../../shared/alicorn/members'

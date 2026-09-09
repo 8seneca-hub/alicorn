@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ProcessResult, ProcessSpec } from '../../../shared/child-process/process-spec'
-import type { RunProcessFn } from './code-stage-runner'
 import {
   CODE_STAGE_TIMEOUT_EXIT,
   codeStageOutcome,
   runCodeStage,
+  type RunProcessFn,
   type CodeStageResult
 } from './code-stage-runner'
 

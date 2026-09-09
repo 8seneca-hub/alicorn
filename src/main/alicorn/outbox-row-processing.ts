@@ -11,6 +11,17 @@ function backoffMs(attempts: number): number {
 
 export type RowOutcome = { kind: 'sent' } | { kind: 'failed'; error: unknown }
 
+/** The drainer's clock and loggers, shared by every per-kind handler that settles a row. */
+export type OutboxRowSettlementDeps = {
+  now: () => number
+  warn: (message: string, detail: Record<string, unknown>) => void
+  throttledWarn: (
+    message: string,
+    detail: Record<string, unknown>,
+    options?: { force?: boolean }
+  ) => void
+}
+
 /**
  * The single place a row is marked failed or dead, and sent for every kind except
  * step_outcome — the drainer's handleStepOutcome marks that one sent inside its own
@@ -21,15 +32,7 @@ export function settleOutboxRow(
   db: OrchestrationDb,
   row: LedgerOutboxRow,
   outcome: RowOutcome,
-  deps: {
-    now: () => number
-    warn: (message: string, detail: Record<string, unknown>) => void
-    throttledWarn: (
-      message: string,
-      detail: Record<string, unknown>,
-      options?: { force?: boolean }
-    ) => void
-  }
+  deps: OutboxRowSettlementDeps
 ): 'sent' | 'retry' | 'dead' | 'stop_pass' {
   if (outcome.kind === 'sent') {
     db.markLedgerOutboxSent(row.id)

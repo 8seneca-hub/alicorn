@@ -1,7 +1,10 @@
 import { useCallback } from 'react'
-import type { Worktree } from '../../../../shared/worktree/types'
+import type {
+  Worktree,
+  WorkspaceStatus,
+  WorkspaceStatusDefinition
+} from '../../../../shared/worktree/types'
 import { getWorkspaceStatus, isWorkspaceStatusId } from '../../../../shared/workspace-statuses'
-import type { WorkspaceStatus, WorkspaceStatusDefinition } from '../../../../shared/worktree/types'
 
 /**
  * Tells main that workspaces entered a column, so a matching rule can dispatch its member.

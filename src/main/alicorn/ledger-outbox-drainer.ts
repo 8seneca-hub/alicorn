@@ -3,69 +3,28 @@ import type {
   LedgerOutboxKind,
   LedgerOutboxRow
 } from '../runtime/orchestration/db/alicorn/alicorn-rows'
-import { buildStepOutcomeInput } from './step-outcome-builder'
-import { isCodeStagePayload, type CodeStagePayload } from './workflows/code-stage-outcome-enqueue'
 import { settleOutboxRow } from './outbox-row-processing'
+import {
+  handleStepOutcomeRow,
+  type DrainerWorktree,
+  type SpendAttributionPayload,
+  type SpendAttributor
+} from './ledger-outbox-step-outcome'
 import type { LedgerWriter } from './ledger/ledger-writer'
 import type { GateAgreementOutboxPayload } from './gates/gate-agreement'
-import type {
-  ContextCaptureInput,
-  InterruptionInput,
-  SpendPatch
-} from '../../shared/alicorn/ledger-inputs'
+import type { ContextCaptureInput, InterruptionInput } from '../../shared/alicorn/ledger-inputs'
 import type { HumanVerdictOutboxPayload } from './corrections/human-verdict-outbox-payload'
+import { proposeRuleForVerdict } from './corrections/rule-proposal-from-verdict'
 import type { RuleProposalInput } from '../../shared/alicorn/rule-proposals'
-import { ControlPlaneRequestError } from './control-plane-http'
 
-// Why 60s: transcripts (spend usage) flush after the report lands, not before.
-const SPEND_ATTRIBUTION_DELAY_MS = 60_000
+export type {
+  DrainerWorktree,
+  SpendAttributor,
+  StepVerificationPayload
+} from './ledger-outbox-step-outcome'
 // Exported: the verification worker (LG2a) reuses this so its own pause-on-stop_pass
 // window can't drift from the drainer's throttle window.
 export const UNAVAILABLE_LOG_INTERVAL_MS = 5 * 60_000
-
-type StepOutcomePayload = {
-  taskId: string
-  dispatchId: string
-  outcome: 'succeeded' | 'failed'
-  result: string
-}
-
-type SpendAttributionPayload = {
-  dispatchId: string
-  taskId: string
-  outcomeId: string
-  backend: string
-  worktreeId: string | null
-  startedAt: string | null
-  completedAt: string | null
-}
-
-// Exported: the verification worker (LG2a) parses the same shape off the rows this
-// drainer enqueues, without owning the step_verification handling itself.
-export type StepVerificationPayload = {
-  dispatchId: string
-  taskId: string
-  runId: string
-  worktreeId: string
-  worktreePath: string
-  branch: string
-  projectId: string
-}
-
-export type SpendAttributor = (input: {
-  backend: string
-  worktreeId: string | null
-  startedAt: string | null
-  completedAt: string | null
-}) => Promise<SpendPatch>
-
-export type DrainerWorktree = {
-  id: string
-  path: string
-  branch: string
-  repoId: string
-  projectId?: string
-}
 
 export type LedgerOutboxDrainerDeps = {
   getDb: () => OrchestrationDb
@@ -89,18 +48,6 @@ export type LedgerOutboxDrainer = {
 
 /** Marker thrown to short-circuit a pass without bumping attempts or logging as a failure. */
 class RowUntouched extends Error {}
-
-// 401/403 excluded deliberately: those mean auth is misconfigured, not that this payload is bad —
-// the same split `classifyOutboxFailure` makes for the row as a whole.
-function isPermanentlyRejected(error: unknown): boolean {
-  return (
-    error instanceof ControlPlaneRequestError &&
-    error.status >= 400 &&
-    error.status < 500 &&
-    error.status !== 401 &&
-    error.status !== 403
-  )
-}
 
 export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerOutboxDrainer {
   let lastUnavailableLogAt = 0
@@ -158,63 +105,10 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     row: LedgerOutboxRow,
     writer: LedgerWriter
   ): Promise<void> {
-    const parsed = JSON.parse(row.payload) as StepOutcomePayload | CodeStagePayload
-    // A code stage's input is complete at enqueue time: it has no dispatch to resolve a worktree
-    // or a member from, no model spend to attribute, and no member diff to run coverage over.
-    if (isCodeStagePayload(parsed)) {
-      await writer.postStepOutcome(parsed.outcome)
-      settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
-      return
-    }
-    const payload = parsed
-    const worktree = await resolveWorktree(db, payload.dispatchId)
-    const stepOutcomeInput = buildStepOutcomeInput({ db, payload, worktree })
-    const posted = await writer.postStepOutcome(stepOutcomeInput)
-
-    const dispatchContext = db.getDispatchContextById(payload.dispatchId)
-    const spendPayload: SpendAttributionPayload = {
-      dispatchId: payload.dispatchId,
-      taskId: payload.taskId,
-      outcomeId: posted.id,
-      backend: stepOutcomeInput.backend,
-      worktreeId: worktree?.id ?? null,
-      startedAt: dispatchContext?.dispatched_at ?? null,
-      completedAt: dispatchContext?.completed_at ?? null
-    }
-    // Why one transaction: a crash between marking this row sent and enqueueing
-    // its follow-ups must not resurrect it for a duplicate postStepOutcome.
-    db.db.exec('BEGIN IMMEDIATE')
-    try {
-      db.markLedgerOutboxSent(row.id)
-      db.setDispatchLedgerOutcome(payload.dispatchId, posted.id, stepOutcomeInput.filesModified)
-      db.enqueueLedgerOutbox({
-        kind: 'spend_attribution',
-        dedupeKey: `spend_attribution:${payload.dispatchId}`,
-        payload: spendPayload,
-        notBefore: new Date(Date.now() + SPEND_ATTRIBUTION_DELAY_MS).toISOString()
-      })
-
-      if (payload.outcome === 'succeeded' && worktree) {
-        const verificationPayload: StepVerificationPayload = {
-          dispatchId: payload.dispatchId,
-          taskId: payload.taskId,
-          runId: stepOutcomeInput.runId,
-          worktreeId: worktree.id,
-          worktreePath: worktree.path,
-          branch: worktree.branch,
-          projectId: worktree.projectId ?? worktree.repoId
-        }
-        db.enqueueLedgerOutbox({
-          kind: 'step_verification',
-          dedupeKey: `step_verification:${payload.dispatchId}:diff_coverage`,
-          payload: verificationPayload
-        })
-      }
-      db.db.exec('COMMIT')
-    } catch (error) {
-      db.db.exec('ROLLBACK')
-      throw error
-    }
+    await handleStepOutcomeRow(db, row, writer, {
+      resolveWorktree,
+      settlement: rowSettlementDeps
+    })
   }
 
   async function handleContextCapture(
@@ -246,41 +140,6 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 
-  /**
-   * RB1. A rejected or amended step is a finding a human paid for by hand, so the same row that
-   * records the verdict also proposes a standing rule on the member that earned it. Both calls are
-   * idempotent (`already_set`; unique on the outcome id), so a retry after either one lands is safe.
-   */
-  async function proposeRuleForVerdict(payload: HumanVerdictOutboxPayload): Promise<void> {
-    if (!deps.proposeRule || !payload.memberId) {
-      return
-    }
-    if (payload.humanVerdict !== 'amended' && payload.humanVerdict !== 'rejected') {
-      return
-    }
-    try {
-      await deps.proposeRule({
-        memberId: payload.memberId,
-        outcomeId: payload.outcomeId,
-        verdict: payload.humanVerdict,
-        context: payload.ruleContext ?? {}
-      })
-    } catch (error) {
-      // A permanently rejected proposal (a deleted member, a payload this server will never take)
-      // must not dead-letter the verdict row: the measurement already landed, and the ledger is
-      // what this row exists for. Anything transient still throws and is retried with it.
-      if (isPermanentlyRejected(error)) {
-        warn('[ledger-outbox] rule proposal rejected', {
-          outcomeId: payload.outcomeId,
-          memberId: payload.memberId,
-          code: (error as ControlPlaneRequestError).code
-        })
-        return
-      }
-      throw error
-    }
-  }
-
   async function handleHumanVerdictPatch(
     db: OrchestrationDb,
     row: LedgerOutboxRow,
@@ -289,7 +148,7 @@ export function startLedgerOutboxDrainer(deps: LedgerOutboxDrainerDeps): LedgerO
     const payload = JSON.parse(row.payload) as HumanVerdictOutboxPayload
     const { outcomeId, memberId: _memberId, ruleContext: _ruleContext, ...patch } = payload
     await writer.patchHumanVerdict(outcomeId, patch)
-    await proposeRuleForVerdict(payload)
+    await proposeRuleForVerdict(payload, deps.proposeRule, warn)
     settleOutboxRow(db, row, { kind: 'sent' }, rowSettlementDeps)
   }
 

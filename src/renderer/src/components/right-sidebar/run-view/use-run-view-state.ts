@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import type { ForemanRunViewResult } from '../../../../../shared/alicorn/foreman-run'
 import { summarizeRunCost, type RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import { getAlicornRunCostSnapshot, subscribeAlicornRunCost } from '@/store/alicorn-run-cost-store'

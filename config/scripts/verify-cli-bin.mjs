@@ -98,7 +98,8 @@ export function verifyPackageCliBin({
   return {
     binPath: primaryBinPath,
     outPackageJsonPath,
-    size: statSync(primaryBinPath).size
+    // Number(): the bigint overload of statSync widens this, and it is only ever logged.
+    size: Number(statSync(primaryBinPath).size)
   }
 }
 
