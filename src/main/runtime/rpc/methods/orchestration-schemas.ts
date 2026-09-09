@@ -1,3 +1,4 @@
+import { CompatibilityCliCommandSchema } from '../../../../shared/orchestration-cli-command-wire'
 import { FOREMAN_REPORT_MAX_CHARS } from '../../../../shared/alicorn/foreman-report'
 import { z } from 'zod'
 import { setImmediate as yieldToEventLoop } from 'node:timers/promises'
@@ -147,7 +148,7 @@ export const CheckParams = z
     ack: OptionalString,
     compatibilityAck: OptionalString,
     compatibilityQuestionAck: OptionalString,
-    compatibilityCliCommand: z.enum(['orca', 'orca-ide', 'orca-dev']).optional(),
+    compatibilityCliCommand: CompatibilityCliCommandSchema.optional(),
     run: OptionalString,
     wait: OptionalBoolean,
     timeoutMs: OptionalFiniteNumber
@@ -255,7 +256,7 @@ export const AskParams = z
     timeoutMs: OptionalFiniteNumber,
     from: OptionalString,
     run: OptionalString,
-    compatibilityCliCommand: z.enum(['orca', 'orca-ide', 'orca-dev']).optional(),
+    compatibilityCliCommand: CompatibilityCliCommandSchema.optional(),
     compatibilityWindowsCommand: z.enum(['orca', 'orca-ide']).optional()
   })
   .superRefine((params, ctx) => {

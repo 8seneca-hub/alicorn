@@ -1,3 +1,4 @@
+import { toLegacyCompatibilityCliCommand } from '../../../shared/orchestration-cli-command-wire'
 import type { CommandHandler } from '../../dispatch'
 import { printResult } from '../../format'
 import { getOptionalStringFlag } from '../../flags'
@@ -54,7 +55,10 @@ export const ORCHESTRATION_CHECK_HANDLER: Record<string, CommandHandler> = {
         types: getOptionalStringFlag(flags, 'types'),
         format: flags.has('format') ? true : undefined,
         inject: flags.has('inject') ? true : undefined,
-        compatibilityCliCommand: resolveCompatibilityCliCommand(),
+        // Legacy spelling until hosts advertise the new vocabulary: this key is a zod enum, so an
+        // un-negotiated `alicorn` fails the whole RPC on an older host instead of degrading. The
+        // hint the user is shown still resolves, because the `orca` shim ships one more release.
+        compatibilityCliCommand: toLegacyCompatibilityCliCommand(resolveCompatibilityCliCommand()),
         run: getOptionalStringFlag(flags, 'run'),
         ack: getOptionalStringFlag(flags, 'ack'),
         wait: wait ? true : undefined,

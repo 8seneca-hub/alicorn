@@ -1,3 +1,4 @@
+import { toLegacyCompatibilityCliCommand } from '../../../shared/orchestration-cli-command-wire'
 import type { CommandHandler } from '../../dispatch'
 import { getOptionalStringFlag } from '../../flags'
 import { RuntimeClientError } from '../../runtime-client'
@@ -56,7 +57,10 @@ export const ORCHESTRATION_QUESTION_HANDLER: Record<string, CommandHandler> = {
         options: getOptionalStringFlag(flags, 'options'),
         timeoutMs: parsedTimeoutMs === undefined ? undefined : timeoutMs,
         from,
-        compatibilityCliCommand: resolveCompatibilityCliCommand(),
+        // Legacy spelling until hosts advertise the new vocabulary: this key is a zod enum, so an
+        // un-negotiated `alicorn` fails the whole RPC on an older host instead of degrading. The
+        // hint the user is shown still resolves, because the `orca` shim ships one more release.
+        compatibilityCliCommand: toLegacyCompatibilityCliCommand(resolveCompatibilityCliCommand()),
         compatibilityWindowsCommand: resolvePackagedWindowsCompatibilityCommand()
       },
       // Why: extend past timeoutMs so transport does not abort before the runtime resolves its timeout.

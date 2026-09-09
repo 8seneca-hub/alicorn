@@ -1,3 +1,4 @@
+import { LINT_CHAIN_STEPS } from './run-lint-chain.mjs'
 import { readFileSync } from 'node:fs'
 
 import { describe, expect, it } from 'vitest'
@@ -14,7 +15,9 @@ describe('localization package scripts', () => {
   it('keeps the runtime-required English subset generated and checked', () => {
     expect(scripts['verify:localization-runtime-catalog']).toBeDefined()
     expect(scripts['sync:localization-runtime-catalog']).toBeDefined()
-    expect(scripts.lint).toContain('verify:localization-runtime-catalog')
+    // The chain lives in the runner now, so the assertion follows it there: `scripts.lint` is
+    // just the runner's path, and a substring check against it would pass on any chain at all.
+    expect(LINT_CHAIN_STEPS.map((step) => step.name)).toContain('verify:localization-runtime-catalog')
   })
 
   it('does not expose whole-catalog translation and repair commands', () => {

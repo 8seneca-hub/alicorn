@@ -56,6 +56,12 @@ export const ORCHESTRATION_FEDERATION_CONTROL_MAIL_PROTOCOL_VERSION = 2 as const
 export const ORCHESTRATION_FEDERATION_LIFECYCLE_SETTLEMENT_PROTOCOL_VERSION = 3 as const
 export const ORCHESTRATION_CONTRACT_VERSION = 1 as const
 export const ORCHESTRATION_CONTRACT_RUNTIME_CAPABILITY = 'orchestration.contract.v1' as const
+// Why negotiated and not additive: `compatibilityCliCommand` is a zod enum, and an out-of-domain
+// *value* on a known key fails validation outright — unlike an unknown key, which is stripped. A
+// client that sent `alicorn` to a host predating this capability would fail the whole RPC rather
+// than degrade, so the client sends the post-rebrand spelling only once the host advertises this.
+export const ORCHESTRATION_ALICORN_CLI_COMMAND_RUNTIME_CAPABILITY =
+  'orchestration.alicorn-cli-command.v1' as const
 export const FOLDER_WORKSPACE_PATH_STATUS_RUNTIME_CAPABILITY =
   'folder-workspace.path-status.v1' as const
 export const LINEAR_ISSUE_ATTRIBUTE_FILTER_RUNTIME_CAPABILITY =
@@ -194,6 +200,7 @@ export const RUNTIME_CAPABILITIES = [
   ORCHESTRATION_WORKER_STOP_VERDICT_RUNTIME_CAPABILITY,
   ORCHESTRATION_WORKER_LAUNCH_PREFERENCES_RUNTIME_CAPABILITY,
   ORCHESTRATION_CONTRACT_RUNTIME_CAPABILITY,
+  ORCHESTRATION_ALICORN_CLI_COMMAND_RUNTIME_CAPABILITY,
   BROWSER_SCREENCAST_RUNTIME_CAPABILITY,
   BROWSER_TAB_CREATE_KNOWN_ID_RUNTIME_CAPABILITY,
   BROWSER_CLIENT_HOST_RUNTIME_CAPABILITY,

@@ -1,3 +1,4 @@
+import { LINT_CHAIN_STEPS } from './run-lint-chain.mjs'
 import { readFileSync } from 'node:fs'
 import { parse } from 'yaml'
 import { describe, expect, it } from 'vitest'
@@ -73,9 +74,14 @@ describe('PR workflow lint parity', () => {
         .flatMap((step) => resolveLeafCommands(step.run, scripts))
     )
 
-    const missing = resolveLeafCommands(scripts.lint, scripts).filter(
-      (leaf) => !workflowCommands.has(leaf)
-    )
+    // Why the exported list and not `scripts.lint`: the chain moved into a runner so a failing
+    // step stops hiding the ones behind it, and `scripts.lint` is now just the runner's path.
+    const missing = LINT_CHAIN_STEPS.flatMap((step) =>
+      resolveLeafCommands(
+        step.command === 'pnpm' ? `pnpm run ${step.args[1]}` : step.command,
+        scripts
+      )
+    ).filter((leaf) => !workflowCommands.has(leaf))
 
     expect(
       missing,
