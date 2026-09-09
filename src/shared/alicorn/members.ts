@@ -49,4 +49,15 @@ export type ContractAcknowledgedCheck = {
   kind: 'contract_acknowledged'
 }
 
-export type RequiredCheck = DiffCoverageCheck | ContractAcknowledgedCheck
+/**
+ * IV1: an admin-authored command proving the feature still works across the repositories it spans.
+ * `repoId` names which of the task's bound workspaces hosts it. No timeout knob — the ceiling is
+ * the evaluator's, so it is not a criterion the member being judged can argue with.
+ */
+export type IntegrationVerifyCheck = {
+  kind: 'integration_verify'
+  command: string
+  repoId: string
+}
+
+export type RequiredCheck = DiffCoverageCheck | ContractAcknowledgedCheck | IntegrationVerifyCheck

@@ -35,6 +35,11 @@ import { createVerificationRunner } from '../alicorn/diff-coverage/verification-
 import { runContractAcknowledgedCheck } from '../alicorn/contracts/contract-acknowledged-check'
 import { fetchAcknowledgedContractNames } from '../alicorn/contracts/contract-acknowledgements-fetch'
 import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fetch'
+import { runIntegrationVerifyCheck } from '../alicorn/integration-verify/integration-verify-check'
+import {
+  createTaskFeatureWorkspaceResolver,
+  sshIntegrationVerifyHostExec
+} from '../alicorn/integration-verify/task-feature-workspaces'
 import { runDiffCoverageCheck } from '../alicorn/diff-coverage/diff-coverage-check'
 import { createBaseRefResolver } from '../alicorn/diff-coverage/base-ref-resolver'
 import { createRunBlastRadiusSource } from '../alicorn/gates/run-blast-radius'
@@ -151,6 +156,18 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
       runContractAcknowledgedCheck({
         ...input,
         listAcknowledgedNames: fetchAcknowledgedContractNames
+      }),
+    // IV1: the named repo's own workspace decides where this runs, so it resolves the task's
+    // tuples rather than reusing the dispatch worktree's host.
+    runIntegrationVerifyCheck: async ({ check, taskId, worktreeId, signal }) =>
+      runIntegrationVerifyCheck({
+        check,
+        workspaces: await createTaskFeatureWorkspaceResolver({
+          listTaskWorktrees: (id) => runtime.getOrchestrationDb().listTaskWorktrees(id),
+          showManagedWorktree: (selector) => runtime.showManagedWorktree(selector)
+        })({ taskId, worktreeId }),
+        hostExec: sshIntegrationVerifyHostExec,
+        ...(signal ? { signal } : {})
       }),
     resolveBaseRef: createBaseRefResolver({
       store,

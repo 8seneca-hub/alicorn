@@ -3,12 +3,11 @@ import { join } from 'node:path'
 import type { VerificationRunner } from '../verification-worker'
 import type { LedgerWriter } from '../ledger/ledger-writer'
 import type { StepVerificationInput } from '../../../shared/alicorn/ledger-inputs'
-import type { RequiredCheck } from '../../../shared/alicorn/members'
+import type { IntegrationVerifyCheck, RequiredCheck } from '../../../shared/alicorn/members'
+import { requiredCheckName } from '../../../shared/alicorn/required-check-name'
 import type { runDiffCoverageCheck } from './diff-coverage-check'
-import {
-  CONTRACT_ACKNOWLEDGED_CHECK_NAME,
-  type ContractCheckResult
-} from '../contracts/contract-acknowledged-check'
+import type { ContractCheckResult } from '../contracts/contract-acknowledged-check'
+import type { IntegrationVerifyResult } from '../integration-verify/integration-verify-check'
 
 type VerificationPayload = Parameters<VerificationRunner>[0]
 
@@ -23,6 +22,16 @@ export type VerificationRunnerDeps = {
     runId: string
     projectId: string
   }) => Promise<ContractCheckResult>
+  /**
+   * IV1. Resolves the task's bound workspaces and runs the command on the named repo's own host —
+   * which is why this branch does not consult the dispatch worktree's host at all.
+   */
+  runIntegrationVerifyCheck: (input: {
+    check: IntegrationVerifyCheck
+    taskId: string
+    worktreeId: string
+    signal?: AbortSignal
+  }) => Promise<IntegrationVerifyResult>
   // Resolves the worktree's real configured base (and its git routing, e.g. WSL) the
   // same way the runtime drift probe does — see base-ref-resolver.ts.
   resolveBaseRef: (
@@ -67,8 +76,8 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
     }
 
     for (const check of checks) {
+      const name = requiredCheckName(check)
       if (check.kind === 'diff_coverage') {
-        const name = `Diff coverage ≥ ${Math.round(check.threshold * 100)}%`
         const post = (status: StepVerificationInput['status'], detail: Record<string, unknown>) =>
           postVerification(writer, payload, 'diff_coverage', name, status, detail)
 
@@ -106,14 +115,7 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
 
       if (check.kind === 'contract_acknowledged') {
         const post = (status: StepVerificationInput['status'], detail: Record<string, unknown>) =>
-          postVerification(
-            writer,
-            payload,
-            'contract_acknowledged',
-            CONTRACT_ACKNOWLEDGED_CHECK_NAME,
-            status,
-            detail
-          )
+          postVerification(writer, payload, 'contract_acknowledged', name, status, detail)
         // The journal holding the registry is a file on the execution host, so the same rule
         // applies: no local read may stand in for a remote one.
         if (await isRemote()) {
@@ -129,6 +131,20 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
           return
         }
         await post(status, detail)
+        continue
+      }
+
+      if (check.kind === 'integration_verify') {
+        const { status, detail } = await deps.runIntegrationVerifyCheck({
+          check,
+          taskId: payload.taskId,
+          worktreeId: payload.worktreeId,
+          ...(options?.signal ? { signal: options.signal } : {})
+        })
+        if (options?.signal?.aborted) {
+          return
+        }
+        await postVerification(writer, payload, 'integration_verify', name, status, detail)
       }
     }
   }

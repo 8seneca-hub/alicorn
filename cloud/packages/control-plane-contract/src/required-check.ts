@@ -30,10 +30,23 @@ export const SkillCheckSchema = z.object({
   skillId: z.string().trim().min(1).max(200),
   versionId: SkillVersionIdSchema.optional()
 })
+/**
+ * IV1: does the feature still work across the repositories it spans?
+ *
+ * `repoId` names which bound workspace hosts the command, because a cross-repo suite has to run
+ * somewhere and letting the dispatch decide would let the member being judged pick the ground.
+ * No timeout knob: the ceiling is fixed by the evaluator, so it is not a criterion to argue with.
+ */
+export const IntegrationVerifyCheckSchema = z.object({
+  kind: z.literal('integration_verify'),
+  command: z.string().trim().min(1).max(500),
+  repoId: z.string().trim().min(1).max(200)
+})
 export const RequiredCheckSchema = z.discriminatedUnion('kind', [
   DiffCoverageCheckSchema,
   ContractAcknowledgedCheckSchema,
-  SkillCheckSchema
+  SkillCheckSchema,
+  IntegrationVerifyCheckSchema
 ])
 export const RequiredChecksSchema = z.array(RequiredCheckSchema).max(20)
 export type RequiredCheck = z.infer<typeof RequiredCheckSchema>

@@ -36,6 +36,11 @@ const NO_CONTRACT_CHECK = async (): Promise<{
   detail: Record<string, unknown>
 }> => ({ status: 'passed', detail: {} })
 
+const NO_INTEGRATION_CHECK = async (): Promise<{
+  status: 'passed'
+  detail: Record<string, unknown>
+}> => ({ status: 'passed', detail: {} })
+
 describe('createVerificationRunner', () => {
   it('resolves without posting when no diff_coverage check is configured', async () => {
     const writer = makeWriter()
@@ -43,6 +48,7 @@ describe('createVerificationRunner', () => {
       fetchRequiredChecks: async () => [],
       runDiffCoverageCheck: vi.fn(),
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local'
     })
@@ -58,6 +64,7 @@ describe('createVerificationRunner', () => {
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: vi.fn(),
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => false
@@ -86,6 +93,7 @@ describe('createVerificationRunner', () => {
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'remote',
       pathExists
@@ -107,6 +115,7 @@ describe('createVerificationRunner', () => {
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'unknown',
       pathExists: async () => true
@@ -134,6 +143,7 @@ describe('createVerificationRunner', () => {
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: async () => ({ baseRef: 'develop', gitOptions: { wslDistro: 'Ubuntu' } }),
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -179,6 +189,7 @@ describe('createVerificationRunner', () => {
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -198,6 +209,7 @@ describe('createVerificationRunner', () => {
       fetchRequiredChecks: async () => [CHECK],
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -217,6 +229,7 @@ describe('contract_acknowledged', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CONTRACT_CHECK],
       runDiffCoverageCheck: vi.fn(),
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       runContractAcknowledgedCheck: async () => ({
         status: 'failed' as const,
         detail: { unacknowledged: 1 }
@@ -245,6 +258,7 @@ describe('contract_acknowledged', () => {
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [CONTRACT_CHECK],
       runDiffCoverageCheck: vi.fn(),
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       runContractAcknowledgedCheck: runContract,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'remote'
@@ -265,6 +279,7 @@ describe('contract_acknowledged', () => {
       fetchRequiredChecks: async () => [CHECK, CONTRACT_CHECK],
       runDiffCoverageCheck: vi.fn().mockResolvedValue({ status: 'passed', detail: {} }),
       runContractAcknowledgedCheck: async () => ({ status: 'passed' as const, detail: {} }),
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost,
       pathExists: async () => true
@@ -277,5 +292,68 @@ describe('contract_acknowledged', () => {
       .mocked(writer.postStepVerification)
       .mock.calls.map(([input]) => (input as { kind: string }).kind)
     expect(kinds).toEqual(['diff_coverage', 'contract_acknowledged'])
+  })
+})
+
+// IV1: the named repo's own host decides where the command runs, so this branch deliberately does
+// not consult the dispatch worktree's host the way the other two do.
+describe('integration_verify', () => {
+  const INTEGRATION_CHECK = {
+    kind: 'integration_verify',
+    command: 'pnpm run test:integration',
+    repoId: 'repo-api'
+  } as const
+
+  it('posts a repo-named row and never asks the dispatch worktree host', async () => {
+    const writer = makeWriter()
+    const resolveWorktreeHost = vi.fn().mockResolvedValue('remote')
+    const runIntegrationVerifyCheck = vi
+      .fn()
+      .mockResolvedValue({ status: 'failed', detail: { exitCode: 1 } })
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [INTEGRATION_CHECK],
+      runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck,
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost
+    })
+
+    await runner(PAYLOAD, writer)
+
+    expect(resolveWorktreeHost).not.toHaveBeenCalled()
+    expect(runIntegrationVerifyCheck).toHaveBeenCalledWith(
+      expect.objectContaining({ check: INTEGRATION_CHECK, taskId: 'task_1', worktreeId: 'wt_1' })
+    )
+    expect(writer.postStepVerification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'integration_verify',
+        name: 'Integration verify (repo-api)',
+        required: true,
+        status: 'failed'
+      })
+    )
+  })
+
+  it('gives each authored repo its own row', async () => {
+    const writer = makeWriter()
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [
+        INTEGRATION_CHECK,
+        { ...INTEGRATION_CHECK, repoId: 'repo-web' }
+      ],
+      runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'local'
+    })
+
+    await runner(PAYLOAD, writer)
+
+    const names = vi
+      .mocked(writer.postStepVerification)
+      .mock.calls.map(([input]) => (input as { name: string }).name)
+    expect(names).toEqual(['Integration verify (repo-api)', 'Integration verify (repo-web)'])
   })
 })

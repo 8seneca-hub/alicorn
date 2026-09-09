@@ -10,10 +10,6 @@ import type { ContractEntry } from '../foreman/contract-registry'
  * acknowledgement lives, not of anything checked here.
  */
 
-/** Stable, because `step_verifications` upserts on (dispatch, kind, name): a name that carried the
- *  count would append a new row per re-run instead of superseding the last verdict. */
-export const CONTRACT_ACKNOWLEDGED_CHECK_NAME = 'Breaking contracts acknowledged'
-
 export type ContractCheckStatus = 'passed' | 'failed' | 'skipped' | 'error'
 
 export type ContractCheckResult = {

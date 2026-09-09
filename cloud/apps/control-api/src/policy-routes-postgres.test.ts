@@ -101,6 +101,22 @@ describePostgres('org policy and required checks routes (postgres)', () => {
     ])
   })
 
+  it('stores one integration_verify check per repo, authored here and nowhere else', async () => {
+    const checks = [
+      { kind: 'integration_verify', command: 'pnpm run test:integration', repoId: 'repo-api' },
+      { kind: 'integration_verify', command: 'make e2e', repoId: 'repo-web' }
+    ]
+    const put = await app.request('/v1/projects/repo-1/required-checks', {
+      method: 'PUT',
+      headers: { ...authHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify({ checks })
+    })
+    expect(put.status).toBe(200)
+
+    const get = await app.request('/v1/projects/repo-1/required-checks', { headers: authHeaders })
+    expect(await get.json()).toEqual({ checks })
+  })
+
   it('rejects an invalid required check body with 400', async () => {
     const res = await app.request('/v1/projects/repo-1/required-checks', {
       method: 'PUT',

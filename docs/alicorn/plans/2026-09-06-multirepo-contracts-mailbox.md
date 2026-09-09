@@ -122,7 +122,41 @@ Control API `contracts (id, tenant_id, project_id, repo_id, kind CHECK IN ('http
 
 ### Task 6 (IV1): integration verify as a required check
 `RequiredCheckSchema` variant `{ kind: 'integration_verify', command: z.string().min(1).max(500), repoId: z.string() }`; evaluator `integration-verify-check.ts` (Decision 6; runs through `runProcess`, never `child_process`; SSH worktrees via the provider's exec; folder workspaces allowed if the command is set; timeout 15 min → `unverifiable` with reason). Tests: passing/failing fixture commands; env carries the other tuples' paths.
-- [ ] Commit `feat(alicorn): integration verification across repositories as a required check`.
+- [x] **Landed 2026-09-09 (IV1).** Shipped: the `integration_verify` variant on
+      `RequiredCheckSchema` (and its desktop mirror in `shared/alicorn/members.ts`), the evaluator
+      (`src/main/alicorn/integration-verify/integration-verify-check.ts`) run by the existing
+      `createVerificationRunner`, and the use-time workspace resolution beside it
+      (`task-feature-workspaces.ts`).
+
+      **Three things Decision 6 did not say, each decided by what MR1 built.**
+
+      - **`repoId` resolves against the task's tuples, and a task with none still works.** The
+        pre-MR1 shape — no bound tuples — resolves to the dispatch's own worktree, so the check is
+        usable on a single-repo project today rather than waiting on the composer picker (MR1b).
+        Paths are exported for every same-host tuple including the target's own, one rule for all;
+        off-host and host-unresolved tuples are named in the detail instead.
+      - **The verdict vocabulary is three-valued, and `skipped` is the unknown bucket.** A command
+        that ran and exited non-zero is `failed`. An unreachable execution host, a timeout, a
+        host that would not resolve, and a `repoId` the task never bound are all `skipped` with a
+        reason — `resolveRequiredChecksPassed` reads that as unknown-not-a-pass, which is the
+        fail-closed answer. `error` stays for plumbing (spawn failure, an exit code the transport
+        lost). There is no `unverifiable` status to record: the ledger's enum is
+        passed/failed/skipped/error, and widening it is a wire change this did not need.
+      - **The remote ceiling is five minutes, not fifteen.** `agent.execNonInteractive` clamps to
+        `MAX_TIMEOUT_MS` on the relay (`src/relay/agent-exec-handler.ts`), so an SSH check longer
+        than that comes back `timedOut` — recorded honestly as `skipped` with the reason, never as
+        a pass. Raising it is a relay change with its own wire-compatibility story.
+
+      **One fix pulled in, because IV1 makes the bug reachable.** IV1 is the first kind a project
+      can author more than once (one per repo), and `resolveRequiredChecksPassed` matched a
+      recorded row by `kind` alone and took the latest — so one repo's pass could answer for
+      another repo's failure. Rows are now matched on kind *and* name, with
+      `shared/alicorn/required-check-name.ts` as the single place a check's row name is spelled.
+      That also stops a re-thresholded `diff_coverage` reusing its old verdict.
+
+      **Not done:** authoring UI for the new variant (the Control API route stores it; there is no
+      composer surface yet), and `assertOrchestrationWorktreeCreationSupported`/the dispatch
+      preamble, which are still MR1a's deferred half.
 
 ### Task 7 (MB1a): mailbox envelope with a durable id
 `orchestration/types.ts` (`MessageRow.envelope_id?: string`, `origin_host_id?: string`), `create-core-tables-sql.ts` (`ALTER TABLE messages ADD COLUMN envelope_id TEXT` / `origin_host_id TEXT` in a versioned migration; unique index on `envelope_id` where not null), `db/messages/message-insert.ts` (generate `envelope_id` when absent; ignore duplicates by `envelope_id`). Test: inserting the same envelope twice yields one row.

@@ -51,7 +51,7 @@ export type StepVerificationRecord = {
   runId: string
   taskId: string
   dispatchId: string
-  kind: 'diff_coverage' | 'contract_acknowledged'
+  kind: 'diff_coverage' | 'contract_acknowledged' | 'integration_verify'
   name: string
   required: boolean
   status: 'passed' | 'failed' | 'skipped' | 'error'

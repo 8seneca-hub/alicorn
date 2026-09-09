@@ -95,3 +95,49 @@ describe('contract_acknowledged', () => {
     expect(resolveRequiredChecksPassed([COVERAGE, CONTRACTS], [result(), passed])).toBe(true)
   })
 })
+
+// IV1 is the first kind a project can author more than once (one per repo), so kind alone stopped
+// identifying a row.
+describe('integration_verify', () => {
+  const API: RequiredCheck = {
+    kind: 'integration_verify',
+    command: 'pnpm run test:integration',
+    repoId: 'repo-api'
+  }
+  const WEB: RequiredCheck = { ...API, repoId: 'repo-web' }
+
+  function verify(repoId: string, status: DispatchVerificationRow['status']) {
+    return result({ kind: 'integration_verify', name: `Integration verify (${repoId})`, status })
+  }
+
+  it('does not let one repo answer for another', () => {
+    expect(resolveRequiredChecksPassed([API, WEB], [verify('repo-api', 'passed')])).toBeNull()
+  })
+
+  it('is false when either repo fails, whatever order the rows arrived in', () => {
+    const rows = [verify('repo-api', 'failed'), verify('repo-web', 'passed')]
+    expect(resolveRequiredChecksPassed([API, WEB], rows)).toBe(false)
+    expect(resolveRequiredChecksPassed([API, WEB], rows.toReversed())).toBe(false)
+  })
+
+  it('is true once both repos pass', () => {
+    expect(
+      resolveRequiredChecksPassed(
+        [API, WEB],
+        [verify('repo-api', 'passed'), verify('repo-web', 'passed')]
+      )
+    ).toBe(true)
+  })
+
+  it('reads an unreachable host as unknown, not as a pass', () => {
+    expect(resolveRequiredChecksPassed([API], [verify('repo-api', 'skipped')])).toBeNull()
+  })
+})
+
+// A row whose name matches nothing authored answered the current question until IV1 forced name
+// matching; a re-thresholded coverage check is the case that used to reuse the old verdict.
+it('ignores a result recorded under a superseded parameterisation', () => {
+  const stale = result({ name: 'Diff coverage \u2265 50%', status: 'failed' })
+  expect(resolveRequiredChecksPassed([COVERAGE], [stale])).toBeNull()
+  expect(resolveRequiredChecksPassed([COVERAGE], [stale, result()])).toBe(true)
+})
