@@ -31,7 +31,10 @@ export function registerRequiredChecksRoutes(app: Hono<ControlApiEnv>, deps: Con
     if (!result.success) {
       return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     }
-    const checks = await putRequiredChecks(deps.pool, auth.tenantId, projectId, auth.actor, result.data.checks)
-    return c.json({ checks })
+    const written = await putRequiredChecks(deps.pool, auth.tenantId, projectId, auth.actor, result.data.checks)
+    if (written.kind === 'unknown_skill') {
+      return c.json({ error: 'unknown_skill', skillIds: written.skillIds }, 400)
+    }
+    return c.json({ checks: written.checks })
   })
 }

@@ -24,7 +24,40 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      member_id TEXT NOT NULL REFERENCES members(id) ON DELETE CASCADE,
      skill_id TEXT NOT NULL,
      PRIMARY KEY (member_id, skill_id))`,
+  // OP2: a member's skills are additive to the catalog, never a mutation of it — `skill_id` stays
+  // the skill *name*, and `version_id` NULL means "follow the catalog's latest".
+  `ALTER TABLE member_skills ADD COLUMN IF NOT EXISTS version_id TEXT`,
   tenantRlsPolicySql('member_skills'),
+  // The org skill catalog (OP2/SP1a). Admin-authored: this is what a stage check names, so it has
+  // to be out of reach of the member being judged. Versions reuse Orca's skill-manifest
+  // vocabulary (packageId/versionId/digest) rather than inventing a second one.
+  `CREATE TABLE IF NOT EXISTS skills (
+     id TEXT PRIMARY KEY DEFAULT ('skl_' || gen_random_uuid()::text),
+     tenant_id TEXT NOT NULL,
+     scope TEXT NOT NULL CHECK (scope IN ('org', 'project')),
+     project_id TEXT,
+     name TEXT NOT NULL,
+     package_id TEXT,
+     latest_version_id TEXT,
+     created_by TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     CHECK ((scope = 'project') = (project_id IS NOT NULL)))`,
+  // Why two partial indexes rather than UNIQUE(tenant_id, project_id, name): NULL project_id is
+  // the org-wide row, and Postgres treats NULLs as distinct, so the org name would duplicate.
+  `CREATE UNIQUE INDEX IF NOT EXISTS skills_tenant_org_name ON skills(tenant_id, name) WHERE project_id IS NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS skills_tenant_project_name ON skills(tenant_id, project_id, name) WHERE project_id IS NOT NULL`,
+  tenantRlsPolicySql('skills'),
+  // Publishing is idempotent on (skill_id, version_id) — a re-post of the same version is a no-op,
+  // never a second row that `latest` could then point at ambiguously.
+  `CREATE TABLE IF NOT EXISTS skill_versions (
+     tenant_id TEXT NOT NULL,
+     skill_id TEXT NOT NULL REFERENCES skills(id) ON DELETE CASCADE,
+     version_id TEXT NOT NULL,
+     digest TEXT NOT NULL,
+     manifest JSONB NOT NULL DEFAULT '{}'::jsonb,
+     published_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (skill_id, version_id))`,
+  tenantRlsPolicySql('skill_versions'),
   `CREATE TABLE IF NOT EXISTS org_policies (
      tenant_id TEXT PRIMARY KEY,
      enforce_distinct_reviewer_backend BOOLEAN NOT NULL DEFAULT true,

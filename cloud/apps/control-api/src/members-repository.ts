@@ -1,6 +1,6 @@
 import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
-import type { Member, MemberInput } from '@alicorn-cloud/control-plane-contract'
+import type { Member, MemberInput, MemberSkillRef } from '@alicorn-cloud/control-plane-contract'
 
 type MemberRow = {
   id: string
@@ -16,7 +16,7 @@ type MemberRow = {
   updated_at: Date
 }
 
-function toMember(row: MemberRow, skills: string[]): Member {
+function toMember(row: MemberRow, skills: MemberSkillRef[]): Member {
   return {
     id: row.id,
     tenantId: row.tenant_id,
@@ -26,33 +26,40 @@ function toMember(row: MemberRow, skills: string[]): Member {
     workspaceKind: row.workspace_kind as Member['workspaceKind'],
     permissionMode: row.permission_mode as Member['permissionMode'],
     systemRules: row.system_rules,
-    skills: [...skills].sort(),
+    skills: [...skills].sort((a, b) => a.name.localeCompare(b.name)),
     createdBy: row.created_by,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString()
   }
 }
 
-async function skillsFor(client: pg.PoolClient, memberId: string): Promise<string[]> {
-  const { rows } = await client.query<{ skill_id: string }>(
-    `SELECT skill_id FROM member_skills WHERE member_id = $1`,
+// `skill_id` is the skill *name* (it predates the catalog and stays the key); `version_id` NULL
+// follows the catalog's latest.
+async function skillsFor(client: pg.PoolClient, memberId: string): Promise<MemberSkillRef[]> {
+  const { rows } = await client.query<{ skill_id: string; version_id: string | null }>(
+    `SELECT skill_id, version_id FROM member_skills WHERE member_id = $1`,
     [memberId]
   )
-  return rows.map((r) => r.skill_id)
+  return rows.map((r) => ({ name: r.skill_id, versionId: r.version_id }))
 }
 
 // Why: skills are replaced wholesale (not diffed) — simpler, and callers always send the full set.
-async function replaceSkills(client: pg.PoolClient, tenantId: string, memberId: string, skills: string[]): Promise<void> {
+async function replaceSkills(
+  client: pg.PoolClient,
+  tenantId: string,
+  memberId: string,
+  skills: MemberSkillRef[]
+): Promise<void> {
   await client.query(`DELETE FROM member_skills WHERE member_id = $1`, [memberId])
   if (skills.length === 0) return
   const values: string[] = []
   const params: unknown[] = []
   skills.forEach((skill, i) => {
-    values.push(`($${i * 3 + 1}, $${i * 3 + 2}, $${i * 3 + 3})`)
-    params.push(tenantId, memberId, skill)
+    values.push(`($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`)
+    params.push(tenantId, memberId, skill.name, skill.versionId)
   })
   await client.query(
-    `INSERT INTO member_skills (tenant_id, member_id, skill_id) VALUES ${values.join(', ')}`,
+    `INSERT INTO member_skills (tenant_id, member_id, skill_id, version_id) VALUES ${values.join(', ')}`,
     params
   )
 }

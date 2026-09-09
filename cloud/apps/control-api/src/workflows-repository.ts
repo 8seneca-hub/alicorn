@@ -8,6 +8,7 @@ import {
   type WorkflowSummary,
   type WorkflowTemplate
 } from '@alicorn-cloud/control-plane-contract'
+import { unknownSkillCheckIds } from './skills-repository.js'
 
 // Why: the authored graph, without the identity a stored workflow carries.
 export type WorkflowGraphInput = {
@@ -22,6 +23,7 @@ export type WriteResult =
   | { kind: 'not_found' }
   | { kind: 'version_conflict'; version: number }
   | { kind: 'unknown_member'; memberIds: string[] }
+  | { kind: 'unknown_skill'; skillIds: string[] }
 
 type WorkflowRow = {
   id: string
@@ -112,6 +114,16 @@ async function unknownMemberIds(client: pg.PoolClient, stages: Stage[]): Promise
   const { rows } = await client.query<{ id: string }>(`SELECT id FROM members WHERE id = ANY($1::text[])`, [wanted])
   const found = new Set(rows.map((r) => r.id))
   return wanted.filter((id) => !found.has(id))
+}
+
+// OP2b: a stage check may name a catalog skill, and only a catalog skill — validated in the same
+// transaction as the save, against the workflow's own project.
+async function unknownStageSkillIds(client: pg.PoolClient, projectId: string, stages: Stage[]): Promise<string[]> {
+  const found = new Set<string>()
+  for (const stage of stages) {
+    for (const id of await unknownSkillCheckIds(client, projectId, stage.requiredChecks)) found.add(id)
+  }
+  return [...found]
 }
 
 async function writeGraph(
@@ -237,6 +249,8 @@ async function insertWorkflow(
 ): Promise<WriteResult> {
   const unknown = await unknownMemberIds(client, input.stages)
   if (unknown.length > 0) return { kind: 'unknown_member', memberIds: unknown }
+  const unknownSkills = await unknownStageSkillIds(client, input.projectId, input.stages)
+  if (unknownSkills.length > 0) return { kind: 'unknown_skill', skillIds: unknownSkills }
   const { rows } = await client.query<WorkflowRow>(
     `INSERT INTO workflows (tenant_id, project_id, name, created_by) VALUES ($1, $2, $3, $4) RETURNING *`,
     [tenantId, input.projectId, input.name, createdBy]
@@ -315,6 +329,8 @@ export function updateWorkflow(
 
     const unknown = await unknownMemberIds(client, input.stages)
     if (unknown.length > 0) return { kind: 'unknown_member', memberIds: unknown }
+    const unknownSkills = await unknownStageSkillIds(client, input.projectId, input.stages)
+    if (unknownSkills.length > 0) return { kind: 'unknown_skill', skillIds: unknownSkills }
 
     const { rows } = await client.query<WorkflowRow>(
       `UPDATE workflows SET project_id = $1, name = $2, version = version + 1, updated_at = now()

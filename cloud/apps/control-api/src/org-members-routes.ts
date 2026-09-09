@@ -1,23 +1,21 @@
-import type { Context, Hono } from 'hono'
-import type { z } from 'zod'
+import type { Hono } from 'hono'
 import {
   OrgInviteInputSchema,
   OrgInviteRevokeInputSchema,
   OrgMemberRemoveInputSchema,
-  OrgMemberRoleInputSchema,
-  type OrgRole
+  OrgMemberRoleInputSchema
 } from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import {
   changeMemberRole,
   createInvite,
   readRoster,
-  readViewerRole,
   removeMember,
   revokeInvite,
-  toResponse
+  toResponse,
+  viewerRoleOf
 } from './org-members-repository.js'
-import { readJsonBody } from './read-json-body.js'
+import { parseJsonBody as parsed } from './read-json-body.js'
 
 // The Alicorn organisation (OP1), never Orca's relay-backed account org — see CLAUDE.md. The
 // paths and error codes are the ones `profile-cloud-org-members-client.ts` already speaks
@@ -27,41 +25,19 @@ import { readJsonBody } from './read-json-body.js'
 // lands with the identity plan (I5).** Here an invite is a row; `syncIdentity` consumes it at the
 // invitee's first sign-in, which is the only place a membership is ever created.
 
-// Why local mode is `owner`: it has one constant tenant and one shared bearer, so there is no
-// second principal to be less privileged than. A real role appears the moment a token carries a
-// subject that maps to an internal user id.
-async function viewerRoleOf(deps: ControlApiDeps, tenantId: string, userId: string | null): Promise<OrgRole> {
-  if (!userId) return 'owner'
-  // Fail closed: a verified member with no membership row administers nothing.
-  return (await readViewerRole(deps.pool, tenantId, userId)) ?? 'member'
-}
-
-async function parsed<T extends z.ZodTypeAny>(
-  c: Context<ControlApiEnv>,
-  schema: T
-): Promise<{ ok: true; data: z.infer<T> } | { ok: false; response: Response }> {
-  const body = await readJsonBody(c)
-  if (!body.ok) return { ok: false, response: c.json({ error: 'invalid_body', issues: [] }, 400) }
-  const result = schema.safeParse(body.value)
-  if (!result.success) {
-    return { ok: false, response: c.json({ error: 'invalid_body', issues: result.error.issues }, 400) }
-  }
-  return { ok: true, data: result.data }
-}
-
 export function registerOrgMembersRoutes(app: Hono<ControlApiEnv>, deps: ControlApiDeps): void {
   app.get('/v1/org/members', async (c) => {
     const auth = c.get('auth')
     const [roster, viewerRole] = await Promise.all([
       readRoster(deps.pool, auth.tenantId),
-      viewerRoleOf(deps, auth.tenantId, auth.userId)
+      viewerRoleOf(deps.pool, auth.tenantId, auth.userId)
     ])
     return c.json(toResponse(roster, viewerRole))
   })
 
   app.post('/v1/org/invites', async (c) => {
     const auth = c.get('auth')
-    if ((await viewerRoleOf(deps, auth.tenantId, auth.userId)) === 'member') {
+    if ((await viewerRoleOf(deps.pool, auth.tenantId, auth.userId)) === 'member') {
       return c.json({ error: 'forbidden' }, 403)
     }
     const body = await parsed(c, OrgInviteInputSchema)
@@ -73,7 +49,7 @@ export function registerOrgMembersRoutes(app: Hono<ControlApiEnv>, deps: Control
 
   app.post('/v1/org/invites/revoke', async (c) => {
     const auth = c.get('auth')
-    if ((await viewerRoleOf(deps, auth.tenantId, auth.userId)) === 'member') {
+    if ((await viewerRoleOf(deps.pool, auth.tenantId, auth.userId)) === 'member') {
       return c.json({ error: 'forbidden' }, 403)
     }
     const body = await parsed(c, OrgInviteRevokeInputSchema)
@@ -86,7 +62,7 @@ export function registerOrgMembersRoutes(app: Hono<ControlApiEnv>, deps: Control
 
   app.post('/v1/org/members/role', async (c) => {
     const auth = c.get('auth')
-    if ((await viewerRoleOf(deps, auth.tenantId, auth.userId)) === 'member') {
+    if ((await viewerRoleOf(deps.pool, auth.tenantId, auth.userId)) === 'member') {
       return c.json({ error: 'forbidden' }, 403)
     }
     const body = await parsed(c, OrgMemberRoleInputSchema)
@@ -102,7 +78,7 @@ export function registerOrgMembersRoutes(app: Hono<ControlApiEnv>, deps: Control
 
   app.post('/v1/org/members/remove', async (c) => {
     const auth = c.get('auth')
-    if ((await viewerRoleOf(deps, auth.tenantId, auth.userId)) === 'member') {
+    if ((await viewerRoleOf(deps.pool, auth.tenantId, auth.userId)) === 'member') {
       return c.json({ error: 'forbidden' }, 403)
     }
     const body = await parsed(c, OrgMemberRemoveInputSchema)

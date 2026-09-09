@@ -1,4 +1,5 @@
 export * from './member.js'
+export * from './skill.js'
 export * from './org.js'
 export * from './org-policy.js'
 export * from './required-check.js'

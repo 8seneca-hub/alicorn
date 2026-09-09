@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { SkillVersionIdSchema } from './skill.js'
 export const DiffCoverageCheckSchema = z.object({
   kind: z.literal('diff_coverage'),
   threshold: z.number().min(0).max(1),
@@ -17,9 +18,22 @@ export const DiffCoverageCheckSchema = z.object({
 export const ContractAcknowledgedCheckSchema = z.object({
   kind: z.literal('contract_acknowledged')
 })
+/**
+ * OP2b: the check is a catalog skill, run against the work. `skillId` is a catalog row — never a
+ * member's private skill, which has no id to name — so a member cannot loosen what judges it.
+ * Omitting `versionId` follows the catalog's `latest`.
+ *
+ * Which member runs it is the QA plan's job; the Control API only stores and validates the ref.
+ */
+export const SkillCheckSchema = z.object({
+  kind: z.literal('skill'),
+  skillId: z.string().trim().min(1).max(200),
+  versionId: SkillVersionIdSchema.optional()
+})
 export const RequiredCheckSchema = z.discriminatedUnion('kind', [
   DiffCoverageCheckSchema,
-  ContractAcknowledgedCheckSchema
+  ContractAcknowledgedCheckSchema,
+  SkillCheckSchema
 ])
 export const RequiredChecksSchema = z.array(RequiredCheckSchema).max(20)
 export type RequiredCheck = z.infer<typeof RequiredCheckSchema>

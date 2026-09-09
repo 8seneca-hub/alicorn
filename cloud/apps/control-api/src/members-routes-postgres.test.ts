@@ -61,7 +61,8 @@ describePostgres('members routes (postgres)', () => {
     expect(res.status).toBe(201)
     const { member } = (await res.json()) as { member: Member }
     expect(member.createdBy).toBe('huy')
-    expect(member.skills).toEqual(['code-review'])
+    // OP2: a bare string still parses, and comes back as a follow-latest catalog ref.
+    expect(member.skills).toEqual([{ name: 'code-review', versionId: null }])
     memberId = member.id
   })
 
@@ -95,7 +96,10 @@ describePostgres('members routes (postgres)', () => {
     expect(res.status).toBe(200)
     const { member } = (await res.json()) as { member: Member }
     expect(member.backend).toBe('claude')
-    expect(member.skills).toEqual(['code-review', 'tdd'])
+    expect(member.skills).toEqual([
+      { name: 'code-review', versionId: null },
+      { name: 'tdd', versionId: null }
+    ])
   })
 
   it('rejects a duplicate name with 409', async () => {

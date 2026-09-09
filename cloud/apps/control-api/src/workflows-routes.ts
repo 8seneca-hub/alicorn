@@ -39,6 +39,8 @@ function respond(c: JsonResponder, result: WriteResult, okStatus: 200 | 201): Re
       return c.json({ error: 'version_conflict', version: result.version }, 409)
     case 'unknown_member':
       return c.json({ error: 'unknown_member', memberIds: result.memberIds }, 400)
+    case 'unknown_skill':
+      return c.json({ error: 'unknown_skill', skillIds: result.skillIds }, 400)
   }
 }
 
