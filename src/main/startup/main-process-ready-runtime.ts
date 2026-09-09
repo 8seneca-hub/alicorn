@@ -22,6 +22,8 @@ import {
 } from '../agent-hooks/managed-agent-hook-controls'
 import { shouldInstallManagedHooks } from './configure-process'
 import { recordManagedHookInstallFailure } from '../agent-hooks/install-telemetry'
+import { sweepHookReinstall, unreachableHookHosts } from '../hooks/hook-reinstall-sweep'
+import { recordManagedScriptWritesDuring } from '../hooks/managed-script-write-log'
 import { mainProcessState as state } from './main-process-state'
 import { initializeMainProcessObservers } from './main-process-observers'
 import { initializeMainProcessAccountServices } from './main-process-account-services'
@@ -114,18 +116,37 @@ export async function initializeReadyRuntimeServices(): Promise<void> {
   if (shouldReconcileStartupManagedHooks) {
     const managedHookStore = store
     void realHomeCodexHookState
+      // R4 Task 8: the same startup install, reported. A script the previous release left behind
+      // reads the pre-rename env names, so its bytes differ from what this build writes and the
+      // installer rewrites it — the sweep only names which hosts that happened on. Local only:
+      // dialling every configured SSH host on every launch would be a surprising startup cost, and
+      // a remote host's hooks are installed on its own connect path, which is where it is reported.
       .then(() =>
-        installManagedAgentHooks(managedHookStore.getSettings(), {
-          shouldHydrateShellPath: app.isPackaged,
-          onInstallError: recordManagedHookInstallFailure,
-          shouldContinue: (agent) =>
-            shouldContinueManagedHookStartup(
-              state.isQuitting,
-              managedHookStore.getSettings(),
-              agent
+        sweepHookReinstall({
+          hosts: [{ kind: 'local' }],
+          reinstall: () =>
+            recordManagedScriptWritesDuring(() =>
+              installManagedAgentHooks(managedHookStore.getSettings(), {
+                shouldHydrateShellPath: app.isPackaged,
+                onInstallError: recordManagedHookInstallFailure,
+                shouldContinue: (agent) =>
+                  shouldContinueManagedHookStartup(
+                    state.isQuitting,
+                    managedHookStore.getSettings(),
+                    agent
+                  )
+              })
             )
         })
       )
+      .then((outcomes) => {
+        // An unreachable local host means the install threw: the old script is still on disk and
+        // nobody has been told, which is the one outcome this sweep exists to make visible.
+        const unreachable = unreachableHookHosts(outcomes)
+        if (unreachable.length > 0) {
+          console.warn(`[agent-hooks] hooks may be stale on: ${unreachable.join(', ')}`)
+        }
+      })
       .catch((error: unknown) =>
         console.warn('[agent-hooks] failed to reconcile managed hooks on startup:', error)
       )

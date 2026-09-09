@@ -1,3 +1,4 @@
+import { recordManagedScriptWrite } from '../hooks/managed-script-write-log'
 import { randomUUID } from 'node:crypto'
 import { chmod, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -70,6 +71,7 @@ export async function refreshManagedScriptIfPresent(
     if (process.platform !== 'win32') {
       await chmod(scriptPath, 0o755)
     }
+    recordManagedScriptWrite('unchanged')
     return true
   }
 
@@ -83,6 +85,9 @@ export async function refreshManagedScriptIfPresent(
       return false
     }
     await rename(tmpPath, scriptPath)
+    // Why here and not on the boolean: this function's `true` means *present*, and fourteen call
+    // sites read it that way. The sweep needs "was it rewritten", which is a different question.
+    recordManagedScriptWrite('written')
     return true
   } finally {
     await rm(tmpPath, { force: true }).catch(() => undefined)

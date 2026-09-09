@@ -9,6 +9,8 @@
 // `installer-utils.ts` and only swap fs primitives — the JSON shape and
 // managed-command matching must stay identical to the local install.
 
+import { recordManagedScriptWrite } from '../hooks/managed-script-write-log'
+import type { ManagedScriptWriteEffect } from './installer-utils'
 import { randomUUID } from 'node:crypto'
 import type { SFTPWrapper, FileEntryWithStats } from 'ssh2'
 
@@ -90,14 +92,15 @@ export async function writeManagedScriptRemote(
   sftp: SFTPWrapper,
   remotePath: string,
   content: string
-): Promise<void> {
+): Promise<ManagedScriptWriteEffect> {
   const dir = dirnamePosix(remotePath)
   await mkdirpRemote(sftp, dir)
   try {
     const existing = await readFile(sftp, remotePath)
     if (existing === content) {
       await chmod(sftp, remotePath, 0o755)
-      return
+      recordManagedScriptWrite('unchanged')
+      return 'unchanged'
     }
   } catch {
     // ENOENT or read error — fall through to the atomic write below.
@@ -107,10 +110,12 @@ export async function writeManagedScriptRemote(
   // file first, then rename it into place so interrupted reinstalls do not
   // leave the configured hook path truncated or non-executable.
   const tmp = `${dir}/.${Date.now()}-${randomUUID()}.tmp`
+  let wrote = false
   try {
     await writeFile(sftp, tmp, content, 0o755)
     await chmod(sftp, tmp, 0o755)
     await rename(sftp, tmp, remotePath)
+    wrote = true
   } finally {
     try {
       await unlink(sftp, tmp)
@@ -118,6 +123,9 @@ export async function writeManagedScriptRemote(
       // already gone or never created
     }
   }
+  const effect = wrote ? 'written' : 'unchanged'
+  recordManagedScriptWrite(effect)
+  return effect
 }
 
 export async function readTextFileRemote(

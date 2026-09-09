@@ -1,3 +1,4 @@
+import { recordManagedScriptWrite } from '../hooks/managed-script-write-log'
 import {
   existsSync,
   mkdirSync,
@@ -248,8 +249,18 @@ export function hookDefinitionHasManagedCommand(
   )
 }
 
+/**
+ * Whether a managed script had to be rewritten, or was already byte-identical.
+ *
+ * Why it is returned rather than logged: this comparison is the only thing that distinguishes a
+ * pre-rename script from a current one — a v1 script reads the old env names, so its *content*
+ * differs even though the version it posts at runtime does not (it reads that from the endpoint
+ * file, which now carries both spellings). The hook reinstall sweep is built on this answer.
+ */
+export type ManagedScriptWriteEffect = 'written' | 'unchanged'
+
 // Why: temp+rename so concurrent writers can't leave a torn script for an in-flight /bin/sh to source.
-export function writeManagedScript(scriptPath: string, content: string): void {
+export function writeManagedScript(scriptPath: string, content: string): ManagedScriptWriteEffect {
   const dir = dirname(scriptPath)
   mkdirSync(dir, { recursive: true })
 
@@ -259,7 +270,8 @@ export function writeManagedScript(scriptPath: string, content: string): void {
         if (process.platform !== 'win32') {
           chmodSync(scriptPath, 0o755)
         }
-        return
+        recordManagedScriptWrite('unchanged')
+        return 'unchanged'
       }
     } catch {
       // Fall through to the atomic write path.
@@ -267,6 +279,7 @@ export function writeManagedScript(scriptPath: string, content: string): void {
   }
 
   const tmpPath = join(dir, `.${Date.now()}-${randomUUID()}.tmp`)
+  let wrote = false
   try {
     writeScriptWithAclRetry(tmpPath, content)
     // Why: chmod before rename so the canonical path is never visible non-executable, else the POSIX guard skips the hook.
@@ -274,6 +287,7 @@ export function writeManagedScript(scriptPath: string, content: string): void {
       chmodSync(tmpPath, 0o755)
     }
     renameSync(tmpPath, scriptPath)
+    wrote = true
   } finally {
     if (existsSync(tmpPath)) {
       try {
@@ -283,6 +297,9 @@ export function writeManagedScript(scriptPath: string, content: string): void {
       }
     }
   }
+  const effect = wrote ? 'written' : 'unchanged'
+  recordManagedScriptWrite(effect)
+  return effect
 }
 
 // Why: a restrictive directory DACL makes writes fail with EPERM on Windows; grant an ACL and retry once.

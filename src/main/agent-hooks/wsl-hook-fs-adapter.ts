@@ -3,6 +3,8 @@
 // write into a WSL distro's home over the relay's already-open stdio channel
 // — the WSL twin of the SSH flow's real SFTPWrapper. Only the primitives
 // `installer-utils-remote.ts` touches are implemented.
+import { sweepHookReinstall } from '../hooks/hook-reinstall-sweep'
+import { recordManagedScriptWritesDuring } from '../hooks/managed-script-write-log'
 import type { SFTPWrapper } from 'ssh2'
 
 import type { installRemoteManagedAgentHooks } from './remote-managed-hook-installers'
@@ -63,14 +65,28 @@ export async function installWslGuestHooks(options: {
   // Codex is redirected into the runtime home and must use the canonical
   // runtime-host writer above; the relay adapter owns all other agents.
   const remoteAgents = agents.filter((agent) => agent !== 'codex')
-  const results = await installHooks(createWslHookSftpAdapter(mux), guestHome, {
-    agents: remoteAgents
+  // R4 Task 8: a guest still holding a pre-rename script gets it rewritten here, because its bytes
+  // differ from what this build writes. Reported on the connect path rather than swept at startup —
+  // launching a distro just to check its hooks is a cost nobody asked for.
+  const [outcome] = await sweepHookReinstall({
+    hosts: [{ kind: 'wsl', distro }],
+    reinstall: () =>
+      recordManagedScriptWritesDuring(async () => {
+        const results = await installHooks(createWslHookSftpAdapter(mux), guestHome, {
+          agents: remoteAgents
+        })
+        const failed = results.filter((r) => r.state === 'error').length
+        if (failed > 0) {
+          warn(
+            `[agent-hooks] WSL hook install for '${distro}': ${failed}/${results.length} agents failed`
+          )
+        }
+      })
   })
-  const failed = results.filter((r) => r.state === 'error').length
-  if (failed > 0) {
-    warn(
-      `[agent-hooks] WSL hook install for '${distro}': ${failed}/${results.length} agents failed`
-    )
+  if (outcome?.status === 'reinstalled') {
+    warn(`[agent-hooks] replaced outdated managed hooks in WSL '${distro}'`)
+  } else if (outcome?.status === 'unreachable') {
+    warn(`[agent-hooks] hooks may be stale in WSL '${distro}': ${outcome.detail ?? 'unreachable'}`)
   }
 }
 
