@@ -110,7 +110,9 @@ export async function handleStepOutcomeRow(
       }
       db.enqueueLedgerOutbox({
         kind: 'step_verification',
-        dedupeKey: `step_verification:${payload.dispatchId}:diff_coverage`,
+        // One verification row per dispatch, covering every check the project authored — not
+        // coverage alone, which is what the old `:diff_coverage` suffix claimed (ALC-113).
+        dedupeKey: `step_verification:${payload.dispatchId}`,
         payload: verificationPayload
       })
     }
