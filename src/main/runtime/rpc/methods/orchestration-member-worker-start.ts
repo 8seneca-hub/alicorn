@@ -4,6 +4,8 @@ import { resolveMemberLaunchForRequest } from '../../../alicorn/member-launch-re
 import { prepareLocalWorkerStart } from './orchestration-worker-start-validation'
 import type { WorkerStartInput } from './orchestration-worker-start-schema'
 import type { RestrictedPaneLaunch } from '../../../alicorn/agent-pane-role'
+import type { MemberDirectory } from '../../../alicorn/member-directory'
+import type { Member } from '../../../../shared/alicorn/members'
 import {
   restrictedLaunchTerminalReuseError,
   restrictedLaunchWorktreeError
@@ -88,5 +90,23 @@ function assertRestrictedLaunchIsApplicable(args: {
   // An already-running agent cannot be restricted after the fact.
   if (args.params.terminal) {
     throw restrictedLaunchTerminalReuseError(args.restrictedLaunch.role)
+  }
+}
+
+/**
+ * RB2 — the learning edge reaching the splitter: the standing rules of every member this lead may
+ * dispatch, so a correction a human already paid for shapes the plan and not just the worker.
+ *
+ * Fail-soft on purpose. The launch has already refused if the lead's own member could not be read;
+ * past that point an unreachable control plane must cost the lead its rules, never its dispatch.
+ */
+export async function readTeamRulesForLead(runtime: {
+  getAlicornMemberDirectory: () => MemberDirectory | null
+}): Promise<Pick<Member, 'name' | 'systemRules'>[]> {
+  try {
+    return (await runtime.getAlicornMemberDirectory()?.listMembers()) ?? []
+  } catch (error) {
+    console.warn('[alicorn] members unreadable — briefing the lead without team rules', error)
+    return []
   }
 }

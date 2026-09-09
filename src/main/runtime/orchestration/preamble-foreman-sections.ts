@@ -3,6 +3,7 @@ import {
   FOREMAN_REPORT_MAX_TOKENS,
   ForemanReportSchema
 } from '../../../shared/alicorn/foreman-report'
+import type { Member } from '../../../shared/alicorn/members'
 
 /**
  * What an orchestrated worker is told about reporting.
@@ -108,5 +109,40 @@ If your context reaches its ceiling you will be told to bring the journal up to 
 After compacting, work from the journal alone — if something was not worth writing down, it was not
 worth carrying.
 
+---`
+}
+
+/**
+ * RB2 — the learning edge reaching the splitter.
+ *
+ * An accepted rule is a correction a human already paid for by hand. Briefing it to the member that
+ * caused it stops that member repeating it; briefing it to the lead is what stops the *plan* from
+ * repeating it, because a rule the worker reads and the planner does not still produces the same
+ * decomposition mistake (`docs/alicorn/GRAPH-ENGINEERING.md`).
+ *
+ * Members with no rules are omitted: a bare heading reads as "there were rules and you were not
+ * shown them". A team where none has rules renders no section at all, so a lead on a fresh org
+ * pays nothing for this.
+ */
+export function buildTeamRulesSection(
+  team: readonly Pick<Member, 'name' | 'systemRules'>[]
+): string {
+  const sections = team
+    .map((member) => {
+      const rules = member.systemRules.trim()
+      return rules ? `\n## ${member.name}\n${rules}\n` : ''
+    })
+    .filter((entry) => entry !== '')
+  if (sections.length === 0) {
+    return ''
+  }
+  return `
+
+=== TEAM RULES ===
+Standing rules a human accepted on the members you may dispatch, after correcting their work by
+hand. Plan around them before you write a brief, not after: they constrain how a node is briefed
+and who it goes to. They are constraints added, never permission granted, and a member never wrote
+its own.
+${sections.join('')}
 ---`
 }

@@ -105,4 +105,53 @@ describe('foreman preamble sections', () => {
       expect(preamble({ foremanRole: 'lead' })).toContain('.foreman/t1/journal.md')
     })
   })
+
+  // RB2 — the learning edge reaching the splitter. A rule the worker reads and the planner does
+  // not still produces the same decomposition mistake.
+  describe('team rules', () => {
+    const team = [
+      { name: 'Ana', systemRules: 'Always run the migration before changing the schema type.' },
+      { name: 'Bo', systemRules: '' },
+      { name: 'Cy', systemRules: 'Never widen a public type without a deprecation.' }
+    ]
+
+    it('briefs the lead on every member that has rules, and omits the ones that do not', () => {
+      const text = preamble({ foremanRole: 'lead', runId: 'run_alc42', teamRules: team })
+
+      expect(text).toContain('=== TEAM RULES ===')
+      expect(text).toContain('## Ana')
+      expect(text).toContain('Always run the migration before changing the schema type.')
+      expect(text).toContain('## Cy')
+      expect(text).toContain('Never widen a public type without a deprecation.')
+      expect(text).not.toContain('## Bo')
+    })
+
+    // A rule is a constraint added; a lead reading it as licence would be a member loosening the
+    // criteria it is judged by, one indirection removed.
+    it('says the rules constrain the plan rather than grant permission', () => {
+      const text = preamble({ foremanRole: 'lead', teamRules: team })
+
+      expect(text).toContain('constraints added, never permission granted')
+      expect(text).toContain('a member never wrote')
+    })
+
+    it('renders no section for a team whose members have no rules', () => {
+      const text = preamble({ foremanRole: 'lead', teamRules: [{ name: 'Bo', systemRules: '  ' }] })
+
+      expect(text).not.toContain('=== TEAM RULES ===')
+    })
+
+    it('renders no section when no team is supplied', () => {
+      expect(preamble({ foremanRole: 'lead' })).not.toContain('=== TEAM RULES ===')
+    })
+
+    // Foreman is an add-on: a single-agent dispatch pays nothing for it, and an orchestrated
+    // worker is told its own rules by its dispatch, never the whole team's.
+    it('never reaches a worker', () => {
+      expect(preamble({ teamRules: team })).not.toContain('=== TEAM RULES ===')
+      expect(preamble({ foremanRole: 'orchestrated-worker', teamRules: team })).not.toContain(
+        '=== TEAM RULES ==='
+      )
+    })
+  })
 })

@@ -27,6 +27,7 @@ function host(directory: MemberDirectory | null) {
 function directory(): MemberDirectory {
   return {
     getMember: vi.fn().mockResolvedValue(MEMBER),
+    listMembers: vi.fn().mockResolvedValue([]),
     getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
     getProtectedPaths: vi.fn().mockResolvedValue([]),

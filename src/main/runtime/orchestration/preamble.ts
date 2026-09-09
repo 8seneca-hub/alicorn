@@ -1,5 +1,10 @@
 import type { OrchestrationCliCommand } from './cli-command'
-import { buildForemanJournalSection, buildForemanReportSection } from './preamble-foreman-sections'
+import {
+  buildForemanJournalSection,
+  buildForemanReportSection,
+  buildTeamRulesSection
+} from './preamble-foreman-sections'
+import type { Member } from '../../../shared/alicorn/members'
 
 export type PreambleParams = {
   taskId: string
@@ -43,6 +48,11 @@ export type PreambleParams = {
   foremanRole?: 'orchestrated-worker' | 'lead'
   /** The run whose journal a lead keeps; required for the lead section to name a path. */
   runId?: string
+  /**
+   * RB2: the accepted rules of the members this lead may dispatch. Lead only — a worker is told its
+   * own rules, not the team's, and reading someone else's constraints is context it cannot act on.
+   */
+  teamRules?: readonly Pick<Member, 'name' | 'systemRules'>[]
 }
 
 // Why: 5 minutes is frequent enough that the coordinator's stale-heartbeat
@@ -158,7 +168,8 @@ ${postDoneInstructions}`
   // A lead reports nothing bounded — it receives reports. So the two sections are exclusive.
   const foreman =
     params.foremanRole === 'lead'
-      ? buildForemanJournalSection(params.runId ?? params.taskId)
+      ? buildForemanJournalSection(params.runId ?? params.taskId) +
+        buildTeamRulesSection(params.teamRules ?? [])
       : params.foremanRole === 'orchestrated-worker'
         ? buildForemanReportSection(cli)
         : ''

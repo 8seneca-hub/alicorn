@@ -11892,6 +11892,7 @@
           "skipFailed": "Rule saved on the member, but the commit failed: {{message}}",
           "title": "Proposed rules from corrections",
           "description": "A human amended or reverted this member’s work. Write the rule that would have prevented it.",
+          "alsoBriefedToLead": "An accepted rule briefs this member on every dispatch, and is also briefed to the Foreman lead that may dispatch it.",
           "verdictRejected": "Reverted",
           "verdictAmended": "Amended",
           "moreFiles": "and {{count}} more",

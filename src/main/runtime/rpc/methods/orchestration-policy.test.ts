@@ -44,6 +44,7 @@ function trackRecord(overrides: Partial<TrackRecord> = {}): TrackRecord {
 function directory(overrides: Partial<MemberDirectory> = {}): MemberDirectory {
   return {
     getMember: vi.fn().mockResolvedValue(null),
+    listMembers: vi.fn().mockResolvedValue([]),
     getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
     getProtectedPaths: vi.fn().mockResolvedValue([]),
@@ -219,17 +220,15 @@ describe('autonomy policy RPCs', () => {
       const future = new Date(Date.now() + 86_400_000).toISOString()
       setup(
         directory({
-          listAutonomyPolicies: vi
-            .fn()
-            .mockResolvedValue([
-              policy(),
-              policy({ stageKey: 'review', mode: 'never_gate', expiresAt: future }),
-              policy({
-                stageKey: 'test',
-                mode: 'never_gate',
-                expiresAt: '2020-01-01T00:00:00.000Z'
-              })
-            ])
+          listAutonomyPolicies: vi.fn().mockResolvedValue([
+            policy(),
+            policy({ stageKey: 'review', mode: 'never_gate', expiresAt: future }),
+            policy({
+              stageKey: 'test',
+              mode: 'never_gate',
+              expiresAt: '2020-01-01T00:00:00.000Z'
+            })
+          ])
         })
       )
 

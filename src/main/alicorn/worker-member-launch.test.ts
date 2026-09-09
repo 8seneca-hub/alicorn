@@ -25,6 +25,7 @@ function member(role: MemberRole, backend: MemberBackend): Member {
 function directory(found: Member | null, enforce = true): MemberDirectory {
   return {
     getMember: vi.fn().mockResolvedValue(found),
+    listMembers: vi.fn().mockResolvedValue([]),
     getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: enforce }),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
     getProtectedPaths: vi.fn().mockResolvedValue([]),

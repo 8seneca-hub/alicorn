@@ -23,7 +23,10 @@ import { failWorkerStartWithReceipt } from './orchestration-worker-start-receipt
 import { resolveDispatchCreator } from './orchestration-dispatch-creator'
 import { captureWorkerStartContext } from '../../../alicorn/context-capture-enqueue'
 import { buildWorkerStartOptions } from './orchestration-worker-start-validation'
-import { prepareMemberAwareWorkerStart } from './orchestration-member-worker-start'
+import {
+  prepareMemberAwareWorkerStart,
+  readTeamRulesForLead
+} from './orchestration-member-worker-start'
 
 export type StartWorkerForTaskArgs = {
   runtime: OrcaRuntimeService
@@ -253,6 +256,16 @@ export async function startWorkerForTask({
     })
 
     failedStage = 'dispatch_input'
+    // A lead plans rather than works: it gets the journal instructions and the team's standing
+    // rules, and never the bounded-report schema, which is what its subagents answer with.
+    const leadSections =
+      params.role === 'lead'
+        ? {
+            foremanRole: 'lead' as const,
+            runId: run.id,
+            teamRules: await readTeamRulesForLead(runtime)
+          }
+        : {}
     const preamble = buildDispatchPreamble({
       canDispatchSubWorkers: started.dispatch.depth < runtime.getNestedWorkerMaxDepth(),
       taskId: task.id,
@@ -262,7 +275,8 @@ export async function startWorkerForTask({
       workerHandle: terminalHandle,
       dispatchCapability: capability,
       devMode: params.devMode,
-      cliCommand: runtime.getTerminalOrchestrationCliCommand(terminalHandle)
+      cliCommand: runtime.getTerminalOrchestrationCliCommand(terminalHandle),
+      ...leadSections
     })
     captureWorkerStartContext(db, runtime, params, task, started.dispatch, {
       runId: run.id,

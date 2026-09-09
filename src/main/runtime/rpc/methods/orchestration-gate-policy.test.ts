@@ -10,6 +10,7 @@ import type { DispatchVerificationRow } from '../../orchestration/db/alicorn/ali
 function directory(overrides: Partial<MemberDirectory> = {}): MemberDirectory {
   return {
     getMember: vi.fn().mockResolvedValue(null),
+    listMembers: vi.fn().mockResolvedValue([]),
     getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
     getProtectedPaths: vi.fn().mockResolvedValue([]),

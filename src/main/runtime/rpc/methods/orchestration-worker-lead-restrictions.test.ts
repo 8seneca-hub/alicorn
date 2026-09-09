@@ -34,9 +34,13 @@ describe('worker-start lead restrictions', () => {
     h.cleanup()
   })
 
-  function directory(member: Member): MemberDirectory {
+  function directory(
+    member: Member,
+    listMembers: MemberDirectory['listMembers'] = vi.fn().mockResolvedValue([])
+  ): MemberDirectory {
     return {
       getMember: vi.fn().mockResolvedValue(member),
+      listMembers,
       getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
       getRequiredChecks: vi.fn().mockResolvedValue([]),
       getProtectedPaths: vi.fn().mockResolvedValue([]),
@@ -50,9 +54,11 @@ describe('worker-start lead restrictions', () => {
     }
   }
 
-  function setup(member: Member): void {
+  function setup(member: Member, listMembers?: MemberDirectory['listMembers']): void {
     ;({ db, runtime, ctx } = h.setup())
-    vi.spyOn(runtime, 'getAlicornMemberDirectory').mockReturnValue(directory(member))
+    vi.spyOn(runtime, 'getAlicornMemberDirectory').mockReturnValue(
+      listMembers ? directory(member, listMembers) : directory(member)
+    )
     vi.spyOn(runtime, 'validateOrchestrationAgentLauncher').mockImplementation(() => {})
     vi.spyOn(runtime, 'showTerminal').mockImplementation(
       async (handle) => ({ handle, worktreeId: 'repo::worktree', status: 'running' }) as never
@@ -77,6 +83,12 @@ describe('worker-start lead restrictions', () => {
       handle === 'term_worker' ? 'runtime_test:term_worker:1' : 'runtime_test:term_coord:1'
     )
     vi.spyOn(runtime, 'getTerminalOrchestrationCliCommand').mockReturnValue('orca')
+    // Without a stable pane for the worker the start fails at readiness, before the preamble is
+    // ever built; the coordinator's own key is left as the harness set it.
+    const harnessPaneKey = vi.mocked(runtime.getTerminalPaneKey).getMockImplementation()!
+    vi.mocked(runtime.getTerminalPaneKey).mockImplementation(
+      (handle) => harnessPaneKey(handle) ?? `pane:${handle}`
+    )
     vi.spyOn(runtime, 'sendTerminalAgentPrompt').mockResolvedValue({
       handle: 'term_worker',
       accepted: true,
@@ -119,6 +131,59 @@ describe('worker-start lead restrictions', () => {
       'id:repo::worktree',
       expect.not.objectContaining({ launchRestrictions: expect.anything() })
     )
+  })
+
+  // RB2 — the learning edge reaching the splitter. The lead is the one agent that decides who does
+  // what, so a rule it never reads is a decomposition mistake waiting to repeat.
+  describe('what the lead is briefed with', () => {
+    function prompt(): string {
+      return vi.mocked(runtime.sendTerminalAgentPrompt).mock.calls[0]![1] as string
+    }
+
+    it('carries the journal instructions and the rules of the members it may dispatch', async () => {
+      setup(
+        lead('claude'),
+        vi.fn().mockResolvedValue([
+          { ...lead('claude'), name: 'Ana', systemRules: 'Migrate before retyping a column.' },
+          { ...lead('claude'), name: 'Bo', systemRules: '' }
+        ])
+      )
+
+      await startLead()
+
+      expect(prompt()).toContain('=== JOURNAL ===')
+      expect(prompt()).toContain('=== TEAM RULES ===')
+      expect(prompt()).toContain('## Ana')
+      expect(prompt()).toContain('Migrate before retyping a column.')
+      expect(prompt()).not.toContain('## Bo')
+    })
+
+    // Foreman is an add-on: an ordinary dispatch gains none of this.
+    it('adds neither to an ordinary worker dispatch', async () => {
+      setup(
+        lead('claude'),
+        vi
+          .fn()
+          .mockResolvedValue([{ ...lead('claude'), name: 'Ana', systemRules: 'Migrate first.' }])
+      )
+
+      await startLead({ role: undefined })
+
+      expect(prompt()).not.toContain('=== JOURNAL ===')
+      expect(prompt()).not.toContain('=== TEAM RULES ===')
+    })
+
+    // The lead's own member was read before any terminal existed; past that point an unreachable
+    // control plane costs the lead its team rules, never its dispatch.
+    it('still dispatches when the members cannot be read', async () => {
+      setup(lead('claude'), vi.fn().mockRejectedValue(new Error('control plane down')))
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+      await startLead()
+
+      expect(prompt()).toContain('=== JOURNAL ===')
+      expect(prompt()).not.toContain('=== TEAM RULES ===')
+    })
   })
 
   // Why refuse: a lead that can quietly write code makes a run look orchestrated while being

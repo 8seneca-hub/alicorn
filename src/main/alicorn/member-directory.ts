@@ -17,6 +17,8 @@ const FAIL_CLOSED_POLICY: OrgPolicy = { enforceDistinctReviewerBackend: true }
 
 export type MemberDirectory = {
   getMember: (id: string) => Promise<Member | null>
+  /** RB2's read: the team a lead may dispatch. Same cached list `getMember` resolves against. */
+  listMembers: () => Promise<Member[]>
   getOrgPolicy: () => Promise<OrgPolicy>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
   // BR1's reach surface. Same no-fallback posture as the policy: an unreadable surface throws so
@@ -92,17 +94,19 @@ export function createMemberDirectory(
     }
   }
 
+  const readMembers = (): Promise<Member[]> =>
+    refresh(
+      members,
+      () => client.listMembers(),
+      (entry) => {
+        members = entry
+      }
+    )
+
   return {
-    getMember: async (id) => {
-      const list = await refresh(
-        members,
-        () => client.listMembers(),
-        (entry) => {
-          members = entry
-        }
-      )
-      return list.find((member) => member.id === id) ?? null
-    },
+    getMember: async (id) => (await readMembers()).find((member) => member.id === id) ?? null,
+
+    listMembers: readMembers,
 
     getOrgPolicy: async () => {
       try {

@@ -141,6 +141,12 @@ export function MemberRuleProposals({
           'A human amended or reverted this member’s work. Write the rule that would have prevented it.'
         )}
       </p>
+      <p className="text-xs text-muted-foreground">
+        {translate(
+          'auto.components.settings.memberRuleProposals.alsoBriefedToLead',
+          'An accepted rule briefs this member on every dispatch, and is also briefed to the Foreman lead that may dispatch it.'
+        )}
+      </p>
 
       {proposals.map((proposal) => {
         const sha = shortSha(proposal.context.sha)
