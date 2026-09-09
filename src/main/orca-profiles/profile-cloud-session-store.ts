@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
-import { safeStorage } from 'electron'
+import { getSecretStore, hasSecretStore } from '../../shared/secret-store'
 import { writeSecureJsonFile } from '../../shared/secure-file'
 import type {
   OrcaCloudCapabilities,
@@ -106,12 +106,12 @@ export function saveOrcaCloudSession(
   session: OrcaCloudSession
 ): OrcaCloudSessionPersistence {
   const cacheKey = sessionCacheKey(profileId, userDataPath)
-  if (safeStorage.isEncryptionAvailable()) {
+  if (hasSecretStore() && getSecretStore().isEncryptionAvailable()) {
     const encrypted: PersistedEncryptedSession = {
       version: 1,
       format: 'electron-safe-storage-v1',
       savedAt: Date.now(),
-      ciphertext: safeStorage.encryptString(JSON.stringify(session)).toString('base64')
+      ciphertext: getSecretStore().encryptString(JSON.stringify(session)).toString('base64')
     }
     writeSecureJsonFile(getOrcaCloudSessionPath(profileId, userDataPath), encrypted)
     memorySessions.set(cacheKey, { session, persistence: 'encrypted' })
@@ -192,14 +192,14 @@ export function readOrcaCloudSession(
       return { status: 'decrypt-failed', persistence: 'none', error: 'Unsupported session format.' }
     }
     if (parsed.format === 'electron-safe-storage-v1') {
-      if (!safeStorage.isEncryptionAvailable()) {
+      if (!(hasSecretStore() && getSecretStore().isEncryptionAvailable())) {
         return {
           status: 'decrypt-failed',
           persistence: 'none',
           error: 'OS-backed encryption is unavailable.'
         }
       }
-      const decrypted = safeStorage.decryptString(Buffer.from(parsed.ciphertext, 'base64'))
+      const decrypted = getSecretStore().decryptString(Buffer.from(parsed.ciphertext, 'base64'))
       const session = JSON.parse(decrypted) as OrcaCloudSession
       if (!isOrcaCloudSession(session)) {
         return { status: 'decrypt-failed', persistence: 'none', error: 'Invalid saved session.' }

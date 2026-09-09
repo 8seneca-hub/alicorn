@@ -1,4 +1,4 @@
-import { app } from 'electron'
+import { getAppEnvironment, hasAppEnvironment } from '../../shared/app-environment'
 
 export type OrcaCloudAuthConfig = {
   apiBaseUrl: string
@@ -22,9 +22,14 @@ const PRODUCTION_RELAY_DIRECTOR_URL = 'https://relay.onorca.dev'
 
 // Why: packaged main bundles never define NODE_ENV, so packaged-ness is the
 // only reliable production signal for gating dev-only auth escape hatches.
+//
+// Through the host port, not `electron.app`: this module is in the runtime's import graph
+// (`alicornFetch` reads the auth config), and the runtime has to stay bootable on plain Node.
+// No environment installed means not a packaged desktop, which is the safe answer — it only
+// ever gates dev escape hatches *off*.
 function isPackagedOrcaBuild(): boolean {
   try {
-    return app?.isPackaged === true
+    return hasAppEnvironment() && getAppEnvironment().isPackaged()
   } catch {
     return false
   }

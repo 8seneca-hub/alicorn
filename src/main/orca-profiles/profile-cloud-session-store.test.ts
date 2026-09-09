@@ -2,8 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { _resetSecretStoreForTests, setSecretStore } from '../../shared/secret-store'
+import type { SecretStore } from '../../shared/secret-store'
 import type { OrcaCloudSession } from './profile-cloud-session-store'
 
+// The store reads the SecretStore host port, not `electron.safeStorage` directly, so that the
+// runtime stays bootable on plain Node. Same fake, installed through the port.
 const safeStorageMock = vi.hoisted(() => ({
   decryptString: vi.fn((value: Buffer) => value.toString('utf-8')),
   encryptString: vi.fn((value: string) => Buffer.from(value, 'utf-8')),
@@ -15,8 +19,7 @@ let userDataPath = ''
 vi.mock('electron', () => ({
   app: {
     getPath: () => userDataPath
-  },
-  safeStorage: safeStorageMock
+  }
 }))
 
 async function loadSessionStore() {
@@ -67,11 +70,13 @@ describe('Orca cloud session store', () => {
     safeStorageMock.encryptString.mockClear()
     safeStorageMock.isEncryptionAvailable.mockClear()
     safeStorageMock.isEncryptionAvailable.mockReturnValue(true)
+    setSecretStore(safeStorageMock as unknown as SecretStore)
   })
 
   afterEach(() => {
     rmSync(userDataPath, { recursive: true, force: true })
     vi.unstubAllEnvs()
+    _resetSecretStoreForTests()
   })
 
   it('persists encrypted sessions and reports encrypted persistence from memory and disk', async () => {
