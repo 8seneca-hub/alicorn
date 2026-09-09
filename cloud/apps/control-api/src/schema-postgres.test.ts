@@ -28,7 +28,7 @@ describePostgres('control schema', () => {
         'autonomy_policies', 'contract_acknowledgements', 'member_skills', 'members',
         'org_invites', 'org_policies', 'org_roles',
         'project_protected_paths', 'project_required_checks', 'project_stage_config',
-        'rule_proposals', 'seats', 'skill_versions', 'skills',
+        'rule_proposals', 'seat_connectors', 'seats', 'skill_versions', 'skills',
         'stages', 'transitions', 'workflows'
       ])
     } finally {

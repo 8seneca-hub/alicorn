@@ -24,6 +24,7 @@ import { resolveDispatchCreator } from './orchestration-dispatch-creator'
 import { captureWorkerStartContext } from '../../../alicorn/context-capture-enqueue'
 import { buildWorkerStartOptions } from './orchestration-worker-start-validation'
 import { prepareMemberAwareWorkerStart } from './orchestration-member-worker-start'
+import { mergeSeatLaunchRestrictions } from '../../../alicorn/connectors/seat-mcp-launch'
 import { leadBriefPreambleFields } from './orchestration-worker-lead-brief'
 
 export type StartWorkerForTaskArgs = {
@@ -70,13 +71,15 @@ export async function startWorkerForTask({
 }: StartWorkerForTaskArgs) {
   const requestedWorktree = params.worktree ?? 'current'
   const createsWorktree = requestedWorktree === 'new-child' || requestedWorktree === 'new-top-level'
-  const { agent, launch, stampMember, restrictedLaunch } = await prepareMemberAwareWorkerStart({
-    params,
-    createsWorktree,
-    runtime,
-    db,
-    taskId: task.id
-  })
+  const { agent, launch, stampMember, restrictedLaunch, seatMcpConfigPath } =
+    await prepareMemberAwareWorkerStart({
+      params,
+      createsWorktree,
+      runtime,
+      db,
+      taskId: task.id
+    })
+  const launchRestrictions = mergeSeatLaunchRestrictions(restrictedLaunch, seatMcpConfigPath)
   // Why eager by default: resolving the coordinator's terminal is load-bearing for a floating
   // coordinator, and a test pins the call. Only a caller that declares it has no coordinator
   // terminal skips it — board automation's system Run (`board:<repoId>`), which always names an
@@ -195,7 +198,7 @@ export async function startWorkerForTask({
         worktreeId: resolvedWorktree!.id,
         agent: agent as TuiAgent,
         launchPreferences: launch.preferences,
-        ...(restrictedLaunch ? { launchRestrictions: restrictedLaunch.restrictions } : {}),
+        ...(launchRestrictions ? { launchRestrictions } : {}),
         taskId: task.id,
         effects
       })

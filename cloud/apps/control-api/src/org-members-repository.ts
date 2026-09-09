@@ -57,10 +57,14 @@ export function readViewerRole(pool: pg.Pool, tenantId: string, userId: string):
   })
 }
 
-// Why local mode is `owner`: it has one constant tenant and one shared bearer, so there is no
-// second principal to be less privileged than. A real role appears the moment a token carries a
-// subject that maps to an internal user id. Fail closed otherwise: a verified member with no
-// membership row administers nothing.
+/**
+ * The viewer's administrative role. Local mode has one constant tenant and one shared bearer, so
+ * there is no second principal to be less privileged than and the caller is `owner`. Past that,
+ * fail closed: a verified member with no membership row administers nothing.
+ *
+ * Lives here rather than beside the routes because OP3's connector routes gate on the same answer,
+ * and two copies of "who may administer" is how one of them drifts open.
+ */
 export async function viewerRoleOf(pool: pg.Pool, tenantId: string, userId: string | null): Promise<OrgRole> {
   if (!userId) return 'owner'
   return (await readViewerRole(pool, tenantId, userId)) ?? 'member'

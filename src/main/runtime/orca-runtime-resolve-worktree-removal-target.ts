@@ -20,6 +20,7 @@ import { resolveBareAgentLaunchCommand } from './runtime-agent-launch-resolution
 import { buildAgentStartupPlan } from '../../shared/tui-agent-startup'
 import {
   appendDisallowedToolsLaunchArgs,
+  appendSeatMcpConfigLaunchArgs,
   resolveTuiAgentLaunchArgs,
   resolveTuiAgentLaunchEnv
 } from '../../shared/tui-agent-launch-defaults'
@@ -209,9 +210,14 @@ export class OrcaRuntimeWithResolveWorktreeRemovalTarget extends OrcaRuntimeWith
       agent,
       prompt: '',
       cmdOverrides: settings.agentCmdOverrides ?? {},
-      agentArgs: appendDisallowedToolsLaunchArgs(
-        resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
-        restrictions?.disallowedTools
+      // The seat's MCP config is a local path, so it is applied only on a local host — a remote
+      // agent handed it would find nothing there (OP3).
+      agentArgs: appendSeatMcpConfigLaunchArgs(
+        appendDisallowedToolsLaunchArgs(
+          resolveTuiAgentLaunchArgs(agent, settings.agentDefaultArgs),
+          restrictions?.disallowedTools
+        ),
+        isRemote ? undefined : restrictions?.mcpConfigPath
       ),
       agentEnv: {
         ...resolveTuiAgentLaunchEnv(agent, settings.agentDefaultEnv),

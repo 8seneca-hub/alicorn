@@ -92,6 +92,23 @@ export const IDENTITY_SCHEMA_STATEMENTS: readonly string[] = [
      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      PRIMARY KEY (tenant_id, user_id))`,
   tenantRlsPolicySql('seats'),
+  // OP3. A connector is scoped to one seat, so the seat *is* the foreign key: no seat row, no
+  // connector row, and deleting the seat with the membership takes the connectors with it. That
+  // makes the fail-closed rule structural rather than a check someone can forget — an unresolvable
+  // seat can only ever resolve to nothing, never to the organisation's or another seat's set.
+  //
+  // `server` holds an MCP server entry with env *names* only (contract `SeatConnectorServerSchema`);
+  // secrets come from the seat holder's own environment at launch and are never stored here.
+  `CREATE TABLE IF NOT EXISTS seat_connectors (
+     tenant_id TEXT NOT NULL,
+     user_id TEXT NOT NULL,
+     kind TEXT NOT NULL CHECK (kind IN ('gdrive', 'sharepoint')),
+     server JSONB NOT NULL,
+     updated_by TEXT NOT NULL,
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, user_id, kind),
+     FOREIGN KEY (tenant_id, user_id) REFERENCES seats(tenant_id, user_id) ON DELETE CASCADE)`,
+  tenantRlsPolicySql('seat_connectors'),
   // `active_tenant_id` is a remembered *preference*, not a grant: it is honoured only while the
   // presented token still proves that membership, and rewritten to a proven one when it does not.
   `CREATE TABLE IF NOT EXISTS cloud_profiles (

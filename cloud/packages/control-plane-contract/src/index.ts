@@ -1,6 +1,7 @@
 export * from './member.js'
 export * from './skill.js'
 export * from './org.js'
+export * from './seat-connector.js'
 export * from './org-policy.js'
 export * from './required-check.js'
 export * from './protected-path.js'

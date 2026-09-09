@@ -1,6 +1,10 @@
 import type { ControlPlaneClient } from './control-plane-client'
 import type { Member, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type { ProtectedPath } from '../../shared/alicorn/protected-paths'
+import {
+  EMPTY_SEAT_CONNECTORS,
+  type SeatConnectorsResponse
+} from '../../shared/alicorn/seat-connectors'
 import type {
   AutonomyPolicy,
   AutonomyPolicyInput,
@@ -21,6 +25,10 @@ export type MemberDirectory = {
    *  resolves against, so both cost no extra call. */
   listMembers: () => Promise<Member[]>
   getOrgPolicy: () => Promise<OrgPolicy>
+  // OP3. Fail closed the other way round from the org policy: there, an unreadable answer must
+  // *enforce*; here it must *withhold*. An unreachable control plane costs the seat its connectors
+  // and leaves the agent on the pre-OP3 surface — never on someone else's.
+  getSeatConnectors: () => Promise<SeatConnectorsResponse>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
   // BR1's reach surface. Same no-fallback posture as the policy: an unreadable surface throws so
   // the gate caller fails safe, rather than being handed an empty list that reads as "nothing is
@@ -58,6 +66,7 @@ export function createMemberDirectory(
   const now = opts?.now ?? Date.now
   let members: Cached<Member[]> | null = null
   let policy: Cached<OrgPolicy> | null = null
+  let seatConnectors: Cached<SeatConnectorsResponse> | null = null
   const checks = new Map<string, Cached<RequiredCheck[]>>()
   const protectedPaths = new Map<string, Cached<ProtectedPath[]>>()
   const policies = new Map<string, Cached<AutonomyPolicy | null>>()
@@ -104,7 +113,6 @@ export function createMemberDirectory(
       }
     )
 
-
   return {
     getMember: async (id) => (await readMembers()).find((member) => member.id === id) ?? null,
 
@@ -122,6 +130,21 @@ export function createMemberDirectory(
       } catch (error) {
         console.warn('[alicorn] org policy unavailable — enforcing reviewer backend', error)
         return FAIL_CLOSED_POLICY
+      }
+    },
+
+    getSeatConnectors: async () => {
+      try {
+        return await refresh(
+          seatConnectors,
+          () => client.getSeatConnectors(),
+          (entry) => {
+            seatConnectors = entry
+          }
+        )
+      } catch (error) {
+        console.warn('[alicorn] seat connectors unavailable — launching without them', error)
+        return EMPTY_SEAT_CONNECTORS
       }
     },
 

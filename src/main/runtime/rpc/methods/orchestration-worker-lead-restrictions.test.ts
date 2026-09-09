@@ -42,6 +42,7 @@ describe('worker-start lead restrictions', () => {
       getMember: vi.fn().mockResolvedValue(member),
       listMembers,
       getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
+      getSeatConnectors: vi.fn().mockResolvedValue({ seat: null, connectors: [] }),
       getRequiredChecks: vi.fn().mockResolvedValue([]),
       getProtectedPaths: vi.fn().mockResolvedValue([]),
       getAutonomyPolicy: vi.fn().mockResolvedValue(null),

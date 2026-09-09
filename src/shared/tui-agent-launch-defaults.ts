@@ -111,6 +111,25 @@ export function resolveTuiAgentLaunchEnv(
  * permission checks this flag is one of. It is the belt; a `PreToolUse` deny hook — which runs
  * whatever the permission mode — is the braces.
  */
+/**
+ * Appends `--mcp-config <path>` to a launch-args string (OP3). Unlike tool names, a path can carry
+ * spaces, so it is single-quoted; a path containing a single quote is refused rather than escaped,
+ * because the only way one gets there is a seat id that should never have reached a file name.
+ *
+ * Withholding the flag is the safe direction: the agent then resolves the workspace's own committed
+ * config, exactly as it did before OP3, and never another seat's.
+ */
+export function appendSeatMcpConfigLaunchArgs(
+  agentArgs: string | null | undefined,
+  mcpConfigPath: string | undefined
+): string | null {
+  if (!mcpConfigPath || mcpConfigPath.includes("'")) {
+    return agentArgs ?? null
+  }
+  const flag = `--mcp-config '${mcpConfigPath}'`
+  return agentArgs?.trim() ? `${agentArgs.trim()} ${flag}` : flag
+}
+
 export function appendDisallowedToolsLaunchArgs(
   agentArgs: string | null | undefined,
   disallowedTools: readonly string[] | undefined

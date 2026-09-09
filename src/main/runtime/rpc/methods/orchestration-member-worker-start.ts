@@ -6,6 +6,7 @@ import type { WorkerStartInput } from './orchestration-worker-start-schema'
 import type { RestrictedPaneLaunch } from '../../../alicorn/agent-pane-role'
 import type { MemberDirectory } from '../../../alicorn/member-directory'
 import type { Member } from '../../../../shared/alicorn/members'
+import { resolveSeatMcpConfigForLaunch } from '../../../alicorn/connectors/seat-mcp-launch'
 import {
   restrictedLaunchTerminalReuseError,
   restrictedLaunchWorktreeError
@@ -30,6 +31,8 @@ export async function prepareMemberAwareWorkerStart(args: {
     stampMember: (dispatchId: string) => void
     /** Set for a restricted role; the terminal it launches carries these restrictions. */
     restrictedLaunch: RestrictedPaneLaunch | null
+    /** OP3. The seat's own MCP connectors, or null — which leaves the pre-OP3 surface untouched. */
+    seatMcpConfigPath: string | null
   }
 > {
   const { params, createsWorktree, runtime, db, taskId } = args
@@ -56,8 +59,13 @@ export async function prepareMemberAwareWorkerStart(args: {
     runtime
   })
   const stamp = member.dispatchMember
+  const seatMcpConfigPath = await resolveSeatMcpConfigForLaunch({
+    directory: runtime.getAlicornMemberDirectory(),
+    backend: stamp?.backend ?? null
+  })
   return {
     ...prepared,
+    seatMcpConfigPath,
     stampMember: (dispatchId) => {
       if (stamp) {
         db.setDispatchMember({ dispatchId, ...stamp })

@@ -26,6 +26,11 @@ import type { WorkerTerminalHostScope } from './orchestration/worker-terminal-pr
 export type AgentLaunchRestrictions = {
   disallowedTools?: readonly string[]
   env?: Record<string, string>
+  /**
+   * OP3. Absolute path to this seat's MCP config. Applied on a local host only — the path belongs
+   * to the machine the main process runs on, and a remote agent handed it would find nothing.
+   */
+  mcpConfigPath?: string
 }
 
 export type TerminalCreateOptions = {

@@ -38,6 +38,7 @@ describe('worker-start QA sandbox', () => {
       getMember: vi.fn().mockResolvedValue(member),
       listMembers: vi.fn().mockResolvedValue([]),
       getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
+      getSeatConnectors: vi.fn().mockResolvedValue({ seat: null, connectors: [] }),
       getRequiredChecks: vi.fn().mockResolvedValue([]),
       getProtectedPaths: vi.fn().mockResolvedValue([]),
       getAutonomyPolicy: vi.fn().mockResolvedValue(null),

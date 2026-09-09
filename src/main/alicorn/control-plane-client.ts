@@ -8,6 +8,7 @@ import type {
 } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type { ProtectedPath } from '../../shared/alicorn/protected-paths'
+import type { SeatConnectorsResponse } from '../../shared/alicorn/seat-connectors'
 import type {
   AutonomyPolicy,
   AutonomyPolicyInput,
@@ -32,6 +33,8 @@ export type ControlPlaneClient = {
   updateMember: (id: string, input: MemberInput) => Promise<Member>
   deleteMember: (id: string) => Promise<void>
   getOrgPolicy: () => Promise<OrgPolicy>
+  /** OP3. `me` is resolved from the bearer, so the desktop never needs its own internal user id. */
+  getSeatConnectors: () => Promise<SeatConnectorsResponse>
   getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
   /** BR1's authored reach surface — empty means the project protects nothing, not that it is unknown. */
   getProtectedPaths: (projectId: string) => Promise<ProtectedPath[]>
@@ -64,7 +67,7 @@ export type ControlPlaneClient = {
   listRuleProposals: (memberId: string, status?: RuleProposalStatus) => Promise<RuleProposal[]>
   /** The human action. The accepting actor comes from the request's bearer, never from here. */
   acceptRuleProposal: (id: string, rule: string) => Promise<RuleProposal>
-  rejectRuleProposal: (id: string) => Promise<RuleProposal>,
+  rejectRuleProposal: (id: string) => Promise<RuleProposal>
   listWorkflowTemplates: () => Promise<WorkflowTemplate[]>
   createWorkflow: (input: WorkflowGraphInput) => Promise<Workflow>
   /** `version` is the one the canvas loaded; the API answers 409 `version_conflict` if it moved. */
@@ -127,6 +130,9 @@ export function createControlPlaneClient(deps?: {
     },
 
     getOrgPolicy: () => readJson<OrgPolicy>('control', '/v1/policy/review-backend'),
+
+    getSeatConnectors: () =>
+      readJson<SeatConnectorsResponse>('control', '/v1/org/seats/me/connectors'),
 
     getRequiredChecks: async (projectId) => {
       const body = await readJson<{ checks: RequiredCheck[] }>(
@@ -280,10 +286,14 @@ export function createControlPlaneClient(deps?: {
     },
 
     createWorkflowFromTemplate: async (input) => {
-      const body = await readJson<{ workflow: Workflow }>('control', '/v1/workflows/from-template', {
-        method: 'POST',
-        body: JSON.stringify(input)
-      })
+      const body = await readJson<{ workflow: Workflow }>(
+        'control',
+        '/v1/workflows/from-template',
+        {
+          method: 'POST',
+          body: JSON.stringify(input)
+        }
+      )
       return body.workflow
     }
   }

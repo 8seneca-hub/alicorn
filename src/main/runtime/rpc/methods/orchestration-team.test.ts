@@ -33,6 +33,7 @@ function directory(members: Member[]): MemberDirectory {
     getMember: vi.fn().mockResolvedValue(null),
     listMembers: vi.fn().mockResolvedValue(members),
     getOrgPolicy: vi.fn().mockResolvedValue({ enforceDistinctReviewerBackend: true }),
+    getSeatConnectors: vi.fn().mockResolvedValue({ seat: null, connectors: [] }),
     getRequiredChecks: vi.fn().mockResolvedValue([]),
     getProtectedPaths: vi.fn().mockResolvedValue([]),
     getAutonomyPolicy: vi.fn().mockResolvedValue(null),
