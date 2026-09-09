@@ -50,8 +50,13 @@ export async function alicornFetch(
   init?: RequestInit
 ): Promise<Response> {
   const urls = getAlicornControlPlaneUrls(process.env)
-  const bearer = readAlicornBearer(process.env)
-  if (!urls || !bearer) {
+  // Why the URLs first: reading the bearer can refresh a Keycloak session, and a desktop with
+  // nowhere to send the result should not spend a refresh to find that out.
+  if (!urls) {
+    throw new ControlPlaneUnavailableError()
+  }
+  const bearer = await readAlicornBearer(process.env)
+  if (!bearer) {
     throw new ControlPlaneUnavailableError()
   }
   const baseUrl = service === 'ledger' ? urls.ledgerApiUrl : urls.controlApiUrl

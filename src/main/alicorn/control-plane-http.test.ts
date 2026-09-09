@@ -1,11 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { readFreshOrcaCloudSession } from '../orca-profiles/profile-cloud-session-refresh'
+import { ensureActiveOrcaProfile } from '../orca-profiles/profile-index-store'
+import { getProfileUserDataPath } from '../orca-profiles/profile-storage-paths'
 import {
   alicornFetch,
   ControlPlaneRequestError,
   ControlPlaneUnavailableError
 } from './control-plane-http'
 
+vi.mock('../orca-profiles/profile-index-store', () => ({
+  ensureActiveOrcaProfile: vi.fn()
+}))
+vi.mock('../orca-profiles/profile-cloud-session-refresh', () => ({
+  readFreshOrcaCloudSession: vi.fn()
+}))
+vi.mock('../orca-profiles/profile-storage-paths', () => ({
+  getProfileUserDataPath: vi.fn(() => '/tmp/alicorn-profile')
+}))
+
 const TOKEN = 'local-dev-token-0123456789'
+const SESSION_TOKEN = 'keycloak-access-token-abcdef'
 const fetchMock = vi.fn()
 let savedEnv: NodeJS.ProcessEnv
 
@@ -153,5 +167,60 @@ describe('alicornFetch failures', () => {
     fetchMock.mockResolvedValue(response)
 
     await expect(alicornFetch('control', '/v1/members')).resolves.toBe(response)
+  })
+})
+
+describe('alicornFetch in keycloak mode', () => {
+  function useKeycloakMode(): void {
+    configure({
+      ALICORN_CONTROL_API_URL: 'https://control.example.com',
+      // Left over from the local-mode block: neither may reach the wire in keycloak mode.
+      ALICORN_LOCAL_API_TOKEN: TOKEN,
+      ALICORN_TENANT_ID: 'other-org'
+    })
+    process.env.ALICORN_AUTH_MODE = 'keycloak'
+    process.env.ORCA_CLOUD_API_URL = 'http://127.0.0.1:8081'
+    process.env.ORCA_CLOUD_CLIENT_ID = 'alicorn-desktop'
+    vi.mocked(readFreshOrcaCloudSession).mockReset()
+    vi.mocked(getProfileUserDataPath).mockReset().mockReturnValue('/tmp/alicorn-profile')
+    vi.mocked(ensureActiveOrcaProfile).mockReset().mockReturnValue({
+      profile: { id: 'profile-1', cloud: { activeOrgId: 'org-1' } }
+    } as unknown as ReturnType<typeof ensureActiveOrcaProfile>)
+  }
+
+  it('pairs the session token with the org that token proves', async () => {
+    useKeycloakMode()
+    vi.mocked(readFreshOrcaCloudSession).mockResolvedValue({
+      status: 'found',
+      session: { accessToken: SESSION_TOKEN }
+    } as unknown as Awaited<ReturnType<typeof readFreshOrcaCloudSession>>)
+
+    await alicornFetch('control', '/v1/members')
+
+    const headers = new Headers(lastInit().headers)
+    expect(headers.get('authorization')).toBe(`Bearer ${SESSION_TOKEN}`)
+    expect(headers.get('x-alicorn-org')).toBe('org-1')
+  })
+
+  it('refuses rather than presenting the shared token when nobody is signed in', async () => {
+    useKeycloakMode()
+    vi.mocked(readFreshOrcaCloudSession).mockResolvedValue({
+      status: 'reconnect-required'
+    } as unknown as Awaited<ReturnType<typeof readFreshOrcaCloudSession>>)
+
+    await expect(alicornFetch('control', '/v1/members')).rejects.toBeInstanceOf(
+      ControlPlaneUnavailableError
+    )
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('does not spend a session refresh when there is nowhere to send the request', async () => {
+    useKeycloakMode()
+    process.env.ALICORN_CONTROL_API_URL = ''
+
+    await expect(alicornFetch('control', '/v1/members')).rejects.toBeInstanceOf(
+      ControlPlaneUnavailableError
+    )
+    expect(readFreshOrcaCloudSession).not.toHaveBeenCalled()
   })
 })

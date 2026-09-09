@@ -83,10 +83,12 @@ pnpm alicorn:down    # tear it down
 ```
 
 If port 5432 is already taken on your machine, set `ALICORN_PG_PORT` (e.g. `5434`) before
-`alicorn:up` and again before `alicorn:seed`; the APIs stay on 8081/8082 regardless. Copy
+`alicorn:up` and again before `alicorn:seed`; the APIs stay on 8081/8082 regardless. Source
 `dev/compose/desktop.env.example` into your shell to point a local desktop build at the
 stack — the default `ALICORN_LOCAL_API_TOKEN` (`local-dev-token-change-me-0001`) is for this
-local stack only; export a real token for anything that leaves the laptop.
+local stack only; export a real token for anything that leaves the laptop. For Keycloak mode
+source `dev/compose/desktop.keycloak.env.example` instead, in a fresh shell — the two blocks
+must not both be set.
 
 **Keycloak mode.** The compose stack also has a `keycloak` service (Keycloak 26, port 8080)
 that imports the `alicorn` realm and `alicorn-desktop` client from
@@ -94,9 +96,11 @@ that imports the `alicorn` realm and `alicorn-desktop` client from
 it alongside the rest of the stack (first Keycloak boot takes about a minute); the admin
 console is at `http://127.0.0.1:8080` (`admin`/`admin`), and the imported realm has a dev user
 (`dev`/`dev`). `pnpm alicorn:verify-keycloak` checks the realm's discovery document and JWKS
-once Keycloak reports healthy. Token verification is not wired into `control-api`/`ledger-api`
-yet (a later task) — in `keycloak` mode both currently fail fast at startup with `keycloak mode
-not implemented`, so use `local` mode for anything that needs the APIs actually running.
+once Keycloak reports healthy. Both services verify Keycloak access tokens in this mode and
+derive the tenant from the organisation the token proves: `x-alicorn-org` only *selects* which
+of them to act as, so a header naming an organisation the token does not carry is `403
+not_a_member`, never a silent pick. The desktop half is `readAlicornBearer` — see
+[`docs/alicorn/LOCAL-DEV.md`](../docs/alicorn/LOCAL-DEV.md).
 
 The Postgres suites in `apps/control-api` and `apps/ledger-api` (and
 `packages/control-plane-postgres`) run only when `ALICORN_TEST_POSTGRES_URL` points at a

@@ -40,7 +40,7 @@ import { createWorktreeChangedFilesReader } from '../alicorn/gates/worktree-chan
 import { createDispatchSpendReader } from '../alicorn/gates/dispatch-spend-reader'
 import { LOCAL_EXECUTION_HOST_ID } from '../../shared/execution-host'
 import { getAlicornControlPlaneUrls } from '../alicorn/control-plane-urls'
-import { readAlicornBearer } from '../alicorn/control-plane-session'
+import { isAlicornBearerConfigured } from '../alicorn/control-plane-session'
 import { createMemberDirectory } from '../alicorn/member-directory'
 import { getControlPlaneClient } from '../alicorn/control-plane-client-instance'
 
@@ -259,9 +259,11 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
     sendPrompt: (terminalHandle, prompt) => runtime.sendTerminalAgentPrompt(terminalHandle, prompt)
   })
   // Null when the control plane is unconfigured; --member is rejected then
-  // rather than launching a worker with no member to record.
+  // rather than launching a worker with no member to record. Configured is the most
+  // startup can know in keycloak mode -- whether a session exists needs disk and network,
+  // so a signed-out call fails at the request rather than removing the feature.
   runtime.setAlicornMemberDirectory(
-    getAlicornControlPlaneUrls(process.env) && readAlicornBearer(process.env)
+    getAlicornControlPlaneUrls(process.env) && isAlicornBearerConfigured(process.env)
       ? createMemberDirectory(getControlPlaneClient())
       : null
   )

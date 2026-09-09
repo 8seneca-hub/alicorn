@@ -62,6 +62,49 @@ cd .. && pnpm dev
 
 **Expected result:** Settings → Workflows → Members lists the three seeded members.
 
+## 2b. Keycloak mode instead of the shared token
+
+Both auth modes are supported. Auth mode `local` above is what tier 1 runs; `keycloak` is the
+second mode, and the stack and the desktop must be in the same one.
+
+```sh
+cd cloud
+ALICORN_AUTH_MODE=keycloak pnpm alicorn:up     # first Keycloak boot takes about a minute
+pnpm alicorn:verify-keycloak
+```
+
+**The organisation is still manual.** `dev/keycloak/alicorn-realm.json` imports the realm, the
+`alicorn-desktop` client (with `organization` as a default client scope) and the user `dev`/`dev`,
+but no organisation — seeding one is the identity plan's last task and has not landed. Until it
+does, in the admin console at `http://127.0.0.1:8080` (`admin`/`admin`), realm `alicorn`:
+Organizations → create **Acme** (alias `acme`, domain `acme.test`) → Members → add `dev`. Copy the
+organisation's id from its URL.
+
+The tenant in keycloak mode *is* that organisation id, so seed the members into it rather than
+into `local`:
+
+```sh
+ALICORN_TENANT_ID=<organisation id> pnpm alicorn:seed
+```
+
+Then, **in a fresh shell** — the two env blocks must not both be set:
+
+```sh
+source cloud/dev/compose/desktop.keycloak.env.example
+pnpm dev
+```
+
+Settings → Orca Account → Connect → sign in as `dev`/`dev` → the profile shows organisation
+**Acme**. Settings → Workflows → Members then lists the seeded members, which is the end-to-end
+proof: the session's access token and that organisation's id travelled together to the Control
+API and passed `requireTenant` in keycloak mode. An empty list with `403 not_a_member` means the
+members were seeded into a different tenant than the one the token proves.
+
+Why a fresh shell rather than one file with both blocks: `ALICORN_LOCAL_API_TOKEN` left over from
+the `local` block makes the desktop choose `local` mode when `ALICORN_AUTH_MODE` is absent, and
+present the shared token to a stack that only accepts Keycloak ones. That is a 401 that reads like
+a sign-in bug.
+
 ## Environment
 
 Read only through `src/main/alicorn/control-plane-urls.ts` and `control-plane-session.ts`; nothing
@@ -69,12 +112,45 @@ else reads these variables directly.
 
 | Variable | Meaning |
 |---|---|
+| `ALICORN_AUTH_MODE` | `local` or `keycloak`. Optional; see the mode rule below. |
 | `ALICORN_CONTROL_API_URL` | Control API base — members, org policy, required checks. Required. |
 | `ALICORN_LEDGER_API_URL` | Ledger API base. Optional; defaults to the Control API URL. |
 | `ALICORN_LOCAL_API_TOKEN` | Shared bearer for auth mode `local`. Must be at least 16 characters. |
-| `ALICORN_TENANT_ID` | Constant tenant. Optional; defaults to `local`. |
+| `ALICORN_TENANT_ID` | Constant tenant for auth mode `local`. Optional; defaults to `local`. Ignored in `keycloak` mode. |
 
-Both URLs must parse as `http(s)`, and trailing slashes are stripped so paths append cleanly.
+Keycloak mode reads the desktop's existing Orca Cloud sign-in, so it also uses that flow's
+pre-rebrand `ORCA_CLOUD_*` variables (`profile-cloud-auth-config.ts`), of which three matter here:
+
+| Variable | Meaning |
+|---|---|
+| `ORCA_CLOUD_API_URL` | Where `/v1/desktop/auth/*` lives — the Control API, which brokers Keycloak. |
+| `ORCA_CLOUD_CLIENT_ID` | The public PKCE client, `alicorn-desktop`. |
+| `ORCA_CLOUD_AUTHORIZE_URL` | Keycloak's own realm authorize endpoint. The broker does not serve `/authorize`, so leaving this unset points the browser at a route that does not exist. |
+
+Both control-plane URLs must parse as `http(s)`, and trailing slashes are stripped so paths append
+cleanly. Loopback HTTP `ORCA_CLOUD_*` endpoints are accepted only in unpackaged builds.
+
+## Which mode the desktop picks
+
+`resolveAlicornAuthMode` in `control-plane-session.ts`:
+
+1. `ALICORN_AUTH_MODE=local` or `=keycloak` wins outright.
+2. Unset — `ALICORN_LOCAL_API_TOKEN` present means `local`, absent means `keycloak`.
+
+A mode never borrows the other's credential. In `keycloak` mode a missing or expired session is
+`control_plane_unconfigured`, **not** a quiet fall back to the shared token: a token the server
+cannot place is a much worse failure to debug than "sign in again". Symmetrically, `local` mode
+never reads the session store.
+
+## What `x-alicorn-org` carries, and why it must agree
+
+The org header is a cross-check, not an instruction. In `keycloak` mode the server takes the
+organisations the *token* proves and uses the header only to select which of them to act as — a
+header naming an organisation the token does not carry is `403 not_a_member`, and no header at all
+is `400 org_header_required`. So the desktop reads the org from the same place as the token: the
+signed-in profile's `activeOrgId`, never `ALICORN_TENANT_ID`. If a refresh or an org switch changes
+the linkage while the call is in flight, `readAlicornBearer` returns null rather than pairing the
+new token with the old org.
 
 ## How the desktop reaches the control plane
 
@@ -86,12 +162,19 @@ credential at another host.
 
 Two failures are worth recognising:
 
-- **`ControlPlaneUnavailableError('control_plane_unconfigured')`** — the URLs or the token are
-  missing or malformed. Nothing was sent. Re-`source` the env file.
+- **`ControlPlaneUnavailableError('control_plane_unconfigured')`** — no credential was produced,
+  so nothing was sent. In `local` mode: the URLs or the token are missing or malformed —
+  re-`source` the env file. In `keycloak` mode it means the same *or* that nobody is signed in;
+  the one code covers both today, so check Settings → Orca Account before the env file.
+- **`ControlPlaneRequestError(403, 'not_a_member')`** — the token and `x-alicorn-org` disagreed.
+  Usually a stale `ALICORN_LOCAL_API_TOKEN`/`ALICORN_TENANT_ID` pair left in the shell, or an org
+  switched in another window. Restart from a fresh shell.
 - **`ControlPlaneRequestError(status, code)`** — the control plane answered and refused. `code` is
   the JSON body's `error` field when present, otherwise the status text.
 
-Identity is deferred: when Keycloak lands (I4), only the body of `readAlicornBearer` changes.
+`readAlicornBearer` is where both modes are decided; it is the only thing that changed on the
+desktop when Keycloak landed (I4). It is `async` since then, because a Keycloak session may need
+a refresh before it can be presented.
 
 ## Verify
 
@@ -123,8 +206,10 @@ pnpm -r typecheck
 pnpm -r test
 ```
 
-Fully wired, the four Alicorn cloud suites are 96 tests with nothing skipped: `control-api` 63,
-`ledger-api` 33, plus `control-plane-auth` 10 and `control-plane-contract` 29.
+Fully wired, nothing is skipped: `control-api` 116, `ledger-api` 65, `control-plane-contract` 96,
+`control-plane-auth` 35 and `control-plane-postgres` 5 (measured 2026-09-09). The two contract and
+auth packages need no database at all — `pnpm --filter @alicorn-cloud/control-plane-auth test`
+runs on its own.
 
 ## Board automation — automated live check
 
@@ -152,7 +237,7 @@ proved itself on its first run, by failing on a branch whose base was missing th
 Results are recorded in the PR description or the Plane issue (E1 / ALC-27) when the run is performed manually.
 
 1. `cd cloud && pnpm alicorn:up && pnpm alicorn:seed` → both `/healthz` ok; seed prints org id.
-2. `source cloud/dev/compose/desktop.env.example && pnpm dev`.
+2. `source cloud/dev/compose/desktop.env.example && pnpm dev`. (Keycloak mode: follow §2b instead, then connect as `dev`/`dev` before step 3.)
 3. Settings → Workflows → Members → three seeded members; create *Reviewer B* (codex); quit and relaunch — it is still there (Postgres, not local).
 4. CLI: `task-create` → `worker-start --member <Developer>` → worker sends `worker_done --phase build` → provenance endpoint shows the outcome with `backend claude`, `execution_strategy single`, a context capture, and (after ~1 min) `spend_cents`.
 5. `worker-start --member <Reviewer on claude>` on a dependent task → rejected `reviewer_backend_conflict`; with `--allow-same-backend-review` → allowed; ledger row `review_backend_bypass true`.
