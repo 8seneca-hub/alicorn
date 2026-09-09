@@ -27,7 +27,7 @@ describe('orcad operations restart safety', () => {
       "Every `omittedHostIds` entry must be explicitly accounted for outside the target service's execution boundary"
     )
     expect(operationsProse).toContain(
-      '`sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json`'
+      '`sudo -Hu orca /home/orca/.local/bin/alicorn-ide terminal list --json`'
     )
     expect(operationsGuide).not.toContain('sudo -Hu orca orca-ide terminal list --json')
     expect(operationsProse).toContain(

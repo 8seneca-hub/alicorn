@@ -95,7 +95,7 @@ describe('settings navigation metadata', () => {
     expect(sections.find((section) => section.id === 'mobile')?.group).toBe('setup')
   })
 
-  it('leads Workflows with Automations, Members, Artifacts, and Share Skills', () => {
+  it('leads Workflows with Automations, Members, Workflows, Artifacts, and Share Skills', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -120,9 +120,10 @@ describe('settings navigation metadata', () => {
     expect(shareSkills?.searchEntries[0]?.title).toBe('Unlisted skill links')
     // Members sits directly under Automations: both are about who does the
     // work, and the tier-1 desktop plan places it there deliberately.
-    expect(workflowIds.slice(0, 4)).toEqual([
+    expect(workflowIds.slice(0, 5)).toEqual([
       'automations',
       'alicorn-members',
+      'alicorn-workflows',
       'artifacts',
       'share-skills'
     ])

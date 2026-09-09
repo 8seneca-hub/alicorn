@@ -182,18 +182,18 @@ describe('headless serve shutdown PR gate', () => {
       'A separately paired runtime is outside that boundary; local execution and SSH hosts reached through this runtime are not. An affected or unknown omission, missing scope, failed request or lost connection is `unverifiable`'
     )
     expect(headlessLinuxGuide).toContain(
-      'sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json'
+      'sudo -Hu orca /home/orca/.local/bin/alicorn-ide terminal list --json'
     )
-    expect(headlessLinuxGuide).not.toContain('sudo -Hu orca orca-ide terminal list --json')
+    expect(headlessLinuxGuide).not.toContain('sudo -Hu orca alicorn-ide terminal list --json')
     expect(headlessLinuxGuide).not.toContain('Two facts make this safe and predictable')
   })
 
   it('uses the registered CLI name from ordinary Linux shells', () => {
     const commandRule =
-      'The registered Linux CLI command is `orca-ide`, not `orca`, to avoid shadowing the GNOME Orca screen reader.'
+      'The registered Linux CLI command is `alicorn-ide`, not `alicorn`, to keep the'
     const substitutionRule =
-      "From an ordinary shell outside that service user's managed environment, substitute `orca-ide` for `orca` in commands below."
-    const censusCommand = '`sudo -Hu orca /home/orca/.local/bin/orca-ide terminal list --json`'
+      "From an ordinary shell outside that service user's managed environment, substitute `alicorn-ide` for `orca` in commands below."
+    const censusCommand = '`sudo -Hu orca /home/orca/.local/bin/alicorn-ide terminal list --json`'
 
     expect(headlessLinuxProse).toContain(commandRule)
     expect(headlessLinuxProse).toContain(substitutionRule)
