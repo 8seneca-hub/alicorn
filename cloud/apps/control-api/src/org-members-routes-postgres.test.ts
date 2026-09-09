@@ -13,6 +13,7 @@ import type { ControlApiEnv } from './app-env.js'
 import { createControlApiApp } from './app.js'
 import { loadControlApiConfig } from './config.js'
 import { lookupUserIdBySubject, syncIdentity } from './identity-repository.js'
+import { changeMemberRole } from './org-members-repository.js'
 import { createPostgresDesktopIdentityStore } from './postgres-desktop-identity-store.js'
 import { CONTROL_SCHEMA_STATEMENTS } from './schema-sql.js'
 
@@ -189,6 +190,39 @@ describePostgres('alicorn organisation membership routes (postgres)', () => {
 
     const gone = await post('/v1/org/members/remove', 'sub-owner', { userId: memberId })
     expect(gone.status).toBe(404)
+  })
+
+  // ALC-111. Also the record of a hole left open on purpose: the caller here is an *admin* acting
+  // on an owner, and only the last-owner guard stops them.
+  it('refuses to demote or remove the last owner', async () => {
+    expect((await post('/v1/org/members/role', 'sub-owner', { userId: memberId, role: 'admin' })).status).toBe(204)
+
+    const demoted = await post('/v1/org/members/role', 'sub-member', { userId: ownerId, role: 'member' })
+    expect(demoted.status).toBe(409)
+    expect(await demoted.json()).toEqual({ error: 'last_owner' })
+
+    const removed = await post('/v1/org/members/remove', 'sub-member', { userId: ownerId })
+    expect(removed.status).toBe(409)
+    expect(await removed.json()).toEqual({ error: 'last_owner' })
+
+    // Promoting the last owner to what they already are is not a demotion, so it is not refused.
+    expect((await post('/v1/org/members/role', 'sub-member', { userId: ownerId, role: 'owner' })).status).toBe(204)
+  })
+
+  // The guard has to hold in the transaction, not the route: without `FOR UPDATE` on the owner
+  // rows both of these read two owners, both pass their check, and the organisation ends with none.
+  it('lets only one of two concurrent demotions of the last two owners through', async () => {
+    expect((await post('/v1/org/members/role', 'sub-owner', { userId: memberId, role: 'owner' })).status).toBe(204)
+
+    const outcomes = await Promise.all([
+      changeMemberRole(pool, ORG, ownerId, 'admin'),
+      changeMemberRole(pool, ORG, memberId, 'admin')
+    ])
+    expect(outcomes.filter((outcome) => outcome === 'ok')).toHaveLength(1)
+    expect(outcomes.filter((outcome) => outcome === 'last_owner')).toHaveLength(1)
+
+    const listed = (await roster('sub-owner')) as { members: { role: string }[] }
+    expect(listed.members.filter((member) => member.role === 'owner')).toHaveLength(1)
   })
 
   it('refuses every mutation from a plain member', async () => {

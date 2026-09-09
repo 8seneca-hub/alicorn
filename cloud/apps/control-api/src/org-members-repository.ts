@@ -104,19 +104,45 @@ export function revokeInvite(pool: pg.Pool, tenantId: string, email: string): Pr
   })
 }
 
-export function changeMemberRole(pool: pg.Pool, tenantId: string, userId: string, role: OrgRole): Promise<boolean> {
+export type MemberMutationOutcome = 'ok' | 'not_found' | 'last_owner'
+
+/**
+ * ALC-111. An organisation with no owner is a state nothing recovers to, so the last one can be
+ * neither demoted nor removed.
+ *
+ * `FOR UPDATE` is the whole fix: a check-then-write across two statements lets two concurrent
+ * demotions of the last two owners each see the other and both pass. Locking the owner rows
+ * serialises them, and READ COMMITTED re-checks a locked row's qualification once the lock is
+ * released, so the loser no longer counts the owner the winner just demoted. `ORDER BY` matters —
+ * without a deterministic lock order the two transactions deadlock on each other instead.
+ */
+async function isLastOwner(client: pg.PoolClient, userId: string): Promise<boolean> {
+  const { rows } = await client.query<{ user_id: string }>(
+    `SELECT user_id FROM org_roles WHERE role = 'owner' ORDER BY user_id FOR UPDATE`
+  )
+  return rows.length === 1 && rows[0]?.user_id === userId
+}
+
+export function changeMemberRole(
+  pool: pg.Pool,
+  tenantId: string,
+  userId: string,
+  role: OrgRole
+): Promise<MemberMutationOutcome> {
   return withTenant(pool, tenantId, async (client) => {
+    if (role !== 'owner' && (await isLastOwner(client, userId))) return 'last_owner'
     const { rowCount } = await client.query(`UPDATE org_roles SET role = $2 WHERE user_id = $1`, [userId, role])
-    return (rowCount ?? 0) > 0
+    return rowCount ? 'ok' : 'not_found'
   })
 }
 
 // The seat goes with the membership: a seat row for someone who is no longer in the organisation
 // would still resolve OP3's connectors for them.
-export function removeMember(pool: pg.Pool, tenantId: string, userId: string): Promise<boolean> {
+export function removeMember(pool: pg.Pool, tenantId: string, userId: string): Promise<MemberMutationOutcome> {
   return withTenant(pool, tenantId, async (client) => {
+    if (await isLastOwner(client, userId)) return 'last_owner'
     const { rowCount } = await client.query(`DELETE FROM org_roles WHERE user_id = $1`, [userId])
     await client.query(`DELETE FROM seats WHERE user_id = $1`, [userId])
-    return (rowCount ?? 0) > 0
+    return rowCount ? 'ok' : 'not_found'
   })
 }

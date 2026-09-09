@@ -24,6 +24,20 @@ import { parseJsonBody as parsed } from './read-json-body.js'
 // **Keycloak organisation sync — creating the KC organisation member and sending the invite mail —
 // lands with the identity plan (I5).** Here an invite is a row; `syncIdentity` consumes it at the
 // invitee's first sign-in, which is the only place a membership is ever created.
+//
+// **ALC-111 widens Decision 4's six codes by one: `409 last_owner`.** `forbidden` was the
+// additive-free alternative and was rejected — it says the caller lacks permission, which is
+// false here and unactionable (signing in as the owner does not help), so it buys a smaller wire
+// at the cost of a support ticket. 409 rather than 400 because, unlike `cannot_change_own_role`,
+// the identical request succeeds once a second owner exists: that is a state conflict, not a
+// malformed request. Nothing consumes these routes yet — the desktop's roster still talks to the
+// relay's `/v1/desktop/orgs/...` — so nothing on the desktop was changed. When something does bind
+// here, `src/shared/orca-profiles.ts` needs a 409 reason that is not invite-shaped: today its
+// mapper folds every unrecognised 409 into `already_invited`, which is worse than no code at all.
+//
+// **Still open: an admin may demote or remove an owner.** Ordering the two administrative roles is
+// a policy change, not this guard, and is deliberately left undone — the guard below only makes
+// the *ownerless* organisation impossible, not the impolite demotion.
 
 export function registerOrgMembersRoutes(app: Hono<ControlApiEnv>, deps: ControlApiDeps): void {
   app.get('/v1/org/members', async (c) => {
@@ -70,9 +84,9 @@ export function registerOrgMembersRoutes(app: Hono<ControlApiEnv>, deps: Control
     // Why 400 and not 403: it is the request that is wrong, not the caller — an admin who could
     // demote themselves could lock the organisation out one click at a time.
     if (body.data.userId === auth.userId) return c.json({ error: 'cannot_change_own_role' }, 400)
-    if (!(await changeMemberRole(deps.pool, auth.tenantId, body.data.userId, body.data.role))) {
-      return c.json({ error: 'not_found' }, 404)
-    }
+    const outcome = await changeMemberRole(deps.pool, auth.tenantId, body.data.userId, body.data.role)
+    if (outcome === 'not_found') return c.json({ error: 'not_found' }, 404)
+    if (outcome === 'last_owner') return c.json({ error: 'last_owner' }, 409)
     return c.body(null, 204)
   })
 
@@ -84,9 +98,9 @@ export function registerOrgMembersRoutes(app: Hono<ControlApiEnv>, deps: Control
     const body = await parsed(c, OrgMemberRemoveInputSchema)
     if (!body.ok) return body.response
     if (body.data.userId === auth.userId) return c.json({ error: 'cannot_remove_self' }, 400)
-    if (!(await removeMember(deps.pool, auth.tenantId, body.data.userId))) {
-      return c.json({ error: 'not_found' }, 404)
-    }
+    const outcome = await removeMember(deps.pool, auth.tenantId, body.data.userId)
+    if (outcome === 'not_found') return c.json({ error: 'not_found' }, 404)
+    if (outcome === 'last_owner') return c.json({ error: 'last_owner' }, 409)
     return c.body(null, 204)
   })
 }
