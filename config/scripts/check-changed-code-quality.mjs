@@ -256,6 +256,24 @@ function diagnosticHighlightedLines(root, filename, span) {
   return source.slice(range.start - 1, range.end)
 }
 
+/**
+ * Rules whose finding is about the file, not about a line in it.
+ *
+ * `max-lines` is reported at the file's *last* line, which a diff usually does not touch — so a
+ * gate that attributes findings to changed lines cannot see it, and three consecutive tickets
+ * walked `orchestration-worker-internal.ts` from 300 to 302 with every gate green (ALC-115). The
+ * companion ratchet did not catch it either: it only polices suppressions, on the assumption that
+ * full `oxlint` fails an over-cap file — and full `oxlint` is not what runs on a merge.
+ *
+ * Keep this list to rules that genuinely have no meaningful line. `max-lines-per-function` is not
+ * one: its span is the function, so overlapping an added line is exactly the right question.
+ */
+const WHOLE_FILE_RULE_CODES = new Set(['eslint(max-lines)', 'eslint(max-classes-per-file)'])
+
+export function isWholeFileRuleCode(code) {
+  return WHOLE_FILE_RULE_CODES.has(String(code ?? ''))
+}
+
 export function diagnosticTouchesAddedLines(
   diagnostic,
   rangesByFile,
@@ -266,6 +284,12 @@ export function diagnosticTouchesAddedLines(
   const ranges = rangesByFile.get(file)
   if (!ranges) {
     return false
+  }
+  // The file is in the changed set, and this rule is about the file. Which lines moved is not the
+  // question — a contributor who pushes a file over the cap owns that whether or not the diff
+  // reaches the last line.
+  if (isWholeFileRuleCode(diagnostic.code)) {
+    return true
   }
   return (diagnostic.labels ?? []).some((label) => {
     const lineRange = diagnosticLineRange(root, diagnostic.filename, label.span)

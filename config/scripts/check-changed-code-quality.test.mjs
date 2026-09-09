@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   OXLINT_SCANS,
   diagnosticTouchesAddedLines,
+  isWholeFileRuleCode,
   isMovedCode,
   isRootCodeQualityPath,
   overlapsAddedLines,
@@ -43,6 +44,42 @@ describe('changed-code quality line matching', () => {
     expect(
       diagnosticTouchesAddedLines(diagnostic, new Map([[file, [{ start: 24, end: 24 }]]]), root)
     ).toBe(true)
+  })
+
+
+  // ALC-115: `max-lines` is reported at the file's last line, which the diff that pushed the file
+  // over the cap usually never touches. Three tickets walked one file 300 → 302 with this gate
+  // reporting zero findings.
+  it('reports a whole-file finding on a changed file whatever the diff touched', () => {
+    const root = process.cwd()
+    const file = 'config/scripts/check-changed-code-quality.test.mjs'
+    const diagnostic = {
+      filename: `${root}/${file}`,
+      code: 'eslint(max-lines)',
+      labels: [{ span: { line: 9999 } }]
+    }
+
+    expect(
+      diagnosticTouchesAddedLines(diagnostic, new Map([[file, [{ start: 1, end: 1 }]]]), root)
+    ).toBe(true)
+  })
+
+  // The blind spot must not become a blanket exemption from the changed-file rule.
+  it('still ignores a whole-file finding on a file the diff never touched', () => {
+    const root = process.cwd()
+    const diagnostic = {
+      filename: `${root}/config/scripts/check-changed-code-quality.mjs`,
+      code: 'eslint(max-lines)',
+      labels: [{ span: { line: 9999 } }]
+    }
+
+    expect(diagnosticTouchesAddedLines(diagnostic, new Map(), root)).toBe(false)
+  })
+
+  it('keeps per-function limits on the line test, where the span is the function', () => {
+    expect(isWholeFileRuleCode('eslint(max-lines)')).toBe(true)
+    expect(isWholeFileRuleCode('eslint(max-lines-per-function)')).toBe(false)
+    expect(isWholeFileRuleCode(undefined)).toBe(false)
   })
 
   // Why: pinning --config disables nested-config discovery, so root rules that
