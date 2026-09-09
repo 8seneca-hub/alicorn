@@ -1,16 +1,26 @@
+import {
+  buildReleaseTagHrefPattern,
+  PRIMARY_RELEASE_FEED_REPOSITORY,
+  releaseAtomFeedUrl,
+  releaseDownloadBaseUrl
+} from '../shared/release-feed-repositories'
 import { net } from 'electron'
 import { parse } from 'yaml'
 import { compareVersions, isPrereleaseVersion, isValidVersion } from './updater-fallback'
 
-const ATOM_FEED_URL = 'https://github.com/stablyai/orca/releases.atom'
-const RELEASES_DOWNLOAD_BASE = 'https://github.com/stablyai/orca/releases/download'
+const ATOM_FEED_URL = releaseAtomFeedUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
+const RELEASES_DOWNLOAD_BASE = releaseDownloadBaseUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
 const FETCH_TIMEOUT_MS = 5000
 const MAX_MANIFEST_PROBE_CANDIDATES = 6
 
 // Why: GitHub's atom feed lists every release (prerelease or stable) in a
 // single flat list. Each entry has a /releases/tag/<tag> URL we can mine
 // without any channel filtering.
-const TAG_HREF_RE = /href="https:\/\/github\.com\/stablyai\/orca\/releases\/tag\/([^"]+)"/g
+//
+// Why both owners: a build installed before the rebrand reads the Orca feed, and for one release
+// its entries are what carry that user across. `matchAll` is stateful on a global regex, so this
+// is rebuilt per call rather than shared.
+const tagHrefPattern = (): RegExp => buildReleaseTagHrefPattern()
 
 export function getReleaseDownloadUrl(tag: string): string {
   return `${RELEASES_DOWNLOAD_BASE}/${encodeURIComponent(tag)}`
@@ -64,7 +74,7 @@ async function fetchReleaseFeedTags(): Promise<ReleaseFeedTag[] | null> {
     const body = await res.text()
     const tags: ReleaseFeedTag[] = []
 
-    for (const match of body.matchAll(TAG_HREF_RE)) {
+    for (const match of body.matchAll(tagHrefPattern())) {
       const tag = match[1]
       const version = normalizeTagToVersion(tag)
       if (isValidVersion(version)) {

@@ -1,3 +1,7 @@
+import {
+  latestReleaseDownloadUrl,
+  PRIMARY_RELEASE_FEED_REPOSITORY
+} from '../shared/release-feed-repositories'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-loader'
 
@@ -46,7 +50,7 @@ describe('updater', () => {
     // Setup pins the default generic feed; resolver only runs per check.
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
     })
     expect(autoUpdaterMock.allowPrerelease).not.toBe(true)
 
@@ -104,7 +108,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
     })
   })
 
@@ -135,7 +139,7 @@ describe('updater', () => {
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
       }
     ])
   })
@@ -159,7 +163,7 @@ describe('updater', () => {
     })
     expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
       provider: 'generic',
-      url: 'https://github.com/stablyai/orca/releases/latest/download'
+      url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
     })
     expect(sendMock).not.toHaveBeenCalledWith(
       'updater:status',
@@ -210,7 +214,7 @@ describe('updater', () => {
     expect(autoUpdaterMock.setFeedURL.mock.calls.slice(feedCallsBeforeCheck)).not.toContainEqual([
       {
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
       }
     ])
     expect(sendMock).not.toHaveBeenCalledWith(

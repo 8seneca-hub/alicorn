@@ -1,3 +1,7 @@
+import {
+  latestReleaseDownloadUrl,
+  PRIMARY_RELEASE_FEED_REPOSITORY
+} from '../shared/release-feed-repositories'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadUpdaterModule, warmUpdaterModule } from './updater-test-module-loader'
 
@@ -225,7 +229,7 @@ describe('updater', () => {
       expect(autoUpdaterMock.disableDifferentialDownload).toBe(false)
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
       })
     }
   )
@@ -268,7 +272,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
       })
     }
   )
@@ -308,7 +312,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
       })
     }
   )
@@ -365,7 +369,7 @@ describe('updater', () => {
       expect(send).toHaveBeenCalledWith('updater:status', { state: 'not-available' })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
       })
     }
   )
@@ -411,7 +415,7 @@ describe('updater', () => {
       })
       expect(autoUpdaterMock.setFeedURL).toHaveBeenLastCalledWith({
         provider: 'generic',
-        url: 'https://github.com/stablyai/orca/releases/latest/download'
+        url: latestReleaseDownloadUrl(PRIMARY_RELEASE_FEED_REPOSITORY)
       })
     }
   )

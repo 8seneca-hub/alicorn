@@ -1,3 +1,7 @@
+import {
+  PRIMARY_RELEASE_FEED_REPOSITORY,
+  releaseAtomFeedUrl
+} from '../shared/release-feed-repositories'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { installNetRequestFetchAdapter } from './updater-net-request.fixture'
 import { publishingIncident } from './updater-prerelease-feed-reproduction.fixture'
@@ -129,7 +133,7 @@ function respondWithNotReadyRelease({
     )
     .join('')}</feed>`
   netFetchMock.mockImplementation((url: string, init?: { method?: string }) => {
-    if (url === 'https://github.com/stablyai/orca/releases.atom') {
+    if (url === releaseAtomFeedUrl(PRIMARY_RELEASE_FEED_REPOSITORY)) {
       return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(atom) })
     }
     if (init?.method === 'HEAD' && assetStatus !== undefined) {
