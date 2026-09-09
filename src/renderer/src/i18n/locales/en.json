@@ -1112,7 +1112,9 @@
         "alicornMembersTitle": "Members",
         "alicornMembersDescription": "Reusable agent roles: backend, skills, permission mode and workspace kind.",
         "boardAutomationDescription": "Dispatch a member when a workspace moves into a board column.",
-        "boardAutomationTitle": "Board automation"
+        "boardAutomationTitle": "Board automation",
+        "alicornWorkflowsTitle": "Workflows",
+        "alicornWorkflowsDescription": "Stages, who runs them, and the edges between them — including findings going back to the author."
       },
       "useAppMenuPaste": {
         "pasteTooLarge": "Paste is too large."
@@ -11902,6 +11904,33 @@
           "commitToRepo": "Also commit to the repository",
           "reject": "Dismiss",
           "accept": "Accept rule"
+        },
+        "alicornWorkflows": {
+          "unconfiguredTitle": "Control plane not configured",
+          "unconfiguredDescription": "Set ALICORN_CONTROL_API_URL and ALICORN_LOCAL_API_TOKEN, then reopen Settings. See docs/alicorn/LOCAL-DEV.md.",
+          "retry": "Retry",
+          "title": "Workflows",
+          "description": "Stages, who runs them, and the edges between them — including findings going back to the author.",
+          "project": "Project",
+          "workflow": "Workflow",
+          "fromTemplate": "New from Feature delivery",
+          "loading": "Loading workflows…",
+          "pickOne": "Pick a workflow to draw it, or start one from the Feature delivery template.",
+          "name": "Name",
+          "addStage": "Add stage",
+          "save": "Save workflow",
+          "version": "Version",
+          "renameWarning": "These stage keys carry a track record that the renamed stages will not inherit:",
+          "search": {
+            "title": "Workflows",
+            "description": "Stages, who runs them, and the edges between them — including findings going back to the author.",
+            "workflow": "workflow",
+            "stage": "stage",
+            "canvas": "canvas",
+            "correction": "correction edge"
+          },
+          "sectionTitle": "Workflows",
+          "sectionDescription": "Stages, who runs them, and the edges between them — including findings going back to the author."
         }
       },
       "right": {
@@ -13532,7 +13561,8 @@
                     "disk": "Prompt on disk"
                   },
                   "none": {
-                    "body": "No context capture was recorded for this dispatch, so there is no way to tell an underinformed member from a wrong one here."
+                    "body": "No context capture was recorded for this dispatch, so there is no way to tell an underinformed member from a wrong one here.",
+                    "label": "Not captured"
                   },
                   "file": {
                     "body": "This prompt was over the 64 KiB the ledger holds inline, so it was written to a file on the machine that ran the dispatch. The ledger stores the path, not the text — and not its length either, so no size is shown."
@@ -17155,6 +17185,61 @@
           "switch": "Switch to orchestrated",
           "multiRepoMessage": "This task spans {{repos}} repositories. Switch it to orchestrated?",
           "cost": "A lead plus its subagents costs roughly ten times the tokens."
+        },
+        "workflowCanvas": {
+          "empty": "No stages yet. Add one, or start from a template.",
+          "stageName": "Name",
+          "stageKey": "Stage key",
+          "stageKeyMeasured": "This key carries the stage track record. Renaming it starts an empty window; the evidence stays on the old key.",
+          "stageKeyDescription": "What the ledger measures this stage under. Lowercase letters, digits, dash and underscore.",
+          "stageKind": "Runs as",
+          "codeCommand": "Command",
+          "member": "Member",
+          "noMember": "No member assigned",
+          "columnId": "Board column",
+          "columnIdDescription": "The column whose move dispatches this stage. Several stages can share none.",
+          "reversibility": "Reversibility",
+          "reversibilityDescription": "Authored, never inferred. An irreversible stage gates however good the track record is.",
+          "inheritedCost": "Inherited cost",
+          "inheritedCostDescription": "What undoing this stage costs everyone downstream. Also authored, also never inferred.",
+          "requiredChecks": "Required checks",
+          "requiredChecksDescription": "Authored per project by an admin, so a member cannot loosen what it is judged by. Shown here, edited in the project settings.",
+          "noRequiredChecks": "None",
+          "moveUp": "Move up",
+          "moveDown": "Move down",
+          "removeStage": "Remove stage",
+          "noCommand": "No command yet",
+          "edgeKind": "Edge",
+          "trigger": "Fires",
+          "removeEdge": "Remove edge",
+          "edgeFrom": "From",
+          "edgeTo": "To",
+          "addEdge": "Add edge",
+          "reversibilityFree": "Reversible",
+          "reversibilityContained": "Contained",
+          "reversibilityIrreversible": "Irreversible",
+          "costHigh": "Costly to undo",
+          "costLow": "Cheap to undo",
+          "stageKindCode": "Code stage",
+          "stageKindWorker": "Member stage",
+          "edgeCorrection": "Correction",
+          "edgeForward": "Forward",
+          "triggerSuccess": "On success",
+          "triggerFailure": "On failure",
+          "triggerManual": "Manual",
+          "issueCorrectionMustReturn": "A correction edge has to go back to an earlier stage.",
+          "issueForwardMustNotReturn": "This edge goes back to an earlier stage, so it is a correction, not a forward edge.",
+          "issueAmbiguousTrigger": "Two edges leave this stage on the same trigger, so dispatch would be a coin toss.",
+          "issueDuplicateTransition": "These two stages already have an edge between them.",
+          "issueSelfTransition": "An edge cannot start and end on the same stage.",
+          "issueUnknownStage": "This edge points at a stage that is not on the canvas.",
+          "issueDuplicateStageKey": "Two stages share this key, so the ledger could not tell them apart.",
+          "issueInvalidStageKey": "A stage key is lowercase letters, digits, dash and underscore.",
+          "issueCodeStageCommand": "A code stage needs the command it runs.",
+          "issueCodeStageMember": "A code stage runs no model, so it takes no member.",
+          "issueNameRequired": "The workflow needs a name.",
+          "issueStagesRequired": "A workflow needs at least one stage.",
+          "issueVersionConflict": "Someone else saved this workflow while you were editing. Reload before saving again."
         }
       }
     },

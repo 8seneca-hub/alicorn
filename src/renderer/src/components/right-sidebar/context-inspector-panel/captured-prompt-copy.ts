@@ -33,7 +33,7 @@ export function capturedPromptLabel(prompt: CapturedPrompt): string {
     )
   }
   return translate(
-    'auto.components.right.sidebar.context.inspector.panel.prompt.none',
+    'auto.components.right.sidebar.context.inspector.panel.prompt.none.label',
     'Not captured'
   )
 }
