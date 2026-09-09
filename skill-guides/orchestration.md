@@ -311,7 +311,7 @@ orca orchestration gate-create --task <task_id> --question <text> [--options <js
 orca orchestration gate-resolve --id <gate_id> --resolution <text> [--json]
 orca orchestration gate-list [--task <task_id>] [--status <status>] [--json]
 orca orchestration verify-record --task <task_id> --name <text> --status <passed|failed|skipped|error> [--kind <kind>] [--optional] [--detail <json_object>] [--json]
-orca orchestration team-propose --task <task_id> [--worktree <selector>] [--goal <text>] [--json]
+alicorn orchestration team-propose --task <task_id> [--worktree <selector>] [--goal <text>] [--json]
 ```
 
 Use `ask` for worker-to-coordinator questions; it creates a `question` message that the coordinator answers with `reply`. Use `gate-create` only for coordinator-managed task DAG decisions, not for answering a worker's `ask`.
