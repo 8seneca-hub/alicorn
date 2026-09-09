@@ -12,13 +12,13 @@ const cliEntry =
   process.env.ALICORN_DEV_CLI_ENTRY_PATH ?? path.join(repoRoot, 'out', 'cli', 'index.js')
 
 if (!existsSync(cliEntry)) {
-  console.error("orca-dev: CLI not built yet. Run 'pnpm run build:cli' first.")
+  console.error("alicorn-dev: CLI not built yet. Run 'pnpm run build:cli' first.")
   process.exit(1)
 }
 
 process.env.ALICORN_USER_DATA_PATH =
   process.env.ALICORN_DEV_USER_DATA_PATH ?? getDefaultDevUserDataPath()
-// Why: custom dev profiles do not necessarily contain "orca-dev" in their path; carry explicit provenance into the CLI.
+// Why: custom dev profiles do not necessarily contain the dev profile name in their path; carry explicit provenance into the CLI.
 process.env.ALICORN_DEV_CLI_INVOCATION = '1'
 
 const electronExecutable = getElectronExecutable()

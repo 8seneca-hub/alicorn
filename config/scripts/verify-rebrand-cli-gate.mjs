@@ -61,10 +61,9 @@ const SCAN_EXTENSIONS = new Set([
  * alphanumeric prefix means it is part of a longer word. Case-sensitive on
  * purpose: "GNOME Orca" is a different product and must not be rewritten.
  *
- * `orca-dev` is deliberately not matched. It is still the live dev handle
- * (`package.json` `bin`), so a guide that says `alicorn-dev` today would be
- * wrong — the rename belongs to the `bin` change, and this pattern regains its
- * `(?:-dev)?` on the same commit.
+ * `orca-dev` is matched too, since R5a renamed the dev handle to `alicorn-dev`. The old name
+ * stays installed as an alias for one release, but no guide may still *teach* it: a corpus that
+ * says `orca-dev` is what keeps the alias alive past its release.
  */
 export const BARE_ORCA_INVOCATION = /(^|[^A-Za-z0-9_/-])orca(?:-dev)? [a-z]/
 
@@ -74,9 +73,10 @@ export const BARE_ORCA_INVOCATION_GLOBAL = /(^|[^A-Za-z0-9_/-])(orca(?:-dev)? [a
 /**
  * What the codemod may rewrite — plain `orca` only.
  *
- * Deliberately narrower than the detection pattern above: `orca-dev` is still the live dev
- * handle in `package.json` `bin`, so the gate must *watch* it while the rewriter must *not*
- * touch it. One regex serving both jobs would either blind the gate or corrupt the corpus.
+ * Deliberately narrower than the detection pattern above. The rewriter must not touch
+ * `orca-dev`: the alias is still installed, and a mechanical rewrite of a passage that
+ * explains the alias would erase the explanation. One regex serving both jobs would either
+ * blind the gate or corrupt the corpus.
  */
 export const REWRITABLE_ORCA_INVOCATION_GLOBAL = /(^|[^A-Za-z0-9_/-])(orca [a-z][\w-]*)/g
 

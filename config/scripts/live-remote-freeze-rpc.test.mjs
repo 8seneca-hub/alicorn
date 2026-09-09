@@ -10,7 +10,7 @@ describe('live remote freeze RPC', () => {
     expect(resolveOrcaCliCommand({ env: { ALICORN_CLI_COMMAND: 'custom-orca' } })).toBe(
       'custom-orca'
     )
-    expect(resolveOrcaCliCommand({ env: { ALICORN_DEV_REPO_ROOT: '/repo' } })).toBe('orca-dev')
+    expect(resolveOrcaCliCommand({ env: { ALICORN_DEV_REPO_ROOT: '/repo' } })).toBe('alicorn-dev')
     expect(resolveOrcaCliCommand({ env: {}, platform: 'linux' })).toBe('orca-ide')
     expect(resolveOrcaCliCommand({ env: {}, platform: 'win32' })).toBe('orca')
   })

@@ -17,7 +17,7 @@ export function resolveOrcaCliCommand({ env = process.env, platform = process.pl
     return env.ALICORN_CLI_COMMAND.trim()
   }
   if (env.ALICORN_DEV_REPO_ROOT) {
-    return 'orca-dev'
+    return 'alicorn-dev'
   }
   return platform === 'linux' ? 'orca-ide' : 'orca'
 }
@@ -32,7 +32,8 @@ export function resolveOrcaCliInvocation({
   if (
     platform === 'win32' &&
     env.ALICORN_DEV_REPO_ROOT &&
-    (commandName === 'orca-dev' || commandName === 'orca-dev.cmd')
+    // Both spellings: the alias is still installed, and a developer may have it configured.
+    ['alicorn-dev', 'alicorn-dev.cmd', 'orca-dev', 'orca-dev.cmd'].includes(commandName)
   ) {
     const defaultUserDataPath = path.win32.join(
       env.APPDATA ?? path.win32.join(env.USERPROFILE ?? '', 'AppData', 'Roaming'),

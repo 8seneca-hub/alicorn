@@ -182,13 +182,12 @@ describe('the checked-in baseline', () => {
     expect(output).toMatch(/Rebrand CLI gate passed/)
   })
 
-  // R3 rewrote every plain `orca` call site, so what is left is `orca-dev` and nothing else.
-  // A plain `orca` allowance re-appearing is a corpus regression laundered through the
-  // baseline, not a legitimate edit, so the end state is asserted directly.
-  it('holds only `orca-dev`, so a plain `orca` call site has nowhere to hide', () => {
+  // R3 rewrote every plain `orca` call site and R5a renamed the dev handle, so the baseline is
+  // empty and the gate is zero-tolerance. An allowance re-appearing is a corpus regression
+  // laundered through the baseline, not a legitimate edit, so the end state is asserted directly.
+  it('is empty, so any bare invocation of either name is a new finding', () => {
     const parsed = readBaseline(readFileSync('config/rebrand-cli-baseline.txt', 'utf8'))
-    expect(parsed.length).toBeGreaterThan(0)
-    expect(parsed.every((entry) => entry.text.startsWith('orca-dev '))).toBe(true)
+    expect(parsed).toEqual([])
   })
 
   it('round-trips a row through render and read, so nobody can hand-edit one undetected', () => {

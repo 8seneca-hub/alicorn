@@ -20,7 +20,7 @@ description: >-
 
 Use `alicorn` when Orca's running editor/runtime is the source of truth. Inside Orca-managed terminals, `alicorn` always resolves to the Orca CLI on every platform. In any other shell on Linux, use `alicorn-ide` wherever this file says `alicorn` — outside Orca's terminals, bare `orca` on Linux is usually the GNOME Orca screen reader (`/usr/bin/orca`), and running it starts speech on the user's machine.
 
-**Dev builds (`pnpm dev`):** after `pnpm build:cli`, the dev CLI is exposed as `orca-dev` (the global shim points at this checkout's wrapper + out/cli). Inside a dev Orca's terminals use `orca-dev emulator ...` (or `./config/scripts/orca-dev.mjs emulator ...` for worktree-local invocation that does not depend on the /usr/local/bin symlink). Plain `alicorn` targets any installed production Orca. The app's own agent preambles use `orca-dev` automatically in dev mode.
+**Dev builds (`pnpm dev`):** after `pnpm build:cli`, the dev CLI is exposed as `alicorn-dev` (the global shim points at this checkout's wrapper + out/cli). Inside a dev Orca's terminals use `alicorn-dev emulator ...` (or `./config/scripts/alicorn-dev.mjs emulator ...` for worktree-local invocation that does not depend on the /usr/local/bin symlink). Plain `alicorn` targets any installed production Orca. The app's own agent preambles use `alicorn-dev` automatically in dev mode.
 
 Use plain shell tools when Orca state does not matter.
 
@@ -30,7 +30,7 @@ Choose the executable once for the current session:
 
 - If the `ALICORN_CLI_COMMAND` environment variable is set, use its value. Orca exports this
   for managed WSL sessions.
-- Otherwise, in a dev checkout whose session exposes `ALICORN_DEV_REPO_ROOT`, use `orca-dev`.
+- Otherwise, in a dev checkout whose session exposes `ALICORN_DEV_REPO_ROOT`, use `alicorn-dev`.
 - Otherwise, on Linux outside an Orca-managed terminal, use `alicorn-ide`. Never use bare
   `orca` there because it normally resolves to the GNOME screen reader.
 - Otherwise, use `alicorn`.

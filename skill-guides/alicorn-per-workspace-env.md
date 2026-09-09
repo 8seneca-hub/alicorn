@@ -306,8 +306,8 @@ alicorn serve \
   --recipe-json
 ```
 
-**Binary name:** in a VM built from source (the Phase-2 flow), run it as `pnpm exec orca-dev serve …`
-from the repo root — `orca-dev` is the in-repo entrypoint and is what the §7f example uses. Plain
+**Binary name:** in a VM built from source (the Phase-2 flow), run it as `pnpm exec alicorn-dev serve …`
+from the repo root — `alicorn-dev` is the in-repo entrypoint and is what the §7f example uses. Plain
 `alicorn serve …` is the same command when the built CLI is installed on the VM's PATH. The flags/output
 are identical either way.
 
@@ -435,7 +435,7 @@ vercel sandbox exec "$name" "${vercel_args[@]}" --timeout 20m \
 recipe_json="$(vercel sandbox exec "$name" "${vercel_args[@]}" --timeout 60s \
   --env "ALICORN_PORT=$port" --env "ALICORN_PROJECT_ROOT=$project_root" --env "ALICORN_PAIRING_ADDRESS=$pairing_ws" \
   -- bash -lc 'set -euo pipefail; cd "$ALICORN_PROJECT_ROOT"; rm -f /tmp/orca-recipe.json /tmp/orca-serve.log; \
-    nohup pnpm exec orca-dev serve --port "$ALICORN_PORT" --project-root "$ALICORN_PROJECT_ROOT" \
+    nohup pnpm exec alicorn-dev serve --port "$ALICORN_PORT" --project-root "$ALICORN_PROJECT_ROOT" \
       --pairing-address "$ALICORN_PAIRING_ADDRESS" --recipe-json >/tmp/orca-recipe.json 2>/tmp/orca-serve.log </dev/null & \
     pid=$!; for _ in $(seq 1 80); do \
       node -e "JSON.parse(require(\"node:fs\").readFileSync(\"/tmp/orca-recipe.json\",\"utf8\"))" >/dev/null 2>&1 && { cat /tmp/orca-recipe.json; exit 0; }; \

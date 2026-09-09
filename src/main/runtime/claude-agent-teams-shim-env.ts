@@ -9,6 +9,7 @@ import {
   type ClaudeAgentTeamsMode
 } from '../../shared/claude-agent-teams-tmux-compat'
 import {
+  DEV_CLI_COMMAND_NAMES,
   getAlicornCliCommandNameForPlatform,
   getLegacyOrcaCliCommandNameForPlatform
 } from '../../shared/alicorn-cli-command-name'
@@ -82,11 +83,25 @@ export function resolveClaudeAgentTeamsShimBin(
     return bundled
   }
   return (
-    findExecutableOnPath(process.platform === 'win32' ? 'orca-dev.cmd' : 'orca-dev', pathValue) ??
+    findDevCliOnPath(pathValue) ??
     findExecutableOnPath(getAlicornCliCommandNameForPlatform(process.platform), pathValue) ??
     // Why: an install that predates the rename only has the `orca` command on PATH.
     findExecutableOnPath(getLegacyOrcaCliCommandNameForPlatform(process.platform), pathValue)
   )
+}
+
+/** Why both: a developer who has not re-run `build:cli` since the rename only has `orca-dev`. */
+function findDevCliOnPath(pathValue: string | undefined): string | null {
+  for (const commandName of DEV_CLI_COMMAND_NAMES) {
+    const found = findExecutableOnPath(
+      process.platform === 'win32' ? `${commandName}.cmd` : commandName,
+      pathValue
+    )
+    if (found) {
+      return found
+    }
+  }
+  return null
 }
 
 function defaultShimRoot(): string {

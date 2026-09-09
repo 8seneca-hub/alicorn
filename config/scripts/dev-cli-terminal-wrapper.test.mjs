@@ -15,12 +15,12 @@ describe('dev CLI terminal wrappers', () => {
       platform: 'win32'
     })
 
-    const wrapper = readFileSync(path.join(userDataPath, 'cli', 'bin', 'orca-dev.cmd'), 'utf8')
+    const wrapper = readFileSync(path.join(userDataPath, 'cli', 'bin', 'alicorn-dev.cmd'), 'utf8')
     expect(wrapper).toContain(`set "ALICORN_USER_DATA_PATH=${userDataPath}"`)
     expect(wrapper).toContain('set "ALICORN_DEV_CLI_INVOCATION=1"')
     expect(wrapper).toContain(`node "${path.join(root, 'out', 'cli', 'index.js')}" %*`)
     expect(readFileSync(path.join(userDataPath, 'cli', 'bin', 'orca.cmd'), 'utf8')).toBe(wrapper)
-    expect(readFileSync(path.join(root, 'out', 'bin', 'orca-dev.cmd'), 'utf8')).toBe(wrapper)
+    expect(readFileSync(path.join(root, 'out', 'bin', 'alicorn-dev.cmd'), 'utf8')).toBe(wrapper)
     expect(readFileSync(path.join(root, 'out', 'bin', 'orca.cmd'), 'utf8')).toBe(wrapper)
   })
 
@@ -35,7 +35,7 @@ describe('dev CLI terminal wrappers', () => {
       platform: 'win32'
     })
 
-    const wrapper = readFileSync(path.join(userDataPath, 'cli', 'bin', 'orca-dev.cmd'), 'utf8')
+    const wrapper = readFileSync(path.join(userDataPath, 'cli', 'bin', 'alicorn-dev.cmd'), 'utf8')
     expect(wrapper).toContain(`set "ALICORN_USER_DATA_PATH=${userDataPath.replaceAll('%', '%%')}"`)
     expect(wrapper).toContain(
       `set "ALICORN_APP_EXECUTABLE=${electronExecutable.replaceAll('%', '%%')}"`
@@ -43,7 +43,7 @@ describe('dev CLI terminal wrappers', () => {
     expect(wrapper).toContain(
       `node "${path.join(root, 'out', 'cli', 'index.js').replaceAll('%', '%%')}" %*`
     )
-    expect(readFileSync(path.join(root, 'out', 'bin', 'orca-dev.cmd'), 'utf8')).toBe(wrapper)
+    expect(readFileSync(path.join(root, 'out', 'bin', 'alicorn-dev.cmd'), 'utf8')).toBe(wrapper)
     expect(readFileSync(path.join(root, 'out', 'bin', 'orca.cmd'), 'utf8')).toBe(wrapper)
   })
 
@@ -57,14 +57,31 @@ describe('dev CLI terminal wrappers', () => {
       platform: 'linux'
     })
 
-    const wrapper = readFileSync(path.join(userDataPath, 'cli', 'bin', 'orca-dev'), 'utf8')
+    const wrapper = readFileSync(path.join(userDataPath, 'cli', 'bin', 'alicorn-dev'), 'utf8')
     expect(wrapper).toContain(`export ALICORN_USER_DATA_PATH=${JSON.stringify(userDataPath)}`)
     expect(wrapper).toContain('export ALICORN_DEV_CLI_INVOCATION=1')
     expect(wrapper).toContain(
       `exec node ${JSON.stringify(path.join(root, 'out', 'cli', 'index.js'))}`
     )
     expect(readFileSync(path.join(userDataPath, 'cli', 'bin', 'orca'), 'utf8')).toBe(wrapper)
-    expect(readFileSync(path.join(root, 'out', 'bin', 'orca-dev'), 'utf8')).toBe(wrapper)
+    expect(readFileSync(path.join(root, 'out', 'bin', 'alicorn-dev'), 'utf8')).toBe(wrapper)
     expect(readFileSync(path.join(root, 'out', 'bin', 'orca'), 'utf8')).toBe(wrapper)
+  })
+
+  // R5a: the pre-rename handle stays installed for one release, so a pane a developer opened
+  // before the rename — and any script of theirs — keeps working.
+  it('writes the pre-rename dev handle alongside the new one', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'dev-cli-alias-'))
+    const userDataPath = path.join(root, 'profile')
+    prepareDevCliTerminalWrappers({
+      repoRoot: root,
+      userDataPath,
+      electronExecutable: path.join(root, 'electron'),
+      platform: 'darwin'
+    })
+
+    const wrapper = readFileSync(path.join(userDataPath, 'cli', 'bin', 'alicorn-dev'), 'utf8')
+    expect(readFileSync(path.join(userDataPath, 'cli', 'bin', 'orca-dev'), 'utf8')).toBe(wrapper)
+    expect(readFileSync(path.join(root, 'out', 'bin', 'orca-dev'), 'utf8')).toBe(wrapper)
   })
 })

@@ -149,7 +149,7 @@ describe('orca CLI install stub', () => {
     expect(stub).toContain('ORCA skills get alicorn-cli')
     // The safe CLI-resolution contract must survive in the stub, never a bare `orca`.
     expect(stub).toContain('ALICORN_CLI_COMMAND')
-    expect(stub).toContain('orca-dev')
+    expect(stub).toContain('alicorn-dev')
     expect(stub).toContain('alicorn-ide')
     expect(stub).toContain('GNOME Orca screen reader')
     expect(stub).not.toMatch(/^orca /mu)

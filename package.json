@@ -6,8 +6,9 @@
   "author": "8seneca",
   "bin": {
     "alicorn": "./out/cli/index.js",
+    "alicorn-dev": "./config/scripts/alicorn-dev.mjs",
     "orca": "./out/cli/orca-compat-shim.js",
-    "orca-dev": "./config/scripts/orca-dev.mjs"
+    "orca-dev": "./config/scripts/alicorn-dev.mjs"
   },
   "main": "./out/main/index.js",
   "scripts": {

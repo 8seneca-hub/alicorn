@@ -10,8 +10,3 @@
 # entry fails the build — a guide that still says `orca` breaks once the
 # compat shim is removed.
 
-1	skill-guides/alicorn-cli.md	orca-dev emulator
-1	skill-guides/alicorn-emulator.md	orca-dev emulator
-2	skill-guides/alicorn-per-workspace-env.md	orca-dev serve
-2	src/cli/bundled-skill-guides.ts	orca-dev emulator
-2	src/cli/bundled-skill-guides.ts	orca-dev serve

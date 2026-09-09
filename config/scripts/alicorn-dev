@@ -2,7 +2,7 @@
 # Dev CLI wrapper — uses a separate userData path to avoid clobbering production Orca data.
 set -euo pipefail
 
-# Resolve through symlinks so this works when called via /usr/local/bin/orca-dev
+# Resolve through symlinks so this works when called via /usr/local/bin/alicorn-dev (or the orca-dev alias)
 SOURCE="$0"
 while [ -L "$SOURCE" ]; do
   DIR="$(cd "$(dirname "$SOURCE")" && pwd)"
@@ -14,10 +14,12 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CLI_ENTRY="$REPO_ROOT/out/cli/index.js"
 
 if [ ! -f "$CLI_ENTRY" ]; then
-  echo "orca-dev: CLI not built yet. Run 'pnpm run build:cli' first." >&2
+  echo "alicorn-dev: CLI not built yet. Run 'pnpm run build:cli' first." >&2
   exit 1
 fi
 
+# The dev *profile directory* keeps its pre-rebrand name on purpose: it is data, not a command,
+# and renaming it orphans every existing dev profile on the machine.
 case "$(uname -s)" in
   Darwin)       default_data="$HOME/Library/Application Support/orca-dev" ;;
   MINGW*|MSYS*) default_data="${APPDATA:-$HOME/AppData/Roaming}/orca-dev" ;;

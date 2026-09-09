@@ -211,12 +211,12 @@ describe('buildDispatchPreamble', () => {
     expect(result).toContain('orca orchestration ask')
   })
 
-  it('uses orca-dev CLI when devMode is true', () => {
+  it('uses the dev CLI when devMode is true', () => {
     const result = buildDispatchPreamble(baseParams({ devMode: true, cliCommand: 'orca-ide' }))
-    expect(result).toContain('orca-dev orchestration send')
-    expect(result).toContain('orca-dev orchestration check')
-    expect(result).toContain('orca-dev orchestration ask')
-    const fragments = result.split('orca-dev')
+    expect(result).toContain('alicorn-dev orchestration send')
+    expect(result).toContain('alicorn-dev orchestration check')
+    expect(result).toContain('alicorn-dev orchestration ask')
+    const fragments = result.split('alicorn-dev')
     for (const fragment of fragments) {
       expect(fragment).not.toMatch(/orca orchestration/)
     }

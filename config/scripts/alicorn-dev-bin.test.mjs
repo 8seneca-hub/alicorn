@@ -6,16 +6,22 @@ import { describe, expect, it } from 'vitest'
 
 const projectDir = path.resolve(import.meta.dirname, '../..')
 const packageJson = JSON.parse(readFileSync(path.join(projectDir, 'package.json'), 'utf8'))
-const wrapperPath = path.join(projectDir, 'config', 'scripts', 'orca-dev.mjs')
+const wrapperPath = path.join(projectDir, 'config', 'scripts', 'alicorn-dev.mjs')
 
-describe('orca-dev package bin', () => {
+describe('alicorn-dev package bin', () => {
   it('uses a Node entrypoint for cross-platform package installs', () => {
-    expect(packageJson.bin['orca-dev']).toBe('./config/scripts/orca-dev.mjs')
+    expect(packageJson.bin['alicorn-dev']).toBe('./config/scripts/alicorn-dev.mjs')
     expect(readFileSync(wrapperPath, 'utf8')).toMatch(/^#!\/usr\/bin\/env node\n/)
   })
 
+  // One release only, and both names must reach the same wrapper — an alias pointing at a file
+  // the rename moved is a "command not found" with extra steps.
+  it('keeps the pre-rename handle pointing at the same entrypoint', () => {
+    expect(packageJson.bin['orca-dev']).toBe(packageJson.bin['alicorn-dev'])
+  })
+
   it('runs the dev CLI through Node without requiring Bash', () => {
-    const root = mkdtempSync(path.join(tmpdir(), 'orca-dev-bin-'))
+    const root = mkdtempSync(path.join(tmpdir(), 'alicorn-dev-bin-'))
     const cliEntry = path.join(root, 'cli-entry.cjs')
     const outputPath = path.join(root, 'output.json')
     writeFileSync(

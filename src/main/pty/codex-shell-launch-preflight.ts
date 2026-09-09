@@ -1,9 +1,24 @@
+import { DEV_CLI_COMMAND_NAMES } from '../../shared/alicorn-cli-command-name'
 import { accessSync, constants, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { getBundledLauncherPath } from '../cli/bundled-cli-launcher-path'
 
 const DEV_LAUNCHER_DIR = ['cli', 'bin']
-const DEV_COMMAND_NAME = 'orca-dev'
+
+/** Both dev wrapper names, newest first: a profile built before the rename has only the old one. */
+function resolveDevLauncherPath(userDataPath: string, platform: NodeJS.Platform): string | null {
+  for (const commandName of DEV_CLI_COMMAND_NAMES) {
+    const candidate = join(
+      userDataPath,
+      ...DEV_LAUNCHER_DIR,
+      platform === 'win32' ? `${commandName}.cmd` : commandName
+    )
+    if (isExecutableFileOnDisk(candidate, platform)) {
+      return candidate
+    }
+  }
+  return null
+}
 
 export type CodexShellLaunchPreflightCommandOptions = {
   hooksEnabled: boolean
@@ -37,11 +52,7 @@ export function resolveCodexShellLaunchPreflightCommand(
     ? options.resourcesPath
       ? getBundledLauncherPath(platform, options.resourcesPath)
       : null
-    : join(
-        options.userDataPath,
-        ...DEV_LAUNCHER_DIR,
-        platform === 'win32' ? `${DEV_COMMAND_NAME}.cmd` : DEV_COMMAND_NAME
-      )
+    : resolveDevLauncherPath(options.userDataPath, platform)
   if (!candidate || !isExecutableFileOnDisk(candidate, platform)) {
     return null
   }

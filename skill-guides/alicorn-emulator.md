@@ -17,7 +17,7 @@ The underlying serve-sim helper captures the real simulator framebuffer (via pri
 ## CLI executable
 
 Choose the Orca executable once: use the `ALICORN_CLI_COMMAND` environment value when set;
-otherwise use `orca-dev` in a dev session exposing `ALICORN_DEV_REPO_ROOT`, `alicorn-ide` on
+otherwise use `alicorn-dev` in a dev session exposing `ALICORN_DEV_REPO_ROOT`, `alicorn-ide` on
 Linux outside an Orca-managed terminal, and `alicorn` everywhere else. Never try bare
 `orca` first on unmanaged Linux because it normally resolves to the GNOME screen reader.
 
@@ -84,7 +84,7 @@ Orca owns:
 
 Agents use the Orca executable chosen above (on PATH in Orca terminals) and never have to manage PIDs, state files in /tmp, or raw WS URLs themselves.
 
-**For `pnpm dev` testing:** run `pnpm build:cli` first (rebuilds the CLI + ensures the `orca-dev` shim points at _this_ worktree). Then inside the dev app use `orca-dev emulator ...` (or the direct `./config/scripts/orca-dev.mjs emulator ...` from the repo root). The orchestration preambles and dev launchers automatically select the dev command name so the CLI reaches your in-memory EmulatorBridge / runtime. Plain `alicorn` reaches a packaged install instead.
+**For `pnpm dev` testing:** run `pnpm build:cli` first (rebuilds the CLI + ensures the `alicorn-dev` shim points at _this_ worktree). Then inside the dev app use `alicorn-dev emulator ...` (or the direct `./config/scripts/alicorn-dev.mjs emulator ...` from the repo root). The orchestration preambles and dev launchers automatically select the dev command name so the CLI reaches your in-memory EmulatorBridge / runtime. Plain `alicorn` reaches a packaged install instead.
 
 ## Common operations
 
