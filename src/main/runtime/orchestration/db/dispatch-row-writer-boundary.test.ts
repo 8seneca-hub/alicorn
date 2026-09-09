@@ -1,3 +1,4 @@
+import { SOURCE_TREE_RATCHET_TIMEOUT_MS } from '../../../../shared/source-tree-ratchet-timeout'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -67,25 +68,29 @@ describe('live-worker row insert boundary', () => {
   const repoRoot = resolve(__dirname, '../../../../..')
   const srcRoot = join(repoRoot, 'src')
 
-  it('inserts guarded tables only from dispatch-row-writer.ts', () => {
-    const offenders: string[] = []
-    for (const file of collectSourceFiles(srcRoot)) {
-      const rel = relative(repoRoot, file).split('\\').join('/')
-      if (rel === WRITER_MODULE || isTestFile(rel)) {
-        continue
-      }
-      if (EXEMPT_PATH_FRAGMENTS.some((fragment) => rel.includes(fragment))) {
-        continue
-      }
-      const contents = readFileSync(file, 'utf8')
-      for (const table of GUARDED_TABLES) {
-        if (insertPattern(table).test(contents)) {
-          offenders.push(`${rel} inserts ${table}`)
+  it(
+    'inserts guarded tables only from dispatch-row-writer.ts',
+    () => {
+      const offenders: string[] = []
+      for (const file of collectSourceFiles(srcRoot)) {
+        const rel = relative(repoRoot, file).split('\\').join('/')
+        if (rel === WRITER_MODULE || isTestFile(rel)) {
+          continue
+        }
+        if (EXEMPT_PATH_FRAGMENTS.some((fragment) => rel.includes(fragment))) {
+          continue
+        }
+        const contents = readFileSync(file, 'utf8')
+        for (const table of GUARDED_TABLES) {
+          if (insertPattern(table).test(contents)) {
+            offenders.push(`${rel} inserts ${table}`)
+          }
         }
       }
-    }
-    expect(offenders).toEqual([])
-  })
+      expect(offenders).toEqual([])
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 
   it('the writer module actually owns an insert for every guarded table', () => {
     const contents = readFileSync(join(repoRoot, WRITER_MODULE), 'utf8')
