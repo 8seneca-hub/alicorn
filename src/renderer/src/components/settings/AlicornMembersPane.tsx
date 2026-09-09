@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import type { Member, MemberInput } from '../../../../shared/alicorn/members'
 import { Button } from '../ui/button'
 import { SettingsRow, SettingsSubsectionHeader } from './SettingsFormControls'
-import { AlicornMemberForm, EMPTY_MEMBER, parseSkills } from './alicorn-member-form'
+import { AlicornMemberForm, EMPTY_MEMBER, formatSkills, parseSkills } from './alicorn-member-form'
 import { MemberRuleProposals } from './MemberRuleProposals'
 import { translate } from '@/i18n/i18n'
 
@@ -173,7 +173,7 @@ export function AlicornMembersPane(): React.JSX.Element {
                         systemRules: member.systemRules,
                         skills: member.skills
                       },
-                      skillsText: member.skills.join(', ')
+                      skillsText: formatSkills(member.skills)
                     })
                   }
                 >

@@ -41,6 +41,11 @@ const NO_INTEGRATION_CHECK = async (): Promise<{
   detail: Record<string, unknown>
 }> => ({ status: 'passed', detail: {} })
 
+const NO_SKILLS = async (): Promise<{
+  resolved: never[]
+  catalogNameById: Map<string, string>
+}> => ({ resolved: [], catalogNameById: new Map() })
+
 describe('createVerificationRunner', () => {
   it('resolves without posting when no diff_coverage check is configured', async () => {
     const writer = makeWriter()
@@ -49,6 +54,7 @@ describe('createVerificationRunner', () => {
       runDiffCoverageCheck: vi.fn(),
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local'
     })
@@ -65,6 +71,7 @@ describe('createVerificationRunner', () => {
       runDiffCoverageCheck: vi.fn(),
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => false
@@ -94,6 +101,7 @@ describe('createVerificationRunner', () => {
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'remote',
       pathExists
@@ -116,6 +124,7 @@ describe('createVerificationRunner', () => {
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'unknown',
       pathExists: async () => true
@@ -144,6 +153,7 @@ describe('createVerificationRunner', () => {
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: async () => ({ baseRef: 'develop', gitOptions: { wslDistro: 'Ubuntu' } }),
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -190,6 +200,7 @@ describe('createVerificationRunner', () => {
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -210,6 +221,7 @@ describe('createVerificationRunner', () => {
       runDiffCoverageCheck: runCheck,
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'local',
       pathExists: async () => true
@@ -230,6 +242,7 @@ describe('contract_acknowledged', () => {
       fetchRequiredChecks: async () => [CONTRACT_CHECK],
       runDiffCoverageCheck: vi.fn(),
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       runContractAcknowledgedCheck: async () => ({
         status: 'failed' as const,
         detail: { unacknowledged: 1 }
@@ -260,6 +273,7 @@ describe('contract_acknowledged', () => {
       runDiffCoverageCheck: vi.fn(),
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
       runContractAcknowledgedCheck: runContract,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost: async () => 'remote'
     })
@@ -280,6 +294,7 @@ describe('contract_acknowledged', () => {
       runDiffCoverageCheck: vi.fn().mockResolvedValue({ status: 'passed', detail: {} }),
       runContractAcknowledgedCheck: async () => ({ status: 'passed' as const, detail: {} }),
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      resolveSkillsForDispatch: NO_SKILLS,
       resolveBaseRef: RESOLVE_ORIGIN_MAIN,
       resolveWorktreeHost,
       pathExists: async () => true
@@ -292,6 +307,77 @@ describe('contract_acknowledged', () => {
       .mocked(writer.postStepVerification)
       .mock.calls.map(([input]) => (input as { kind: string }).kind)
     expect(kinds).toEqual(['diff_coverage', 'contract_acknowledged'])
+  })
+
+  it("runs a skill check against the member's resolved skills", async () => {
+    const writer = makeWriter()
+    const resolveSkillsForDispatch = vi.fn().mockResolvedValue({
+      resolved: [{ name: 'security-review', scope: 'org', versionId: 'v5', skillId: 'sk-1' }],
+      catalogNameById: new Map([['sk-1', 'security-review']])
+    })
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [{ kind: 'skill', skillId: 'sk-1' }],
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      resolveSkillsForDispatch,
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'local'
+    })
+
+    await runner(PAYLOAD, writer)
+
+    expect(resolveSkillsForDispatch).toHaveBeenCalledWith({
+      projectId: 'proj_1',
+      dispatchId: 'ctx_1',
+      worktreePath: '/repo'
+    })
+    expect(writer.postStepVerification).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'skill', name: 'sk-1', status: 'passed', required: true })
+    )
+  })
+
+  it('fails a skill check the member never resolved — it no longer gates forever', async () => {
+    const writer = makeWriter()
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [{ kind: 'skill', skillId: 'sk-1', versionId: 'v2' }],
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      resolveSkillsForDispatch: async () => ({
+        resolved: [],
+        catalogNameById: new Map([['sk-1', 'security-review']])
+      }),
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'local'
+    })
+
+    await runner(PAYLOAD, writer)
+
+    expect(writer.postStepVerification).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'skill', name: 'sk-1@v2', status: 'failed' })
+    )
+  })
+
+  it('skips a skill check on a remote worktree — the repo scope is scanned on the execution host', async () => {
+    const writer = makeWriter()
+    const resolveSkillsForDispatch = vi.fn()
+    const runner = createVerificationRunner({
+      fetchRequiredChecks: async () => [{ kind: 'skill', skillId: 'sk-1' }],
+      runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,
+      runDiffCoverageCheck: vi.fn(),
+      runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
+      resolveSkillsForDispatch,
+      resolveBaseRef: RESOLVE_ORIGIN_MAIN,
+      resolveWorktreeHost: async () => 'remote'
+    })
+
+    await runner(PAYLOAD, writer)
+
+    expect(resolveSkillsForDispatch).not.toHaveBeenCalled()
+    expect(writer.postStepVerification).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'skill', status: 'skipped' })
+    )
   })
 })
 
@@ -312,6 +398,7 @@ describe('integration_verify', () => {
       .mockResolvedValue({ status: 'failed', detail: { exitCode: 1 } })
     const runner = createVerificationRunner({
       fetchRequiredChecks: async () => [INTEGRATION_CHECK],
+      resolveSkillsForDispatch: NO_SKILLS,
       runDiffCoverageCheck: vi.fn(),
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck,
@@ -342,6 +429,7 @@ describe('integration_verify', () => {
         INTEGRATION_CHECK,
         { ...INTEGRATION_CHECK, repoId: 'repo-web' }
       ],
+      resolveSkillsForDispatch: NO_SKILLS,
       runDiffCoverageCheck: vi.fn(),
       runContractAcknowledgedCheck: NO_CONTRACT_CHECK,
       runIntegrationVerifyCheck: NO_INTEGRATION_CHECK,

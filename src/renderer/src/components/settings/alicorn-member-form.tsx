@@ -3,7 +3,8 @@ import {
   MEMBER_ROLES,
   PERMISSION_MODES,
   WORKSPACE_KINDS,
-  type MemberInput
+  type MemberInput,
+  type MemberSkillRef
 } from '../../../../shared/alicorn/members'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -24,11 +25,27 @@ export const EMPTY_MEMBER: MemberInput = {
 
 // Skills round-trip through a comma-separated field; blanks are dropped so a
 // trailing comma does not become an empty skill the server then rejects.
-export function parseSkills(value: string): string[] {
+//
+// PS1: `name@versionId` pins a catalog version and survives `latest` moving; a bare name follows
+// latest. The last `@` splits, so a name may contain one.
+export function parseSkills(value: string): MemberSkillRef[] {
   return value
     .split(',')
-    .map((skill) => skill.trim())
-    .filter((skill) => skill.length > 0)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0)
+    .map((entry) => {
+      const at = entry.lastIndexOf('@')
+      if (at <= 0 || at === entry.length - 1) {
+        return { name: entry, versionId: null }
+      }
+      return { name: entry.slice(0, at).trim(), versionId: entry.slice(at + 1).trim() }
+    })
+}
+
+export function formatSkills(skills: readonly MemberSkillRef[]): string {
+  return skills
+    .map((skill) => (skill.versionId ? `${skill.name}@${skill.versionId}` : skill.name))
+    .join(', ')
 }
 
 function EnumRow<T extends string>({
@@ -139,7 +156,7 @@ export function AlicornMemberForm({
         label={translate('auto.components.settings.alicornMembers.skills', 'Skills')}
         description={translate(
           'auto.components.settings.alicornMembers.skillsHint',
-          'Comma-separated.'
+          'Comma-separated. Add @version to pin a catalog version.'
         )}
         control={
           <Input

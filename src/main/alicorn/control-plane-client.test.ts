@@ -13,7 +13,7 @@ const INPUT: MemberInput = {
   workspaceKind: 'worktree',
   permissionMode: 'ask',
   systemRules: '',
-  skills: ['code-review']
+  skills: [{ name: 'code-review', versionId: null }]
 }
 
 const MEMBER: Member = {
@@ -186,7 +186,7 @@ describe('ledger reads', () => {
     expect(lastCall()[1]).toBe('/v1/ledger/runs/run_1/cost')
   })
 
-  it('lists a run\'s context captures, keeping the ledger\'s truncation flag', async () => {
+  it("lists a run's context captures, keeping the ledger's truncation flag", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ captures: [], truncated: true }))
 
     await expect(client.listRunContextCaptures('run/1')).resolves.toEqual({

@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { GateDecisionReasonSchema } from './autonomy-policy.js'
-import { ExecutionStrategySchema, type ProvenanceReport } from './ledger.js'
+import {
+  ExecutionStrategySchema,
+  STEP_VERIFICATION_KINDS,
+  type ProvenanceReport
+} from './ledger.js'
 import { MemberBackendSchema } from './member.js'
 import { buildProvenanceView, type ProvenanceView } from './provenance-view.js'
 import { renderProvenanceMarkdown } from './provenance-markdown.js'
@@ -65,7 +69,7 @@ export const ProvenanceViewSchema = z.object({
   checks: z.array(
     z.object({
       dispatchId: z.string(),
-      kind: z.enum(['diff_coverage', 'contract_acknowledged', 'integration_verify']),
+      kind: z.enum(STEP_VERIFICATION_KINDS),
       name: z.string(),
       required: z.boolean(),
       status: z.enum(['passed', 'failed', 'skipped', 'error']),

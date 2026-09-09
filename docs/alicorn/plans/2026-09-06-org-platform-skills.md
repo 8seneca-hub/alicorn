@@ -38,7 +38,7 @@
 
 ### Task 3 (SP1b/PS1): resolution in main + Members pane pin
 `src/main/alicorn/skills/resolve-member-skills.ts` (pure, Decision 3, + test with three-scope fixtures and a pin that survives a `latest` change), `src/main/alicorn/skills/project-skills.ts` (maps `DiscoveredSkill` with `sourceKind === 'repo'` for the project's repos → `{ name, scope: 'project' }`), IPC `alicorn:skills:resolve { memberId, projectId }`; Members pane (Nghia's) gets a sibling `MemberSkillsResolved.tsx` (Huy) showing scope badges and a version pin selector writing `versionId` through the members `PUT` (additive). Localise.
-- [ ] Commit `feat(alicorn): resolved member skills — org, project, pinned versions`.
+- [x] Commit `feat(alicorn): resolved member skills — org, project, pinned versions`. Shipped as PS1: resolution and the `skill` required-check runner in main; the Members pane gained a `name@version` pin rather than a sibling `MemberSkillsResolved.tsx` — no `alicorn:skills:resolve` IPC and no scope badges yet.
 
 ### Task 4 (OP2b): stage checks referencing a catalog skill
 `RequiredCheckSchema` gains variant `{ kind: 'skill', skillId, versionId?: string }` (additive). Control API validates `skillId` exists in the org catalog (400 `unknown_skill`; project-scoped skills allowed only for the same project; member private skills impossible by construction). Evaluation (which member runs it) is the QA plan's job; this task stores and validates. Tests.

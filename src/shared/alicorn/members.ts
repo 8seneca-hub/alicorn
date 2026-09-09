@@ -12,6 +12,16 @@ export type MemberRole = (typeof MEMBER_ROLES)[number]
 export type WorkspaceKind = (typeof WORKSPACE_KINDS)[number]
 export type PermissionMode = (typeof PERMISSION_MODES)[number]
 
+/**
+ * Hand-mirrored from the contract's `MemberSkillRefSchema` (OP2/SP1). `versionId: null` follows
+ * the catalog's `latest`; a value pins and survives `latest` moving. The API still accepts a bare
+ * string for the pre-catalog shape, so this is additive on the wire.
+ */
+export type MemberSkillRef = {
+  name: string
+  versionId: string | null
+}
+
 export type MemberInput = {
   name: string
   role: MemberRole
@@ -19,7 +29,7 @@ export type MemberInput = {
   workspaceKind: WorkspaceKind
   permissionMode: PermissionMode
   systemRules: string
-  skills: string[]
+  skills: MemberSkillRef[]
 }
 
 export type Member = MemberInput & {
@@ -60,4 +70,19 @@ export type IntegrationVerifyCheck = {
   repoId: string
 }
 
-export type RequiredCheck = DiffCoverageCheck | ContractAcknowledgedCheck | IntegrationVerifyCheck
+/**
+ * OP2b: the check names a catalog skill. `skillId` is a catalog row and a member's private skill
+ * has no id, so a member cannot name — or loosen — what judges it. Omitting `versionId` follows
+ * the catalog's `latest`.
+ */
+export type SkillCheck = {
+  kind: 'skill'
+  skillId: string
+  versionId?: string
+}
+
+export type RequiredCheck =
+  | DiffCoverageCheck
+  | ContractAcknowledgedCheck
+  | IntegrationVerifyCheck
+  | SkillCheck

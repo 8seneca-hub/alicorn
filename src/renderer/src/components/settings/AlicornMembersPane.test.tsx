@@ -124,7 +124,27 @@ describe('creating', () => {
 
     await waitFor(() => expect(createMember).toHaveBeenCalled())
     // A trailing comma must not become an empty skill the server then rejects.
-    expect(createMember.mock.calls[0]?.[0].skills).toEqual(['code-review', 'security'])
+    expect(createMember.mock.calls[0]?.[0].skills).toEqual([
+      { name: 'code-review', versionId: null },
+      { name: 'security', versionId: null }
+    ])
+  })
+
+  it('pins a catalog version from name@version', async () => {
+    const user = userEvent.setup()
+    render(<AlicornMembersPane />)
+    await screen.findByText(/No members yet/)
+
+    await user.click(screen.getByRole('button', { name: 'New member' }))
+    await user.type(screen.getByLabelText('Name'), 'Reviewer')
+    await user.type(screen.getByLabelText('Skills'), 'code-review@v3, security')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(createMember).toHaveBeenCalled())
+    expect(createMember.mock.calls[0]?.[0].skills).toEqual([
+      { name: 'code-review', versionId: 'v3' },
+      { name: 'security', versionId: null }
+    ])
   })
 
   it('refuses to save a member with no name', async () => {
@@ -157,7 +177,15 @@ describe('editing and deleting', () => {
   it('loads the existing member into the form', async () => {
     listMembers.mockResolvedValue({
       ok: true,
-      members: [member({ name: 'Builder', skills: ['a', 'b'] })]
+      members: [
+        member({
+          name: 'Builder',
+          skills: [
+            { name: 'a', versionId: null },
+            { name: 'b', versionId: 'v2' }
+          ]
+        })
+      ]
     })
     const user = userEvent.setup()
     render(<AlicornMembersPane />)
@@ -165,7 +193,7 @@ describe('editing and deleting', () => {
     await user.click(await screen.findByRole('button', { name: 'Edit' }))
 
     expect(screen.getByLabelText('Name')).toHaveValue('Builder')
-    expect(screen.getByLabelText('Skills')).toHaveValue('a, b')
+    expect(screen.getByLabelText('Skills')).toHaveValue('a, b@v2')
   })
 
   it('updates rather than creates when editing', async () => {

@@ -32,6 +32,7 @@ import { startRunCostPublisher } from '../alicorn/run-cost-publisher'
 import { ALICORN_EVENTS } from '../../shared/alicorn/ipc-channels'
 import { ALICORN_RUN_COST_EVENT } from '../../shared/alicorn/run-cost'
 import { createVerificationRunner } from '../alicorn/diff-coverage/verification-runner'
+import { createDispatchSkillResolver } from '../alicorn/skills/dispatch-skill-resolution'
 import { runContractAcknowledgedCheck } from '../alicorn/contracts/contract-acknowledged-check'
 import { fetchAcknowledgedContractNames } from '../alicorn/contracts/contract-acknowledgements-fetch'
 import { fetchRequiredChecks } from '../alicorn/diff-coverage/required-checks-fetch'
@@ -152,6 +153,10 @@ export function initializeMainProcessRuntime(): OrcaRuntimeService {
   const verificationRunner = createVerificationRunner({
     fetchRequiredChecks,
     runDiffCoverageCheck,
+    resolveSkillsForDispatch: createDispatchSkillResolver({
+      getMemberId: (dispatchId) =>
+        runtime.getOrchestrationDb().getDispatchMember(dispatchId)?.memberId ?? null
+    }),
     runContractAcknowledgedCheck: (input) =>
       runContractAcknowledgedCheck({
         ...input,

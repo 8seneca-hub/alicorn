@@ -66,11 +66,21 @@ export const HumanVerdictPatchSchema = z.object({
   source: z.enum(['follow_up_commit', 'revert', 'reopened_task', 'manual']).default('manual')
 })
 
+/** One list, because the provenance export mirrors it and a second copy silently drifts. */
+export const STEP_VERIFICATION_KINDS = [
+  'diff_coverage',
+  'contract_acknowledged',
+  'integration_verify',
+  'skill'
+] as const
+
 export const StepVerificationInputSchema = z.object({
   runId: z.string().min(1),
   taskId: z.string().min(1),
   dispatchId: z.string().min(1),
-  kind: z.enum(['diff_coverage', 'contract_acknowledged', 'integration_verify']),
+  // Additive (IV1, PS1): an older Ledger API rejects an unknown kind with a 400 rather than
+  // mis-storing it.
+  kind: z.enum(STEP_VERIFICATION_KINDS),
   name: z.string().min(1).max(200),
   required: z.boolean(),
   status: z.enum(['passed', 'failed', 'skipped', 'error']),

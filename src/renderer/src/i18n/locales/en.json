@@ -11806,7 +11806,7 @@
           "permissionMode": "Permission mode",
           "systemRules": "System rules",
           "skills": "Skills",
-          "skillsHint": "Comma-separated.",
+          "skillsHint": "Comma-separated. Add @version to pin a catalog version.",
           "cancel": "Cancel",
           "save": "Save",
           "search": {

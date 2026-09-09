@@ -3,8 +3,14 @@ import { join } from 'node:path'
 import type { VerificationRunner } from '../verification-worker'
 import type { LedgerWriter } from '../ledger/ledger-writer'
 import type { StepVerificationInput } from '../../../shared/alicorn/ledger-inputs'
-import type { IntegrationVerifyCheck, RequiredCheck } from '../../../shared/alicorn/members'
+import type {
+  IntegrationVerifyCheck,
+  RequiredCheck,
+  SkillCheck
+} from '../../../shared/alicorn/members'
+import type { ResolvedSkill } from '../../../shared/alicorn/skill-catalog'
 import { requiredCheckName } from '../../../shared/alicorn/required-check-name'
+import { resolveSkillCheck } from '../skills/skill-check'
 import type { runDiffCoverageCheck } from './diff-coverage-check'
 import type { ContractCheckResult } from '../contracts/contract-acknowledged-check'
 import type { IntegrationVerifyResult } from '../integration-verify/integration-verify-check'
@@ -32,6 +38,16 @@ export type VerificationRunnerDeps = {
     worktreeId: string
     signal?: AbortSignal
   }) => Promise<IntegrationVerifyResult>
+  /**
+   * PS1. The member's resolved skills for this work — org catalog, the repo's committed dirs and
+   * the member's own pins, merged by `resolveMemberSkills`. Returns the catalog too, because the
+   * check names a `skillId` and only the catalog maps it to a name.
+   */
+  resolveSkillsForDispatch: (input: {
+    projectId: string
+    dispatchId: string
+    worktreePath: string
+  }) => Promise<{ resolved: ResolvedSkill[]; catalogNameById: Map<string, string> }>
   // Resolves the worktree's real configured base (and its git routing, e.g. WSL) the
   // same way the runtime drift probe does — see base-ref-resolver.ts.
   resolveBaseRef: (
@@ -145,9 +161,39 @@ export function createVerificationRunner(deps: VerificationRunnerDeps): Verifica
           return
         }
         await postVerification(writer, payload, 'integration_verify', name, status, detail)
+        continue
+      }
+
+      if (check.kind === 'skill') {
+        const post = (status: StepVerificationInput['status'], detail: Record<string, unknown>) =>
+          postVerification(writer, payload, 'skill', name, status, detail)
+        // The project scope is the repo's committed skill dirs, discovered on the execution host —
+        // so a local scan may not stand in for an SSH worktree's, same rule as the other two.
+        if (await isRemote()) {
+          await post('skipped', { reason: 'remote_worktree' })
+          continue
+        }
+        const { status, detail } = await runSkillCheck(deps, payload, check)
+        if (options?.signal?.aborted) {
+          return
+        }
+        await post(status, detail)
       }
     }
   }
+}
+
+async function runSkillCheck(
+  deps: VerificationRunnerDeps,
+  payload: VerificationPayload,
+  check: SkillCheck
+): Promise<{ status: StepVerificationInput['status']; detail: Record<string, unknown> }> {
+  const { resolved, catalogNameById } = await deps.resolveSkillsForDispatch({
+    projectId: payload.projectId,
+    dispatchId: payload.dispatchId,
+    worktreePath: payload.worktreePath
+  })
+  return resolveSkillCheck(check, catalogNameById.get(check.skillId) ?? null, resolved)
 }
 
 async function postVerification(

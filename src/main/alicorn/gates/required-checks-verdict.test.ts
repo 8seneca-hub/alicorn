@@ -94,6 +94,30 @@ describe('contract_acknowledged', () => {
     })
     expect(resolveRequiredChecksPassed([COVERAGE, CONTRACTS], [result(), passed])).toBe(true)
   })
+
+  it('one skill check does not answer for another', () => {
+    const checks: RequiredCheck[] = [
+      { kind: 'skill', skillId: 'sk-1' },
+      { kind: 'skill', skillId: 'sk-2' }
+    ]
+    const onlyFirst = result({ kind: 'skill', name: 'sk-1', status: 'passed' })
+    expect(resolveRequiredChecksPassed(checks, [onlyFirst])).toBeNull()
+    expect(
+      resolveRequiredChecksPassed(checks, [
+        onlyFirst,
+        result({ kind: 'skill', name: 'sk-2', status: 'passed' })
+      ])
+    ).toBe(true)
+  })
+
+  it('a failed skill check fails the set', () => {
+    expect(
+      resolveRequiredChecksPassed(
+        [{ kind: 'skill', skillId: 'sk-1', versionId: 'v2' }],
+        [result({ kind: 'skill', name: 'sk-1@v2', status: 'failed' })]
+      )
+    ).toBe(false)
+  })
 })
 
 // IV1 is the first kind a project can author more than once (one per repo), so kind alone stopped

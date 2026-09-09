@@ -105,6 +105,25 @@ describePostgres('ledger routes (postgres)', () => {
     expect(rows[0].status).toBe('passed')
   })
 
+  // PS1: a `skill` required check records under its own kind, and two of them under distinct
+  // names — the unique key is (dispatch, kind, name), so a shared kind alone would collapse them.
+  it('stores a skill verification per authored check', async () => {
+    const body = {
+      // Its own dispatch: this row has no step_outcome, so it stays out of the provenance report
+      // the next test assembles.
+      runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_skill',
+      kind: 'skill', required: true, status: 'passed', detail: { skill: 'security-review' }
+    }
+    const first = await post('/v1/ledger/step-verifications', { ...body, name: 'sk-1' })
+    const second = await post('/v1/ledger/step-verifications', { ...body, name: 'sk-2@v2' })
+    expect([first.status, second.status]).toEqual([201, 201])
+
+    const { rows } = await withTenant(pool, 'local', (c) =>
+      c.query(`SELECT name FROM step_verifications WHERE kind = 'skill' ORDER BY name`)
+    )
+    expect(rows.map((row) => row.name)).toEqual(['sk-1', 'sk-2@v2'])
+  })
+
   it('captures context exactly once, rejects oversized prompts, and rejects both fields', async () => {
     const body = { runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1', prompt: 'hello', contextSlice: { taskSpec: 'x' } }
     const first = await post('/v1/ledger/context-captures', body)

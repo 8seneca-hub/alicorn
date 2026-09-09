@@ -19,5 +19,10 @@ export function requiredCheckName(check: RequiredCheck): string {
       return 'Breaking contracts acknowledged'
     case 'integration_verify':
       return `Integration verify (${check.repoId})`
+    // The id, not the human-readable skill name: two `skill` checks on one project must not
+    // overwrite each other's verdict, and a catalog rename must not orphan the row a gate reads.
+    // The readable name goes in `detail`.
+    case 'skill':
+      return check.versionId ? `${check.skillId}@${check.versionId}` : check.skillId
   }
 }
