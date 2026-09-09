@@ -1,7 +1,9 @@
-import { readAlicornEnv } from '../../shared/alicorn-env-compat'
+import { readAlicornEnv, withLegacyEnvKeys } from '../../shared/alicorn-env-compat'
 import { resolve } from 'node:path'
 import { getSystemCodexHomePath } from './codex-home-paths'
 import { readShellStartupEnvVar } from '../pty/shell-startup-env'
+
+const ALICORN_CODEX_HOME_ENV = 'ALICORN_CODEX_HOME' as const
 
 export type CodexShellStartupHomeOverride = {
   home: string
@@ -22,8 +24,8 @@ export type CustomCodexHomeOverrideForLaunch =
 /** True when the user points Codex outside its standard native home. */
 export function hasCustomCodexHomeOverride(env: NodeJS.ProcessEnv = process.env): boolean {
   const codexHome = env.CODEX_HOME?.trim()
-  // Both spellings: a pane the previous release launched exports only `ORCA_CODEX_HOME`, and
-  // reading just the new name makes our own managed home look like a user's custom override.
+  // Both spellings: a pane the previous release launched exports only the pre-rebrand name,
+  // and reading just the new one makes our own managed home look like a user's custom override.
   const orcaCodexHome = readAlicornEnv(env, 'ALICORN_CODEX_HOME')?.trim()
   const normalizedCodexHome = codexHome ? normalizePathForComparison(codexHome) : undefined
   const normalizedOrcaCodexHome = orcaCodexHome
@@ -48,8 +50,14 @@ export function getCustomCodexHomeOverrideForLaunch(
   const effectiveEnv = launchEnv
     ? {
         CODEX_HOME: getLaunchEnvValue(launchEnv, 'CODEX_HOME'),
-        ALICORN_CODEX_HOME: getLaunchEnvValue(launchEnv, 'ALICORN_CODEX_HOME'),
-        ORCA_CODEX_HOME: getLaunchEnvValue(launchEnv, 'ORCA_CODEX_HOME')
+        // Both spellings, so a launch env answers for itself: naming only the new one lets a
+        // pane from the previous release fall through to this process's own value.
+        ...Object.fromEntries(
+          withLegacyEnvKeys([ALICORN_CODEX_HOME_ENV]).map((key) => [
+            key,
+            getLaunchEnvValue(launchEnv, key)
+          ])
+        )
       }
     : process.env
   if (hasCustomCodexHomeOverride(effectiveEnv)) {
@@ -119,13 +127,8 @@ export function shellStartupCodexHomeOverrideContextsEqual(
 
 function getLaunchEnvValue(
   launchEnv: NodeJS.ProcessEnv,
-  key:
-    | 'CODEX_HOME'
-    | 'ALICORN_CODEX_HOME'
-    | 'ORCA_CODEX_HOME'
-    | 'HOME'
-    | 'SHELL'
-    | 'XDG_CONFIG_HOME'
+  // Not a union: the legacy spelling of the Codex home key is derived, not written.
+  key: string
 ): string | undefined {
   return Object.hasOwn(launchEnv, key) ? launchEnv[key] : process.env[key]
 }

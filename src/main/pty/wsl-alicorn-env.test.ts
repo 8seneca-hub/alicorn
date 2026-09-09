@@ -6,19 +6,26 @@ import {
   SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV
 } from '../../shared/setup-agent-sequencing'
 import { addOrcaWslInteropEnv, stampWslOrchestrationCompatibilityHost } from './wsl-alicorn-env'
+import { withLegacyEnvKeys } from '../../shared/alicorn-env-compat'
+
+// Every entry crosses twice this release: an in-guest hook or wrapper left by the previous
+// release reads the pre-rebrand spelling, and wsl.exe imports only what WSLENV names.
+// Derived, never spelled: `verify:rebrand-env-gate` is right to fail a literal old name here.
+const bothSpellings = (...entries: string[]): string[] =>
+  entries.flatMap((entry) => {
+    const [name, flag] = entry.split('/')
+    return withLegacyEnvKeys([name]).map((key) => `${key}/${flag}`)
+  })
+
+const wslenv = (...entries: string[]): string => bothSpellings(...entries).join(':')
 
 describe('addOrcaWslInteropEnv', () => {
-  // Every entry crosses twice this release: an in-guest hook or wrapper left by the previous
-  // release reads `ORCA_*`, and wsl.exe imports only what WSLENV names.
-
   it('marks the Orca terminal handle for Windows to WSL env import', () => {
     const env: Record<string, string> = { ALICORN_TERMINAL_HANDLE: 'term_wsl' }
 
     addOrcaWslInteropEnv(env)
 
-    expect(env.WSLENV).toBe(
-      'ALICORN_TERMINAL_HANDLE/u:ORCA_TERMINAL_HANDLE/u:ALICORN_SHELL_READY_ROOT/p:ORCA_SHELL_READY_ROOT/p'
-    )
+    expect(env.WSLENV).toBe(wslenv('ALICORN_TERMINAL_HANDLE/u', 'ALICORN_SHELL_READY_ROOT/p'))
   })
 
   // Why this is published at all: the wrapper tree is content-addressed, so the
@@ -45,14 +52,13 @@ describe('addOrcaWslInteropEnv', () => {
 
     addOrcaWslInteropEnv(env)
 
-    expect(env.WSLENV?.split(':')).toEqual([
-      'ALICORN_SHELL_READY_ROOT/p',
-      'ORCA_SHELL_READY_ROOT/p',
-      `${SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV}/u`,
-      'ORCA_SEQUENCED_STARTUP_COMMAND/u',
-      `${SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV}/u`,
-      'ORCA_SEQUENCED_STARTUP_SCRIPT/u'
-    ])
+    expect(env.WSLENV?.split(':')).toEqual(
+      bothSpellings(
+        'ALICORN_SHELL_READY_ROOT/p',
+        `${SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV}/u`,
+        `${SETUP_AGENT_SEQUENCE_STARTUP_SCRIPT_ENV}/u`
+      )
+    )
   })
 
   it('preserves existing WSLENV entries and does not duplicate the handle entry', () => {
@@ -63,7 +69,7 @@ describe('addOrcaWslInteropEnv', () => {
     addOrcaWslInteropEnv(env)
 
     expect(env.WSLENV).toBe(
-      'FOO/u:ALICORN_TERMINAL_HANDLE/u:BAR/p:ALICORN_SHELL_READY_ROOT/p:ORCA_SHELL_READY_ROOT/p'
+      `FOO/u:ALICORN_TERMINAL_HANDLE/u:BAR/p:${wslenv('ALICORN_SHELL_READY_ROOT/p')}`
     )
   })
 
@@ -206,9 +212,7 @@ describe('addOrcaWslInteropEnv', () => {
 
     addOrcaWslInteropEnv(env)
 
-    expect(env.WSLENV).toBe(
-      'ALICORN_SHELL_READY_ROOT/p:ORCA_SHELL_READY_ROOT/p:ALICORN_WORKSPACE_NAME/u:ORCA_WORKSPACE_NAME/u'
-    )
+    expect(env.WSLENV).toBe(wslenv('ALICORN_SHELL_READY_ROOT/p', 'ALICORN_WORKSPACE_NAME/u'))
   })
 
   it('does not register setup vars that are absent from the env', () => {
@@ -216,9 +220,7 @@ describe('addOrcaWslInteropEnv', () => {
 
     addOrcaWslInteropEnv(env)
 
-    expect(env.WSLENV).toBe(
-      'ALICORN_TERMINAL_HANDLE/u:ORCA_TERMINAL_HANDLE/u:ALICORN_SHELL_READY_ROOT/p:ORCA_SHELL_READY_ROOT/p'
-    )
+    expect(env.WSLENV).toBe(wslenv('ALICORN_TERMINAL_HANDLE/u', 'ALICORN_SHELL_READY_ROOT/p'))
   })
 
   it('marks the WSL hook relay version for import on relay spawn envs', () => {
@@ -227,7 +229,7 @@ describe('addOrcaWslInteropEnv', () => {
     }
     addOrcaWslInteropEnv(env)
     expect(env.WSLENV).toBe(
-      'ALICORN_SHELL_READY_ROOT/p:ORCA_SHELL_READY_ROOT/p:ALICORN_WSL_HOOK_RELAY_VERSION/u:ORCA_WSL_HOOK_RELAY_VERSION/u'
+      wslenv('ALICORN_SHELL_READY_ROOT/p', 'ALICORN_WSL_HOOK_RELAY_VERSION/u')
     )
   })
 
