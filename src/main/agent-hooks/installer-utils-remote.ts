@@ -10,11 +10,10 @@
 // managed-command matching must stay identical to the local install.
 
 import { recordManagedScriptWrite } from '../hooks/managed-script-write-log'
-import type { ManagedScriptWriteEffect } from './installer-utils'
 import { randomUUID } from 'node:crypto'
 import type { SFTPWrapper, FileEntryWithStats } from 'ssh2'
 
-import type { HooksConfig } from './installer-utils'
+import type { HooksConfig, ManagedScriptWriteEffect } from './installer-utils'
 import { parseHooksJsonText } from './hooks-json-read'
 
 const DEFAULT_REMOTE_CONFIG_MODE = 0o600
