@@ -64,6 +64,7 @@ describe('runContractAcknowledgedCheck', () => {
       startedAt: '2026-01-01T00:00:00.000Z',
       budgetCents: null,
       spentCents: null,
+      team: null,
       decisions: [],
       assumptions: [],
       plan: [],
