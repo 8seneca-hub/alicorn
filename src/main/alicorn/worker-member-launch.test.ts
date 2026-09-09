@@ -57,7 +57,12 @@ describe('resolveWorkerMemberLaunch', () => {
         taskId: 't1',
         requestedAgent: 'claude'
       })
-    ).resolves.toEqual({ agent: 'claude', dispatchMember: null, restrictedLaunch: null })
+    ).resolves.toEqual({
+      agent: 'claude',
+      dispatchMember: null,
+      restrictedLaunch: null,
+      memberRules: ''
+    })
   })
 
   it('rejects an unknown member', async () => {
@@ -88,8 +93,22 @@ describe('resolveWorkerMemberLaunch', () => {
         backend: 'codex',
         reviewBackendBypass: false
       },
-      restrictedLaunch: null
+      restrictedLaunch: null,
+      memberRules: ''
     })
+  })
+
+  // RB1 Task 4: read off the Member the launch already resolved, so the brief costs no second call.
+  it("carries the member's accepted rules for the dispatch preamble", async () => {
+    const rules = 'Never widen a public type without a deprecation.'
+    const launch = await resolveWorkerMemberLaunch({
+      db,
+      directory: directory({ ...member('developer', 'codex'), systemRules: rules }),
+      taskId: 't1',
+      memberId: 'm1'
+    })
+
+    expect(launch.memberRules).toBe(rules)
   })
 
   it('rejects a requested agent that contradicts the member', async () => {

@@ -144,7 +144,8 @@ export const ORCHESTRATION_DISPATCH_METHODS: RpcMethod[] = [
         workerHandle: to,
         dispatchCapability,
         devMode: params.devMode,
-        cliCommand: runtime.getTerminalOrchestrationCliCommand(to)
+        cliCommand: runtime.getTerminalOrchestrationCliCommand(to),
+        memberRules: memberLaunch.memberRules
       })
 
       // Why: captured at dispatch, before injection — the record is what the worker was *given*,

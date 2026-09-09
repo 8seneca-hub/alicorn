@@ -360,3 +360,36 @@ describe('sub-dispatch section', () => {
     expect(preamble.indexOf('=== SUB-DISPATCH ===')).toBeLessThan(preamble.indexOf('=== TASK ==='))
   })
 })
+
+// RB1 Task 4: the learning edge reaching the member the correction was learned from.
+describe('member rules section', () => {
+  const RULES = 'Never widen a public type without a deprecation.'
+
+  it('briefs a dispatched member with its own accepted rules', () => {
+    const preamble = buildDispatchPreamble(baseParams({ memberRules: RULES }))
+    expect(preamble).toContain('=== YOUR RULES ===')
+    expect(preamble).toContain(RULES)
+    // Constraints added, never permission granted — and the member did not write them.
+    expect(preamble).toContain('you did not write')
+    expect(preamble.indexOf('=== YOUR RULES ===')).toBeLessThan(preamble.indexOf('=== TASK ==='))
+  })
+
+  // A fresh org pays nothing: no heading, which would read as "there were rules you were not shown".
+  it('renders nothing when the member has no rules, and nothing when there is no member', () => {
+    expect(buildDispatchPreamble(baseParams({ memberRules: '   ' }))).not.toContain('YOUR RULES')
+    expect(buildDispatchPreamble(baseParams())).not.toContain('YOUR RULES')
+  })
+
+  it('does not repeat a lead its own rules, which TEAM RULES already carries', () => {
+    const preamble = buildDispatchPreamble(
+      baseParams({
+        foremanRole: 'lead',
+        runId: 'run_1',
+        memberRules: RULES,
+        teamRules: [{ name: 'Ada', systemRules: RULES }]
+      })
+    )
+    expect(preamble).not.toContain('=== YOUR RULES ===')
+    expect(preamble).toContain('=== TEAM RULES ===')
+  })
+})

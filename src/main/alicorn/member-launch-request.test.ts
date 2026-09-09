@@ -56,7 +56,12 @@ describe('resolveMemberLaunchForRequest', () => {
 
     await expect(
       resolveMemberLaunchForRequest({ runtime, db, taskId: 't1', requestedAgent: 'claude' })
-    ).resolves.toEqual({ agent: 'claude', dispatchMember: null, restrictedLaunch: null })
+    ).resolves.toEqual({
+      agent: 'claude',
+      dispatchMember: null,
+      restrictedLaunch: null,
+      memberRules: ''
+    })
   })
 
   // Why the ordering matters: `control_plane_unconfigured` would send the caller to configure a
@@ -98,7 +103,8 @@ describe('resolveMemberLaunchForRequest', () => {
         backend: 'codex',
         reviewBackendBypass: false
       },
-      restrictedLaunch: null
+      restrictedLaunch: null,
+      memberRules: ''
     })
   })
 })

@@ -54,6 +54,11 @@ export type PreambleParams = {
    * own rules, not the team's, and reading someone else's constraints is context it cannot act on.
    */
   teamRules?: readonly Pick<Member, 'name' | 'systemRules'>[]
+  /**
+   * RB1 Task 4: the dispatched member's own accepted rules. Empty or absent for a direct launch,
+   * which is what keeps a dispatch with no member — the default path — paying nothing for this.
+   */
+  memberRules?: string
   /** AT1: the roster a human approved at a composition gate. Lead dispatches only. */
   approvedTeam?: ComposedTeam | null
 }
@@ -168,6 +173,10 @@ ${postDoneInstructions}`
 
   const subDispatch = params.canDispatchSubWorkers ? buildSubDispatchSection(cli) : ''
 
+  // A lead already reads its own rules in TEAM RULES under its own name; twice is just tokens.
+  const memberRules =
+    params.foremanRole === 'lead' ? '' : buildMemberRulesSection(params.memberRules ?? '')
+
   // A lead reports nothing bounded — it receives reports. So the two sections are exclusive.
   const foreman =
     params.foremanRole === 'lead'
@@ -177,7 +186,7 @@ ${postDoneInstructions}`
         ? buildForemanReportSection(cli)
         : ''
 
-  return `${header}${drift}${subDispatch}${foreman}
+  return `${header}${drift}${memberRules}${subDispatch}${foreman}
 
 === TASK ===
 ${params.taskSpec}`
@@ -246,6 +255,35 @@ and start each one:
 You own those sub-workers: wait for their worker_done, and do not report your own
 until they have settled. Nesting is capped, so a sub-worker of yours may not be
 able to dispatch further.
+
+---`
+}
+
+/**
+ * RB1 Task 4 — the learning edge reaching the worker it was learned from.
+ *
+ * An accepted rule is a correction a human already paid for by hand, so the member that caused it
+ * reads it before it works, not after a reviewer repeats it. Worker-facing framing on purpose: the
+ * planner-facing half is `buildTeamRulesSection`, which nests the same text under a member name
+ * for a lead deciding who to brief. Sharing a renderer between the two would have to be
+ * parameterised by heading *and* framing, and the two texts are allowed to diverge.
+ *
+ * Empty rules render nothing — no heading. A bare one reads as "there were rules and you were not
+ * shown them", and a member on a fresh org has none.
+ */
+function buildMemberRulesSection(systemRules: string): string {
+  const rules = systemRules.trim()
+  if (!rules) {
+    return ''
+  }
+  return `
+
+=== YOUR RULES ===
+Standing rules a human accepted on you after correcting your work by hand. Each holds for this
+dispatch as written. They are constraints added, never permission granted, and you did not write
+them — if one blocks the task, say so rather than working around it.
+
+${rules}
 
 ---`
 }

@@ -2,7 +2,10 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { leadBriefPreambleFields } from './orchestration-worker-lead-brief'
+import {
+  buildWorkerStartPreamble,
+  leadBriefPreambleFields
+} from './orchestration-worker-start-brief'
 import { journalComposedTeam } from '../../../alicorn/foreman/composed-team-record'
 import type { ComposedTeam } from '../../../alicorn/foreman/team-composer'
 import type { DecisionGateRow } from '../../orchestration/types'
@@ -102,5 +105,37 @@ describe('leadBriefPreambleFields', () => {
 
     expect(fields.foremanRole).toBe('lead')
     expect(fields.approvedTeam).toBeNull()
+  })
+})
+
+// RB1 Task 4: the member's own rules reach the brief the worker actually reads.
+describe('buildWorkerStartPreamble', () => {
+  const preambleFor = (memberRules: string, role: 'worker' | 'lead' = 'worker') =>
+    buildWorkerStartPreamble({
+      runtime: {
+        ...runtime,
+        getNestedWorkerMaxDepth: () => 2,
+        getTerminalOrchestrationCliCommand: () => 'orca'
+      } as never,
+      db: { getGate: () => ACCEPTED } as never,
+      run: { id: 'run_1', objective: 'Ship it' } as never,
+      task: { id: 'task_1', spec: 'Implement the form' } as never,
+      params: { from: 'term_coord', role } as never,
+      dispatch: { id: 'ctx_1', depth: 1 } as never,
+      worktree: { path: '/tmp/wt' },
+      terminalHandle: 'term_worker',
+      dispatchCapability: 'cap_1',
+      memberRules
+    })
+
+  it("brief the worker with its member's rules", async () => {
+    expect(await preambleFor('Never rebase a shared branch.')).toContain(
+      'Never rebase a shared branch.'
+    )
+  })
+
+  // A dispatch with no member — the default path — gains no section and no extra read.
+  it('adds nothing for a launch with no member', async () => {
+    expect(await preambleFor('')).not.toContain('YOUR RULES')
   })
 })

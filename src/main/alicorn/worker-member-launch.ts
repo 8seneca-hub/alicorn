@@ -20,6 +20,12 @@ export type WorkerMemberLaunch = {
   agent: string | undefined
   dispatchMember: DispatchMemberStamp | null
   /**
+   * RB1 Task 4: the member's accepted standing rules, for the dispatch preamble. Read off the
+   * Member the launch already resolved, so briefing them costs no second directory call — and an
+   * unreachable control plane refuses the named launch long before it could cost a brief its rules.
+   */
+  memberRules: string
+  /**
    * Set for a role the tool boundary restricts — a Foreman lead, or a blindfolded QA member. The
    * launch path applies these to the spawned agent and refuses the dispatch if it cannot.
    */
@@ -65,7 +71,12 @@ export async function resolveWorkerMemberLaunch(input: {
 }): Promise<WorkerMemberLaunch> {
   assertLeadDispatchNamesMember(input)
   if (!input.memberId) {
-    return { agent: input.requestedAgent, dispatchMember: null, restrictedLaunch: null }
+    return {
+      agent: input.requestedAgent,
+      dispatchMember: null,
+      restrictedLaunch: null,
+      memberRules: ''
+    }
   }
 
   const member = await input.directory.getMember(input.memberId)
@@ -118,7 +129,8 @@ export async function resolveWorkerMemberLaunch(input: {
       backend: member.backend,
       reviewBackendBypass
     },
-    restrictedLaunch
+    restrictedLaunch,
+    memberRules: member.systemRules
   }
 }
 

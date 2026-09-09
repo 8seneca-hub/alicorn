@@ -1,5 +1,4 @@
 import type { TuiAgent } from '../../../../shared/tui-agent'
-import { buildDispatchPreamble } from '../../orchestration/preamble'
 import { OrchestrationError } from '../../orchestration/orchestration-error'
 import type { OrcaRuntimeService } from '../../orca-runtime'
 import type { OrchestrationDb } from '../../orchestration/db'
@@ -25,7 +24,7 @@ import { captureWorkerStartContext } from '../../../alicorn/context-capture-enqu
 import { buildWorkerStartOptions } from './orchestration-worker-start-validation'
 import { prepareMemberAwareWorkerStart } from './orchestration-member-worker-start'
 import { mergeSeatLaunchRestrictions } from '../../../alicorn/connectors/seat-mcp-launch'
-import { leadBriefPreambleFields } from './orchestration-worker-lead-brief'
+import { buildWorkerStartPreamble } from './orchestration-worker-start-brief'
 
 export type StartWorkerForTaskArgs = {
   runtime: OrcaRuntimeService
@@ -71,7 +70,7 @@ export async function startWorkerForTask({
 }: StartWorkerForTaskArgs) {
   const requestedWorktree = params.worktree ?? 'current'
   const createsWorktree = requestedWorktree === 'new-child' || requestedWorktree === 'new-top-level'
-  const { agent, launch, stampMember, restrictedLaunch, seatMcpConfigPath } =
+  const { agent, launch, stampMember, restrictedLaunch, seatMcpConfigPath, memberRules } =
     await prepareMemberAwareWorkerStart({
       params,
       createsWorktree,
@@ -257,28 +256,17 @@ export async function startWorkerForTask({
     })
 
     failedStage = 'dispatch_input'
-    // A lead plans rather than works: it gets the journal instructions, the approved roster and
-    // the team's standing rules, and never the bounded-report schema its subagents answer with.
-    const lead = await leadBriefPreambleFields({
-      role: params.role,
-      runId: run.id,
-      objective: run.objective,
-      worktreePath: resolvedWorktree.path,
-      worktreeHostId: resolvedWorktree.hostId ?? null,
-      getGate: (id) => db.getGate(id),
-      runtime
-    })
-    const preamble = buildDispatchPreamble({
-      canDispatchSubWorkers: started.dispatch.depth < runtime.getNestedWorkerMaxDepth(),
-      taskId: task.id,
-      dispatchId: started.dispatch.id,
-      taskSpec: task.spec,
-      coordinatorHandle: params.from,
-      workerHandle: terminalHandle,
+    const preamble = await buildWorkerStartPreamble({
+      runtime,
+      db,
+      run,
+      task,
+      params,
+      dispatch: started.dispatch,
+      worktree: resolvedWorktree,
+      terminalHandle,
       dispatchCapability: capability,
-      devMode: params.devMode,
-      cliCommand: runtime.getTerminalOrchestrationCliCommand(terminalHandle),
-      ...lead
+      memberRules
     })
     captureWorkerStartContext(db, runtime, params, task, started.dispatch, {
       runId: run.id,

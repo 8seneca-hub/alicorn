@@ -117,9 +117,10 @@ worth carrying.
  * RB2 — the learning edge reaching the splitter.
  *
  * An accepted rule is a correction a human already paid for by hand. Briefing it to the member that
- * caused it stops that member repeating it; briefing it to the lead is what stops the *plan* from
- * repeating it, because a rule the worker reads and the planner does not still produces the same
- * decomposition mistake (`docs/alicorn/GRAPH-ENGINEERING.md`).
+ * caused it stops that member repeating it (`buildMemberRulesSection` in `preamble.ts`, the
+ * worker-facing half); briefing it to the lead is what stops the *plan* from repeating it, because
+ * a rule the worker reads and the planner does not still produces the same decomposition mistake
+ * (`docs/alicorn/GRAPH-ENGINEERING.md`).
  *
  * Members with no rules are omitted: a bare heading reads as "there were rules and you were not
  * shown them". A team where none has rules renders no section at all, so a lead on a fresh org

@@ -25,7 +25,12 @@ export async function resolveMemberLaunchForRequest(input: {
 }): Promise<WorkerMemberLaunch> {
   assertLeadDispatchNamesMember(input)
   if (!input.memberId) {
-    return { agent: input.requestedAgent, dispatchMember: null, restrictedLaunch: null }
+    return {
+      agent: input.requestedAgent,
+      dispatchMember: null,
+      restrictedLaunch: null,
+      memberRules: ''
+    }
   }
   const directory = input.runtime.getAlicornMemberDirectory()
   // Why reject rather than launch anyway: a member launch that records no

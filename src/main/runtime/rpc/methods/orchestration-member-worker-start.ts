@@ -33,6 +33,8 @@ export async function prepareMemberAwareWorkerStart(args: {
     restrictedLaunch: RestrictedPaneLaunch | null
     /** OP3. The seat's own MCP connectors, or null — which leaves the pre-OP3 surface untouched. */
     seatMcpConfigPath: string | null
+    /** RB1 Task 4. Empty for a direct launch, so the preamble omits the section entirely. */
+    memberRules: string
   }
 > {
   const { params, createsWorktree, runtime, db, taskId } = args
@@ -66,6 +68,7 @@ export async function prepareMemberAwareWorkerStart(args: {
   return {
     ...prepared,
     seatMcpConfigPath,
+    memberRules: member.memberRules,
     stampMember: (dispatchId) => {
       if (stamp) {
         db.setDispatchMember({ dispatchId, ...stamp })
