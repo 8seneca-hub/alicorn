@@ -24,6 +24,7 @@ function gate(overrides: Partial<PendingGateView> = {}): PendingGateView {
     recommendation: { decision: 'auto', reason: 'auto' },
     policyEvaluated: true,
     autonomyLevel: 1,
+    repoId: null,
     ...overrides
   }
 }

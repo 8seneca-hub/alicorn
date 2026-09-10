@@ -69,6 +69,27 @@ export function listTaskWorktrees(this: OrchestrationDb, taskId: string): TaskWo
   return rows.map(toTuple)
 }
 
+/**
+ * The worktree a task's latest dispatch ran in.
+ *
+ * The tuple set above is empty for every task that predates MR1, which is most of them, so
+ * anything that needs to place a task in a repository needs this second route: a dispatch records
+ * where it ran, and a worktree id carries its repo.
+ */
+export function getTaskDispatchWorktreeId(this: OrchestrationDb, taskId: string): string | null {
+  const row = this.db
+    .prepare(
+      `SELECT wd.worktree_id
+       FROM dispatch_contexts dc
+       JOIN worker_dispatches wd ON wd.dispatch_id = dc.id
+       WHERE dc.task_id = ? AND wd.worktree_id IS NOT NULL
+       ORDER BY dc.dispatched_at DESC
+       LIMIT 1`
+    )
+    .get(taskId) as { worktree_id: string | null } | undefined
+  return row?.worktree_id ?? null
+}
+
 /** MR2 reads this without loading the set: a task on more than one repo may want a lead. */
 export function countTaskRepos(this: OrchestrationDb, taskId: string): number {
   const row = this.db
@@ -81,12 +102,14 @@ export type TaskWorktreeMethods = {
   setTaskWorktrees: typeof setTaskWorktrees
   listTaskWorktrees: typeof listTaskWorktrees
   countTaskRepos: typeof countTaskRepos
+  getTaskDispatchWorktreeId: typeof getTaskDispatchWorktreeId
 }
 
 export function attachTaskWorktreeMethods(ctor: { prototype: object }): void {
   Object.assign(ctor.prototype, {
     setTaskWorktrees,
     listTaskWorktrees,
-    countTaskRepos
+    countTaskRepos,
+    getTaskDispatchWorktreeId
   })
 }

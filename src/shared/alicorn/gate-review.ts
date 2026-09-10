@@ -27,6 +27,13 @@ export type PendingGateView = {
   policyEvaluated: boolean
   /** The member's autonomy level when the gate opened; null when the policy was never asked. */
   autonomyLevel: number | null
+  /**
+   * The repository this gate belongs to, so a queue can be read one project at a time.
+   * Null is a real answer, not a gap to paper over: a task that never dispatched and binds no
+   * feature workspace has no repository to attribute, and guessing one would file the gate under
+   * a project it has nothing to do with.
+   */
+  repoId: string | null
 }
 
 export type PendingGatesResult =
