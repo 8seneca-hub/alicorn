@@ -1,7 +1,10 @@
 name: alicorn-local
 services:
   postgres:
-    image: postgres:16-alpine
+    # Why not -alpine: musl ships no locale data, so the cluster reports en_US.utf8 while collating
+    # byte-wise — 'Owner' sorts before 'member'. Every ORDER BY on text then behaves differently
+    # here than in CI and production, which showed up as a roster test that only failed locally.
+    image: postgres:16
     environment:
       POSTGRES_USER: alicorn
       POSTGRES_PASSWORD: alicorn
