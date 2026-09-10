@@ -27,7 +27,8 @@ describePostgres('control schema', () => {
       expect(rows.map((r) => r.relname)).toEqual([
         'autonomy_policies', 'contract_acknowledgements', 'member_skills', 'members',
         'org_invites', 'org_policies', 'org_roles',
-        'project_protected_paths', 'project_required_checks', 'project_stage_config',
+        'project_protected_paths', 'project_repos', 'project_required_checks',
+        'project_stage_config', 'projects',
         'rule_proposals', 'seat_connectors', 'seats', 'skill_versions', 'skills',
         'stages', 'transitions', 'workflows'
       ])

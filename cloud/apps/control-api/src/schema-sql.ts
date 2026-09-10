@@ -4,6 +4,31 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
   // Identity first: every product row's `created_by` is a `users.id`, so the identity tables have
   // to exist before anything that references one.
   ...IDENTITY_SCHEMA_STATEMENTS,
+  // A project: what a board, a workflow and a set of required checks belong to. Additive rather
+  // than a migration, because `project_id` is an opaque TEXT column with no foreign key on every
+  // table that takes one — a tenant with no rows here behaves exactly as it did before.
+  `CREATE TABLE IF NOT EXISTS projects (
+     id TEXT PRIMARY KEY DEFAULT ('prj_' || gen_random_uuid()::text),
+     tenant_id TEXT NOT NULL,
+     name TEXT NOT NULL,
+     key TEXT NOT NULL,
+     created_by TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS projects_tenant_name ON projects(tenant_id, name)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS projects_tenant_key ON projects(tenant_id, key)`,
+  tenantRlsPolicySql('projects'),
+  // Why repo_id is the primary key and not (project_id, repo_id): a repository belongs to at most
+  // one project. Two would make "which project is this gate in" unanswerable, and that question
+  // has to have exactly one answer for a queue to be readable one project at a time.
+  `CREATE TABLE IF NOT EXISTS project_repos (
+     tenant_id TEXT NOT NULL,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     repo_id TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, repo_id))`,
+  `CREATE INDEX IF NOT EXISTS project_repos_project ON project_repos(tenant_id, project_id)`,
+  tenantRlsPolicySql('project_repos'),
   // Product configuration — tenant-scoped, RLS forced.
   `CREATE TABLE IF NOT EXISTS members (
      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
