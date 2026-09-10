@@ -18,4 +18,14 @@ describe('loadLedgerApiConfig', () => {
   it('refuses a short shared token', () => {
     expect(() => loadLedgerApiConfig({ ...base, ALICORN_LOCAL_API_TOKEN: 'short' })).toThrow()
   })
+  // docker compose interpolates an unset variable to the empty string, so an empty key id has to
+  // read as "not set" — the thumbprint default covers it — rather than keeping the service down.
+  it('boots with an empty signing key id, the shape compose actually passes', () => {
+    const c = loadLedgerApiConfig({
+      ...base,
+      ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM: '',
+      ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID: ''
+    })
+    expect(c.exportSigningKey).toBeUndefined()
+  })
 })

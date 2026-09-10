@@ -15,7 +15,10 @@ const EnvSchema = z.object({
   // empty PEM must read as "no key configured", not as a boot failure.
   ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM: z.string().optional(),
   // Optional. Defaults to the key's RFC 7638 thumbprint, which rotates with the key on its own.
-  ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID: z.string().min(1).max(200).optional()
+  // Why not .min(1): the same compose hazard as the PEM above — an unset variable arrives as the
+  // empty string, and an empty key id must read as "not set" so the thumbprint default applies,
+  // not as a boot failure that keeps the whole service down.
+  ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID: z.string().max(200).optional()
 })
 export type LedgerApiConfig = {
   port: number
@@ -35,7 +38,7 @@ export function loadLedgerApiConfig(env: NodeJS.ProcessEnv = process.env): Ledge
     auth: parseAuthConfig(env),
     exportSigningKey: p.ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM?.trim()
       ? readProvenanceExportSigningKey(p.ALICORN_LEDGER_EXPORT_SIGNING_KEY_PEM, {
-          keyId: p.ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID
+          keyId: p.ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID?.trim() || undefined
         })
       : undefined
   }
