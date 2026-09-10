@@ -7416,7 +7416,12 @@
           "9ee215caf6": ".mcp.json",
           "1f3665e35a": "MCP config created",
           "82436439eb": "Add MCP config",
-          "0a5c1ead54": "Create empty config"
+          "0a5c1ead54": "Create empty config",
+          "addServerInvalidName": "That server name cannot be used.",
+          "addServerUnparseable": "This config could not be read as JSON, so nothing was changed. Open it and fix it first.",
+          "addServerReplaced": "Replaced {{name}} in this project.",
+          "addServerAdded": "Added {{name}} to this project.",
+          "addServer": "Add server"
         },
         "MobileEmulatorAgentControlRow": {
           "1861982430": "Failed to load CLI status.",
@@ -11931,6 +11936,21 @@
           },
           "sectionTitle": "Workflows",
           "sectionDescription": "Stages, who runs them, and the edges between them — including findings going back to the author."
+        },
+        "mcpAddServer": {
+          "title": "Add MCP server",
+          "description": "Merged into {{path}}. Servers already in the file are kept.",
+          "name": "Name",
+          "nameInvalid": "Letters, digits, dash and underscore only.",
+          "nameHint": "How the agent refers to the server, for example plane.",
+          "command": "Command",
+          "commandHint": "Whatever launches the server, for example npx.",
+          "args": "Arguments",
+          "argsHint": "Separated by spaces.",
+          "env": "Environment variable names",
+          "envHint": "Names only — the value is read from the environment at launch and is never written to this file.",
+          "cancel": "Cancel",
+          "add": "Add server"
         }
       },
       "right": {
