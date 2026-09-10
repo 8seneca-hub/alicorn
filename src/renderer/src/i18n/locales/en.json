@@ -17241,6 +17241,27 @@
           "issueStagesRequired": "A workflow needs at least one stage.",
           "issueVersionConflict": "Someone else saved this workflow while you were editing. Reload before saving again."
         }
+      },
+      "composerTaskPlan": {
+        "contextLabel": "Context",
+        "contextPlaceholder": "Anything the agent cannot read off the repo — the constraint, the edge case, the decision already made.",
+        "pinned": "You changed the plan, so it has stopped adjusting.",
+        "unpin": "Let it decide again",
+        "hideOverrides": "Hide",
+        "showOverrides": "Change who works on this",
+        "builds": "Builds",
+        "reviews": "Reviews",
+        "repoMatched": "Matched {{repos}} from what you wrote",
+        "repoOnlyOne": "{{repo}} is the only repository here",
+        "repoDefaultedToOpen": "Defaulted to {{repo}} — nothing you wrote named a repository",
+        "repoUnresolved": "No repository matched — choose one before starting",
+        "authorNamed": "You named {{member}}, so they build it",
+        "authorDefaulted": "{{member}} builds it",
+        "noAuthor": "No member has the developer role, so nobody can build this yet",
+        "reviewerDistinct": "{{member}} reviews on {{backend}}, a different backend from the author",
+        "reviewerShared": "{{member}} reviews on {{backend}} — the author’s own backend, so this gates at review",
+        "noReviewer": "No member can review, so this gates at review",
+        "briefThin": "Add a sentence of context — it is cheaper than a wrong build"
       }
     },
     "i18n": {

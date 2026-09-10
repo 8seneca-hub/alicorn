@@ -1,15 +1,8 @@
 import React from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { SettingsSwitch } from '@/components/settings/SettingsFormControls'
 import SparseCheckoutPresetSelect from '@/components/sparse/SparseCheckoutPresetSelect'
 import { cn } from '@/lib/utils'
-import {
-  TEXT_CONTROL_PASTE_DIRECT_MAX_BYTES,
-  measureTextControlPasteByteLength,
-  pasteTextIntoTextControl,
-  shouldHandleTextControlPaste
-} from '@/lib/text-control-paste'
 import { translate } from '@/i18n/i18n'
 import { ComposerParentWorktreePicker } from './ComposerParentWorktreePicker'
 import type { NewWorkspaceComposerCardProps } from './new-workspace-composer-card-props'
@@ -43,8 +36,6 @@ type NewWorkspaceComposerAdvancedSectionProps = Pick<
   | 'selectedRepoExecutionHostId'
   | 'selectedRepoProjectId'
   | 'activeFolderWorkspaceId'
-  | 'note'
-  | 'onNoteChange'
   | 'setupControlsEnabled'
   | 'setupConfig'
   | 'requiresExplicitSetupChoice'
@@ -85,8 +76,6 @@ export function NewWorkspaceComposerAdvancedSection({
   selectedRepoExecutionHostId,
   selectedRepoProjectId,
   activeFolderWorkspaceId = null,
-  note,
-  onNoteChange,
   setupControlsEnabled = true,
   setupConfig,
   setupConfigLabel,
@@ -109,38 +98,6 @@ export function NewWorkspaceComposerAdvancedSection({
   onSparseSelectPreset,
   canUseSparseCheckout
 }: NewWorkspaceComposerAdvancedSectionProps): React.JSX.Element {
-  const handleNotePaste = React.useCallback((event: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    const text = event.clipboardData.getData('text/plain')
-    const byteLengthMeasurement = measureTextControlPasteByteLength(text, {
-      stopAfterBytes: TEXT_CONTROL_PASTE_DIRECT_MAX_BYTES
-    })
-    if (
-      !byteLengthMeasurement.exceededLimit &&
-      !shouldHandleTextControlPaste(text, { measuredByteLength: byteLengthMeasurement.byteLength })
-    ) {
-      return
-    }
-
-    event.preventDefault()
-    event.stopPropagation()
-    const textarea = event.currentTarget
-    void pasteTextIntoTextControl(textarea, text, {
-      source: 'clipboard',
-      canContinue: (target) => target.ownerDocument.activeElement === target
-    })
-      .then((result) => {
-        if (result.status === 'rejected' && result.reason === 'too-large') {
-          toast.error(
-            translate(
-              'auto.components.NewWorkspaceComposerCard.notePasteTooLarge',
-              'Paste is too large for the note field.'
-            )
-          )
-        }
-      })
-      .catch(() => {})
-  }, [])
-
   return (
     <div
       className={cn(
@@ -213,23 +170,6 @@ export function NewWorkspaceComposerAdvancedSection({
               disabled={!advancedOpen}
             />
           ) : null}
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">
-              {translate('auto.components.NewWorkspaceComposerCard.f8728aa4f9', 'Note')}
-            </label>
-            <textarea
-              value={note}
-              onChange={(event) => onNoteChange(event.target.value)}
-              onPaste={handleNotePaste}
-              placeholder={translate(
-                'auto.components.NewWorkspaceComposerCard.090cfedeb4',
-                'Write a note'
-              )}
-              rows={1}
-              className="w-full min-w-0 resize-none overflow-y-auto scrollbar-sleek rounded-md border border-input bg-transparent px-3 py-1.5 text-sm shadow-xs transition-[color,box-shadow] outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 [field-sizing:content] max-h-40"
-            />
-          </div>
 
           {setupControlsEnabled && setupConfig ? (
             <div className="space-y-2">

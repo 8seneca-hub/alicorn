@@ -377,7 +377,10 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
     current = renderCard({ advancedOpen: false, branchesEnabled: true })
 
     const advancedPanel = [...current.container.querySelectorAll('[aria-hidden="true"]')].find(
-      (element) => element.querySelector('textarea[placeholder="Write a note"]') !== null
+      (element) =>
+        [...element.querySelectorAll('label')].some(
+          (label) => label.textContent?.trim() === 'Branch name'
+        )
     )
 
     expect(advancedPanel?.hasAttribute('inert')).toBe(true)
@@ -606,8 +609,11 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
     const nextField = findInputByLabel(current.container, 'Branch name')?.closest(
       'div.space-y-1'
     )?.nextElementSibling
-    expect(nextField?.textContent).toMatch(/Parent worktree(?!.*Note)/)
-    expect(nextField?.nextElementSibling?.textContent).toContain('Note')
+    expect(nextField?.textContent).toMatch(/Parent worktree/)
+    const advancedPanel = findInputByLabel(current.container, 'Branch name')?.closest(
+      '[aria-hidden]'
+    )
+    expect(advancedPanel?.querySelector('#composer-task-context')).toBeNull()
   })
 
   it('does not disable folder workspace creation when only source lookup needs SSH', () => {
@@ -896,10 +902,7 @@ describe('NewWorkspaceComposerCard note sizing', () => {
   })
 
   function findNoteTextarea(container: HTMLElement): HTMLTextAreaElement {
-    const label = [...container.querySelectorAll('label')].find(
-      (candidate) => candidate.textContent?.trim() === 'Note'
-    )
-    const textarea = label?.parentElement?.querySelector('textarea')
+    const textarea = container.querySelector<HTMLTextAreaElement>('#composer-task-context')
     expect(textarea).toBeTruthy()
     return textarea as HTMLTextAreaElement
   }
@@ -907,7 +910,6 @@ describe('NewWorkspaceComposerCard note sizing', () => {
   it('sizes from the note value, so a PR prefill written straight to state still shows in full', () => {
     // #10575: the prefill never fires an input event, so nothing but the value can drive height.
     current = renderCard({
-      advancedOpen: true,
       note: `PR #10575 — ${'a note title long enough to wrap over several lines '.repeat(3)}`
     })
 
@@ -915,7 +917,7 @@ describe('NewWorkspaceComposerCard note sizing', () => {
   })
 
   it('keeps a note past the height cap readable instead of clipping it', () => {
-    current = renderCard({ advancedOpen: true, note: 'a'.repeat(4000) })
+    current = renderCard({ note: 'a'.repeat(4000) })
 
     const { className } = findNoteTextarea(current.container)
     expect(className).toContain('max-h-40')

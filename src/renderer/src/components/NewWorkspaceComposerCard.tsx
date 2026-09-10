@@ -23,8 +23,10 @@ import {
 } from '../../../shared/tui-agent-selection'
 import type { RuntimeStatus } from '../../../shared/runtime-types'
 import type { TuiAgent } from '../../../shared/tui-agent'
+import { useComposerTaskPlan } from '@/hooks/use-composer-task-plan'
 import { NewWorkspaceComposerAdvancedSection } from './new-workspace/NewWorkspaceComposerAdvancedSection'
 import { NewWorkspaceComposerAgentSection } from './new-workspace/NewWorkspaceComposerAgentSection'
+import { NewWorkspaceComposerContextSection } from './new-workspace/NewWorkspaceComposerContextSection'
 import { NewWorkspaceComposerFooter } from './new-workspace/NewWorkspaceComposerFooter'
 import { NewWorkspaceComposerNameSection } from './new-workspace/NewWorkspaceComposerNameSection'
 import { NewWorkspaceComposerProjectSection } from './new-workspace/NewWorkspaceComposerProjectSection'
@@ -279,6 +281,27 @@ export default function NewWorkspaceComposerCard(
     agentTrigger?.focus()
   }, [composerRef])
 
+  // The planner reads the repositories the composer can already reach, so a task that names two
+  // of them is resolved the same way MR1 binds a feature workspace: by worktree, not by repo.
+  const planRepos = React.useMemo(
+    () =>
+      eligibleRepos.map((candidate) => ({
+        id: candidate.id,
+        name: candidate.displayName ?? candidate.path ?? candidate.id
+      })),
+    [eligibleRepos]
+  )
+  const taskPlan = useComposerTaskPlan({
+    title: props.name,
+    brief: props.note,
+    repos: planRepos,
+    openRepoId: repoId
+  })
+  const planRepoName = React.useCallback(
+    (id: string): string => planRepos.find((repo) => repo.id === id)?.name ?? id,
+    [planRepos]
+  )
+
   useContextualTour(
     'workspace-creation',
     projectOptions.length > 0 && Boolean(selectedProjectId),
@@ -326,6 +349,12 @@ export default function NewWorkspaceComposerCard(
           visibleQuickAgents={visibleQuickAgents}
           defaultTuiAgent={defaultTuiAgent}
           handleSetDefaultAgent={handleSetDefaultAgent}
+        />
+        <NewWorkspaceComposerContextSection
+          note={props.note}
+          onNoteChange={props.onNoteChange}
+          taskPlan={taskPlan}
+          repoName={planRepoName}
         />
         <NewWorkspaceComposerAdvancedSection
           {...props}
