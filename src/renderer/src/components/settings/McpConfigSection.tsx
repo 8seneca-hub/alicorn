@@ -16,6 +16,9 @@ import { joinPath } from '../../lib/path'
 import { extractIpcErrorMessage } from '../../lib/ipc-error'
 import { Button } from '../ui/button'
 import { isWindowsUserAgent } from '../terminal-pane/pane-helpers'
+import { McpAddServerDialog } from './McpAddServerDialog'
+import type { McpServerDraft } from '../../../../shared/mcp-config-write'
+import { writeMcpServerToConfig } from './mcp-add-server-write'
 import { McpConfigFileRow, type LoadedMcpConfigInspection } from './McpConfigFileRow'
 import { McpMissingConfigList } from './McpMissingConfigList'
 import { loadMcpConfigInspections } from './mcp-config-inspection'
@@ -45,6 +48,8 @@ export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Ele
   const [configs, setConfigs] = useState<LoadedMcpConfigInspection[]>([])
   const [loading, setLoading] = useState(true)
   const [createConfirm, setCreateConfirm] = useState(false)
+  const [addServerOpen, setAddServerOpen] = useState(false)
+  const [addingServer, setAddingServer] = useState(false)
   const createConfirmResetTimerRef = useRef<number | null>(null)
   const mountedRef = useMountedRef()
   const [inspectionUnavailableMessage, setInspectionUnavailableMessage] = useState<string | null>(
@@ -177,6 +182,54 @@ export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Ele
     setActiveView('terminal')
   }
 
+  const handleAddServer = async (draft: McpServerDraft): Promise<void> => {
+    setAddingServer(true)
+    const outcome = await writeMcpServerToConfig({
+      targetPath: joinPath(targetRootPath, '.mcp.json'),
+      connectionId,
+      draft
+    })
+    if (outcome.status === 'added' || outcome.status === 'replaced') {
+      await loadConfigs()
+    }
+    if (!mountedRef.current) {
+      return
+    }
+    setAddingServer(false)
+    if (outcome.status === 'failed') {
+      toast.error(outcome.message)
+      return
+    }
+    if (outcome.status === 'refused') {
+      toast.error(
+        outcome.reason === 'invalid_name'
+          ? translate(
+              'auto.components.settings.McpConfigSection.addServerInvalidName',
+              'That server name cannot be used.'
+            )
+          : translate(
+              'auto.components.settings.McpConfigSection.addServerUnparseable',
+              'This config could not be read as JSON, so nothing was changed. Open it and fix it first.'
+            )
+      )
+      return
+    }
+    setAddServerOpen(false)
+    toast.success(
+      outcome.status === 'replaced'
+        ? translate(
+            'auto.components.settings.McpConfigSection.addServerReplaced',
+            'Replaced {{name}} in this project.',
+            { name: draft.name }
+          )
+        : translate(
+            'auto.components.settings.McpConfigSection.addServerAdded',
+            'Added {{name}} to this project.',
+            { name: draft.name }
+          )
+    )
+  }
+
   const handleCreateStarter = async (): Promise<void> => {
     if (!createConfirm) {
       clearCreateConfirmResetTimer()
@@ -273,6 +326,15 @@ export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Ele
               <RefreshCw className="size-3.5" />
             )}
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setAddServerOpen(true)}
+          >
+            <Plus className="size-3.5" />
+            {translate('auto.components.settings.McpConfigSection.addServer', 'Add server')}
+          </Button>
           {canCreateStarter ? (
             <Button
               variant={createConfirm ? 'default' : 'outline'}
@@ -340,6 +402,13 @@ export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Ele
           {!inspectionUnavailable ? <McpMissingConfigList missingConfigs={missingConfigs} /> : null}
         </div>
       </div>
+      <McpAddServerDialog
+        open={addServerOpen}
+        onOpenChange={setAddServerOpen}
+        relativePath=".mcp.json"
+        saving={addingServer}
+        onSubmit={(draft) => void handleAddServer(draft)}
+      />
     </section>
   )
 }
