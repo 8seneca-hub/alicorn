@@ -28,12 +28,19 @@ import type {
   WorkflowTemplate
 } from '../../shared/alicorn/workflows'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
+import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
+import { createTaskClient } from './control-plane-task-client'
 
 export type ControlPlaneClient = {
   listProjects: () => Promise<Project[]>
   createProject: (input: ProjectInput) => Promise<Project>
   updateProject: (id: string, input: ProjectInput) => Promise<Project>
   deleteProject: (id: string) => Promise<void>
+  /** The board's rows. Project-scoped, and the id may name a repo bound to a project. */
+  listTasks: (projectId: string) => Promise<Task[]>
+  createTask: (input: TaskInput) => Promise<Task>
+  updateTask: (id: string, patch: TaskPatch) => Promise<Task>
+  deleteTask: (id: string) => Promise<void>
   listMembers: () => Promise<Member[]>
   createMember: (input: MemberInput) => Promise<Member>
   updateMember: (id: string, input: MemberInput) => Promise<Member>
@@ -139,6 +146,8 @@ export function createControlPlaneClient(deps?: {
         await request('control', projectPath(id), { method: 'DELETE' })
       )
     },
+
+    ...createTaskClient({ readJson, request }),
 
     listMembers: async () => {
       const body = await readJson<{ members: Member[] }>('control', '/v1/members')

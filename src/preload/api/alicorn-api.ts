@@ -2,6 +2,7 @@ import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
+import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 import type {
   ContextCaptureDetailResult,
@@ -31,6 +32,11 @@ export type AlicornApi = {
     input: ProjectInput
   ) => Promise<{ ok: true; project: Project } | AlicornFailure>
   deleteProject: (id: string) => Promise<{ ok: true } | AlicornFailure>
+  /** The board's rows for one project. A task is the unit of work, not a worktree. */
+  listTasks: (projectId: string) => Promise<{ ok: true; tasks: Task[] } | AlicornFailure>
+  createTask: (input: TaskInput) => Promise<{ ok: true; task: Task } | AlicornFailure>
+  updateTask: (id: string, patch: TaskPatch) => Promise<{ ok: true; task: Task } | AlicornFailure>
+  deleteTask: (id: string) => Promise<{ ok: true } | AlicornFailure>
   listMembers: () => Promise<{ ok: true; members: Member[] } | AlicornFailure>
   createMember: (input: MemberInput) => Promise<{ ok: true; member: Member } | AlicornFailure>
   updateMember: (

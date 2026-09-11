@@ -6,6 +6,7 @@ import {
   attemptControlPlane as attempt,
   type AlicornFailure
 } from './alicorn-control-plane-result'
+import { registerAlicornTaskHandlers } from './alicorn-task-handlers'
 import { registerAlicornWorkflowHandlers } from './alicorn-workflow-handlers'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
@@ -340,5 +341,6 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
     }
   )
 
+  registerAlicornTaskHandlers(deps)
   registerAlicornWorkflowHandlers(deps)
 }

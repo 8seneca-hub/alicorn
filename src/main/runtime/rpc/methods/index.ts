@@ -14,6 +14,7 @@ import { BROWSER_CLIENT_FILE_CHANNEL_METHODS } from './browser-client-file-chann
 import { BROWSER_NETWORK_TUNNEL_METHODS } from './browser-network-tunnel'
 import { ORCHESTRATION_METHODS } from './orchestration'
 import { ALICORN_LEDGER_METHODS } from './alicorn-ledger'
+import { ALICORN_CONTROL_METHODS } from './alicorn-control'
 import { NOTIFICATION_METHODS } from './notifications'
 import { STATS_METHODS } from './stats'
 import { DIAGNOSTICS_METHODS } from './diagnostics'
@@ -73,6 +74,7 @@ export const ALL_RPC_METHODS: readonly RpcAnyMethod[] = [
   ...BROWSER_NETWORK_TUNNEL_METHODS,
   ...ORCHESTRATION_METHODS,
   ...ALICORN_LEDGER_METHODS,
+  ...ALICORN_CONTROL_METHODS,
   ...NOTIFICATION_METHODS,
   ...STATS_METHODS,
   ...DIAGNOSTICS_METHODS,
