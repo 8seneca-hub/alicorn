@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import NativeChatView from '../native-chat/NativeChatView'
+import { SessionProgressStrip } from '../alicorn/session-progress/SessionProgressStrip'
 import { makePaneKey } from '../../../../shared/stable-pane-id'
 import { canContinueAgentSessionInNewSession } from './terminal-agent-session-continuation'
 import type { TerminalPaneController } from './use-terminal-pane-controller'
@@ -67,33 +68,36 @@ export function TerminalPaneNativeChatPortal({
   }
 
   return createPortal(
-    <div className="native-chat-pane-shell absolute inset-0 z-10 flex min-h-0 min-w-0 bg-background">
-      {structuredSessionId && structuredChatAgent ? (
-        <NativeChatView
-          mode="structured"
-          tabId={unifiedTabId ?? tabId}
-          sessionId={structuredSessionId}
-          agent={structuredChatAgent}
-          isVisible={isRendererVisible}
-          target={structuredChatTarget}
-          contextMenuActions={contextMenuActions}
-          orchestrationDispatchStatus={chatPaneDispatchStatus}
-        />
-      ) : (
-        <NativeChatView
-          terminalTabId={tabId}
-          isVisible={isRendererVisible}
-          paneKey={makePaneKey(tabId, chatPane.leafId)}
-          targetPtyId={chatPanePtyId}
-          launchAgent={chatPaneLaunchAgent}
-          resolvedAgent={chatPaneResolvedAgent}
-          ownsTabWideLaunchDraft={chatPaneOwnsTabWideLaunchDraft}
-          onSwitchToTerminal={switchNativeChatToTerminal}
-          readTerminalScreen={readNativeChatTerminalScreen}
-          contextMenuActions={contextMenuActions}
-          orchestrationDispatchStatus={chatPaneDispatchStatus}
-        />
-      )}
+    <div className="native-chat-pane-shell absolute inset-0 z-10 flex min-h-0 min-w-0 flex-col bg-background">
+      <SessionProgressStrip isVisible={isRendererVisible} />
+      <div className="flex min-h-0 min-w-0 flex-1">
+        {structuredSessionId && structuredChatAgent ? (
+          <NativeChatView
+            mode="structured"
+            tabId={unifiedTabId ?? tabId}
+            sessionId={structuredSessionId}
+            agent={structuredChatAgent}
+            isVisible={isRendererVisible}
+            target={structuredChatTarget}
+            contextMenuActions={contextMenuActions}
+            orchestrationDispatchStatus={chatPaneDispatchStatus}
+          />
+        ) : (
+          <NativeChatView
+            terminalTabId={tabId}
+            isVisible={isRendererVisible}
+            paneKey={makePaneKey(tabId, chatPane.leafId)}
+            targetPtyId={chatPanePtyId}
+            launchAgent={chatPaneLaunchAgent}
+            resolvedAgent={chatPaneResolvedAgent}
+            ownsTabWideLaunchDraft={chatPaneOwnsTabWideLaunchDraft}
+            onSwitchToTerminal={switchNativeChatToTerminal}
+            readTerminalScreen={readNativeChatTerminalScreen}
+            contextMenuActions={contextMenuActions}
+            orchestrationDispatchStatus={chatPaneDispatchStatus}
+          />
+        )}
+      </div>
     </div>,
     chatPane.container,
     `native-chat-${tabId}-${chatPane.leafId}`
