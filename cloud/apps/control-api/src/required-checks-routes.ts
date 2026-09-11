@@ -5,26 +5,29 @@ import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import { getRequiredChecks, putRequiredChecks } from './required-checks-repository.js'
 import { readJsonBody } from './read-json-body.js'
 import { isValidProjectId } from './project-id-param.js'
+import { resolveProjectId } from './projects-repository.js'
 
 const PutRequiredChecksBodySchema = z.object({ checks: RequiredChecksSchema })
 
 export function registerRequiredChecksRoutes(app: Hono<ControlApiEnv>, deps: ControlApiDeps): void {
   app.get('/v1/projects/:projectId/required-checks', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) {
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) {
       return c.json({ error: 'invalid_project_id' }, 400)
     }
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const checks = await getRequiredChecks(deps.pool, auth.tenantId, projectId)
     return c.json({ checks })
   })
 
   app.put('/v1/projects/:projectId/required-checks', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) {
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) {
       return c.json({ error: 'invalid_project_id' }, 400)
     }
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const body = await readJsonBody(c)
     if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
     const result = PutRequiredChecksBodySchema.safeParse(body.value)

@@ -5,6 +5,7 @@ import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import { getProtectedPaths, putProtectedPaths } from './protected-paths-repository.js'
 import { readJsonBody } from './read-json-body.js'
 import { isValidProjectId } from './project-id-param.js'
+import { resolveProjectId } from './projects-repository.js'
 
 const PutProtectedPathsBodySchema = z.object({ paths: ProtectedPathsSchema })
 
@@ -12,20 +13,22 @@ const PutProtectedPathsBodySchema = z.object({ paths: ProtectedPathsSchema })
 export function registerProtectedPathsRoutes(app: Hono<ControlApiEnv>, deps: ControlApiDeps): void {
   app.get('/v1/projects/:projectId/protected-paths', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) {
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) {
       return c.json({ error: 'invalid_project_id' }, 400)
     }
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const paths = await getProtectedPaths(deps.pool, auth.tenantId, projectId)
     return c.json({ paths })
   })
 
   app.put('/v1/projects/:projectId/protected-paths', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) {
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) {
       return c.json({ error: 'invalid_project_id' }, 400)
     }
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const body = await readJsonBody(c)
     if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
     const result = PutProtectedPathsBodySchema.safeParse(body.value)

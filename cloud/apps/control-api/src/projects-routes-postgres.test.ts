@@ -141,6 +141,46 @@ describePostgres('projects routes (postgres)', () => {
     expect(await resolveProjectId(pool, 'local', 'repo-a')).toBe('repo-a')
   })
 
+  // The point of the entity: configuration follows the project, and a repository bound to it
+  // reads the project's answer rather than keeping a second, separate one of its own.
+  it('serves a project\'s required checks when asked through a repository it owns', async () => {
+    const project = await createdProject({
+      name: 'Payments',
+      key: 'PAY',
+      repoIds: ['repo-payments']
+    })
+    // threshold is a fraction here, not a percentage — see required-check.ts.
+    const checks = [
+      { kind: 'diff_coverage', threshold: 0.8, lcovPath: 'coverage/lcov.info', timeoutMs: 60000 }
+    ]
+    const put = await app.request(`/v1/projects/${project.id}/required-checks`, {
+      method: 'PUT',
+      headers: authHeaders,
+      body: JSON.stringify({ checks })
+    })
+    expect(put.status).toBe(200)
+
+    const viaRepo = await app.request('/v1/projects/repo-payments/required-checks', {
+      headers: authHeaders
+    })
+    expect(viaRepo.status).toBe(200)
+    expect((await viaRepo.json()) as unknown).toEqual({ checks })
+  })
+
+  // And the opt-in clause: an unbound repository keeps answering for itself.
+  it('keeps an unbound repository on its own configuration', async () => {
+    const checks = [{ kind: 'contract_acknowledged' }]
+    await app.request('/v1/projects/repo-loose/required-checks', {
+      method: 'PUT',
+      headers: authHeaders,
+      body: JSON.stringify({ checks })
+    })
+    const read = await app.request('/v1/projects/repo-loose/required-checks', {
+      headers: authHeaders
+    })
+    expect((await read.json()) as unknown).toEqual({ checks })
+  })
+
   it('answers 404 for a project that is not there', async () => {
     const response = await app.request('/v1/projects/prj_missing', { headers: authHeaders })
     expect(response.status).toBe(404)

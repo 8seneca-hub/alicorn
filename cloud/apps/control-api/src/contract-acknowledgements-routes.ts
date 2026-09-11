@@ -7,6 +7,7 @@ import {
 } from './contract-acknowledgements-repository.js'
 import { readJsonBody } from './read-json-body.js'
 import { isValidProjectId } from './project-id-param.js'
+import { resolveProjectId } from './projects-repository.js'
 
 /**
  * CR2's human action. The desktop's `contract_acknowledged` check reads the GET; only a caller
@@ -18,10 +19,11 @@ export function registerContractAcknowledgementRoutes(
 ): void {
   app.get('/v1/projects/:projectId/contracts/acknowledgements', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) {
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) {
       return c.json({ error: 'invalid_project_id' }, 400)
     }
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const runId = c.req.query('runId')
     if (!runId) {
       return c.json({ error: 'run_id_required' }, 400)
@@ -37,10 +39,11 @@ export function registerContractAcknowledgementRoutes(
 
   app.post('/v1/projects/:projectId/contracts/acknowledge', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) {
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) {
       return c.json({ error: 'invalid_project_id' }, 400)
     }
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const body = await readJsonBody(c)
     if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
     const result = AcknowledgeContractsBodySchema.safeParse(body.value)

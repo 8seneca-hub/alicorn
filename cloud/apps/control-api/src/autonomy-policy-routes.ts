@@ -13,6 +13,7 @@ import {
 import { getStageConfig, putStageConfig } from './project-stage-config-repository.js'
 import { readJsonBody } from './read-json-body.js'
 import { isValidProjectId } from './project-id-param.js'
+import { resolveProjectId } from './projects-repository.js'
 
 const DEFAULT_STAGE_KEY = 'build'
 
@@ -21,8 +22,9 @@ export function registerAutonomyPolicyRoutes(app: Hono<ControlApiEnv>, deps: Con
   // project authored none — the caller applies the contract default, and knows it did.
   app.get('/v1/projects/:projectId/autonomy-policy', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const stageKey = StageKeySchema.safeParse(c.req.query('stageKey') ?? DEFAULT_STAGE_KEY)
     if (!stageKey.success) return c.json({ error: 'invalid_stage_key' }, 400)
     const policy = await getAutonomyPolicy(deps.pool, auth.tenantId, {
@@ -38,16 +40,18 @@ export function registerAutonomyPolicyRoutes(app: Hono<ControlApiEnv>, deps: Con
   // auditor wants to see.
   app.get('/v1/projects/:projectId/autonomy-policies', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const policies = await listAutonomyPolicies(deps.pool, auth.tenantId, projectId)
     return c.json({ policies })
   })
 
   app.put('/v1/projects/:projectId/autonomy-policy', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const body = await readJsonBody(c)
     if (!body.ok) return c.json({ error: 'invalid_body', issues: [] }, 400)
     const result = AutonomyPolicyInputSchema.safeParse(body.value)
@@ -68,8 +72,9 @@ export function registerAutonomyPolicyRoutes(app: Hono<ControlApiEnv>, deps: Con
 
   app.get('/v1/projects/:projectId/stage-config/:stageKey', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const stageKey = StageKeySchema.safeParse(c.req.param('stageKey'))
     if (!stageKey.success) return c.json({ error: 'invalid_stage_key' }, 400)
     const config = await getStageConfig(deps.pool, auth.tenantId, projectId, stageKey.data)
@@ -78,8 +83,9 @@ export function registerAutonomyPolicyRoutes(app: Hono<ControlApiEnv>, deps: Con
 
   app.put('/v1/projects/:projectId/stage-config/:stageKey', async (c) => {
     const auth = c.get('auth')
-    const projectId = c.req.param('projectId')
-    if (!isValidProjectId(projectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const rawProjectId = c.req.param('projectId')
+    if (!isValidProjectId(rawProjectId)) return c.json({ error: 'invalid_project_id' }, 400)
+    const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
     const stageKey = StageKeySchema.safeParse(c.req.param('stageKey'))
     if (!stageKey.success) return c.json({ error: 'invalid_stage_key' }, 400)
     const body = await readJsonBody(c)
