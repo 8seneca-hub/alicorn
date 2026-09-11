@@ -30,6 +30,12 @@ export function registerProjectsRoutes(app: Hono<ControlApiEnv>, deps: ControlAp
     if (!result.success) {
       return c.json({ error: 'invalid_body', issues: result.error.issues }, 400)
     }
+    // A project with no repository has nowhere for its work to happen, and the repositories screen
+    // cannot add one yet. Enforced on create only: a repo moving to another project legitimately
+    // empties the one it left, and refusing *that* would block a move the model allows.
+    if (result.data.repoIds.length === 0) {
+      return c.json({ error: 'project_requires_repo' }, 400)
+    }
     try {
       const project = await createProject(deps.pool, auth.tenantId, auth.actor, result.data)
       return c.json({ project }, 201)

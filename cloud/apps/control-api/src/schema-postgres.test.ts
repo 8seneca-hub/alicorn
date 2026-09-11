@@ -30,7 +30,7 @@ describePostgres('control schema', () => {
         'project_protected_paths', 'project_repos', 'project_required_checks',
         'project_stage_config', 'projects',
         'rule_proposals', 'seat_connectors', 'seats', 'skill_versions', 'skills',
-        'stages', 'transitions', 'workflows'
+        'stages', 'task_members', 'tasks', 'transitions', 'workflows'
       ])
     } finally {
       await pool.end()

@@ -29,6 +29,50 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      PRIMARY KEY (tenant_id, repo_id))`,
   `CREATE INDEX IF NOT EXISTS project_repos_project ON project_repos(tenant_id, project_id)`,
   tenantRlsPolicySql('project_repos'),
+  // The unit of work (PRODUCT-ARCHITECTURE §2). The `(repo, branch, worktree)` tuples a task binds
+  // stay in the client's orchestration SQLite — execution is on the client, and a worktree path
+  // names nothing on another host — so this row is the ticket, not how it is being worked on.
+  `CREATE TABLE IF NOT EXISTS tasks (
+     id TEXT PRIMARY KEY DEFAULT ('tsk_' || gen_random_uuid()::text),
+     tenant_id TEXT NOT NULL,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     number INTEGER NOT NULL,
+     title TEXT NOT NULL,
+     context TEXT NOT NULL DEFAULT '',
+     column_id TEXT NOT NULL DEFAULT 'todo',
+     execution_strategy TEXT NOT NULL DEFAULT 'single'
+       CHECK (execution_strategy IN ('single', 'orchestrated')),
+     stage_key TEXT,
+     source_provider TEXT,
+     source_ref TEXT,
+     source_url TEXT,
+     created_by TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     closed_at TIMESTAMPTZ)`,
+  // The sequence behind PAY-142. Unique per project so a concurrent create collides (23505) and
+  // retries, rather than two tickets sharing a number that people then quote at each other.
+  `CREATE UNIQUE INDEX IF NOT EXISTS tasks_project_number ON tasks(tenant_id, project_id, number)`,
+  `CREATE INDEX IF NOT EXISTS tasks_project_column ON tasks(tenant_id, project_id, column_id)`,
+  // Tables created before PM import gain the columns here; `CREATE TABLE IF NOT EXISTS` above only
+  // ever builds a fresh one.
+  `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_provider TEXT`,
+  `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_ref TEXT`,
+  `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_url TEXT`,
+  // Importing the same board twice must not duplicate its tickets, so the provider's own id is
+  // unique per project. Partial: a task typed here has no source and many may share that absence.
+  `CREATE UNIQUE INDEX IF NOT EXISTS tasks_project_source
+     ON tasks(tenant_id, project_id, source_provider, source_ref)
+     WHERE source_ref IS NOT NULL`,
+  tenantRlsPolicySql('tasks'),
+  `CREATE TABLE IF NOT EXISTS task_members (
+     tenant_id TEXT NOT NULL,
+     task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+     member_id TEXT NOT NULL,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+     PRIMARY KEY (tenant_id, task_id, member_id))`,
+  `CREATE INDEX IF NOT EXISTS task_members_task ON task_members(tenant_id, task_id)`,
+  tenantRlsPolicySql('task_members'),
   // Product configuration — tenant-scoped, RLS forced.
   `CREATE TABLE IF NOT EXISTS members (
      id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,

@@ -85,7 +85,7 @@ describePostgres('projects routes (postgres)', () => {
 
   it('lists projects by name with their repositories', async () => {
     await createdProject({ name: 'Runtime', key: 'RUN', repoIds: ['repo-runtime'] })
-    await createdProject({ name: 'Payments', key: 'PAY', repoIds: [] })
+    await createdProject({ name: 'Payments', key: 'PAY', repoIds: ['repo-any'] })
 
     const response = await app.request('/v1/projects', { headers: authHeaders })
     const { projects } = (await response.json()) as { projects: Project[] }
@@ -94,13 +94,36 @@ describePostgres('projects routes (postgres)', () => {
   })
 
   it('refuses a second project with the same key', async () => {
-    await createdProject({ name: 'Payments', key: 'PAY', repoIds: [] })
-    const response = await create({ name: 'Payouts', key: 'PAY', repoIds: [] })
+    await createdProject({ name: 'Payments', key: 'PAY', repoIds: ['repo-any'] })
+    const response = await create({ name: 'Payouts', key: 'PAY', repoIds: ['repo-any'] })
     expect(response.status).toBe(409)
   })
 
+  // A project with no repository has nowhere for its work to happen.
+  it('refuses a project created with no repository', async () => {
+    const response = await create({ name: 'Payments', key: 'PAY', repoIds: [] })
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toMatchObject({ error: 'project_requires_repo' })
+  })
+
+  // A repo moving to another project legitimately empties the one it left, so the rule is on
+  // creation only — refusing the move would block something the model allows.
+  it('still allows an update that leaves a project with no repository', async () => {
+    const project = await createdProject({ name: 'Payments', key: 'PAY', repoIds: ['repo-any'] })
+
+    const response = await app.request(`/v1/projects/${project.id}`, {
+      method: 'PUT',
+      headers: authHeaders,
+      body: JSON.stringify({ name: 'Payments', key: 'PAY', repoIds: [] })
+    })
+
+    expect(response.status).toBe(200)
+    expect(((await response.json()) as { project: Project }).project.repoIds).toEqual([])
+  })
+
   it('rejects a key that would not read as a task prefix', async () => {
-    const response = await create({ name: 'Payments', key: 'payments platform', repoIds: [] })
+    const response = await create({ name: 'Payments', key: 'payments platform', repoIds: ['repo-any'] })
     expect(response.status).toBe(400)
   })
 
