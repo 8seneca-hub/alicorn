@@ -5,6 +5,7 @@
  * a project's name, and the surest way to guarantee that is for it never to hold one.
  */
 import React from 'react'
+import { Plus, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import type { Project } from '../../../../../shared/alicorn/projects'
@@ -74,11 +75,19 @@ export function AlicornScopeSidebar({
   route,
   projects,
   waitingByProject,
+  openByProject,
+  filter,
+  onFilterChange,
+  onNewProject,
   onNavigate
 }: {
   route: AlicornRoute
   projects: Project[]
   waitingByProject: Record<string, number>
+  openByProject: Record<string, number>
+  filter: string
+  onFilterChange: (value: string) => void
+  onNewProject: () => void
   onNavigate: (next: AlicornRoute) => void
 }): React.JSX.Element {
   if (route.scope === 'inbox') {
@@ -136,21 +145,52 @@ export function AlicornScopeSidebar({
           name={translate('auto.components.alicorn.shell.projects', 'Projects')}
           kind={translate(
             'auto.components.alicorn.shell.projectsKind',
-            'Run at once, on one org library'
+            '{{count}} running at once, one org library',
+            { count: projects.length }
           )}
         />
-        <div className="scrollbar-sleek flex-1 overflow-y-auto px-2 pb-4">
+        <label className="mx-4 mb-1 mt-2 flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5">
+          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          <input
+            value={filter}
+            onChange={(event) => onFilterChange(event.target.value)}
+            placeholder={translate('auto.components.alicorn.shell.findProject', 'Find a project…')}
+            className="w-full bg-transparent text-[12.5px] outline-none placeholder:text-muted-foreground"
+          />
+        </label>
+        <div className="scrollbar-sleek flex-1 overflow-y-auto px-2 pb-4 pt-1">
           {projects.map((project) => (
-            <Item
+            <button
               key={project.id}
-              label={project.name}
-              active={false}
-              meta={project.key}
+              type="button"
               onClick={() =>
                 onNavigate({ scope: 'projects', projectId: project.id, section: 'overview' })
               }
-            />
+              className="mb-2 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-left transition hover:border-foreground/20"
+            >
+              <div className="truncate text-[13px] font-semibold">{project.name}</div>
+              <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>
+                  {translate(
+                    'auto.components.alicorn.shell.projectMeta',
+                    '{{open}} open · {{repos}} repos',
+                    { open: openByProject[project.id] ?? 0, repos: project.repoIds.length }
+                  )}
+                </span>
+                <span className="font-mono">{project.key}</span>
+              </div>
+            </button>
           ))}
+        </div>
+        <div className="shrink-0 border-t border-border p-2">
+          <button
+            type="button"
+            onClick={onNewProject}
+            className="flex h-9 w-full items-center justify-center gap-1.5 rounded-md border border-border text-[13px] font-medium transition hover:bg-accent"
+          >
+            <Plus className="size-3.5" />
+            {translate('auto.components.alicorn.projects.new', 'New project')}
+          </button>
         </div>
       </aside>
     )

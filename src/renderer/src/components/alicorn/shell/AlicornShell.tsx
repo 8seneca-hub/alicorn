@@ -9,6 +9,8 @@
 import React from 'react'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
+import type { Worktree } from '../../../../../shared/worktree/types'
+import { projectWorktrees } from '../screens/project-worktrees'
 import { useGatePanelState } from '../../right-sidebar/gate-panel/use-gate-panel-state'
 import { AlicornScopeSidebar } from './AlicornScopeSidebar'
 import { AlicornProjectsScreen } from '../screens/AlicornProjectsScreen'
@@ -20,7 +22,10 @@ import { ALICORN_HOME, isProjectRoute, type AlicornRoute } from './alicorn-shell
 
 export function AlicornShell(): React.JSX.Element {
   const scope = useAppStore((state) => state.alicornScope)
+  const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
   const [route, setRoute] = React.useState<AlicornRoute>(ALICORN_HOME)
+  const [filter, setFilter] = React.useState('')
+  const [creating, setCreating] = React.useState(false)
   // The rail owns the scope; this shell owns where you are inside it. Re-pointing the rail resets
   // the route to that scope's landing place rather than leaving you on a stale project section.
   React.useEffect(() => {
@@ -55,12 +60,36 @@ export function AlicornShell(): React.JSX.Element {
     return byProject
   }, [gates, projectsState.projects])
 
+  // Open work per project, so the sidebar can say "4 open · 2 repos" without each card counting
+  // it again. A worktree is the unit — it is what Orca actually has in flight.
+  const openByProject = React.useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const project of projectsState.projects) {
+      counts[project.id] = projectWorktrees(
+        worktreesByRepo as Record<string, Worktree[]>,
+        project.repoIds
+      ).length
+    }
+    return counts
+  }, [projectsState.projects, worktreesByRepo])
+
+  const visibleProjects = React.useMemo(() => {
+    const needle = filter.trim().toLowerCase()
+    return needle
+      ? projectsState.projects.filter((project) => project.name.toLowerCase().includes(needle))
+      : projectsState.projects
+  }, [projectsState.projects, filter])
+
   return (
     <div className="flex h-full min-h-0 w-full">
       <AlicornScopeSidebar
         route={route}
-        projects={projectsState.projects}
+        projects={visibleProjects}
         waitingByProject={waitingByProject}
+        openByProject={openByProject}
+        filter={filter}
+        onFilterChange={setFilter}
+        onNewProject={() => setCreating(true)}
         onNavigate={setRoute}
       />
       <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
@@ -79,7 +108,11 @@ export function AlicornShell(): React.JSX.Element {
         ) : (
           <AlicornProjectsScreen
             state={projectsState}
+            projects={visibleProjects}
             waitingByProject={waitingByProject}
+            openByProject={openByProject}
+            creating={creating}
+            onCreatingChange={setCreating}
             onOpen={(projectId) => setRoute({ scope: 'projects', projectId, section: 'overview' })}
           />
         )}

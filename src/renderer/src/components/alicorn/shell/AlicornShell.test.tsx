@@ -70,7 +70,7 @@ describe('AlicornShell', () => {
     render(<AlicornShell />)
 
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
-    expect(screen.getByText('Run at once, on one org library')).toBeInTheDocument()
+    expect(screen.getByText('1 running at once, one org library')).toBeInTheDocument()
   })
 
   // The defect this shell exists to fix: the org scope must not be able to show a project's name.

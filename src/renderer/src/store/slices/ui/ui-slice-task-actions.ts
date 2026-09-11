@@ -14,7 +14,9 @@ const LINEAR_TASK_PREFETCH_LIMIT = 36
 
 export function createUiTaskActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
   return {
-    activeView: 'terminal',
+    // Alicorn opens on its own shell: the rail and the project list are the product, and the
+    // workspace view is where a task is worked once one is opened.
+    activeView: 'alicorn',
     previousViewBeforeTasks: 'terminal',
     previousViewBeforeSettings: 'terminal',
     previousViewBeforeActivity: 'terminal',
