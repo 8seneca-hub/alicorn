@@ -13,6 +13,12 @@ import { McpConfigSection } from '../../settings/McpConfigSection'
 import { useAppStore } from '@/store'
 import { AlicornEmptyState, AlicornScreenBody, AlicornScreenHeader } from './AlicornScreenChrome'
 import { AlicornInboxScreen } from './AlicornInboxScreen'
+import { AlicornProjectBoard, AlicornProjectTasks } from './AlicornProjectWork'
+import {
+  AlicornProjectChecks,
+  AlicornProjectMembers,
+  AlicornProjectWorkflow
+} from './AlicornProjectLibrary'
 import type { AlicornRoute, ProjectSection } from '../shell/alicorn-shell-route'
 
 const TITLES: Record<ProjectSection, string> = {
@@ -25,15 +31,6 @@ const TITLES: Record<ProjectSection, string> = {
   checks: 'Required Checks',
   mcp: 'MCP Servers',
   repos: 'Repositories'
-}
-
-/** Sections whose screen is not written yet. Named here so the list is one thing, not scattered. */
-const NOT_BUILT: Partial<Record<ProjectSection, string>> = {
-  board: 'The board dispatches a member when a task changes column. Not built yet.',
-  tasks: 'A task list scoped to this project. Not built yet — the workspace view still holds them.',
-  members: 'Which org members bind here, and what this project overrides. Not built yet.',
-  workflow: 'The stage graph, with rules and autonomy per stage. Not built yet.',
-  checks: 'The checks a stage requires before it hands off. Not built yet.'
 }
 
 export function AlicornProjectScreen({
@@ -66,6 +63,26 @@ export function AlicornProjectScreen({
         projectName={projectName}
       />
     )
+  }
+
+  if (route.section === 'board') {
+    return <AlicornProjectBoard projectName={projectName} repoIds={project?.repoIds ?? []} />
+  }
+
+  if (route.section === 'tasks') {
+    return <AlicornProjectTasks projectName={projectName} repoIds={project?.repoIds ?? []} />
+  }
+
+  if (route.section === 'members') {
+    return <AlicornProjectMembers projectName={projectName} />
+  }
+
+  if (route.section === 'workflow') {
+    return <AlicornProjectWorkflow projectName={projectName} projectId={route.projectId} />
+  }
+
+  if (route.section === 'checks') {
+    return <AlicornProjectChecks projectName={projectName} projectId={route.projectId} />
   }
 
   if (route.section === 'mcp') {
@@ -123,44 +140,30 @@ export function AlicornProjectScreen({
     )
   }
 
-  if (route.section === 'overview') {
-    return (
-      <>
-        <AlicornScreenHeader crumbs={['Alicorn', projectName]} title={TITLES.overview} />
-        <AlicornScreenBody>
-          <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
-            <OverviewTile
-              label={translate('auto.components.alicorn.project.waiting', 'Waiting on you')}
-              value={String(projectGates.length)}
-              onClick={() =>
-                onNavigate({ scope: 'projects', projectId: route.projectId, section: 'inbox' })
-              }
-            />
-            <OverviewTile
-              label={translate('auto.components.alicorn.projects.repos', 'Repos')}
-              value={String(projectRepos.length)}
-              onClick={() =>
-                onNavigate({ scope: 'projects', projectId: route.projectId, section: 'repos' })
-              }
-            />
-            <OverviewTile
-              label={translate('auto.components.alicorn.projects.key', 'Key')}
-              value={project?.key ?? '—'}
-            />
-          </div>
-        </AlicornScreenBody>
-      </>
-    )
-  }
-
   return (
     <>
-      <AlicornScreenHeader crumbs={['Alicorn', projectName]} title={TITLES[route.section]} />
+      <AlicornScreenHeader crumbs={['Alicorn', projectName]} title={TITLES.overview} />
       <AlicornScreenBody>
-        <AlicornEmptyState
-          title={translate('auto.components.alicorn.project.notBuiltTitle', 'Not built yet')}
-          detail={NOT_BUILT[route.section] ?? ''}
-        />
+        <div className="grid gap-3.5 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
+          <OverviewTile
+            label={translate('auto.components.alicorn.project.waiting', 'Waiting on you')}
+            value={String(projectGates.length)}
+            onClick={() =>
+              onNavigate({ scope: 'projects', projectId: route.projectId, section: 'inbox' })
+            }
+          />
+          <OverviewTile
+            label={translate('auto.components.alicorn.projects.repos', 'Repos')}
+            value={String(projectRepos.length)}
+            onClick={() =>
+              onNavigate({ scope: 'projects', projectId: route.projectId, section: 'repos' })
+            }
+          />
+          <OverviewTile
+            label={translate('auto.components.alicorn.projects.key', 'Key')}
+            value={project?.key ?? '—'}
+          />
+        </div>
       </AlicornScreenBody>
     </>
   )

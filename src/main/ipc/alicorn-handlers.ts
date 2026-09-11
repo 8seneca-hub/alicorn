@@ -11,6 +11,7 @@ import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
+import type { RequiredCheck } from '../../shared/alicorn/members'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import { readForemanRunView } from '../alicorn/foreman/run-view-source'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
@@ -48,6 +49,23 @@ function asProjectInput(value: unknown): ProjectInput | null {
 
 /** Registers every `alicorn:*` IPC handler on the main process. */
 export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
+  ipcMain.handle(
+    ALICORN_IPC.requiredChecksGet,
+    async (
+      _event,
+      args: { projectId?: unknown }
+    ): Promise<{ ok: true; checks: RequiredCheck[] } | AlicornFailure> => {
+      const projectId = asNonEmptyString(args?.projectId)
+      if (!projectId) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => ({
+        ok: true as const,
+        checks: await client.getRequiredChecks(projectId)
+      }))
+    }
+  )
+
   ipcMain.handle(
     ALICORN_IPC.projectsList,
     async (): Promise<{ ok: true; projects: Project[] } | AlicornFailure> =>

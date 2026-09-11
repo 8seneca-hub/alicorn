@@ -1,6 +1,6 @@
 import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
-import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
+import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 import type {
@@ -39,6 +39,10 @@ export type AlicornApi = {
   ) => Promise<{ ok: true; member: Member } | AlicornFailure>
   deleteMember: (id: string) => Promise<{ ok: true } | AlicornFailure>
   getOrgPolicy: () => Promise<{ ok: true; policy: OrgPolicy } | AlicornFailure>
+  /** Admin-authored per project, and read-only here: a member cannot loosen what judges it. */
+  getRequiredChecks: (
+    projectId: string
+  ) => Promise<{ ok: true; checks: RequiredCheck[] } | AlicornFailure>
   setTaskExecutionStrategy: (args: {
     taskId: string
     strategy: 'single' | 'orchestrated'

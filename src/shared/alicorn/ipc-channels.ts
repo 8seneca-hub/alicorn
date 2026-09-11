@@ -10,6 +10,7 @@ export const ALICORN_IPC = {
   membersUpdate: 'alicorn:members:update',
   membersDelete: 'alicorn:members:delete',
   orgPolicyGet: 'alicorn:orgPolicy:get',
+  requiredChecksGet: 'alicorn:requiredChecks:get',
   tasksSetExecutionStrategy: 'alicorn:tasks:setExecutionStrategy',
   foremanJournal: 'alicorn:foreman:journal',
   provenanceGet: 'alicorn:provenance:get',

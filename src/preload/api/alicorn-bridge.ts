@@ -13,6 +13,8 @@ export const alicornApi: AlicornApi = {
   updateMember: (id, input) => ipcRenderer.invoke(ALICORN_IPC.membersUpdate, { id, input }),
   deleteMember: (id) => ipcRenderer.invoke(ALICORN_IPC.membersDelete, { id }),
   getOrgPolicy: () => ipcRenderer.invoke(ALICORN_IPC.orgPolicyGet),
+  getRequiredChecks: (projectId) =>
+    ipcRenderer.invoke(ALICORN_IPC.requiredChecksGet, { projectId }),
   setTaskExecutionStrategy: (args) =>
     ipcRenderer.invoke(ALICORN_IPC.tasksSetExecutionStrategy, args),
   getForemanRun: (worktreeId) => ipcRenderer.invoke(ALICORN_IPC.foremanJournal, { worktreeId }),

@@ -98,6 +98,7 @@ export const FeatureInteractionIdParam = z.custom<FeatureInteractionId>(isFeatur
   message: 'Unknown feature interaction id'
 })
 const TopLevelViewSchema = z.enum([
+  'alicorn',
   'terminal',
   'settings',
   'tasks',
