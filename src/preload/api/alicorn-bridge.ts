@@ -4,6 +4,10 @@ import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { AlicornApi } from './alicorn-api'
 
 export const alicornApi: AlicornApi = {
+  listProjects: () => ipcRenderer.invoke(ALICORN_IPC.projectsList),
+  createProject: (input) => ipcRenderer.invoke(ALICORN_IPC.projectsCreate, input),
+  updateProject: (id, input) => ipcRenderer.invoke(ALICORN_IPC.projectsUpdate, { id, input }),
+  deleteProject: (id) => ipcRenderer.invoke(ALICORN_IPC.projectsDelete, { id }),
   listMembers: () => ipcRenderer.invoke(ALICORN_IPC.membersList),
   createMember: (input) => ipcRenderer.invoke(ALICORN_IPC.membersCreate, input),
   updateMember: (id, input) => ipcRenderer.invoke(ALICORN_IPC.membersUpdate, { id, input }),

@@ -1,6 +1,7 @@
 import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
+import type { Project, ProjectInput } from '../../shared/alicorn/projects'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 import type {
   ContextCaptureDetailResult,
@@ -22,6 +23,14 @@ import type {
 export type AlicornFailure = { ok: false; error: string }
 
 export type AlicornApi = {
+  /** Projects own their repositories; a repository belongs to at most one. */
+  listProjects: () => Promise<{ ok: true; projects: Project[] } | AlicornFailure>
+  createProject: (input: ProjectInput) => Promise<{ ok: true; project: Project } | AlicornFailure>
+  updateProject: (
+    id: string,
+    input: ProjectInput
+  ) => Promise<{ ok: true; project: Project } | AlicornFailure>
+  deleteProject: (id: string) => Promise<{ ok: true } | AlicornFailure>
   listMembers: () => Promise<{ ok: true; members: Member[] } | AlicornFailure>
   createMember: (input: MemberInput) => Promise<{ ok: true; member: Member } | AlicornFailure>
   updateMember: (
@@ -76,15 +85,13 @@ export type AlicornApi = {
     worktreeId: string | null
     commitToRepo: boolean
   }) => Promise<RuleProposalDecisionResult>
-  rejectRuleProposal: (args: { id: string }) => Promise<RuleProposalDecisionResult>,
+  rejectRuleProposal: (args: { id: string }) => Promise<RuleProposalDecisionResult>
   /** WF2's canvas. The Control API stays the authority on what graph is legal. */
   listWorkflows: (
     projectId: string
   ) => Promise<{ ok: true; workflows: WorkflowSummary[] } | AlicornFailure>
   getWorkflow: (id: string) => Promise<WorkflowResult>
-  listWorkflowTemplates: () => Promise<
-    { ok: true; templates: WorkflowTemplate[] } | AlicornFailure
-  >
+  listWorkflowTemplates: () => Promise<{ ok: true; templates: WorkflowTemplate[] } | AlicornFailure>
   createWorkflow: (graph: WorkflowGraphInput) => Promise<WorkflowResult>
   /** `version` is the one the canvas loaded; a `version_conflict` error means someone else saved. */
   updateWorkflow: (args: {

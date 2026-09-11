@@ -27,8 +27,13 @@ import type {
   WorkflowSummary,
   WorkflowTemplate
 } from '../../shared/alicorn/workflows'
+import type { Project, ProjectInput } from '../../shared/alicorn/projects'
 
 export type ControlPlaneClient = {
+  listProjects: () => Promise<Project[]>
+  createProject: (input: ProjectInput) => Promise<Project>
+  updateProject: (id: string, input: ProjectInput) => Promise<Project>
+  deleteProject: (id: string) => Promise<void>
   listMembers: () => Promise<Member[]>
   createMember: (input: MemberInput) => Promise<Member>
   updateMember: (id: string, input: MemberInput) => Promise<Member>
@@ -107,6 +112,34 @@ export function createControlPlaneClient(deps?: {
   }
 
   return {
+    listProjects: async () => {
+      const body = await readJson<{ projects: Project[] }>('control', '/v1/projects')
+      return body.projects ?? []
+    },
+
+    createProject: async (input) => {
+      const body = await readJson<{ project: Project }>('control', '/v1/projects', {
+        method: 'POST',
+        body: JSON.stringify(input)
+      })
+      return body.project
+    },
+
+    updateProject: async (id, input) => {
+      const body = await readJson<{ project: Project }>('control', projectPath(id), {
+        method: 'PUT',
+        body: JSON.stringify(input)
+      })
+      return body.project
+    },
+
+    // 204 No Content, like deleteMember — the body is cancelled rather than left unread.
+    deleteProject: async (id) => {
+      await cancelUnreadResponseBody(
+        await request('control', projectPath(id), { method: 'DELETE' })
+      )
+    },
+
     listMembers: async () => {
       const body = await readJson<{ members: Member[] }>('control', '/v1/members')
       return body.members ?? []

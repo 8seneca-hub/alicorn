@@ -10,6 +10,7 @@ import { registerAlicornWorkflowHandlers } from './alicorn-workflow-handlers'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
+import type { Project, ProjectInput } from '../../shared/alicorn/projects'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import { readForemanRunView } from '../alicorn/foreman/run-view-source'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
@@ -40,8 +41,68 @@ function asMemberInput(value: unknown): MemberInput | null {
   return value && typeof value === 'object' ? (value as MemberInput) : null
 }
 
+/** Same reasoning as asMemberInput: reject a non-object here, leave the shape to the server. */
+function asProjectInput(value: unknown): ProjectInput | null {
+  return value && typeof value === 'object' ? (value as ProjectInput) : null
+}
+
 /** Registers every `alicorn:*` IPC handler on the main process. */
 export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
+  ipcMain.handle(
+    ALICORN_IPC.projectsList,
+    async (): Promise<{ ok: true; projects: Project[] } | AlicornFailure> =>
+      attempt(deps.client, async (client) => ({
+        ok: true as const,
+        projects: await client.listProjects()
+      }))
+  )
+
+  ipcMain.handle(
+    ALICORN_IPC.projectsCreate,
+    async (_event, input: unknown): Promise<{ ok: true; project: Project } | AlicornFailure> => {
+      const projectInput = asProjectInput(input)
+      if (!projectInput) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => ({
+        ok: true as const,
+        project: await client.createProject(projectInput)
+      }))
+    }
+  )
+
+  ipcMain.handle(
+    ALICORN_IPC.projectsUpdate,
+    async (
+      _event,
+      args: { id?: unknown; input?: unknown }
+    ): Promise<{ ok: true; project: Project } | AlicornFailure> => {
+      const id = asNonEmptyString(args?.id)
+      const projectInput = asProjectInput(args?.input)
+      if (!id || !projectInput) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => ({
+        ok: true as const,
+        project: await client.updateProject(id, projectInput)
+      }))
+    }
+  )
+
+  ipcMain.handle(
+    ALICORN_IPC.projectsDelete,
+    async (_event, args: { id?: unknown }): Promise<{ ok: true } | AlicornFailure> => {
+      const id = asNonEmptyString(args?.id)
+      if (!id) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => {
+        await client.deleteProject(id)
+        return { ok: true as const }
+      })
+    }
+  )
+
   ipcMain.handle(
     ALICORN_IPC.membersList,
     async (): Promise<{ ok: true; members: Member[] } | AlicornFailure> =>
