@@ -1,5 +1,13 @@
 import React from 'react'
-import { BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone } from 'lucide-react'
+import {
+  BookOpen,
+  CalendarClock,
+  EyeOff,
+  Files,
+  FolderGit2,
+  Search,
+  Smartphone
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
@@ -69,6 +77,8 @@ const SidebarNav = React.memo(function SidebarNav() {
   const showSkillsButton = useAppStore((s) => shouldShowSkillsButton(s.settings))
   const automationsActive = activeView === 'automations'
   const mobileActive = activeView === 'mobile'
+  const alicornActive = activeView === 'alicorn'
+  const setActiveView = useAppStore((s) => s.setActiveView)
   const artifactsActive = activeView === 'artifacts'
   const skillsActive = activeView === 'skills'
   const mobileOnboardingBadge = useMobileSidebarOnboardingBadge(showMobileButton)
@@ -150,6 +160,25 @@ const SidebarNav = React.memo(function SidebarNav() {
           <HideSidebarMenu onHide={hideArtifactsButton} />
         </ContextMenu>
       ) : null}
+      <button
+        type="button"
+        onClick={() => setActiveView('alicorn')}
+        aria-current={alicornActive ? 'page' : undefined}
+        className={cn(
+          'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
+          alicornActive
+            ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+            : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
+        )}
+      >
+        <FolderGit2
+          className={cn('size-4 shrink-0', !alicornActive && 'text-worktree-sidebar-foreground/30')}
+          strokeWidth={alicornActive ? 2.25 : 1.75}
+        />
+        <span className="flex-1">
+          {translate('auto.components.sidebar.SidebarNav.alicorn', 'Projects')}
+        </span>
+      </button>
       {showSkillsButton ? (
         <ContextMenu>
           <ContextMenuTrigger asChild>

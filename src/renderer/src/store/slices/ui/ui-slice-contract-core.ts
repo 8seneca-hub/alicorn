@@ -105,6 +105,7 @@ export type NewWorkspaceDraft = {
 }
 
 export type UiViewHistory =
+  | 'alicorn'
   | 'terminal'
   | 'settings'
   | 'tasks'

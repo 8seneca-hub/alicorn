@@ -21,6 +21,13 @@ const AutomationsPage = lazy(() => import('../components/automations/Automations
 const ActivityPrototypePage = lazy(() => import('../components/activity/ActivityPrototypePage'))
 const Settings = lazy(() => import('../components/settings/Settings'))
 const SkillsPage = lazy(() => import('../components/skills/SkillsPage'))
+// Lazy for the same reason the other pages are: nothing reaches the Alicorn shell without the
+// rail being clicked, so its control-plane reads stay off the boot graph.
+const AlicornShell = lazy(() =>
+  import('../components/alicorn/shell/AlicornShell').then((module) => ({
+    default: module.AlicornShell
+  }))
+)
 const ArtifactsPage = lazy(() => import('../components/artifacts/ArtifactsPage'))
 const WorkspaceSpacePage = lazy(() => import('../components/workspace-space/WorkspaceSpacePage'))
 const MobilePage = lazy(() => import('../components/mobile/MobilePage'))
@@ -68,6 +75,7 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
   const { activeView, activeWorktreeId, activePendingCreationId, creationLayoutActive } = layout
   return (
     <>
+      {activeView === 'alicorn' ? <AlicornShell /> : null}
       {activeView === 'settings' ? <Settings /> : null}
       {activeView === 'skills' ? <SkillsPage /> : null}
       {activeView === 'artifacts' ? <ArtifactsPage /> : null}

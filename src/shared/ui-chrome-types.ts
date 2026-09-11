@@ -116,6 +116,8 @@ export type ManualRepoOrderEntry = {
 
 /** The active top-level section shown in the main content area. */
 export type TopLevelView =
+  /** The Alicorn shell: an icon rail whose scope decides the sidebar beside it. */
+  | 'alicorn'
   | 'terminal'
   | 'settings'
   | 'tasks'
