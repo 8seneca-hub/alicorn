@@ -2,6 +2,7 @@ import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
+import type { AutonomyPolicy } from '../../shared/alicorn/gate-policy'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
 import type {
   TaskWorktreeTuple,
@@ -41,6 +42,10 @@ export type AlicornApi = {
   createTask: (input: TaskInput) => Promise<{ ok: true; task: Task } | AlicornFailure>
   updateTask: (id: string, patch: TaskPatch) => Promise<{ ok: true; task: Task } | AlicornFailure>
   deleteTask: (id: string) => Promise<{ ok: true } | AlicornFailure>
+  /** A project's autonomy policies. Read-only: authored by an admin, never by the member judged. */
+  listAutonomyPolicies: (
+    projectId: string
+  ) => Promise<{ ok: true; policies: AutonomyPolicy[] } | AlicornFailure>
   /** Path to the MCP config a session Alicorn starts is pointed at, written on demand. */
   mcpConfigPath: () => Promise<{ ok: true; path: string } | AlicornFailure>
   /** The (repo, branch, worktree) tuples a task is being worked on in. Client-side state. */

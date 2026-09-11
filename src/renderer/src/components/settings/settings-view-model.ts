@@ -91,7 +91,9 @@ export function buildSettingsViewModel(
       title: translate(group.titleKey, group.titleDefault),
       sections: generalNavSections.filter((section) => section.group === group.id)
     }))
-    .filter((group) => group.sections.length > 0 || group.id === 'setup')
+    // An empty group is not a heading worth drawing. The old exception kept `setup` visible while
+    // it was the onboarding home; §6 moved the setup guide into the flat root, which is never empty.
+    .filter((group) => group.sections.length > 0)
   const repoNavSections = navigation.visibleNavSections
     .filter((section) => section.id.startsWith('repo-'))
     .map((section) => {

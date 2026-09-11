@@ -63,7 +63,7 @@ describe('settings navigation metadata', () => {
     )
   })
 
-  it('adds the Linear capability section right after Orchestration only when connected', () => {
+  it('keeps the Linear skill with the account it authenticates, not with capabilities', () => {
     expect(ids()).not.toContain('linear')
 
     const connectedIds = ids({ isLinearConnected: true })
@@ -77,14 +77,14 @@ describe('settings navigation metadata', () => {
       isLinearConnected: true,
       repos: [repo]
     }).find((section) => section.id === 'linear')
-    expect(linearSection?.group).toBe('capabilities')
+    expect(linearSection?.group).toBe('account')
   })
 
   it('keeps the Linear capability section available on web clients when connected', () => {
     expect(ids({ isWebClient: true, isLinearConnected: true })).toContain('linear')
   })
 
-  it('places Mobile under Set Up instead of its own sidebar group', () => {
+  it('leaves Mobile in the flat root rather than its own sidebar group', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -92,10 +92,10 @@ describe('settings navigation metadata', () => {
       repos: [repo]
     })
 
-    expect(sections.find((section) => section.id === 'mobile')?.group).toBe('setup')
+    expect(sections.find((section) => section.id === 'mobile')?.group).toBe('general')
   })
 
-  it('leads Workflows with Automations, Members, Workflows, Artifacts, and Share Skills', () => {
+  it('splits the old Workflows group into the org library and the account that runs it', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -105,31 +105,31 @@ describe('settings navigation metadata', () => {
     const automations = sections.find((section) => section.id === 'automations')
     const artifacts = sections.find((section) => section.id === 'artifacts')
     const shareSkills = sections.find((section) => section.id === 'share-skills')
-    const workflowIds = sections
-      .filter((section) => section.group === 'workflows')
+    const orgIds = sections
+      .filter((section) => section.group === 'organisation')
       .map((section) => section.id)
 
-    expect(automations?.group).toBe('workflows')
+    expect(automations?.group).toBe('account')
     expect(automations?.searchEntries[0]?.title).toBe('Show Automations Button')
-    expect(artifacts?.group).toBe('workflows')
+    expect(artifacts?.group).toBe('account')
     expect(artifacts?.badge).toBe('Beta')
     expect(artifacts?.description).toBe(
       'Share HTML and Markdown files with your team and manage their public links.'
     )
-    expect(shareSkills).toMatchObject({ group: 'workflows', badge: 'Beta' })
+    expect(shareSkills).toMatchObject({ group: 'organisation', badge: 'Beta' })
     expect(shareSkills?.searchEntries[0]?.title).toBe('Unlisted skill links')
-    // Members sits directly under Automations: both are about who does the
-    // work, and the tier-1 desktop plan places it there deliberately.
-    expect(workflowIds.slice(0, 5)).toEqual([
-      'automations',
+    // The old Workflows group held both the org library and the account that runs it. §6 split
+    // them: the library — members, the workflows they run, orchestration and the skills they
+    // share — is the organisation's, while automations and artifacts follow the account.
+    expect(orgIds).toEqual([
+      'orchestration',
       'alicorn-members',
       'alicorn-workflows',
-      'artifacts',
       'share-skills'
     ])
   })
 
-  it('places the Orca account in Set Up on desktop only', () => {
+  it('places the Alicorn account with the other account panes, on desktop only', () => {
     const desktopSections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -138,8 +138,8 @@ describe('settings navigation metadata', () => {
     })
     const account = desktopSections.find((section) => section.id === 'orca-account')
 
-    expect(account?.group).toBe('setup')
-    expect(account?.searchEntries[0]?.title).toBe('Orca account')
+    expect(account?.group).toBe('account')
+    expect(account?.searchEntries[0]?.title).toBe('Alicorn account')
     expect(ids({ isWebClient: true })).not.toContain('orca-account')
   })
 
@@ -218,7 +218,7 @@ describe('settings navigation metadata', () => {
     expect(sections.find((section) => section.id === 'voice')?.badge).toBeUndefined()
   })
 
-  it('places Cloud VM under Experimental instead of as a beta sidebar item', () => {
+  it('places Cloud VM with the device it runs on instead of as a beta sidebar item', () => {
     const sections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -231,11 +231,11 @@ describe('settings navigation metadata', () => {
     )
 
     expect(sections.map((section) => section.id)).not.toContain('ephemeral-vms')
-    expect(experimental?.group).toBe('experimental')
+    expect(experimental?.group).toBe('device')
     expect(entry?.targetSectionId).toBe('ephemeral-vms')
   })
 
-  it('places Plugins under Experimental on desktop and omits it on the web', () => {
+  it('places Plugins in the flat root on desktop and omits it on the web', () => {
     const desktopSections = buildSettingsNavigationMetadata({
       isMac: false,
       isWindows: false,
@@ -244,7 +244,7 @@ describe('settings navigation metadata', () => {
     })
     const desktopIds = desktopSections.map((section) => section.id)
 
-    expect(desktopSections.find((section) => section.id === 'plugins')?.group).toBe('experimental')
+    expect(desktopSections.find((section) => section.id === 'plugins')?.group).toBe('general')
     expect(desktopIds.indexOf('plugins')).toBe(desktopIds.indexOf('experimental') + 1)
     expect(ids({ isWebClient: true })).not.toContain('plugins')
   })

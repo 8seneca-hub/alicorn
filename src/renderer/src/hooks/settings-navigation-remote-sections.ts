@@ -41,7 +41,7 @@ export function buildRemoteSettingsSections(
             ),
             icon: Cable,
             searchEntries: getSshPaneSearchEntries(),
-            group: 'remote'
+            group: 'project'
           }
         ]
       : []),
@@ -56,7 +56,7 @@ export function buildRemoteSettingsSections(
         : 'Pair remote Orca runtimes for persistent sessions, richer remote state, and web or mobile handoff.',
       icon: Server,
       searchEntries: [runtimeEnvironmentsSearchEntry],
-      group: 'remote',
+      group: 'project',
       badge: translate('auto.hooks.useSettingsNavigationMetadata.40d80bad8a', 'Beta')
     },
     ...(showDesktopOnlySettings && isMac
@@ -73,7 +73,7 @@ export function buildRemoteSettingsSections(
             ),
             icon: ShieldCheck,
             searchEntries: getDeveloperPermissionsPaneSearchEntries(),
-            group: 'security'
+            group: 'general'
           }
         ]
       : []),
@@ -89,7 +89,7 @@ export function buildRemoteSettingsSections(
       ),
       icon: Lock,
       searchEntries: getPrivacyPaneSearchEntries(),
-      group: 'security'
+      group: 'device'
     },
     ...(showDesktopOnlySettings
       ? [
@@ -102,7 +102,7 @@ export function buildRemoteSettingsSections(
             ),
             icon: Wrench,
             searchEntries: getAdvancedPaneSearchEntries(),
-            group: 'advanced'
+            group: 'general'
           }
         ]
       : []),
@@ -121,7 +121,7 @@ export function buildRemoteSettingsSections(
             // entries in the same 'advanced' group stay visually distinguishable.
             icon: Bug,
             searchEntries: getDevToolsPaneSearchEntries(),
-            group: 'advanced',
+            group: 'device',
             badge: translate('auto.hooks.useSettingsNavigationMetadata.devBadge', 'Dev')
           }
         ]
@@ -135,7 +135,7 @@ export function buildRemoteSettingsSections(
       ),
       icon: FlaskConical,
       searchEntries: getExperimentalPaneSearchEntries(),
-      group: 'experimental'
+      group: 'device'
     },
     ...(showDesktopOnlySettings
       ? [
@@ -148,7 +148,7 @@ export function buildRemoteSettingsSections(
             ),
             icon: Blocks,
             searchEntries: getPluginsPaneSearchEntries(),
-            group: 'experimental'
+            group: 'general'
           }
         ]
       : []),

@@ -7,6 +7,7 @@
 import React from 'react'
 import {
   ChevronLeft,
+  Gauge,
   GitBranch,
   Inbox,
   LayoutGrid,
@@ -16,6 +17,7 @@ import {
   Plus,
   Search,
   Server,
+  Share2,
   ShieldCheck,
   Sparkles,
   SquareKanban,
@@ -69,13 +71,17 @@ const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
 const ORG_SECTION_LABELS: Record<OrgSection, string> = {
   members: 'Members',
   workflows: 'Workflows',
-  checks: 'Required Checks'
+  autonomy: 'Autonomy',
+  checks: 'Required Checks',
+  orchestration: 'Orchestration'
 }
 
 const ORG_SECTION_ICONS: Record<OrgSection, IconComponent> = {
   members: Users,
   workflows: Workflow,
-  checks: ShieldCheck
+  autonomy: Gauge,
+  checks: ShieldCheck,
+  orchestration: Share2
 }
 
 function SidebarHead({ name, kind }: { name: string; kind: string }): React.JSX.Element {

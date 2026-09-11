@@ -45,7 +45,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: CalendarClock,
       searchEntries: getAutomationsSettingsSearchEntries(),
-      group: 'workflows'
+      group: 'account'
     },
     {
       id: 'alicorn-members',
@@ -56,7 +56,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: Users,
       searchEntries: getAlicornMembersSearchEntries(),
-      group: 'workflows'
+      group: 'organisation'
     },
     {
       id: 'alicorn-workflows',
@@ -70,7 +70,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: Workflow,
       searchEntries: getAlicornWorkflowsSearchEntries(),
-      group: 'workflows'
+      group: 'organisation'
     },
     {
       id: 'artifacts',
@@ -81,7 +81,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: Files,
       searchEntries: getArtifactsSettingsSearchEntries(),
-      group: 'workflows',
+      group: 'account',
       badge: translate('auto.hooks.useSettingsNavigationMetadata.40d80bad8a', 'Beta')
     },
     {
@@ -95,7 +95,7 @@ export function buildWorkflowSettingsSections(
       // skills, so the settings row that opens them matches.
       icon: BookOpen,
       searchEntries: getShareSkillsSettingsSearchEntries(),
-      group: 'workflows',
+      group: 'organisation',
       badge: translate('auto.hooks.useSettingsNavigationMetadata.40d80bad8a', 'Beta')
     },
     {
@@ -110,7 +110,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: Workflow,
       searchEntries: getBoardAutomationSearchEntries(),
-      group: 'workflows'
+      group: 'project'
     },
     {
       id: 'git',
@@ -130,7 +130,7 @@ export function buildWorkflowSettingsSections(
         ...getCommitMessageAiPaneSearchEntries(),
         ...getGitProviderApiBudgetSearchEntries()
       ],
-      group: 'workflows'
+      group: 'project'
     },
     {
       id: 'tasks',
@@ -141,7 +141,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: ListChecks,
       searchEntries: getTasksPaneSearchEntries(),
-      group: 'workflows'
+      group: 'project'
     },
     {
       id: 'terminal',
@@ -152,7 +152,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: SquareTerminal,
       searchEntries: terminalPaneSearchEntries,
-      group: 'workflows'
+      group: 'device'
     },
     {
       id: 'quick-commands',
@@ -163,7 +163,7 @@ export function buildWorkflowSettingsSections(
       ),
       icon: Play,
       searchEntries: getQuickCommandsPaneSearchEntries(),
-      group: 'workflows'
+      group: 'general'
     },
     ...(showDesktopOnlySettings
       ? [
@@ -176,7 +176,7 @@ export function buildWorkflowSettingsSections(
             ),
             icon: Globe,
             searchEntries: getBrowserPaneCombinedSearchEntries(),
-            group: 'workflows'
+            group: 'device'
           }
         ]
       : []),
@@ -194,7 +194,7 @@ export function buildWorkflowSettingsSections(
             ),
             icon: TabletSmartphone,
             searchEntries: getMobileEmulatorSearchEntries(),
-            group: 'workflows'
+            group: 'general'
           }
         ]
       : []),
@@ -214,7 +214,7 @@ export function buildWorkflowSettingsSections(
       searchEntries: getFloatingWorkspaceSearchEntries({
         includeBrowser: showDesktopOnlySettings
       }),
-      group: 'workflows'
+      group: 'device'
     }
   ]
 }

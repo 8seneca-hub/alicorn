@@ -127,7 +127,7 @@ export function AlicornShell(): React.JSX.Element {
         {route.scope === 'inbox' ? (
           <AlicornInboxScreen gates={gates} onResolved={refreshGates} projectId={null} />
         ) : route.scope === 'org' ? (
-          <AlicornOrgScreen section={route.section} />
+          <AlicornOrgScreen section={route.section} projects={projectsState.projects} />
         ) : isProjectRoute(route) ? (
           <AlicornProjectScreen
             route={route}

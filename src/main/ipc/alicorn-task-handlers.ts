@@ -7,6 +7,7 @@ import {
   type AlicornFailure
 } from './alicorn-control-plane-result'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
+import type { AutonomyPolicy } from '../../shared/alicorn/gate-policy'
 import type {
   TaskWorktreeTuple,
   TaskWorktreeTupleInput
@@ -30,6 +31,25 @@ export function registerAlicornTaskHandlers(deps: {
   client: ControlPlaneClient | null
   getOrchestrationDb: () => OrchestrationDb
 }): void {
+  // Read-only, and deliberately: a policy is admin-authored per project, never by the member it
+  // judges, so the renderer can show one but has no way here to write one.
+  ipcMain.handle(
+    ALICORN_IPC.autonomyPoliciesList,
+    async (
+      _event,
+      args: { projectId?: unknown }
+    ): Promise<{ ok: true; policies: AutonomyPolicy[] } | AlicornFailure> => {
+      const projectId = asNonEmptyString(args?.projectId)
+      if (!projectId) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => ({
+        ok: true as const,
+        policies: await client.listAutonomyPolicies(projectId)
+      }))
+    }
+  )
+
   // Written on demand so a session Alicorn starts can be pointed at it. Failure answers null and
   // the launch simply carries no MCP — an agent without Alicorn's tools is a smaller loss than a
   // session that refuses to start.

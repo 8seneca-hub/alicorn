@@ -22,7 +22,7 @@ export const PROJECT_SECTIONS = [
 ] as const
 export type ProjectSection = (typeof PROJECT_SECTIONS)[number]
 
-export const ORG_SECTIONS = ['members', 'workflows', 'checks'] as const
+export const ORG_SECTIONS = ['members', 'workflows', 'autonomy', 'checks', 'orchestration'] as const
 export type OrgSection = (typeof ORG_SECTIONS)[number]
 
 export type AlicornRoute =

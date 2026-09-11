@@ -30,7 +30,7 @@ export function buildInterfaceSettingsSections({
         showSystemTray: showDesktopOnlySettings && isWindows,
         showMenuBarIcon: showDesktopOnlySettings && isMac
       }),
-      group: 'interface'
+      group: 'device'
     },
     {
       id: 'input',
@@ -41,7 +41,7 @@ export function buildInterfaceSettingsSections({
       ),
       icon: TextCursorInput,
       searchEntries: getInputPaneSearchEntries(),
-      group: 'interface'
+      group: 'device'
     },
     ...(showDesktopOnlySettings
       ? [
@@ -57,7 +57,7 @@ export function buildInterfaceSettingsSections({
             ),
             icon: Bell,
             searchEntries: getNotificationsPaneSearchEntries(),
-            group: 'interface'
+            group: 'device'
           }
         ]
       : []),
@@ -73,7 +73,7 @@ export function buildInterfaceSettingsSections({
         includeManagedBrowser: managedBrowserCreationEnabled,
         includeMobileEmulator: mobileEmulatorCreationEnabled
       }),
-      group: 'interface'
+      group: 'device'
     },
     {
       id: 'stats',
@@ -84,7 +84,7 @@ export function buildInterfaceSettingsSections({
       ),
       icon: BarChart3,
       searchEntries: getStatsPaneSearchEntries(),
-      group: 'interface'
+      group: 'general'
     }
   ]
 }

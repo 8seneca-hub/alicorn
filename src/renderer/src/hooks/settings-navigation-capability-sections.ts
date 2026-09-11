@@ -44,7 +44,7 @@ export function buildCapabilitySettingsSections({
         includeAgentAwake: !isWebClient,
         includeAgentRuntime: isLocalWindowsHost
       }),
-      group: 'capabilities'
+      group: 'account'
     },
     {
       id: 'accounts',
@@ -58,7 +58,7 @@ export function buildCapabilitySettingsSections({
       ),
       icon: UserCog,
       searchEntries: getAccountsPaneSearchEntries(),
-      group: 'capabilities',
+      group: 'account',
       badge: translate('auto.hooks.useSettingsNavigationMetadata.7c79d3b7bf', 'Optional')
     },
     {
@@ -72,7 +72,7 @@ export function buildCapabilitySettingsSections({
       searchEntries: getOrchestrationPaneSearchEntries({
         includeNestedWorkerDepth: !isWebClient
       }),
-      group: 'capabilities'
+      group: 'organisation'
     },
     // Why: only surfaced once Linear is connected — a capability that needs a
     // linked provider before the agent skill has anything to act on.
@@ -87,7 +87,7 @@ export function buildCapabilitySettingsSections({
             ),
             icon: LinearIcon,
             searchEntries: getLinearAgentSkillPaneSearchEntries(),
-            group: 'capabilities'
+            group: 'account'
           }
         ]
       : []),
@@ -102,7 +102,7 @@ export function buildCapabilitySettingsSections({
             ),
             icon: MousePointerClick,
             searchEntries: getComputerUsePaneSearchEntries(),
-            group: 'capabilities'
+            group: 'device'
           },
           {
             id: 'voice',
@@ -113,7 +113,7 @@ export function buildCapabilitySettingsSections({
             ),
             icon: Mic,
             searchEntries: getVoicePaneSearchEntries(),
-            group: 'capabilities'
+            group: 'device'
           }
         ]
       : [])
@@ -137,7 +137,7 @@ export function buildSetupSettingsSections({
             ),
             icon: CircleUserRound,
             searchEntries: getOrcaAccountSettingsSearchEntries(),
-            group: 'setup'
+            group: 'account'
           }
         ]
       : []),
@@ -172,7 +172,7 @@ export function buildSetupSettingsSections({
           ]
         }
       ],
-      group: 'setup'
+      group: 'general'
     },
     {
       id: 'general',
@@ -183,7 +183,7 @@ export function buildSetupSettingsSections({
       ),
       icon: SlidersHorizontal,
       searchEntries: getGeneralPaneSearchEntries({ includeProjectRuntime: isLocalWindowsHost }),
-      group: 'setup'
+      group: 'general'
     },
     {
       id: 'integrations',
@@ -194,7 +194,7 @@ export function buildSetupSettingsSections({
       ),
       icon: Blocks,
       searchEntries: getIntegrationsPaneSearchEntries(),
-      group: 'setup'
+      group: 'project'
     },
     ...(showDesktopOnlySettings
       ? [
@@ -207,7 +207,7 @@ export function buildSetupSettingsSections({
             ),
             icon: Smartphone,
             searchEntries: getMobileSettingsPaneSearchEntries(),
-            group: 'setup'
+            group: 'general'
           }
         ]
       : [])

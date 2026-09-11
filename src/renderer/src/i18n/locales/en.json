@@ -17299,7 +17299,17 @@
           "requiresRepo": "A project needs at least one repository."
         },
         "org": {
-          "checksNote": "Required checks are authored per project by an org admin, so they live in a project rather than here. A member cannot loosen the criteria that judge it, which is why this pane does not edit them."
+          "checksNote": "Required checks are authored per project by an org admin, so they live in a project rather than here. A member cannot loosen the criteria that judge it, which is why this pane does not edit them.",
+          "autonomyIntro": "Autonomy is authored per stage of a project, never org-wide, and it is unlocked by evidence the ledger accumulates rather than by a switch. This is what every project currently holds; a merge, a deploy or anything irreversible gates regardless of track record.",
+          "autonomyLoading": "Reading policies…",
+          "noAutonomyTitle": "Every stage still gates",
+          "noAutonomyDetail": "No project has authored an autonomy policy, so every hand-off asks a human. That is the right starting point: evidence only accumulates by running gated.",
+          "oneMember": "one member",
+          "everyMember": "every member",
+          "evidenceBar": "{{runs}} runs · {{rate}}% accepted",
+          "hardStopNote": "Hard stops never retire. Merge, deploy and anything irreversible or carrying inherited cost gate whatever the record says, because guessing wrong once is a production deploy.",
+          "orchestrationNote": "Orchestration is what runs a task with execution_strategy: orchestrated — a lead that writes no code, subagents with a fresh context window each, and schema-bounded returns. It costs roughly an order of magnitude more than one agent, so single stays the default and nothing here changes that.",
+          "openOrchestrationSettings": "Open orchestration settings"
         },
         "project": {
           "membersErrorTitle": "Members could not be read",

@@ -7,42 +7,34 @@ import { getDefaultVoiceSettings } from '../../../../shared/constants'
 import type { SettingsNavSection, SettingsNavTarget } from '@/lib/settings-navigation-types'
 import type { SettingsDeepLinkTargetWatch } from './settings-deep-link-target-watcher'
 
+// PRODUCT-ARCHITECTURE §6: every inherited pane gets exactly one home, and the order is the order
+// a developer needs them — what this machine does, then who it runs as, then the two altitudes
+// that are configuration rather than operation. The remainder is a flat root.
 export const SETTINGS_NAV_GROUPS = [
   {
-    id: 'capabilities',
-    titleKey: 'auto.components.settings.Settings.23c6874fdf',
-    titleDefault: 'AI Capabilities'
-  },
-  { id: 'setup', titleKey: 'auto.components.settings.Settings.9abb9be3bc', titleDefault: 'Set Up' },
-  {
-    id: 'workflows',
-    titleKey: 'auto.components.settings.Settings.e1578cd4bc',
-    titleDefault: 'Workflows'
+    id: 'device',
+    titleKey: 'auto.components.settings.Settings.groupDevice',
+    titleDefault: 'Device'
   },
   {
-    id: 'interface',
-    titleKey: 'auto.components.settings.Settings.8bd117d669',
-    titleDefault: 'Interface'
+    id: 'account',
+    titleKey: 'auto.components.settings.Settings.groupAccount',
+    titleDefault: 'Account'
   },
   {
-    id: 'remote',
-    titleKey: 'auto.components.settings.Settings.23931df7e8',
-    titleDefault: 'Remote Hosts'
+    id: 'project',
+    titleKey: 'auto.components.settings.Settings.groupProject',
+    titleDefault: 'Project'
   },
   {
-    id: 'security',
-    titleKey: 'auto.components.settings.Settings.084d8fac5b',
-    titleDefault: 'Privacy & Security'
+    id: 'organisation',
+    titleKey: 'auto.components.settings.Settings.groupOrganisation',
+    titleDefault: 'Organisation'
   },
   {
-    id: 'advanced',
-    titleKey: 'auto.components.settings.Settings.1c87f8d024',
-    titleDefault: 'Advanced'
-  },
-  {
-    id: 'experimental',
-    titleKey: 'auto.components.settings.Settings.8b017f2506',
-    titleDefault: 'Experimental'
+    id: 'general',
+    titleKey: 'auto.components.settings.Settings.groupGeneral',
+    titleDefault: 'General'
   }
 ] as const
 
