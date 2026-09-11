@@ -136,7 +136,7 @@ function Item({
 
 function Aside({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
-    <aside className="flex w-[272px] shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar">
+    <aside className="flex w-40 shrink-0 flex-col overflow-hidden border-r border-border bg-sidebar sm:w-[272px]">
       {children}
     </aside>
   )

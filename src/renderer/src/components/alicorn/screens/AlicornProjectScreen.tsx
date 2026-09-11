@@ -21,6 +21,7 @@ import {
 import { AlicornInboxScreen } from './AlicornInboxScreen'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
+import { useProjectChat } from './use-project-chat'
 import { useProjectTasks } from './use-project-tasks'
 import { AlicornProjectOverview } from './AlicornProjectOverview'
 import { AlicornTaskScreen } from './AlicornTaskScreen'
@@ -76,6 +77,7 @@ export function AlicornProjectScreen({
   const openSettingsPage = useAppStore((state) => state.openSettingsPage)
   const project = projects.find((candidate) => candidate.id === route.projectId)
   const projectName = project?.name ?? route.projectId
+  const chat = useProjectChat(project)
   const projectRepos = repos.filter((repo) => project?.repoIds.includes(repo.id))
   const projectGates = (gates ?? []).filter(
     (gate) => gate.repoId !== null && (project?.repoIds ?? []).includes(gate.repoId)
@@ -283,25 +285,62 @@ export function AlicornProjectScreen({
       <>
         <AlicornScreenHeader crumbs={crumbs} title={TITLES.chat} />
         <AlicornScreenBody>
-          <AlicornEmptyState
-            title={translate(
-              'auto.components.alicorn.project.chatTitle',
-              'Chat belongs to a session'
+          <section className="max-w-[640px] rounded-xl border border-border bg-card p-4">
+            <p className="text-[13px] leading-relaxed">
+              {translate(
+                'auto.components.alicorn.project.chatIntro',
+                'A Claude session that can see and change this project in words — its board, its tasks, and the members it draws on. Every change it makes answers with a receipt saying what it did and how to undo it.'
+              )}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {chat.worktree ? (
+                <button
+                  type="button"
+                  onClick={chat.open}
+                  className="h-8 rounded-md bg-primary px-3 text-[12.5px] font-medium text-primary-foreground transition hover:bg-primary/90"
+                >
+                  {translate('auto.components.alicorn.project.openChat', 'Open the project chat')}
+                </button>
+              ) : (
+                projectRepos.map((repo) => (
+                  <button
+                    key={repo.id}
+                    type="button"
+                    disabled={chat.starting}
+                    onClick={() => void chat.start(repo.id)}
+                    className="h-8 rounded-md bg-primary px-3 text-[12.5px] font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {projectRepos.length === 1
+                      ? translate(
+                          'auto.components.alicorn.project.startChat',
+                          'Start the project chat'
+                        )
+                      : translate(
+                          'auto.components.alicorn.project.startChatIn',
+                          'Start it in {{repo}}',
+                          { repo: repo.displayName }
+                        )}
+                  </button>
+                ))
+              )}
+            </div>
+            {projectRepos.length === 0 ? (
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {translate(
+                  'auto.components.alicorn.project.chatNoRepo',
+                  'A session needs somewhere to run, and this project has no repository resolved on this machine.'
+                )}
+              </p>
+            ) : (
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {translate(
+                  'auto.components.alicorn.project.chatIsWorkspace',
+                  'It opens as an ordinary workspace, so it keeps session resume, splits and the side panels.'
+                )}
+              </p>
             )}
-            detail={translate(
-              'auto.components.alicorn.project.chatDetail',
-              'Every workspace has its own agent chat, and a new task opens one. A project-wide chat that can drive the board in words is not built yet.'
-            )}
-            action={
-              <button
-                type="button"
-                onClick={() => onComposingChange(true)}
-                className="mt-3 h-8 rounded-md border border-border px-3 text-[12.5px] font-medium transition hover:bg-accent"
-              >
-                {translate('auto.components.alicorn.project.newTask', 'New task')}
-              </button>
-            }
-          />
+            {chat.error ? <p className="mt-2 text-[11px] text-destructive">{chat.error}</p> : null}
+          </section>
         </AlicornScreenBody>
         {composer}
       </>

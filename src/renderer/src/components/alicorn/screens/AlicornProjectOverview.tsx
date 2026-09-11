@@ -153,7 +153,7 @@ export function AlicornProjectOverview({
         ) : null}
 
         <div className="flex flex-wrap items-stretch gap-4">
-          <Card className="min-w-[320px] flex-1">
+          <Card className="min-w-0 flex-1 basis-[320px]">
             <Caption>
               {translate('auto.components.alicorn.project.runningNow', 'Running now')}
             </Caption>
@@ -182,7 +182,7 @@ export function AlicornProjectOverview({
             )}
           </Card>
 
-          <Card className="w-[280px] shrink-0">
+          <Card className="w-full shrink-0 sm:w-[280px]">
             <Caption>{translate('auto.components.alicorn.project.spend', 'Spend')}</Caption>
             <div className="font-mono text-[22px] font-semibold tabular-nums">
               {formatRunCostSummary(spend)}
@@ -252,7 +252,7 @@ export function AlicornProjectOverview({
         </section>
 
         <div className="mt-6 flex flex-wrap items-start gap-4">
-          <Card className="min-w-[320px] flex-1">
+          <Card className="min-w-0 flex-1 basis-[320px]">
             <Caption>
               {translate(
                 'auto.components.alicorn.project.membersBound',
@@ -281,7 +281,7 @@ export function AlicornProjectOverview({
             )}
           </Card>
 
-          <Card className="w-[300px] shrink-0">
+          <Card className="w-full shrink-0 sm:w-[300px]">
             <Caption>{translate('auto.components.alicorn.projects.repos', 'Repositories')}</Caption>
             {(project?.repoIds ?? []).length === 0 ? (
               <p className="text-[12.5px] text-muted-foreground">

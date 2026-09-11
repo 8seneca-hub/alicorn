@@ -118,7 +118,7 @@ export function AlicornTaskScreen({
         ) : null}
 
         <div className="flex flex-wrap items-start gap-4">
-          <section className="min-w-[320px] flex-1 rounded-xl border border-border bg-card p-4">
+          <section className="min-w-0 flex-1 basis-[320px] rounded-xl border border-border bg-card p-4">
             <Caption>{translate('auto.components.alicorn.newTask.context', 'Context')}</Caption>
             {task.context.trim() ? (
               <p className="whitespace-pre-wrap text-[13px] leading-relaxed">{task.context}</p>
@@ -132,7 +132,7 @@ export function AlicornTaskScreen({
             )}
           </section>
 
-          <section className="w-[280px] shrink-0 rounded-xl border border-border bg-card p-4">
+          <section className="w-full shrink-0 rounded-xl border border-border bg-card p-4 sm:w-[280px]">
             <Caption>{translate('auto.components.alicorn.task.column', 'Column')}</Caption>
             <div className="flex flex-col gap-1">
               {columns.map((column) => (

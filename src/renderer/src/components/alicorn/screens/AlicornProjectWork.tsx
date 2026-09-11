@@ -165,7 +165,13 @@ export function AlicornProjectBoard(props: WorkScreenProps): React.JSX.Element {
         ) : (
           <div
             className="grid items-start gap-4"
-            style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
+            style={{
+              // Columns keep their share on a desktop and wrap to one per row on a phone, rather
+              // than forcing the board into a horizontal scroll it never recovers from.
+              gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, 220px), 1fr))`,
+              gridTemplateRows: 'auto'
+            }}
+            data-column-count={columns.length}
           >
             {columns.map((column) => {
               const inColumn = state.tasks.filter((task) => task.column === column.id)

@@ -17355,7 +17355,13 @@
           "acrossTasks": "across {{count}} tasks",
           "board": "Board",
           "list": "List",
-          "tasks": "Tasks"
+          "tasks": "Tasks",
+          "chatIntro": "A Claude session that can see and change this project in words — its board, its tasks, and the members it draws on. Every change it makes answers with a receipt saying what it did and how to undo it.",
+          "openChat": "Open the project chat",
+          "startChat": "Start the project chat",
+          "startChatIn": "Start it in {{repo}}",
+          "chatNoRepo": "A session needs somewhere to run, and this project has no repository resolved on this machine.",
+          "chatIsWorkspace": "It opens as an ordinary workspace, so it keeps session resume, splits and the side panels."
         },
         "projects": {
           "repos": "Repositories",
