@@ -89,7 +89,11 @@ export function createRepoAddActions(
           openModal('confirm-non-git-folder', {
             folderPath: path,
             ...(displayName ? { displayName } : {}),
-            ...(target.kind === 'environment' ? { runtimeEnvironmentId: target.environmentId } : {})
+            ...(target.kind === 'environment'
+              ? { runtimeEnvironmentId: target.environmentId }
+              : {}),
+            // Carried through the confirm so the caller's intent survives the round trip.
+            ...(options?.openAfterAdd === false ? { openAfterAdd: false } : {})
           })
           return null
         }
@@ -146,7 +150,7 @@ export function createRepoAddActions(
       }
     },
 
-    addRepo: async () => {
+    addRepo: async (options) => {
       const target = getActiveRuntimeTarget(get().settings)
       if (target.kind !== 'local') {
         // Why: OS folder pickers return client-local paths; remote environments need an explicit host path (Add Project dialog).
@@ -162,7 +166,7 @@ export function createRepoAddActions(
       if (!path) {
         return null
       }
-      return get().addRepoPath(path)
+      return get().addRepoPath(path, 'git', options)
     },
 
     addNonGitFolder: async (path, options) => {
@@ -184,7 +188,9 @@ export function createRepoAddActions(
         const folderWorktree = get().worktreesByRepo[repo.id]?.find(
           (worktree) => executionHostId === undefined || worktree.hostId === executionHostId
         )
-        if (folderWorktree) {
+        // Bind-only: the worktree is fetched so the project can list it, but nothing is revealed —
+        // revealing switches the main view out from under whatever asked for the folder.
+        if (folderWorktree && options?.openAfterAdd !== false) {
           const { activateAndRevealWorktree } = await import('../../lib/worktree-activation')
           const onboarding = await window.api.onboarding.get().catch(() => null)
           // Why: adding the first folder from Landing skips onboarding's completeRepo hook; carry the default agent into the first terminal here.

@@ -7,16 +7,19 @@
  * disagree about how much is open.
  */
 import React from 'react'
-import { Command, Plus, Workflow } from 'lucide-react'
+import { Command, PackageOpen, Plus, Workflow } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
+import { formatRunCostSummary, type RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import type { Project } from '../../../../../shared/alicorn/projects'
+import { mergeRunCostSummaries } from './project-run-cost'
 import type { AlicornProjectsState } from '../shell/use-alicorn-projects'
 import { AlicornShellUnavailableNotice } from '../shell/AlicornShell'
 import { AlicornEmptyState, AlicornScreenBody, AlicornScreenHeader } from './AlicornScreenChrome'
 import { AlicornNewProjectDialog } from './AlicornNewProjectDialog'
+import { AlicornImportProjectDialog } from './AlicornImportProjectDialog'
 
 function Stat({ label, value }: { label: string; value: string }): React.JSX.Element {
   return (
@@ -32,8 +35,11 @@ export function AlicornProjectsScreen({
   projects,
   waitingByProject,
   openByProject,
+  spendByProject,
   creating,
   onCreatingChange,
+  importing,
+  onImportingChange,
   onOpen
 }: {
   state: AlicornProjectsState
@@ -41,8 +47,11 @@ export function AlicornProjectsScreen({
   projects: Project[]
   waitingByProject: Record<string, number>
   openByProject: Record<string, number>
+  spendByProject: Record<string, RunCostSummary>
   creating: boolean
   onCreatingChange: (open: boolean) => void
+  importing: boolean
+  onImportingChange: (open: boolean) => void
   onOpen: (projectId: string) => void
 }): React.JSX.Element {
   const openModal = useAppStore((store) => store.openModal)
@@ -55,6 +64,9 @@ export function AlicornProjectsScreen({
   const totalWaiting = projects.reduce(
     (sum, project) => sum + (waitingByProject[project.id] ?? 0),
     0
+  )
+  const totalSpend = mergeRunCostSummaries(
+    projects.map((project) => spendByProject[project.id] ?? { costUsd: null, partial: false })
   )
 
   return (
@@ -72,6 +84,15 @@ export function AlicornProjectsScreen({
             >
               <Command className="size-3.5" />
               {translate('auto.components.alicorn.projects.commandBar', 'Command bar')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => onImportingChange(true)}
+            >
+              <PackageOpen className="size-3.5" />
+              {translate('auto.components.alicorn.projects.import', 'Import from a PM tool')}
             </Button>
             <Button size="sm" className="gap-1.5" onClick={() => onCreatingChange(true)}>
               <Plus className="size-3.5" />
@@ -93,10 +114,21 @@ export function AlicornProjectsScreen({
               'A project is an instance of the org library — its members, workflows and checks — with its own repositories and board.'
             )}
             action={
-              <Button size="sm" className="mt-3 gap-1.5" onClick={() => onCreatingChange(true)}>
-                <Plus className="size-3.5" />
-                {translate('auto.components.alicorn.projects.new', 'New project')}
-              </Button>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => onImportingChange(true)}
+                >
+                  <PackageOpen className="size-3.5" />
+                  {translate('auto.components.alicorn.projects.import', 'Import from a PM tool')}
+                </Button>
+                <Button size="sm" className="gap-1.5" onClick={() => onCreatingChange(true)}>
+                  <Plus className="size-3.5" />
+                  {translate('auto.components.alicorn.projects.new', 'New project')}
+                </Button>
+              </div>
             }
           />
         ) : (
@@ -151,6 +183,12 @@ export function AlicornProjectsScreen({
                         label={translate('auto.components.alicorn.projects.key', 'Key')}
                         value={project.key}
                       />
+                      <Stat
+                        label={translate('auto.components.alicorn.project.spend', 'Spend')}
+                        value={formatRunCostSummary(
+                          spendByProject[project.id] ?? { costUsd: null, partial: false }
+                        )}
+                      />
                     </div>
 
                     <div className="mt-4 border-t border-border pt-3">
@@ -193,6 +231,10 @@ export function AlicornProjectsScreen({
                   label={translate('auto.components.alicorn.projects.projectCount', 'Projects')}
                   value={String(projects.length)}
                 />
+                <Stat
+                  label={translate('auto.components.alicorn.projects.totalSpend', 'Spend')}
+                  value={formatRunCostSummary(totalSpend)}
+                />
               </div>
             </section>
           </>
@@ -203,6 +245,12 @@ export function AlicornProjectsScreen({
         onOpenChange={onCreatingChange}
         onCreate={state.create}
         onCreated={onOpen}
+      />
+      <AlicornImportProjectDialog
+        open={importing}
+        onOpenChange={onImportingChange}
+        onCreate={state.create}
+        onImported={onOpen}
       />
     </>
   )

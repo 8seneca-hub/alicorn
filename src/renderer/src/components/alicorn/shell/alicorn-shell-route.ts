@@ -14,8 +14,11 @@ export const PROJECT_SECTIONS = [
   'members',
   'workflow',
   'checks',
+  'skills',
   'mcp',
-  'repos'
+  'integrations',
+  'repos',
+  'chat'
 ] as const
 export type ProjectSection = (typeof PROJECT_SECTIONS)[number]
 
@@ -24,7 +27,13 @@ export type OrgSection = (typeof ORG_SECTIONS)[number]
 
 export type AlicornRoute =
   | { scope: 'projects'; projectId: null }
-  | { scope: 'projects'; projectId: string; section: ProjectSection }
+  | {
+      scope: 'projects'
+      projectId: string
+      section: ProjectSection
+      /** A task open inside the section it was opened from, so closing it returns there. */
+      taskId?: string | null
+    }
   | { scope: 'org'; section: OrgSection }
   | { scope: 'inbox' }
 
@@ -37,8 +46,11 @@ export function railTargetOf(route: AlicornRoute): AlicornRailTarget {
   return route.scope === 'projects' ? 'projects' : route.scope
 }
 
-export function isProjectRoute(
-  route: AlicornRoute
-): route is { scope: 'projects'; projectId: string; section: ProjectSection } {
+export function isProjectRoute(route: AlicornRoute): route is {
+  scope: 'projects'
+  projectId: string
+  section: ProjectSection
+  taskId?: string | null
+} {
   return route.scope === 'projects' && route.projectId !== null
 }

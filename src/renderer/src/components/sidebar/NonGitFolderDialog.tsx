@@ -34,6 +34,8 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
   const runtimeEnvironmentId =
     typeof modalData.runtimeEnvironmentId === 'string' ? modalData.runtimeEnvironmentId : ''
   const displayName = typeof modalData.displayName === 'string' ? modalData.displayName.trim() : ''
+  // Set by a caller that wanted the folder bound, not opened — see AddRepoPathOptions.openAfterAdd.
+  const openAfterAdd = modalData.openAfterAdd !== false
   const runtimeEnvironmentName =
     runtimeEnvironmentId &&
     (runtimeEnvironments.find((environment) => environment.id === runtimeEnvironmentId)?.name ||
@@ -139,11 +141,20 @@ const NonGitFolderDialog = React.memo(function NonGitFolderDialog() {
     } else if (folderPath) {
       void addNonGitFolder(folderPath, {
         runtimeEnvironmentId: runtimeEnvironmentId || null,
-        ...(displayName ? { displayName } : {})
+        ...(displayName ? { displayName } : {}),
+        ...(openAfterAdd ? {} : { openAfterAdd: false })
       })
     }
     closeModal()
-  }, [addNonGitFolder, closeModal, displayName, folderPath, connectionId, runtimeEnvironmentId])
+  }, [
+    addNonGitFolder,
+    closeModal,
+    displayName,
+    folderPath,
+    connectionId,
+    openAfterAdd,
+    runtimeEnvironmentId
+  ])
 
   const handleOpenChange = useCallback(
     (open: boolean) => {

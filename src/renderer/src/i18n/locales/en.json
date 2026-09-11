@@ -5294,7 +5294,8 @@
           "fee535205b": "Tasks",
           "d599269755": "Hide from sidebar",
           "artifacts": "Artifacts",
-          "skills": "Skills"
+          "skills": "Skills",
+          "alicorn": "Projects"
         },
         "SidebarRepositoryFilterSection": {
           "d3a9c4cea1": "Clear",
@@ -13649,7 +13650,8 @@
               "verdict": {
                 "auto": "Could have proceeded",
                 "gate": "Needed me"
-              }
+              },
+              "unattributed": "Not attributed to a project"
             }
           }
         }
@@ -17260,6 +17262,189 @@
           "issueNameRequired": "The workflow needs a name.",
           "issueStagesRequired": "A workflow needs at least one stage.",
           "issueVersionConflict": "Someone else saved this workflow while you were editing. Reload before saving again."
+        },
+        "shell": {
+          "inbox": "Inbox",
+          "organisation": "Organisation",
+          "projects": "Projects",
+          "inboxKind": "Across every project",
+          "ownInbox": "Open its own inbox",
+          "organisationKind": "The library — nothing runs here",
+          "projectsKind": "{{count}} running at once, one org library",
+          "findProject": "Find a project…",
+          "projectMeta": "{{open}} open · {{repos}} repos",
+          "projectKind": "Project · {{spend}} spent",
+          "allProjects": "All projects",
+          "unreachableTitle": "The control plane is not reachable",
+          "unreachableBody": "Projects, members and workflows live there. Start the local stack, or point ALICORN_CONTROL_API_URL at one."
+        },
+        "inbox": {
+          "clearTitle": "Nothing is waiting on you",
+          "clearDetail": "A step that needs a decision appears here. Every one you resolve stays on the ledger — the point is to need fewer of them, not to hide them."
+        },
+        "newProject": {
+          "exists": "A project already uses that name or key.",
+          "title": "New project",
+          "description": "One instance of the org library, with its own repositories and board.",
+          "name": "Name",
+          "key": "Task key",
+          "keyInvalid": "Two to ten uppercase letters or digits, starting with a letter.",
+          "keyHint": "Prefixes every task id — {{key}}-142.",
+          "repos": "Repositories",
+          "addFolder": "Choose a folder…",
+          "reposHint": "A repository belongs to at most one project; binding one here moves it.",
+          "reposEmptyHint": "Pick the folder the project lives in. A project can own several.",
+          "cancel": "Cancel",
+          "create": "Create project",
+          "requiresRepo": "A project needs at least one repository."
+        },
+        "org": {
+          "checksNote": "Required checks are authored per project by an org admin, so they live in a project rather than here. A member cannot loosen the criteria that judge it, which is why this pane does not edit them."
+        },
+        "project": {
+          "membersErrorTitle": "Members could not be read",
+          "membersLoading": "Reading members…",
+          "membersNote": "Every org member is available to every project. Per-project overrides — a different backend here than the library says — are not built yet, so this list is the library’s own answer.",
+          "workflowErrorTitle": "Workflows could not be read",
+          "workflowLoading": "Reading workflows…",
+          "noWorkflowTitle": "No workflow yet",
+          "noWorkflowDetail": "A workflow is optional. Without one a task is still a task — it just has no stage to hand off at.",
+          "workflowVersion": "v{{version}}",
+          "checksErrorTitle": "Checks could not be read",
+          "checksLoading": "Reading checks…",
+          "noChecksTitle": "No required checks",
+          "noChecksDetail": "Nothing has to pass before a hand-off in this project yet. Checks are authored by an org admin — never by the member they judge.",
+          "checksNote": "Read-only here, and deliberately: a member cannot loosen the criteria that judge it, so the surface it is judged against is not writable from the side the work happens on.",
+          "overview": "Overview",
+          "chat": "Chat",
+          "newTask": "New task",
+          "needsYouOne": "One item needs you.",
+          "needsYou": "{{count}} items need you.",
+          "openInbox": "Open inbox",
+          "runningNow": "Running now",
+          "nothingRunning": "Nothing running. A new task opens a session in one of this project’s repositories.",
+          "spend": "Spend",
+          "acrossWorkspaces": "across {{count}} workspaces",
+          "executionStrategy": "Execution strategy",
+          "workflowNamed": "Workflow · {{name}}",
+          "workflow": "Workflow",
+          "workflowIntro": "Required checks, reversibility and inherited cost are authored per stage by an org admin — never by the member a stage judges.",
+          "membersBound": "Members bound to this project",
+          "noMembers": "The org library has no members yet. A member is a role bound to a backend, a permission mode and a workspace kind.",
+          "noReposOverview": "No repository bound. A project owns the repositories one feature may span.",
+          "repoUnresolved": "unresolved",
+          "checkCount": "{{count}} checks",
+          "inheritedCost": "high cost",
+          "hardStop": "hard stop",
+          "mcpNoRepoTitle": "No repository bound",
+          "mcpNoRepoDetail": "MCP servers are configured in a repository the agent works in, so this project needs one bound before it has a config to hold.",
+          "skillsTitle": "Skills are a member’s, not a project’s",
+          "skillsDetail": "A skill set is bound to a member in the org library, and the catalogue lives in the Skills view. Choosing which of them this project may use is not built yet.",
+          "openSkills": "Open the skill catalogue",
+          "integrationsTitle": "Connected per device, not per project",
+          "integrationsDetail": "Linear, GitHub and the other providers are connected in Settings, and a task picks up whatever is connected there. Scoping a connection to one project is not built yet.",
+          "openConnections": "Open connected accounts",
+          "chatTitle": "Chat belongs to a session",
+          "chatDetail": "Every workspace has its own agent chat, and a new task opens one. A project-wide chat that can drive the board in words is not built yet.",
+          "noReposTitle": "No repositories",
+          "noReposDetail": "A project owns the repositories one feature may span. Bind them when you create the project; editing the set from here is not built yet.",
+          "noStatus": "No status",
+          "noWorkTitle": "Nothing in flight",
+          "noWorkDetail": "Every workspace under this project’s repositories appears here. Start one from the Workspaces rail.",
+          "noReposWorkDetail": "Work lives in a repository. Bind one to this project and its workspaces appear here.",
+          "acrossTasks": "across {{count}} tasks",
+          "board": "Board",
+          "list": "List",
+          "tasks": "Tasks"
+        },
+        "projects": {
+          "repos": "Repositories",
+          "commandBar": "Command bar",
+          "new": "New project",
+          "loading": "Reading projects…",
+          "emptyTitle": "No projects yet",
+          "emptyDetail": "A project is an instance of the org library — its members, workflows and checks — with its own repositories and board.",
+          "intro": "Several projects run at once against one org library — the same members, workflows and required checks, configured differently per project.",
+          "needsYou": "{{count}} needs you",
+          "clear": "clear",
+          "open": "Open",
+          "key": "Key",
+          "inherits": "Inherits the org library",
+          "across": "Across all projects",
+          "openWork": "Open work",
+          "waitingOnYou": "Waiting on you",
+          "projectCount": "Projects",
+          "totalSpend": "Spend",
+          "import": "Import from a PM tool"
+        },
+        "sessionProgress": {
+          "memberSeparator": " → ",
+          "checks": "required checks",
+          "partialCost": "A dispatch ran on a backend this build does not price, so the total is a floor."
+        },
+        "newTask": {
+          "titleIn": "New task in {{project}}",
+          "description": "A title and enough context. Everything else is decided for you and shown below.",
+          "whatNeedsDoing": "What needs doing",
+          "context": "Context",
+          "briefPlaceholder": "Anything the agent cannot read off the repo: the constraint, the edge case, the decision already made. Two sentences is usually enough.",
+          "briefTrail": "Captured with every run. Everything else — workflow, stage rules, required checks — comes from the project.",
+          "planTitle": "Claude’s plan",
+          "planLine": "— {{author}} starts on {{backend}}.",
+          "planNoMember": "— no member joins yet, so the task will gate at its first stage.",
+          "pinned": "You changed the plan — Claude has stopped adjusting it.",
+          "hideAdvanced": "Hide members and strategy",
+          "showAdvanced": "Change members and strategy",
+          "orchestratedTrail": "Roughly 10–15× the tokens. A trade, not an upgrade.",
+          "singleTrail": "One agent in one session — the default, and what most work wants.",
+          "members": "Members",
+          "author": "Builds",
+          "reviewer": "Reviews",
+          "clash": "Reviewer and author share a backend, so this would gate at review. Change one.",
+          "createInBacklog": "Create in Backlog",
+          "titlePlaceholder": "Refund API — partial refunds"
+        },
+        "task": {
+          "errorTitle": "Tasks could not be read",
+          "loading": "Reading tasks…",
+          "emptyTitle": "No tasks yet",
+          "emptyDetail": "A task is the unit of work — the thing you open, name, assign and finish. It binds the repositories it needs rather than being one of them.",
+          "id": "ID",
+          "title": "Title",
+          "column": "Column",
+          "strategy": "Strategy",
+          "stage": "Stage",
+          "back": "Back to board",
+          "noContext": "No context was written. Everything the agent knows about this task, it will have to read off the repository.",
+          "noMembers": "Nobody yet.",
+          "session": "Session",
+          "noSession": "This task has no session yet. A session needs the task bound to a repository, branch and worktree, and nothing writes that binding from here yet — so the chat, the stage hand-offs and the execute panel the design calls for are not built. Start work from the Workspaces sidebar in the meantime.",
+          "projectLine": "In {{project}}."
+        },
+        "mcpAttach": {
+          "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",
+          "invalidName": "Refused the server name.",
+          "title": "Alicorn’s control plane",
+          "detail": "Lets this repository’s agents read and change Alicorn in words — create a task, move one, add a member. Every change comes back with a receipt saying what it did and how to undo it. Required checks, autonomy and hard stops are not exposed: a member may not author the criteria that judge it.",
+          "attached": "Added to .mcp.json",
+          "attach": "Add to this repository"
+        },
+        "screen": {
+          "back": "Back"
+        },
+        "import": {
+          "title": "Import a project",
+          "description": "Bring a board across as a project. Each issue becomes a task that keeps its reference back, so importing again picks up only what is new.",
+          "checking": "Looking for a connected PM tool…",
+          "noProvider": "No PM tool is connected",
+          "noProviderDetail": "Connect Plane in Settings and its boards appear here. An agent with its own PM server can import through Alicorn’s MCP tools meanwhile.",
+          "openSettings": "Open Settings",
+          "board": "Board",
+          "openOnly": "Only issues still open",
+          "counting": "Reading the board…",
+          "preview": "Creates {{name}} ({{key}}) with {{count}} tasks.",
+          "importing": "Importing {{done}} of {{total}}…",
+          "import": "Import project"
         }
       },
       "composerTaskPlan": {
@@ -17345,6 +17530,16 @@
           "deleteColumn": "Delete column",
           "deleteTable": "Delete table"
         }
+      }
+    },
+    "app": {
+      "rail": {
+        "projects": "Projects",
+        "org": "Organisation",
+        "settings": "Settings",
+        "label": "Sections",
+        "inbox": "Inbox",
+        "commandBar": "Command bar"
       }
     }
   },

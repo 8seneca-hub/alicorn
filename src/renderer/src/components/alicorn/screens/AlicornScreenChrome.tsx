@@ -3,24 +3,63 @@
  * being re-laid out per screen and drifting apart.
  */
 import React from 'react'
+import { ArrowLeft } from 'lucide-react'
+import { translate } from '@/i18n/i18n'
+
+/** A crumb is a place unless it is given somewhere to go. */
+export type AlicornCrumb = string | { label: string; onClick: () => void }
+
+/** Every project screen wears the same trail, so it is built once. */
+export function projectCrumbs(projectName: string, onAllProjects: () => void): AlicornCrumb[] {
+  return [
+    {
+      label: translate('auto.components.alicorn.shell.projects', 'Projects'),
+      onClick: onAllProjects
+    },
+    projectName
+  ]
+}
 
 export function AlicornScreenHeader({
   crumbs,
   title,
-  actions
+  actions,
+  onBack
 }: {
-  crumbs: string[]
+  crumbs: AlicornCrumb[]
   title: string
   actions?: React.ReactNode
+  /** Renders a back arrow before the title. Only screens you descend *into* pass one. */
+  onBack?: () => void
 }): React.JSX.Element {
   return (
     <header className="flex shrink-0 items-center gap-3 border-b border-border px-9 pb-3.5 pt-4">
+      {onBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label={translate('auto.components.alicorn.screen.back', 'Back')}
+          className="-ml-2 flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+        </button>
+      ) : null}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-muted-foreground">
           {crumbs.map((crumb, index) => (
-            <React.Fragment key={`${crumb}-${index}`}>
+            <React.Fragment key={`${typeof crumb === 'string' ? crumb : crumb.label}-${index}`}>
               {index > 0 ? <span className="opacity-50">/</span> : null}
-              <span>{crumb}</span>
+              {typeof crumb === 'string' ? (
+                <span>{crumb}</span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={crumb.onClick}
+                  className="hover:text-foreground hover:underline"
+                >
+                  {crumb.label}
+                </button>
+              )}
             </React.Fragment>
           ))}
         </div>

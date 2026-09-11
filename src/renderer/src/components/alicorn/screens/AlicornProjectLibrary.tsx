@@ -10,13 +10,24 @@ import React from 'react'
 import { translate } from '@/i18n/i18n'
 import type { Member, RequiredCheck } from '../../../../../shared/alicorn/members'
 import type { WorkflowSummary } from '../../../../../shared/alicorn/workflows'
-import { AlicornEmptyState, AlicornScreenBody, AlicornScreenHeader } from './AlicornScreenChrome'
+import {
+  AlicornEmptyState,
+  AlicornScreenBody,
+  AlicornScreenHeader,
+  projectCrumbs
+} from './AlicornScreenChrome'
 
 function Note({ children }: { children: React.ReactNode }): React.JSX.Element {
   return <p className="mt-4 max-w-2xl text-[12.5px] text-muted-foreground">{children}</p>
 }
 
-export function AlicornProjectMembers({ projectName }: { projectName: string }): React.JSX.Element {
+export function AlicornProjectMembers({
+  projectName,
+  onAllProjects
+}: {
+  projectName: string
+  onAllProjects: () => void
+}): React.JSX.Element {
   const [members, setMembers] = React.useState<Member[] | null>(null)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -47,7 +58,7 @@ export function AlicornProjectMembers({ projectName }: { projectName: string }):
 
   return (
     <>
-      <AlicornScreenHeader crumbs={['Alicorn', projectName]} title="Members" />
+      <AlicornScreenHeader crumbs={projectCrumbs(projectName, onAllProjects)} title="Members" />
       <AlicornScreenBody>
         {error ? (
           <AlicornEmptyState
@@ -92,10 +103,12 @@ export function AlicornProjectMembers({ projectName }: { projectName: string }):
 
 export function AlicornProjectWorkflow({
   projectName,
-  projectId
+  projectId,
+  onAllProjects
 }: {
   projectName: string
   projectId: string
+  onAllProjects: () => void
 }): React.JSX.Element {
   const [workflows, setWorkflows] = React.useState<WorkflowSummary[] | null>(null)
   const [error, setError] = React.useState<string | null>(null)
@@ -127,7 +140,7 @@ export function AlicornProjectWorkflow({
 
   return (
     <>
-      <AlicornScreenHeader crumbs={['Alicorn', projectName]} title="Workflow" />
+      <AlicornScreenHeader crumbs={projectCrumbs(projectName, onAllProjects)} title="Workflow" />
       <AlicornScreenBody>
         {error ? (
           <AlicornEmptyState
@@ -170,10 +183,12 @@ export function AlicornProjectWorkflow({
 
 export function AlicornProjectChecks({
   projectName,
-  projectId
+  projectId,
+  onAllProjects
 }: {
   projectName: string
   projectId: string
+  onAllProjects: () => void
 }): React.JSX.Element {
   const [checks, setChecks] = React.useState<RequiredCheck[] | null>(null)
   const [error, setError] = React.useState<string | null>(null)
@@ -205,7 +220,10 @@ export function AlicornProjectChecks({
 
   return (
     <>
-      <AlicornScreenHeader crumbs={['Alicorn', projectName]} title="Required Checks" />
+      <AlicornScreenHeader
+        crumbs={projectCrumbs(projectName, onAllProjects)}
+        title="Required Checks"
+      />
       <AlicornScreenBody>
         {error ? (
           <AlicornEmptyState

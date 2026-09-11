@@ -12,6 +12,10 @@ const listProjects = vi.fn()
 const listPendingGates = vi.fn()
 // The org scope mounts the members pane, which reads the library on mount.
 const listMembers = vi.fn()
+// The task composer reads the org policy to plan a reviewer, and the board reads the project's
+// tasks; an unstubbed call surfaces as an unhandled rejection rather than a test failure.
+const getOrgPolicy = vi.fn()
+const listTasks = vi.fn()
 
 function project(overrides: Partial<Project> = {}): Project {
   return {
@@ -46,17 +50,24 @@ function seed(projects: Project[], gates: PendingGateView[] = []): void {
   listProjects.mockResolvedValue({ ok: true, projects })
   listPendingGates.mockResolvedValue({ ok: true, gates })
   listMembers.mockResolvedValue({ ok: true, members: [] })
+  getOrgPolicy.mockResolvedValue({ ok: true, policy: { enforceDistinctReviewerBackend: true } })
+  listTasks.mockResolvedValue({ ok: true, tasks: [] })
   ;(window as unknown as { api: unknown }).api = {
-    alicorn: { listProjects, listPendingGates, listMembers }
+    alicorn: { listProjects, listPendingGates, listMembers, getOrgPolicy, listTasks }
   }
 }
 
 beforeEach(() => {
-  // The scope lives in the store, so a test that moves it would leak into the next one.
+  // The scope lives in the store, so a test that moves it would leak into the next one — and so
+  // would a repo or an open modal a single test seeded.
   useAppStore.getState().openAlicornPage('projects')
+  useAppStore.getState().closeModal()
+  useAppStore.setState({ repos: [] })
   listProjects.mockReset()
   listPendingGates.mockReset()
   listMembers.mockReset()
+  getOrgPolicy.mockReset()
+  listTasks.mockReset()
 })
 
 afterEach(() => {
@@ -91,8 +102,7 @@ describe('AlicornShell', () => {
 
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
     fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
-    await waitFor(() => expect(screen.getByText('Waiting on you')).toBeInTheDocument())
-    expect(screen.getByText('Waiting on you').parentElement).toHaveTextContent('2')
+    await waitFor(() => expect(screen.getByText('2 items need you.')).toBeInTheDocument())
   })
 
   // A gate nothing places belongs to no project, so it must not inflate one.
@@ -101,10 +111,68 @@ describe('AlicornShell', () => {
     render(<AlicornShell />)
 
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
-    const sidebarRow = screen.getAllByText('Payments Platform')[0]!
-    fireEvent.click(sidebarRow)
-    await waitFor(() => expect(screen.getByText('Waiting on you')).toBeInTheDocument())
-    expect(screen.getByText('Waiting on you').parentElement).toHaveTextContent('0')
+    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
+    // The overview is up — and says nothing needs you, rather than counting a gate it does not own.
+    await waitFor(() => expect(screen.getByText('Running now')).toBeInTheDocument())
+    expect(screen.queryByText(/needs? you/)).not.toBeInTheDocument()
+  })
+
+  it('gives a project every section the sidebar promises, and a way back out', async () => {
+    seed([project()])
+    render(<AlicornShell />)
+
+    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
+    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
+    await waitFor(() => expect(screen.getByText('Running now')).toBeInTheDocument())
+
+    for (const label of [
+      'Overview',
+      'Board',
+      'Tasks',
+      'Inbox',
+      'Members',
+      'Workflow',
+      'Required Checks',
+      'Skills',
+      'MCP Servers',
+      'Integrations',
+      'Repositories',
+      'Chat'
+    ]) {
+      expect(screen.getAllByText(label).length).toBeGreaterThan(0)
+    }
+
+    fireEvent.click(screen.getByText('All projects'))
+    await waitFor(() =>
+      expect(screen.getByText('1 running at once, one org library')).toBeInTheDocument()
+    )
+  })
+
+  // A task is a ticket, not a workspace: New task must not open Orca's workspace composer.
+  it('opens the task composer, and never the workspace composer', async () => {
+    seed([project()])
+    render(<AlicornShell />)
+
+    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
+    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
+    await waitFor(() => expect(screen.getAllByText('New task').length).toBeGreaterThan(0))
+
+    fireEvent.click(screen.getAllByText('New task')[0]!)
+
+    await waitFor(() =>
+      expect(screen.getByText(/New task in Payments Platform/)).toBeInTheDocument()
+    )
+    expect(useAppStore.getState().activeModal).not.toBe('new-workspace-composer')
+  })
+
+  // Nothing has run, so the meter has nothing to state — and must not say $0.00.
+  it('shows a dash for a project that has never cost anything', async () => {
+    seed([project()])
+    render(<AlicornShell />)
+
+    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
+    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
+    await waitFor(() => expect(screen.getByText('Project · — spent')).toBeInTheDocument())
   })
 
   it('says the control plane is unreachable rather than showing an empty list', async () => {
@@ -112,7 +180,7 @@ describe('AlicornShell', () => {
     listPendingGates.mockResolvedValue({ ok: true, gates: [] })
     listMembers.mockResolvedValue({ ok: true, members: [] })
     ;(window as unknown as { api: unknown }).api = {
-      alicorn: { listProjects, listPendingGates, listMembers }
+      alicorn: { listProjects, listPendingGates, listMembers, getOrgPolicy, listTasks }
     }
     render(<AlicornShell />)
 

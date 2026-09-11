@@ -134,6 +134,12 @@ export type AddRepoPathOptions = {
   runtimeEnvironmentId?: string | null
   /** Overrides the host's basename naming for the new project. */
   displayName?: string
+  /**
+   * False binds the folder without opening a session for it. Alicorn's New Project dialog picks a
+   * folder to bind, not to work in: revealing a worktree switches the main view and would unmount
+   * the half-filled dialog that asked for the folder.
+   */
+  openAfterAdd?: boolean
 }
 
 export type RuntimeCatalogFetchOptions = { runtimeEnvironmentId?: string | null }
@@ -158,7 +164,7 @@ export type RepoSlice = {
   fetchProjectGroupsForAllHosts: (options?: AllHostCatalogFetchOptions) => Promise<void>
   fetchFolderWorkspaces: (options?: RuntimeCatalogFetchOptions) => Promise<void>
   fetchFolderWorkspacesForAllHosts: (options?: AllHostCatalogFetchOptions) => Promise<void>
-  addRepo: () => Promise<Repo | null>
+  addRepo: (options?: AddRepoPathOptions) => Promise<Repo | null>
   addRepoPath: (
     path: string,
     kind?: 'git' | 'folder',

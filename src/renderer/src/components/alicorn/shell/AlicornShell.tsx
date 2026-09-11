@@ -9,8 +9,12 @@
 import React from 'react'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
+import { useRunCostByDispatch } from '@/hooks/useAlicornRunCost'
+import type { RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import { projectWorktrees } from '../screens/project-worktrees'
+import { summarizeProjectRunCost } from '../screens/project-run-cost'
+import { useOpenTaskCounts } from '../screens/use-open-task-counts'
 import { useGatePanelState } from '../../right-sidebar/gate-panel/use-gate-panel-state'
 import { AlicornScopeSidebar } from './AlicornScopeSidebar'
 import { AlicornProjectsScreen } from '../screens/AlicornProjectsScreen'
@@ -23,9 +27,15 @@ import { ALICORN_HOME, isProjectRoute, type AlicornRoute } from './alicorn-shell
 export function AlicornShell(): React.JSX.Element {
   const scope = useAppStore((state) => state.alicornScope)
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
+  const tabsByWorktree = useAppStore((state) => state.tabsByWorktree)
+  const agentStatusByPaneKey = useAppStore((state) => state.agentStatusByPaneKey)
+  const costs = useRunCostByDispatch()
   const [route, setRoute] = React.useState<AlicornRoute>(ALICORN_HOME)
   const [filter, setFilter] = React.useState('')
   const [creating, setCreating] = React.useState(false)
+  const [importing, setImporting] = React.useState(false)
+  // The task composer is the shell's so the sidebar's New task and the board's open one dialog.
+  const [composingTask, setComposingTask] = React.useState(false)
   // The rail owns the scope; this shell owns where you are inside it. Re-pointing the rail resets
   // the route to that scope's landing place rather than leaving you on a stale project section.
   React.useEffect(() => {
@@ -60,18 +70,37 @@ export function AlicornShell(): React.JSX.Element {
     return byProject
   }, [gates, projectsState.projects])
 
-  // Open work per project, so the sidebar can say "4 open · 2 repos" without each card counting
-  // it again. A worktree is the unit — it is what Orca actually has in flight.
-  const openByProject = React.useMemo(() => {
-    const counts: Record<string, number> = {}
+  // A project's worktrees, which is what its spend is summed over — a dispatch belongs to a pane,
+  // a pane to a tab, and a tab to a worktree. Open work is counted from tasks, not from these.
+  const worktreesByProject = React.useMemo(() => {
+    const byProject: Record<string, Worktree[]> = {}
     for (const project of projectsState.projects) {
-      counts[project.id] = projectWorktrees(
+      byProject[project.id] = projectWorktrees(
         worktreesByRepo as Record<string, Worktree[]>,
         project.repoIds
-      ).length
+      )
     }
-    return counts
+    return byProject
   }, [projectsState.projects, worktreesByRepo])
+
+  // Open work is open *tasks*: a project with three tickets and no branch yet has three, and a
+  // repository is not one of them.
+  const openByProject = useOpenTaskCounts(projectsState.projects)
+
+  // Summed here rather than per card, so the sidebar subtitle and the Spend card can never
+  // disagree about what a project has cost.
+  const spendByProject = React.useMemo(() => {
+    const byProject: Record<string, RunCostSummary> = {}
+    for (const [projectId, worktrees] of Object.entries(worktreesByProject)) {
+      byProject[projectId] = summarizeProjectRunCost({
+        worktreeIds: worktrees.map((worktree) => worktree.id),
+        tabsByWorktree,
+        agentStatusByPaneKey,
+        costs
+      })
+    }
+    return byProject
+  }, [worktreesByProject, tabsByWorktree, agentStatusByPaneKey, costs])
 
   const visibleProjects = React.useMemo(() => {
     const needle = filter.trim().toLowerCase()
@@ -87,9 +116,11 @@ export function AlicornShell(): React.JSX.Element {
         projects={visibleProjects}
         waitingByProject={waitingByProject}
         openByProject={openByProject}
+        spendByProject={spendByProject}
         filter={filter}
         onFilterChange={setFilter}
         onNewProject={() => setCreating(true)}
+        onNewTask={() => setComposingTask(true)}
         onNavigate={setRoute}
       />
       <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
@@ -102,6 +133,14 @@ export function AlicornShell(): React.JSX.Element {
             route={route}
             projects={projectsState.projects}
             gates={gates}
+            spend={
+              spendByProject[route.projectId] ?? {
+                costUsd: null,
+                partial: false
+              }
+            }
+            composing={composingTask}
+            onComposingChange={setComposingTask}
             onResolvedGate={refreshGates}
             onNavigate={setRoute}
           />
@@ -111,8 +150,11 @@ export function AlicornShell(): React.JSX.Element {
             projects={visibleProjects}
             waitingByProject={waitingByProject}
             openByProject={openByProject}
+            spendByProject={spendByProject}
             creating={creating}
             onCreatingChange={setCreating}
+            importing={importing}
+            onImportingChange={setImporting}
             onOpen={(projectId) => setRoute({ scope: 'projects', projectId, section: 'overview' })}
           />
         )}

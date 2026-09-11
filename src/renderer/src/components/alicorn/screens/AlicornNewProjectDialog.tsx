@@ -6,7 +6,6 @@
  * than one that never helped.
  */
 import React from 'react'
-import { FolderPlus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -17,10 +16,10 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
 import type { Project, ProjectInput } from '../../../../../shared/alicorn/projects'
+import { AlicornRepoPicker } from './AlicornRepoPicker'
 
 /** Mirrors ProjectKeySchema: 2-10 uppercase letters or digits, starting with a letter. */
 const KEY_PATTERN = /^[A-Z][A-Z0-9]{1,9}$/
@@ -43,16 +42,11 @@ export function AlicornNewProjectDialog({
   ) => Promise<{ ok: true; project: Project } | { ok: false; error: string }>
   onCreated: (projectId: string) => void
 }): React.JSX.Element {
-  const repos = useAppStore((state) => state.repos)
-  // Orca's own picker, unchanged: it knows about git repos, folder workspaces, SSH targets and
-  // every setup path this dialog would otherwise have to learn a second time.
-  const addRepo = useAppStore((state) => state.addRepo)
   const [name, setName] = React.useState('')
   const [key, setKey] = React.useState('')
   const [keyTouched, setKeyTouched] = React.useState(false)
   const [repoIds, setRepoIds] = React.useState<string[]>([])
   const [busy, setBusy] = React.useState(false)
-  const [adding, setAdding] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
 
   React.useEffect(() => {
@@ -67,18 +61,9 @@ export function AlicornNewProjectDialog({
 
   const effectiveKey = keyTouched ? key : deriveProjectKey(name)
   const keyValid = KEY_PATTERN.test(effectiveKey)
-  const canSubmit = name.trim().length > 0 && keyValid && !busy
-
-  // Whatever the picker returns is selected straight away: a developer who just chose a folder
-  // has said which one they mean, and making them tick it again is a second answer to one question.
-  const addFolder = async (): Promise<void> => {
-    setAdding(true)
-    const repo = await addRepo()
-    setAdding(false)
-    if (repo) {
-      setRepoIds((current) => (current.includes(repo.id) ? current : [...current, repo.id]))
-    }
-  }
+  // A project with no repository has nowhere for its work to happen, and the repositories screen
+  // cannot add one afterwards yet — so it is asked for here rather than left to be fixed later.
+  const canSubmit = name.trim().length > 0 && keyValid && repoIds.length > 0 && !busy
 
   const submit = async (): Promise<void> => {
     setBusy(true)
@@ -92,7 +77,12 @@ export function AlicornNewProjectDialog({
               'auto.components.alicorn.newProject.exists',
               'A project already uses that name or key.'
             )
-          : result.error
+          : result.error === 'project_requires_repo'
+            ? translate(
+                'auto.components.alicorn.newProject.requiresRepo',
+                'A project needs at least one repository.'
+              )
+            : result.error
       )
       return
     }
@@ -162,57 +152,7 @@ export function AlicornNewProjectDialog({
             </p>
           </div>
 
-          <div className="space-y-1">
-            <span className="text-xs font-medium">
-              {translate('auto.components.alicorn.newProject.repos', 'Repositories')}
-            </span>
-            {repos.length > 0 ? (
-              <div className="scrollbar-sleek max-h-40 overflow-y-auto rounded-md border border-border">
-                {repos.map((repo) => (
-                  <label
-                    key={repo.id}
-                    className="flex cursor-pointer items-center gap-2 px-2.5 py-1.5 text-xs hover:bg-accent"
-                  >
-                    <input
-                      type="checkbox"
-                      className="size-3.5 accent-foreground"
-                      checked={repoIds.includes(repo.id)}
-                      onChange={() =>
-                        setRepoIds((current) =>
-                          current.includes(repo.id)
-                            ? current.filter((id) => id !== repo.id)
-                            : [...current, repo.id]
-                        )
-                      }
-                    />
-                    <span className="truncate">{repo.displayName}</span>
-                  </label>
-                ))}
-              </div>
-            ) : null}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full gap-1.5"
-              disabled={adding}
-              onClick={() => void addFolder()}
-            >
-              <FolderPlus className="size-3.5" />
-              {translate('auto.components.alicorn.newProject.addFolder', 'Choose a folder…')}
-            </Button>
-            <p className="text-[11px] text-muted-foreground">
-              {repos.length > 0
-                ? translate(
-                    'auto.components.alicorn.newProject.reposHint',
-                    'A repository belongs to at most one project; binding one here moves it.'
-                  )
-                : translate(
-                    'auto.components.alicorn.newProject.reposEmptyHint',
-                    'Pick the folder the project lives in. A project can own several.'
-                  )}
-            </p>
-          </div>
+          <AlicornRepoPicker repoIds={repoIds} onChange={setRepoIds} />
 
           {failure ? <p className="text-[11px] text-destructive">{failure}</p> : null}
         </div>
