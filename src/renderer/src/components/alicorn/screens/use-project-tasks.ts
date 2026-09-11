@@ -6,7 +6,10 @@
  * a repository where a ticket belongs and could never show a task that had not been started.
  */
 import React from 'react'
+import { useAppStore } from '@/store'
+import type { Worktree } from '../../../../../shared/worktree/types'
 import type { Task, TaskInput, TaskPatch } from '../../../../../shared/alicorn/tasks'
+import { planTaskMoveAutomation } from './task-board-automation'
 
 export type TaskResult = { ok: true; task: Task } | { ok: false; error: string }
 
@@ -24,7 +27,11 @@ export type ProjectTasksState = {
 const UNREACHABLE = 'control_plane_unreachable'
 
 export function useProjectTasks(projectId: string): ProjectTasksState {
+  const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
   const [tasks, setTasks] = React.useState<Task[]>([])
+  // Mirrors `tasks` so a write can read what a row looked like before it changed it.
+  const tasksRef = React.useRef<Task[]>(tasks)
+  tasksRef.current = tasks
   const [error, setError] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState(true)
   const [reloadCount, setReloadCount] = React.useState(0)
@@ -78,24 +85,69 @@ export function useProjectTasks(projectId: string): ProjectTasksState {
     [projectId]
   )
 
-  const update = React.useCallback(async (id: string, patch: TaskPatch): Promise<TaskResult> => {
-    const put = window.api?.alicorn?.updateTask
-    if (!put) {
-      return { ok: false, error: UNREACHABLE }
-    }
-    let rollback: Task | undefined
-    setTasks((current) => {
-      rollback = current.find((task) => task.id === id)
-      return current.map((task) => (task.id === id ? { ...task, ...patch } : task))
-    })
-    const result = await put(id, patch)
-    setTasks((current) =>
-      current.map((task) =>
-        task.id === id ? (result.ok ? result.task : (rollback ?? task)) : task
+  const update = React.useCallback(
+    async (id: string, patch: TaskPatch): Promise<TaskResult> => {
+      const put = window.api?.alicorn?.updateTask
+      if (!put) {
+        return { ok: false, error: UNREACHABLE }
+      }
+      // Read before the optimistic write, not inside its updater: React runs the updater on the
+      // next render, which is after the await below — so a value captured there is undefined
+      // exactly when it is needed, and a refused move would never roll back.
+      const rollback = tasksRef.current.find((task) => task.id === id)
+      setTasks((current) => current.map((task) => (task.id === id ? { ...task, ...patch } : task)))
+      const result = await put(id, patch)
+      setTasks((current) =>
+        current.map((task) =>
+          task.id === id ? (result.ok ? result.task : (rollback ?? task)) : task
+        )
       )
-    )
-    return result
-  }, [])
+      // The move is what dispatches. Every surface that moves a task comes through here, so the
+      // board, the list and the task screen cannot disagree about whether work starts.
+      if (result.ok && patch.column && rollback?.column !== patch.column) {
+        void announceTaskMove(id, rollback?.column ?? null, patch.column, worktreesByRepo)
+      }
+      return result
+    },
+    [worktreesByRepo]
+  )
 
   return { tasks, error, loading, reload, create, update }
+}
+
+/**
+ * Tells board automation a task moved, if it has anywhere to run.
+ *
+ * Swallowed on purpose, exactly as the board's own move does: a rule that cannot dispatch must
+ * never make the card fail to move, and the refusal is already recorded where the kill switch can
+ * show it.
+ */
+async function announceTaskMove(
+  taskId: string,
+  fromColumn: string | null,
+  toColumn: string,
+  worktreesByRepo: Record<string, Worktree[]>
+): Promise<void> {
+  try {
+    const listTuples = window.api?.alicorn?.listTaskWorktrees
+    const statusChanged = window.api?.boardAutomation?.statusChanged
+    if (!listTuples || !statusChanged) {
+      return
+    }
+    const bound = await listTuples(taskId)
+    if (!bound.ok) {
+      return
+    }
+    const plan = planTaskMoveAutomation({
+      tuples: bound.tuples,
+      worktreesByRepo,
+      fromColumn,
+      toColumn
+    })
+    if (plan) {
+      await statusChanged(plan)
+    }
+  } catch {
+    // See above: a dispatch failure is not a reason for the card not to have moved.
+  }
 }

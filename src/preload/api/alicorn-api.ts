@@ -3,6 +3,10 @@ import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
+import type {
+  TaskWorktreeTuple,
+  TaskWorktreeTupleInput
+} from '../../shared/alicorn/feature-workspace-tuples'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 import type {
   ContextCaptureDetailResult,
@@ -37,6 +41,17 @@ export type AlicornApi = {
   createTask: (input: TaskInput) => Promise<{ ok: true; task: Task } | AlicornFailure>
   updateTask: (id: string, patch: TaskPatch) => Promise<{ ok: true; task: Task } | AlicornFailure>
   deleteTask: (id: string) => Promise<{ ok: true } | AlicornFailure>
+  /** Path to the MCP config a session Alicorn starts is pointed at, written on demand. */
+  mcpConfigPath: () => Promise<{ ok: true; path: string } | AlicornFailure>
+  /** The (repo, branch, worktree) tuples a task is being worked on in. Client-side state. */
+  listTaskWorktrees: (
+    taskId: string
+  ) => Promise<{ ok: true; tuples: TaskWorktreeTuple[] } | AlicornFailure>
+  /** Whole-set replace: `primary` is a property of the set, so a partial write can leave two. */
+  bindTaskWorktrees: (
+    taskId: string,
+    tuples: TaskWorktreeTupleInput[]
+  ) => Promise<{ ok: true; tuples: TaskWorktreeTuple[] } | AlicornFailure>
   listMembers: () => Promise<{ ok: true; members: Member[] } | AlicornFailure>
   createMember: (input: MemberInput) => Promise<{ ok: true; member: Member } | AlicornFailure>
   updateMember: (

@@ -8,7 +8,7 @@
  * drawing a chat that could never receive a message.
  */
 import React from 'react'
-import { Check, Circle, Play, Share2 } from 'lucide-react'
+import { Check, Circle, ExternalLink, Loader2, Play, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { DEFAULT_WORKSPACE_STATUSES } from '../../../../../shared/workspace-status-defaults'
@@ -16,7 +16,10 @@ import { useAppStore } from '@/store'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 import { taskRef } from '../../../../../shared/alicorn/tasks'
 import type { WorkflowStage } from '../../../../../shared/alicorn/workflows'
+import { Button } from '@/components/ui/button'
+import type { Repo } from '../../../../../shared/repo-types'
 import { useAlicornMembers } from '../shell/use-alicorn-members'
+import { useTaskWorkspace } from './use-task-workspace'
 import { useProjectWorkflow } from './use-project-workflow'
 import { AlicornScreenBody, AlicornScreenHeader, type AlicornCrumb } from './AlicornScreenChrome'
 import type { ProjectTasksState } from './use-project-tasks'
@@ -50,23 +53,26 @@ export function AlicornTaskScreen({
   task,
   projectId,
   projectKey,
-  projectName,
+  projectRepos,
   tasks,
   crumbs,
-  onBack
+  onBack,
+  onOpenWorkspace
 }: {
   task: Task
   projectId: string
   projectKey: string
-  projectName: string
+  projectRepos: readonly Repo[]
   tasks: ProjectTasksState
   crumbs: AlicornCrumb[]
   onBack: () => void
+  onOpenWorkspace: (worktreeId: string) => void
 }): React.JSX.Element {
   const columns = useAppStore((state) => state.workspaceStatuses ?? DEFAULT_WORKSPACE_STATUSES)
   const { workflow } = useProjectWorkflow(projectId)
   const { members } = useAlicornMembers()
   const stages = workflow?.stages ?? []
+  const workspace = useTaskWorkspace(task, projectKey)
   const bound = (members ?? []).filter((member) => task.memberIds.includes(member.id))
 
   return (
@@ -165,19 +171,76 @@ export function AlicornTaskScreen({
           </section>
         </div>
 
-        <section className="mt-6 rounded-xl border border-dashed border-border p-4">
-          <Caption>{translate('auto.components.alicorn.task.session', 'Session')}</Caption>
-          <p className="max-w-[620px] text-[12.5px] text-muted-foreground">
-            {translate(
-              'auto.components.alicorn.task.noSession',
-              'Not started. Starting a task gives it its own branch and workspace — separate from the project’s repositories — and opens the session that works in it. That is not built yet, so start work from the Workspaces sidebar for now.'
-            )}
-          </p>
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            {translate('auto.components.alicorn.task.projectLine', 'In {{project}}.', {
-              project: projectName
-            })}
-          </p>
+        <section className="mt-6 rounded-xl border border-border bg-card p-4">
+          <Caption>{translate('auto.components.alicorn.task.workspace', 'Workspace')}</Caption>
+          {workspace.tuples.length > 0 ? (
+            <>
+              {workspace.tuples.map((tuple) => {
+                const repo = projectRepos.find((candidate) => candidate.id === tuple.repoId)
+                return (
+                  <button
+                    key={tuple.worktreeId}
+                    type="button"
+                    onClick={() => onOpenWorkspace(tuple.worktreeId)}
+                    className="-mx-1.5 flex min-h-9 w-[calc(100%+0.75rem)] items-center gap-2.5 rounded-md px-1.5 text-left text-[13px] hover:bg-accent"
+                  >
+                    <span className="min-w-0 flex-1 truncate font-medium">
+                      {repo?.displayName ?? tuple.repoId}
+                    </span>
+                    <span className="shrink-0 truncate font-mono text-[11px] text-muted-foreground">
+                      {tuple.branch}
+                    </span>
+                    <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
+                  </button>
+                )
+              })}
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                {translate(
+                  'auto.components.alicorn.task.workspaceBound',
+                  'Opening one shows the session working on it.'
+                )}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="max-w-[620px] text-[12.5px] text-muted-foreground">
+                {translate(
+                  'auto.components.alicorn.task.notStarted',
+                  'Not started. Starting gives this task its own branch and workspace, and everything that runs in it is attributed back here.'
+                )}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {projectRepos.map((repo) => (
+                  <Button
+                    key={repo.id}
+                    size="sm"
+                    variant={projectRepos.length === 1 ? 'default' : 'outline'}
+                    className="gap-1.5"
+                    disabled={workspace.starting}
+                    onClick={() => void workspace.start(repo.id)}
+                  >
+                    {workspace.starting ? <Loader2 className="size-3.5 animate-spin" /> : null}
+                    {projectRepos.length === 1
+                      ? translate('auto.components.alicorn.task.start', 'Start task')
+                      : translate('auto.components.alicorn.task.startIn', 'Start in {{repo}}', {
+                          repo: repo.displayName
+                        })}
+                  </Button>
+                ))}
+              </div>
+              {projectRepos.length === 0 ? (
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  {translate(
+                    'auto.components.alicorn.task.noRepoToStart',
+                    'This project has no repository resolved on this machine, so there is nowhere to start it.'
+                  )}
+                </p>
+              ) : null}
+              {workspace.error ? (
+                <p className="mt-2 text-[11px] text-destructive">{workspace.error}</p>
+              ) : null}
+            </>
+          )}
         </section>
       </AlicornScreenBody>
     </>

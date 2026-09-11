@@ -17419,7 +17419,13 @@
           "noMembers": "Nobody yet.",
           "session": "Session",
           "noSession": "This task has no session yet. A session needs the task bound to a repository, branch and worktree, and nothing writes that binding from here yet — so the chat, the stage hand-offs and the execute panel the design calls for are not built. Start work from the Workspaces sidebar in the meantime.",
-          "projectLine": "In {{project}}."
+          "projectLine": "In {{project}}.",
+          "workspace": "Workspace",
+          "workspaceBound": "Opening one shows the session working on it.",
+          "notStarted": "Not started. Starting gives this task its own branch and workspace, and everything that runs in it is attributed back here.",
+          "start": "Start task",
+          "startIn": "Start in {{repo}}",
+          "noRepoToStart": "This project has no repository resolved on this machine, so there is nowhere to start it."
         },
         "mcpAttach": {
           "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",

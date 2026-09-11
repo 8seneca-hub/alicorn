@@ -7,6 +7,13 @@ import {
   type AlicornFailure
 } from './alicorn-control-plane-result'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
+import type {
+  TaskWorktreeTuple,
+  TaskWorktreeTupleInput
+} from '../../shared/alicorn/feature-workspace-tuples'
+import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
+import { getProfileUserDataPath } from '../orca-profiles/profile-storage-paths'
+import { materialiseAlicornMcpConfig } from '../alicorn/alicorn-mcp-config'
 
 /**
  * The board's reads and writes. Split from `alicorn-handlers` only for length.
@@ -19,7 +26,60 @@ function asRecord<T>(value: unknown): T | null {
   return value && typeof value === 'object' ? (value as T) : null
 }
 
-export function registerAlicornTaskHandlers(deps: { client: ControlPlaneClient | null }): void {
+export function registerAlicornTaskHandlers(deps: {
+  client: ControlPlaneClient | null
+  getOrchestrationDb: () => OrchestrationDb
+}): void {
+  // Written on demand so a session Alicorn starts can be pointed at it. Failure answers null and
+  // the launch simply carries no MCP — an agent without Alicorn's tools is a smaller loss than a
+  // session that refuses to start.
+  ipcMain.handle(
+    ALICORN_IPC.mcpConfigPath,
+    async (): Promise<{ ok: true; path: string } | AlicornFailure> => {
+      try {
+        return { ok: true, path: await materialiseAlicornMcpConfig(getProfileUserDataPath()) }
+      } catch (error) {
+        return { ok: false, error: error instanceof Error ? error.message : String(error) }
+      }
+    }
+  )
+
+  // The tuples live in the client's own orchestration SQLite, not the control plane: execution is
+  // on the client, and a worktree path names nothing on another host. So these two are the only
+  // task handlers that never touch the network.
+  ipcMain.handle(
+    ALICORN_IPC.tasksWorktreesList,
+    async (
+      _event,
+      args: { taskId?: unknown }
+    ): Promise<{ ok: true; tuples: TaskWorktreeTuple[] } | AlicornFailure> => {
+      const taskId = asNonEmptyString(args?.taskId)
+      if (!taskId) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return { ok: true, tuples: deps.getOrchestrationDb().listTaskWorktrees(taskId) }
+    }
+  )
+
+  ipcMain.handle(
+    ALICORN_IPC.tasksWorktreesBind,
+    async (
+      _event,
+      args: { taskId?: unknown; tuples?: unknown }
+    ): Promise<{ ok: true; tuples: TaskWorktreeTuple[] } | AlicornFailure> => {
+      const taskId = asNonEmptyString(args?.taskId)
+      if (!taskId || !Array.isArray(args?.tuples)) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return {
+        ok: true,
+        tuples: deps
+          .getOrchestrationDb()
+          .setTaskWorktrees(taskId, args.tuples as TaskWorktreeTupleInput[])
+      }
+    }
+  )
+
   ipcMain.handle(
     ALICORN_IPC.tasksList,
     async (

@@ -72,6 +72,7 @@ export function AlicornProjectScreen({
   const tasks = useProjectTasks(route.projectId)
   const repos = useAppStore((state) => state.repos)
   const setActiveView = useAppStore((state) => state.setActiveView)
+  const setActiveWorktree = useAppStore((state) => state.setActiveWorktree)
   const openSettingsPage = useAppStore((state) => state.openSettingsPage)
   const project = projects.find((candidate) => candidate.id === route.projectId)
   const projectName = project?.name ?? route.projectId
@@ -83,6 +84,10 @@ export function AlicornProjectScreen({
   const crumbs = projectCrumbs(projectName, allProjects)
   const section = (next: ProjectSection): void =>
     onNavigate({ scope: 'projects', projectId: route.projectId, section: next })
+  const openWorkspace = (worktreeId: string): void => {
+    setActiveWorktree(worktreeId)
+    setActiveView('terminal')
+  }
   const openTask = (taskId: string): void =>
     onNavigate({ scope: 'projects', projectId: route.projectId, section: route.section, taskId })
   const closeTask = (): void =>
@@ -128,10 +133,11 @@ export function AlicornProjectScreen({
           task={openTaskRow}
           projectId={route.projectId}
           projectKey={project?.key ?? ''}
-          projectName={projectName}
+          projectRepos={projectRepos}
           tasks={tasks}
           crumbs={crumbs}
           onBack={closeTask}
+          onOpenWorkspace={openWorkspace}
         />
         {composer}
       </>

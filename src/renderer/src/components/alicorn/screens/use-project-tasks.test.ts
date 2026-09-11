@@ -3,11 +3,14 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Task } from '../../../../../shared/alicorn/tasks'
+import { useAppStore } from '@/store'
 import { useProjectTasks } from './use-project-tasks'
 
 const listTasks = vi.fn()
 const createTask = vi.fn()
 const updateTask = vi.fn()
+const listTaskWorktrees = vi.fn()
+const statusChanged = vi.fn()
 
 function task(overrides: Partial<Task> = {}): Task {
   return {
@@ -34,9 +37,14 @@ beforeEach(() => {
   listTasks.mockReset()
   createTask.mockReset()
   updateTask.mockReset()
+  listTaskWorktrees.mockReset()
+  statusChanged.mockReset()
   listTasks.mockResolvedValue({ ok: true, tasks: [task()] })
+  listTaskWorktrees.mockResolvedValue({ ok: true, tuples: [] })
+  statusChanged.mockResolvedValue({ dispatched: false })
   ;(window as unknown as { api: unknown }).api = {
-    alicorn: { listTasks, createTask, updateTask }
+    alicorn: { listTasks, createTask, updateTask, listTaskWorktrees },
+    boardAutomation: { statusChanged }
   }
 })
 
@@ -135,5 +143,59 @@ describe('useProjectTasks', () => {
       })
       expect(created).toEqual({ ok: false, error: 'control_plane_unreachable' })
     })
+  })
+})
+
+// The join PRODUCT-ARCHITECTURE §2 asks for: moving a card is what dispatches a member.
+describe('a task move and board automation', () => {
+  it('tells automation which workspace moved and where it landed', async () => {
+    listTaskWorktrees.mockResolvedValue({
+      ok: true,
+      tuples: [{ repoId: 'repo-a', worktreeId: 'wt-1', branch: 'feat/x', primary: true }]
+    })
+    updateTask.mockResolvedValue({ ok: true, task: task({ column: 'in-review' }) })
+    useAppStore.setState({
+      worktreesByRepo: { 'repo-a': [{ id: 'wt-1', repoId: 'repo-a', path: '/w/x' }] } as never
+    })
+    const { result } = renderHook(() => useProjectTasks('prj_1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.update('tsk_1', { column: 'in-review' })
+    })
+
+    await waitFor(() =>
+      expect(statusChanged).toHaveBeenCalledWith(
+        expect.objectContaining({
+          worktreeId: 'wt-1',
+          toStatusId: 'in-review',
+          fromStatusId: 'todo'
+        })
+      )
+    )
+  })
+
+  it('dispatches nothing for a task that was never started', async () => {
+    updateTask.mockResolvedValue({ ok: true, task: task({ column: 'in-review' }) })
+    const { result } = renderHook(() => useProjectTasks('prj_1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.update('tsk_1', { column: 'in-review' })
+    })
+
+    expect(statusChanged).not.toHaveBeenCalled()
+  })
+
+  it('does not announce a patch that leaves the column alone', async () => {
+    updateTask.mockResolvedValue({ ok: true, task: task({ title: 'renamed' }) })
+    const { result } = renderHook(() => useProjectTasks('prj_1'))
+    await waitFor(() => expect(result.current.loading).toBe(false))
+
+    await act(async () => {
+      await result.current.update('tsk_1', { title: 'renamed' })
+    })
+
+    expect(listTaskWorktrees).not.toHaveBeenCalled()
   })
 })
