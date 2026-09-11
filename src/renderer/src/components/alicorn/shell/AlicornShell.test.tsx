@@ -5,6 +5,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import type { PendingGateView } from '../../../../../shared/alicorn/gate-review'
+import { useAppStore } from '@/store'
 import { AlicornShell } from './AlicornShell'
 
 const listProjects = vi.fn()
@@ -51,6 +52,8 @@ function seed(projects: Project[], gates: PendingGateView[] = []): void {
 }
 
 beforeEach(() => {
+  // The scope lives in the store, so a test that moves it would leak into the next one.
+  useAppStore.getState().openAlicornPage('projects')
   listProjects.mockReset()
   listPendingGates.mockReset()
   listMembers.mockReset()
@@ -67,7 +70,7 @@ describe('AlicornShell', () => {
     render(<AlicornShell />)
 
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
-    expect(screen.getByRole('button', { name: 'Projects' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByText('Run at once, on one org library')).toBeInTheDocument()
   })
 
   // The defect this shell exists to fix: the org scope must not be able to show a project's name.
@@ -76,19 +79,20 @@ describe('AlicornShell', () => {
     render(<AlicornShell />)
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Organisation' }))
+    useAppStore.getState().openAlicornPage('org')
 
     await waitFor(() => expect(screen.queryByText('Payments Platform')).not.toBeInTheDocument())
     expect(screen.getByText('The library — nothing runs here')).toBeInTheDocument()
   })
 
-  it('badges the rail with gates waiting and folds them onto the owning project', async () => {
+  it('counts a project by the gates its repositories hold', async () => {
     seed([project()], [gate('repo-a'), gate('repo-a')])
     render(<AlicornShell />)
 
-    await waitFor(() =>
-      expect(screen.getByTestId('alicorn-rail-inbox-badge')).toHaveTextContent('2')
-    )
+    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
+    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
+    await waitFor(() => expect(screen.getByText('Waiting on you')).toBeInTheDocument())
+    expect(screen.getByText('Waiting on you').parentElement).toHaveTextContent('2')
   })
 
   // A gate nothing places belongs to no project, so it must not inflate one.
@@ -96,9 +100,7 @@ describe('AlicornShell', () => {
     seed([project()], [gate(null)])
     render(<AlicornShell />)
 
-    await waitFor(() =>
-      expect(screen.getByTestId('alicorn-rail-inbox-badge')).toHaveTextContent('1')
-    )
+    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
     const sidebarRow = screen.getAllByText('Payments Platform')[0]!
     fireEvent.click(sidebarRow)
     await waitFor(() => expect(screen.getByText('Waiting on you')).toBeInTheDocument())

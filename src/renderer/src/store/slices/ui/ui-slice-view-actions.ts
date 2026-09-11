@@ -46,6 +46,12 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
       set((state) => ({
         activeView: state.previousViewBeforeSpace
       })),
+    // No recordViewVisit: that history is the worktree back/forward stack, and the Alicorn
+    // scopes are not worktrees. Adding them would put a non-workspace entry in a stack whose
+    // whole job is moving between workspaces.
+    openAlicornPage: (scope) => {
+      set({ activeView: 'alicorn', alicornScope: scope })
+    },
     openSkillsPage: () => {
       get().recordViewVisit('skills')
       set((state) => ({

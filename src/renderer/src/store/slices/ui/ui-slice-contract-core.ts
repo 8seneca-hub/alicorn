@@ -180,6 +180,9 @@ export type UISliceCore = {
   closeAutomationsPage: () => void
   openSpacePage: () => void
   closeSpacePage: () => void
+  /** Which scope the Alicorn shell opens on. The rail sets it before switching views. */
+  alicornScope: 'projects' | 'org' | 'inbox'
+  openAlicornPage: (scope: UISliceCore['alicornScope']) => void
   openSkillsPage: () => void
   closeSkillsPage: () => void
   pendingSkillShareId: string | null

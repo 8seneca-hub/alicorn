@@ -8,24 +8,30 @@
  */
 import React from 'react'
 import { translate } from '@/i18n/i18n'
+import { useAppStore } from '@/store'
 import { useGatePanelState } from '../../right-sidebar/gate-panel/use-gate-panel-state'
-import { AlicornRail } from './AlicornRail'
 import { AlicornScopeSidebar } from './AlicornScopeSidebar'
 import { AlicornProjectsScreen } from '../screens/AlicornProjectsScreen'
 import { AlicornProjectScreen } from '../screens/AlicornProjectScreen'
 import { AlicornOrgScreen } from '../screens/AlicornOrgScreen'
 import { AlicornInboxScreen } from '../screens/AlicornInboxScreen'
 import { useAlicornProjects } from './use-alicorn-projects'
-import {
-  ALICORN_HOME,
-  isProjectRoute,
-  railTargetOf,
-  type AlicornRailTarget,
-  type AlicornRoute
-} from './alicorn-shell-route'
+import { ALICORN_HOME, isProjectRoute, type AlicornRoute } from './alicorn-shell-route'
 
 export function AlicornShell(): React.JSX.Element {
+  const scope = useAppStore((state) => state.alicornScope)
   const [route, setRoute] = React.useState<AlicornRoute>(ALICORN_HOME)
+  // The rail owns the scope; this shell owns where you are inside it. Re-pointing the rail resets
+  // the route to that scope's landing place rather than leaving you on a stale project section.
+  React.useEffect(() => {
+    setRoute(
+      scope === 'inbox'
+        ? { scope: 'inbox' }
+        : scope === 'org'
+          ? { scope: 'org', section: 'members' }
+          : ALICORN_HOME
+    )
+  }, [scope])
   const projectsState = useAlicornProjects()
   const { gates, refresh: refreshGates } = useGatePanelState({ isVisible: true })
 
@@ -49,21 +55,8 @@ export function AlicornShell(): React.JSX.Element {
     return byProject
   }, [gates, projectsState.projects])
 
-  const onRail = (target: AlicornRailTarget): void => {
-    if (target === 'projects') {
-      setRoute(ALICORN_HOME)
-      return
-    }
-    if (target === 'org') {
-      setRoute({ scope: 'org', section: 'members' })
-      return
-    }
-    setRoute({ scope: 'inbox' })
-  }
-
   return (
     <div className="flex h-full min-h-0 w-full">
-      <AlicornRail active={railTargetOf(route)} waiting={(gates ?? []).length} onSelect={onRail} />
       <AlicornScopeSidebar
         route={route}
         projects={projectsState.projects}
