@@ -126,4 +126,30 @@ describe('GatePanel', () => {
     expect(await screen.findByText(/could not be read/)).toBeInTheDocument()
     expect(screen.getByText('gates_unavailable')).toBeInTheDocument()
   })
+
+  // The queue has to be readable one project at a time once more than one is waiting.
+  it('heads each project once two are waiting, and puts the unplaced ones last', async () => {
+    seed({
+      ok: true,
+      gates: [
+        gate({ id: 'g1', repoId: null }),
+        gate({ id: 'g2', repoId: 'repo-b' }),
+        gate({ id: 'g3', repoId: 'repo-a' })
+      ]
+    })
+    render(<GatePanel />)
+
+    await waitFor(() => expect(screen.getAllByTestId('gate-group-header')).toHaveLength(3))
+    const headers = screen.getAllByTestId('gate-group-header').map((el) => el.textContent)
+    expect(headers[2]).toBe('Not attributed to a project')
+  })
+
+  // One project is the common case, and a header over the only group is noise.
+  it('renders flat when every gate belongs to the same project', async () => {
+    seed({ ok: true, gates: [gate({ id: 'g1', repoId: 'repo-a' })] })
+    render(<GatePanel />)
+
+    await waitFor(() => expect(screen.getByTestId('pending-gates')).toBeInTheDocument())
+    expect(screen.queryByTestId('gate-group-header')).not.toBeInTheDocument()
+  })
 })

@@ -10,6 +10,8 @@ import { gateReasonSentence } from '../provenance-panel/provenance-gate-copy'
 import { isGateDecisionReason } from '../../../../../shared/alicorn/provenance-view'
 import { GATE_VERDICT_COLOR, humanVerdictLabel, policyWouldHaveSentence } from './gate-panel-copy'
 import { useGatePanelState } from './use-gate-panel-state'
+import { groupGatesByRepo } from '../../../../../shared/alicorn/gate-grouping'
+import { useAppStore } from '@/store'
 
 /**
  * The level-1 advisory surface (GP3). Every gate still fires — nothing here retires one. What it
@@ -19,6 +21,14 @@ import { useGatePanelState } from './use-gate-panel-state'
  */
 export function GatePanel({ isVisible = true }: { isVisible?: boolean }): React.JSX.Element {
   const { gates, error, refresh } = useGatePanelState({ isVisible })
+  const repos = useAppStore((state) => state.repos)
+  const repoName = React.useCallback(
+    (repoId: string): string => repos.find((repo) => repo.id === repoId)?.displayName ?? repoId,
+    [repos]
+  )
+  // One group renders flat, exactly as before — a header over the only project in the queue is
+  // noise, and the common case is one project.
+  const groups = React.useMemo(() => groupGatesByRepo(gates ?? [], repoName), [gates, repoName])
 
   if (error) {
     return (
@@ -68,8 +78,25 @@ export function GatePanel({ isVisible = true }: { isVisible?: boolean }): React.
         </Button>
       </div>
       <ul className="flex flex-col" data-testid="pending-gates">
-        {gates.map((gate) => (
-          <GateRow key={gate.id} gate={gate} onResolved={refresh} />
+        {groups.map((group) => (
+          <React.Fragment key={group.repoId ?? 'unattributed'}>
+            {groups.length > 1 ? (
+              <li
+                className="border-b border-border/60 bg-muted/30 px-3 py-1 text-[11px] font-medium text-muted-foreground"
+                data-testid="gate-group-header"
+              >
+                {group.repoId === null
+                  ? translate(
+                      'auto.components.right.sidebar.gate.panel.unattributed',
+                      'Not attributed to a project'
+                    )
+                  : repoName(group.repoId)}
+              </li>
+            ) : null}
+            {group.gates.map((gate) => (
+              <GateRow key={gate.id} gate={gate} onResolved={refresh} />
+            ))}
+          </React.Fragment>
         ))}
       </ul>
     </div>
