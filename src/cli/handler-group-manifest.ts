@@ -34,6 +34,11 @@ export const HANDLER_GROUPS: readonly HandlerGroup[] = [
     load: async () => (await import('./handlers/artifacts.js')).ARTIFACT_HANDLERS
   },
   {
+    name: 'mcp',
+    keys: ['mcp serve'],
+    load: async () => (await import('./handlers/mcp.js')).MCP_HANDLERS
+  },
+  {
     name: 'ledger',
     keys: ['ledger report', 'ledger outbox', 'ledger outbox-requeue'],
     load: async () => (await import('./handlers/ledger.js')).LEDGER_HANDLERS

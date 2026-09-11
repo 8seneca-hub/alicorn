@@ -20,12 +20,14 @@ import { VM_COMMAND_SPECS } from './vm'
 import { SKILL_COMMAND_SPECS } from './skills'
 import { ARTIFACT_COMMAND_SPECS } from './artifacts'
 import { LEDGER_COMMAND_SPECS } from './ledger'
+import { MCP_COMMAND_SPECS } from './mcp'
 import { CONTRACT_COMMAND_SPECS } from './contracts'
 
 export const COMMAND_SPECS: CommandSpec[] = [
   ...CORE_COMMAND_SPECS,
   ...ARTIFACT_COMMAND_SPECS,
   ...LEDGER_COMMAND_SPECS,
+  ...MCP_COMMAND_SPECS,
   ...CONTRACT_COMMAND_SPECS,
   ...ACCOUNT_COMMAND_SPECS,
   ...PROJECT_COMMAND_SPECS,
