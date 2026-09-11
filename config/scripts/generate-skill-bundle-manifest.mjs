@@ -412,7 +412,12 @@ function releasedHistoryFromCommitted(committedRegistry, committedMapping) {
       // The committed registry carries at most one unreleased tail beyond the
       // revisions named by the mapping; drop it and recompute it from bytes.
       const releasedCount = mappedCounts?.[name] ?? Math.max(0, snapshots.length - 1)
-      registry.skills[name] = snapshots.slice(0, releasedCount)
+      // Assign-or-nothing, and no `if`, because this file sits at its max-lines ceiling and the
+      // guard must not cost a line. A key written empty is not "a skill with no history": the
+      // reader's schema requires at least one snapshot, so an empty array is an artifact the app
+      // refuses to parse — skills:freshnessInventory fails whole. A renamed skill lands here, its
+      // old name still in the committed registry and named by no release.
+      Object.assign(registry.skills, releasedCount && { [name]: snapshots.slice(0, releasedCount) })
       releasedSnapshotCounts[name] = releasedCount
     }
   }
