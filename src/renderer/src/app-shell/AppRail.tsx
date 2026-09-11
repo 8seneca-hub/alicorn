@@ -14,6 +14,7 @@ import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useGatePanelState } from '@/components/right-sidebar/gate-panel/use-gate-panel-state'
+import { isMacUserAgent } from '@/components/terminal-pane/pane-helpers'
 
 type RailTarget = 'projects' | 'org' | 'settings' | 'inbox'
 
@@ -66,7 +67,12 @@ export function AppRail(): React.JSX.Element {
       // Why no-drag: the rail sits under the window's drag region on custom chrome, and a
       // draggable button is a button that does not click.
       style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-      className="flex w-14 shrink-0 flex-col items-center gap-1 border-r border-border bg-sidebar py-2.5"
+      className={cn(
+        'flex w-14 shrink-0 flex-col items-center gap-1 border-r border-border bg-sidebar pb-2.5',
+        // macOS draws its traffic lights over the top-left of the window, and the rail is now what
+        // is under them. Without this the first button is unclickable behind the close button.
+        isMacUserAgent() ? 'pt-[38px]' : 'pt-2.5'
+      )}
     >
       {buttons.map((button) => (
         <RailButton key={button.target} {...button} active={active === button.target} />

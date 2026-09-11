@@ -5,7 +5,7 @@
  * a project's name, and the surest way to guarantee that is for it never to hold one.
  */
 import React from 'react'
-import { Plus, Search } from 'lucide-react'
+import { ChevronLeft, Plus, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import type { Project } from '../../../../../shared/alicorn/projects'
@@ -199,10 +199,22 @@ export function AlicornScopeSidebar({
   const project = projects.find((candidate) => candidate.id === route.projectId)
   return (
     <aside className="flex w-[272px] shrink-0 flex-col border-r border-border bg-sidebar">
-      <SidebarHead
-        name={project?.name ?? route.projectId}
-        kind={translate('auto.components.alicorn.shell.projectKind', 'Project')}
-      />
+      <div className="shrink-0 px-2 pb-1 pt-3">
+        <button
+          type="button"
+          onClick={() => onNavigate({ scope: 'projects', projectId: null })}
+          className="flex h-7 items-center gap-1 rounded-md pl-1 pr-2 text-[12px] text-muted-foreground transition hover:bg-accent hover:text-foreground"
+        >
+          <ChevronLeft className="size-3.5" />
+          {translate('auto.components.alicorn.shell.allProjects', 'All projects')}
+        </button>
+      </div>
+      <div className="shrink-0 px-4 pb-2">
+        <div className="truncate text-[15px] font-semibold">{project?.name ?? route.projectId}</div>
+        <div className="mt-0.5 text-[11px] text-muted-foreground">
+          {translate('auto.components.alicorn.shell.projectKind', 'Project')}
+        </div>
+      </div>
       <div className="scrollbar-sleek flex-1 overflow-y-auto px-2 pb-4">
         {PROJECT_SECTIONS.map((section) => (
           <Item
@@ -217,13 +229,6 @@ export function AlicornScopeSidebar({
             onClick={() => onNavigate({ scope: 'projects', projectId: route.projectId, section })}
           />
         ))}
-      </div>
-      <div className="shrink-0 border-t border-border p-2">
-        <Item
-          label={translate('auto.components.alicorn.shell.allProjects', 'All projects')}
-          active={false}
-          onClick={() => onNavigate({ scope: 'projects', projectId: null })}
-        />
       </div>
     </aside>
   )
