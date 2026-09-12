@@ -1,3 +1,4 @@
+import { parseAlicornReceipt } from '../../shared/alicorn/receipt'
 import { describe, expect, it, vi } from 'vitest'
 import { handleMcpLine, handleMcpRequest, MCP_PROTOCOL_VERSION } from './alicorn-mcp-protocol'
 import { ALICORN_MCP_TOOLS } from './alicorn-mcp-tools'
@@ -84,8 +85,38 @@ describe('the Alicorn MCP server', () => {
       call
     )
 
-    expect(text(response)).toContain('Created task #7 "Refunds" in todo.')
-    expect(text(response)).toContain('Undo: delete task tsk_1.')
+    // The sentence is for the model; the leading line is for the app, which turns it into a row
+    // with an Undo button rather than asking a human to act on prose.
+    expect(text(response)).toContain('Created task #7 \u201cRefunds\u201d in todo')
+    const receipt = parseAlicornReceipt(text(response))
+    expect(receipt?.summary).toContain('Created task #7')
+    expect(receipt?.undo).toEqual({ action: 'task.delete', args: { taskId: 'tsk_1' } })
+  })
+
+  // Deletion is not in the agent's tool set, so an undo must never read as one it could call.
+  it('names an app action for the undo, never a tool', async () => {
+    const call = vi.fn(async () => ({
+      task: { id: 'tsk_2', number: 8, title: 'Retries', column: 'in-review' },
+      previous: { column: 'in-progress' }
+    }))
+
+    const response = await handleMcpRequest(
+      {
+        jsonrpc: '2.0',
+        id: 6,
+        method: 'tools/call',
+        params: {
+          name: 'alicorn_update_task',
+          arguments: { taskId: 'tsk_2', column: 'in-review' }
+        }
+      },
+      call
+    )
+
+    expect(parseAlicornReceipt(text(response))?.undo).toEqual({
+      action: 'task.update',
+      args: { taskId: 'tsk_2', column: 'in-progress' }
+    })
   })
 
   // Import is two primitives, not a bespoke importer: the agent brings its own PM MCP server.

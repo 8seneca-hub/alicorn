@@ -47,7 +47,7 @@ const TITLES: Record<ProjectSection, string> = {
   checks: 'Required Checks',
   skills: 'Skills',
   mcp: 'MCP Servers',
-  repos: 'Repositories'
+  settings: 'Settings'
 }
 
 export function AlicornProjectScreen({
@@ -244,10 +244,10 @@ export function AlicornProjectScreen({
     )
   }
 
-  if (route.section === 'repos') {
+  if (route.section === 'settings') {
     return (
       <>
-        <AlicornScreenHeader crumbs={crumbs} title={TITLES.repos} />
+        <AlicornScreenHeader crumbs={crumbs} title={TITLES.settings} />
         <AlicornScreenBody>
           {projectRepos.length === 0 ? (
             <AlicornEmptyState
@@ -274,7 +274,7 @@ export function AlicornProjectScreen({
               key={folder.id}
               folder={folder}
               onImported={() =>
-                onNavigate({ scope: 'projects', projectId: route.projectId, section: 'repos' })
+                onNavigate({ scope: 'projects', projectId: route.projectId, section: 'settings' })
               }
             />
           ))}

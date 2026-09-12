@@ -19,6 +19,11 @@ import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
 import { AlicornTaskChat } from '../screens/AlicornTaskChat'
 import { useOrgChat } from '../screens/use-org-chat'
+import { useStructuredAgentSession } from '@/components/native-chat/use-structured-agent-session'
+import { AlicornReceipts } from './AlicornReceipts'
+import { collectReceipts } from './alicorn-receipt-feed'
+import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'
+import type { AgentType } from '../../../../../shared/agent-status-types'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import {
   getAlicornAssistantState,
@@ -39,6 +44,35 @@ function ScopeChip({ label }: { label: string }): React.JSX.Element {
     <span className="truncate rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
       {label}
     </span>
+  )
+}
+
+/**
+ * The session plus the record of what it changed.
+ *
+ * Split from the panel so the transcript subscription lives with the receipts it feeds: they read
+ * the same messages, and reading them in two places would mean subscribing twice.
+ */
+function AlicornAssistantSession({
+  session,
+  onRestart
+}: {
+  session: TaskSessionBinding
+  onRestart: () => void
+}): React.JSX.Element {
+  const controller = useStructuredAgentSession({
+    sessionId: session.sessionId,
+    target: { kind: 'local' },
+    agent: session.agent as AgentType,
+    isVisible: true
+  })
+  const receipts = React.useMemo(() => collectReceipts(controller.messages), [controller.messages])
+
+  return (
+    <>
+      <AlicornTaskChat session={session} onRestart={onRestart} />
+      <AlicornReceipts entries={receipts} />
+    </>
   )
 }
 
@@ -84,7 +118,7 @@ export function AlicornAssistant({
       </header>
 
       {chat.session ? (
-        <AlicornTaskChat session={chat.session} onRestart={chat.restart} />
+        <AlicornAssistantSession session={chat.session} onRestart={chat.restart} />
       ) : (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-6 text-center text-[12.5px] text-muted-foreground">
           {chat.repoId === undefined

@@ -16,7 +16,7 @@ export const PROJECT_SECTIONS = [
   'checks',
   'skills',
   'mcp',
-  'repos'
+  'settings'
 ] as const
 export type ProjectSection = (typeof PROJECT_SECTIONS)[number]
 

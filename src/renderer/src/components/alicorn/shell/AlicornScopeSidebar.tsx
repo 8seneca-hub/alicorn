@@ -8,7 +8,7 @@ import React from 'react'
 import {
   ChevronLeft,
   Gauge,
-  GitBranch,
+  Settings2,
   Inbox,
   LayoutGrid,
   List,
@@ -46,7 +46,7 @@ const PROJECT_SECTION_LABELS: Record<ProjectSection, string> = {
   checks: 'Required Checks',
   skills: 'Skills',
   mcp: 'MCP Servers',
-  repos: 'Repositories'
+  settings: 'Settings'
 }
 
 const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
@@ -59,7 +59,7 @@ const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
   checks: ShieldCheck,
   skills: Sparkles,
   mcp: Server,
-  repos: GitBranch
+  settings: Settings2
 }
 
 const ORG_SECTION_LABELS: Record<OrgSection, string> = {

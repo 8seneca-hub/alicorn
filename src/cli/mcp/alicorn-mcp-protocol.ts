@@ -9,6 +9,7 @@
  * Transport framing is newline-delimited JSON on stdio, which is what every current MCP client
  * speaks to a stdio server.
  */
+import { formatAlicornReceiptLine } from '../../shared/alicorn/receipt'
 import { ALICORN_MCP_TOOLS, findAlicornMcpTool } from './alicorn-mcp-tools'
 
 /** The revision this server implements. Clients negotiate down, never up. */
@@ -90,10 +91,18 @@ export async function handleMcpRequest(
     const args = (request.params?.arguments ?? {}) as Record<string, unknown>
     try {
       const result = ((await call(tool.method, args)) ?? {}) as Record<string, unknown>
-      // A writer leads with its receipt so the model quotes the change, not the payload.
       const body = JSON.stringify(result, null, 2)
       const receipt = tool.receipt?.(result, args)
-      return ok(id, toolText(receipt ? `${receipt}\n\n${body}` : body))
+      if (!receipt) {
+        return ok(id, toolText(body))
+      }
+      // The machine-readable receipt leads, then the sentence, then the payload. Leading because
+      // the client bounds tool output and keeps the head — a trailing receipt is the one that gets
+      // eaten by a large result.
+      return ok(
+        id,
+        toolText(`${formatAlicornReceiptLine(receipt)}\n${receipt.summary}.\n\n${body}`)
+      )
     } catch (error) {
       // A refused write is the model's to read and retry, not a transport failure.
       return ok(id, toolText(error instanceof Error ? error.message : String(error), true))

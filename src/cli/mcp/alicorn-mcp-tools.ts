@@ -12,6 +12,7 @@
  */
 
 import { DEFAULT_WORKSPACE_STATUSES } from '../../shared/workspace-status-defaults'
+import type { AlicornReceipt } from '../../shared/alicorn/receipt'
 
 export type McpToolDefinition = {
   name: string
@@ -23,8 +24,10 @@ export type McpToolDefinition = {
   }
   /** The runtime RPC method this tool is a thin wrapper over. */
   method: string
-  /** Null for a read. A writer returns this sentence plus the undo. */
-  receipt: ((result: Record<string, unknown>, args: Record<string, unknown>) => string) | null
+  /** Null for a read. A writer returns the sentence and the call that reverses it. */
+  receipt:
+    | ((result: Record<string, unknown>, args: Record<string, unknown>) => AlicornReceipt)
+    | null
 }
 
 /**
@@ -88,8 +91,11 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
     receipt: (result) => {
       const project = result.project as { id: string; name: string; key: string } | undefined
       return project
-        ? `Created project ${project.name} (${project.key}). Undo: delete project ${project.id}.`
-        : 'No project was created.'
+        ? {
+            summary: `Created project ${project.name} (${project.key})`,
+            undo: { action: 'project.delete', args: { projectId: project.id } }
+          }
+        : { summary: 'No project was created', undo: null }
     }
   },
   {
@@ -123,8 +129,11 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
     receipt: (result) => {
       const member = result.member as MemberLike | undefined
       return member
-        ? `Added member ${member.name} (${member.role} on ${member.backend}). Undo: delete member ${member.id}.`
-        : 'No member was created.'
+        ? {
+            summary: `Added member ${member.name} — ${member.role} on ${member.backend}`,
+            undo: { action: 'member.delete', args: { memberId: member.id } }
+          }
+        : { summary: 'No member was created', undo: null }
     }
   },
   {
@@ -185,10 +194,13 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
     receipt: (result, args) => {
       const task = asTask(result)
       if (!task) {
-        return 'No task was created.'
+        return { summary: 'No task was created', undo: null }
       }
       const from = args.source ? ` from ${(args.source as { ref?: string }).ref}` : ''
-      return `Created task #${task.number} "${task.title}"${from} in ${task.column}. Undo: delete task ${task.id}.`
+      return {
+        summary: `Created task #${task.number} “${task.title}”${from} in ${task.column}`,
+        undo: { action: 'task.delete', args: { taskId: task.id } }
+      }
     }
   },
   {
@@ -211,10 +223,19 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
     receipt: (result, args) => {
       const task = asTask(result)
       if (!task) {
-        return 'No task was changed.'
+        return { summary: 'No task was changed', undo: null }
       }
       const changed = Object.keys(args).filter((key) => key !== 'taskId')
-      return `Updated task #${task.number} (${changed.join(', ') || 'nothing'}). Undo: set them back on task ${task.id}.`
+      // The prior values of exactly the fields this call named — the RPC reads the task before it
+      // patches it. Without them there is nothing to put back, so the change stands.
+      const previous = (result.previous ?? null) as Record<string, unknown> | null
+      return {
+        summary: `Updated task #${task.number} — ${changed.join(', ') || 'nothing'}`,
+        undo:
+          previous && Object.keys(previous).length > 0
+            ? { action: 'task.update', args: { taskId: task.id, ...previous } }
+            : null
+      }
     }
   }
 ]

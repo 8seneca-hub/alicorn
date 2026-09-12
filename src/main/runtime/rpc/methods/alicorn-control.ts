@@ -172,11 +172,24 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
       if (params.memberIds !== undefined) {
         patch.memberIds = params.memberIds
       }
+      // Read before writing so the caller can say what it changed *from*. An undo that only knows
+      // the new value is not an undo — it is a second guess at what was there before.
+      const before = await readJson<{ task: Task }>(
+        `/v1/tasks/${encodeURIComponent(params.taskId)}`
+      ).catch(() => null)
       const body = await readJson<{ task: Task }>(
         `/v1/tasks/${encodeURIComponent(params.taskId)}`,
         { method: 'PATCH', body: JSON.stringify(patch) }
       )
-      return { task: body.task }
+      // Only the fields this call actually named, at their prior values: replaying the whole task
+      // would undo changes somebody else made in between.
+      const previous: Record<string, unknown> = {}
+      if (before?.task) {
+        for (const field of Object.keys(patch)) {
+          previous[field] = (before.task as unknown as Record<string, unknown>)[field]
+        }
+      }
+      return { task: body.task, previous }
     }
   })
 ]

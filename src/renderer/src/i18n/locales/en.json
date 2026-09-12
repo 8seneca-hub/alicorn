@@ -17692,6 +17692,13 @@
           "opening": "Opening the assistant…",
           "openWith": "Assistant ({{shortcut}})",
           "open": "Open the assistant"
+        },
+        "receipts": {
+          "undone": "Undone",
+          "retry": "Retry undo",
+          "undo": "Undo",
+          "one": "1 change",
+          "many": "{{count}} changes"
         }
       },
       "composerTaskPlan": {
