@@ -71,7 +71,79 @@ export const FEATURE_DELIVERY_TEMPLATE = {
   ]
 } as const satisfies z.infer<typeof WorkflowTemplateSchema>
 
-export const WORKFLOW_TEMPLATES = [FEATURE_DELIVERY_TEMPLATE] as const
+
+/**
+ * 8seneca's client delivery pipeline, transcribed from the flow the team actually runs.
+ *
+ * It is longer than a feature pipeline because most of it happens before any code exists: the
+ * expensive mistakes on client work are a misread domain, a scope nobody agreed, and an estimate
+ * sent without approval — not a bad function.
+ *
+ * Where it gates, and why each is authored rather than inferred:
+ *
+ * - **Demo** and **Estimate** carry `inherited_cost: high`. Both are shown to the client, and
+ *   everything after inherits what the client took from them: a prototype implies a scope, an
+ *   estimate implies a price. Getting either wrong is inherited by the whole engagement.
+ * - **Scope** and **Deliver** are `irreversible`. A scope agreed with a client is a commitment,
+ *   and a chunk delivered has been seen — neither un-happens because the next stage disagreed.
+ *
+ * Only four stages bind a board column, because a board has four. The rest are stages of one
+ * ticket's life rather than places a ticket sits, and a stage with no column is never dispatched
+ * by a board move.
+ */
+export const CLIENT_DELIVERY_TEMPLATE = {
+  key: 'client-delivery',
+  name: 'Client delivery',
+  description:
+    'Raw client documentation through to delivery in chunks: research, PRD, prototype, scope, estimate, architecture, build, review, deliver.',
+  stages: [
+    { key: 'intake', name: 'Intake', ordinal: 0, memberRole: 'analyst', columnId: 'todo', reversibility: 'free', inheritedCost: 'low' },
+    // Why inherited: everything downstream reasons from the domain read. A wrong one is not found
+    // until the client says "that is not how our business works", by which point it is built.
+    { key: 'research', name: 'Domain research', ordinal: 1, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'high' },
+    { key: 'prd-draft', name: 'Draft PRD', ordinal: 2, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'low' },
+    { key: 'prototype', name: 'Prototype', ordinal: 3, memberRole: 'other', columnId: null, reversibility: 'contained', inheritedCost: 'low' },
+    // Shown to the client: what they take from it is inherited by the whole engagement.
+    { key: 'demo', name: 'Client demo', ordinal: 4, memberRole: null, columnId: null, reversibility: 'contained', inheritedCost: 'high' },
+    { key: 'scope', name: 'Scope agreed', ordinal: 5, memberRole: 'analyst', columnId: null, reversibility: 'irreversible', inheritedCost: 'high' },
+    { key: 'estimate', name: 'Estimate approved', ordinal: 6, memberRole: null, columnId: null, reversibility: 'irreversible', inheritedCost: 'high' },
+    { key: 'prd-final', name: 'Detailed PRD', ordinal: 7, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'low' },
+    { key: 'architecture', name: 'Architecture', ordinal: 8, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'high' },
+    { key: 'breakdown', name: 'Task breakdown', ordinal: 9, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'low' },
+    { key: 'build', name: 'Build', ordinal: 10, memberRole: 'developer', columnId: 'in-progress', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'review', name: 'Review', ordinal: 11, memberRole: 'reviewer', columnId: 'in-review', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'verify', name: 'Test', ordinal: 12, memberRole: 'qa', columnId: null, reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'deliver', name: 'Deliver chunk', ordinal: 13, memberRole: null, columnId: 'completed', reversibility: 'irreversible', inheritedCost: 'high' }
+  ],
+  transitions: [
+    { from: 'intake', to: 'research', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'research', to: 'prd-draft', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'prd-draft', to: 'prototype', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'prototype', to: 'demo', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'demo', to: 'scope', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'scope', to: 'estimate', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'estimate', to: 'prd-final', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'prd-final', to: 'architecture', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'architecture', to: 'breakdown', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'breakdown', to: 'build', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'build', to: 'review', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'review', to: 'verify', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'verify', to: 'deliver', kind: 'forward', trigger: { kind: 'on_success' } },
+    // The correction edges carry the point: findings go back to whoever authored the thing, they
+    // do not become a new ticket. A demo that lands badly returns to the PRD, not to the prototype
+    // — the prototype was faithful to a brief that was wrong.
+    { from: 'review', to: 'build', kind: 'correction', trigger: { kind: 'on_failure' } },
+    { from: 'verify', to: 'build', kind: 'correction', trigger: { kind: 'on_failure' } },
+    { from: 'demo', to: 'prd-draft', kind: 'correction', trigger: { kind: 'on_failure' } },
+    { from: 'scope', to: 'prd-draft', kind: 'correction', trigger: { kind: 'on_failure' } },
+    { from: 'estimate', to: 'scope', kind: 'correction', trigger: { kind: 'on_failure' } }
+  ]
+} as const satisfies z.infer<typeof WorkflowTemplateSchema>
+
+export const WORKFLOW_TEMPLATES = [
+  FEATURE_DELIVERY_TEMPLATE,
+  CLIENT_DELIVERY_TEMPLATE
+] as const
 
 // Why: SK1 takes stage keys from templates rather than from free-text `phase`; this is the set.
 export const FEATURE_DELIVERY_STAGE_KEYS = FEATURE_DELIVERY_TEMPLATE.stages.map((s) => s.key)
