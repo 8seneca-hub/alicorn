@@ -18,6 +18,9 @@ export const alicornApi: AlicornApi = {
   listTaskWorktrees: (taskId) => ipcRenderer.invoke(ALICORN_IPC.tasksWorktreesList, { taskId }),
   bindTaskWorktrees: (taskId, tuples) =>
     ipcRenderer.invoke(ALICORN_IPC.tasksWorktreesBind, { taskId, tuples }),
+  getTaskSession: (taskId) => ipcRenderer.invoke(ALICORN_IPC.tasksSessionGet, { taskId }),
+  bindTaskSession: (taskId, session) =>
+    ipcRenderer.invoke(ALICORN_IPC.tasksSessionBind, { taskId, session }),
   listMembers: () => ipcRenderer.invoke(ALICORN_IPC.membersList),
   createMember: (input) => ipcRenderer.invoke(ALICORN_IPC.membersCreate, input),
   updateMember: (id, input) => ipcRenderer.invoke(ALICORN_IPC.membersUpdate, { id, input }),

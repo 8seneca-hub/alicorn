@@ -19,6 +19,8 @@ export const ALICORN_IPC = {
   mcpConfigPath: 'alicorn:mcp:configPath',
   tasksWorktreesList: 'alicorn:tasks:worktrees:list',
   tasksWorktreesBind: 'alicorn:tasks:worktrees:bind',
+  tasksSessionGet: 'alicorn:tasks:session:get',
+  tasksSessionBind: 'alicorn:tasks:session:bind',
   tasksSetExecutionStrategy: 'alicorn:tasks:setExecutionStrategy',
   foremanJournal: 'alicorn:foreman:journal',
   provenanceGet: 'alicorn:provenance:get',

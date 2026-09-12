@@ -80,6 +80,19 @@ CREATE TABLE IF NOT EXISTS alicorn_task_worktrees (
 CREATE INDEX IF NOT EXISTS idx_task_worktrees_worktree
   ON alicorn_task_worktrees(worktree_id);
 
+-- The structured Claude session a task is worked in: one per task, so reopening the ticket
+-- reattaches to the conversation rather than starting a second one beside it.
+CREATE TABLE IF NOT EXISTS alicorn_task_sessions (
+  task_id     TEXT PRIMARY KEY,
+  session_id  TEXT NOT NULL,
+  agent       TEXT NOT NULL,
+  worktree_id TEXT NOT NULL,
+  created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_sessions_session
+  ON alicorn_task_sessions(session_id);
+
 CREATE TABLE IF NOT EXISTS alicorn_dispatch_ledger (
   dispatch_id    TEXT PRIMARY KEY,
   outcome_id     TEXT NOT NULL,

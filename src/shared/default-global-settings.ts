@@ -125,7 +125,11 @@ export function buildDefaultSettings(args: {
     terminalLinkActionPopoverEnabled: true,
     openAgentTabsInChatByDefault: true,
     experimentalNativeChat: true,
-    experimentalStructuredNativeChat: false,
+    // Alicorn's default, and a change of default rather than of machinery: a task's session is a
+    // structured one, because that is the only chat surface that exists outside a terminal pane —
+    // which is what lets the conversation live in the ticket. It picks which chat implementation
+    // runs, never chat instead of a terminal; `openAgentTabsInChatByDefault` still decides that.
+    experimentalStructuredNativeChat: true,
     nativeChatSessionOptions: {},
     openInApplications: [...DEFAULT_OPEN_IN_APPLICATIONS],
     rightSidebarOpenByDefault: true,

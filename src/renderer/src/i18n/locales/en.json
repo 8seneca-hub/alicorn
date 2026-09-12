@@ -393,7 +393,14 @@
           "f963485d37": "Row not found",
           "a967f23983": "Project view not loaded",
           "87020f6605": "Row has no owner/repo/number — cannot patch underlying item",
-          "d49ef4b944": "Failed to save issue-source preference"
+          "d49ef4b944": "Failed to save issue-source preference",
+          "slice": {
+            "test": {
+              "harness": {
+                "28fd2d1802": "Test PR"
+              }
+            }
+          }
         },
         "sparse": {
           "presets": {
@@ -473,7 +480,14 @@
           },
           "createdWithoutParentNesting": "Created without nesting under \"{{value0}}\"",
           "createdWithoutParentNestingUnnamed": "Created without nesting under the selected parent",
-          "createdWithoutParentNestingDetail": "The parent workspace was no longer available. You can set it from the workspace menu."
+          "createdWithoutParentNestingDetail": "The parent workspace was no longer available. You can set it from the workspace menu.",
+          "slice": {
+            "test": {
+              "fixtures": {
+                "e851268bd6": "Terminal"
+              }
+            }
+          }
         },
         "repos": {
           "2975400634": "Update Alicorn server to open non-Git folders on this runtime.",
@@ -594,6 +608,15 @@
               "15cbedc3e3": "Install the Alicorn CLI before running agent skill setup.",
               "windowsPathUnknown": "Alicorn could not check your Windows user PATH",
               "refreshCliRegistration": "Refresh CLI registration status and try again."
+            }
+          }
+        },
+        "background": {
+          "session": {
+            "test": {
+              "state": {
+                "d9fa6e0979": "Terminal 1"
+              }
             }
           }
         }
@@ -972,6 +995,16 @@
         "preview": {
           "pairedOutsideWorktree": "Files outside the workspace can't be previewed on a paired server yet."
         }
+      },
+      "cmd": {
+        "j": {
+          "evaluation": {
+            "fixture": {
+              "699e9ef186": "Rank palette results by evidence",
+              "6347cd6e36": "Reconnect drops after host sleep"
+            }
+          }
+        }
       }
     },
     "hooks": {
@@ -1149,6 +1182,15 @@
                   "bridge": {
                     "1e9a1a63c4": "Failed to open the Markdown file."
                   }
+                }
+              }
+            }
+          },
+          "terminal": {
+            "create": {
+              "test": {
+                "harness": {
+                  "94ec7b52f7": "The workspace is not connected to a remote Orca host."
                 }
               }
             }
@@ -1702,7 +1744,13 @@
         "addSshHostHint": "Use an existing machine over SSH",
         "addRemoteOrcaServer": "Add Remote Alicorn Server",
         "addRemoteOrcaServerHint": "Pair another Alicorn runtime",
-        "hostConnectionFailed": "Connection failed"
+        "hostConnectionFailed": "Connection failed",
+        "test": {
+          "fixture": {
+            "95a5e6b3bb": "Devbox",
+            "2e2c474573": "Local Mac"
+          }
+        }
       },
       "NewWorkspaceComposerModal": {
         "createWorktree": "Create worktree",
@@ -3290,6 +3338,19 @@
           "TerminalQuickCommandsSubmenu": {
             "3ccc7981bb": "Host unavailable",
             "54f29b7c0d": "Loading host…"
+          },
+          "remote": {
+            "runtime": {
+              "pty": {
+                "transport": {
+                  "test": {
+                    "harness": {
+                      "34e5ecd501": "Terminal"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -11952,6 +12013,12 @@
           "envHint": "Names only — the value is read from the environment at launch and is never written to this file.",
           "cancel": "Cancel",
           "add": "Add server"
+        },
+        "McpAddServerDialog": {
+          "93526133ae": "PLANE_API_KEY, PLANE_BASE_URL",
+          "c1180ab7ed": "-y my-mcp-server",
+          "ebfde11d78": "npx",
+          "a79060d51a": "plane"
         }
       },
       "right": {
@@ -14263,6 +14330,17 @@
             "109870e023": "Maximize",
             "b5686fee1e": "Restore",
             "1e502f1284": "Open"
+          },
+          "floating": {
+            "terminal": {
+              "panel": {
+                "test": {
+                  "fixtures": {
+                    "00cde6717e": "Mobile Emulator"
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -15960,6 +16038,23 @@
                 }
               }
             }
+          },
+          "stream": {
+            "remote": {
+              "remote": {
+                "browser": {
+                  "stream": {
+                    "lifecycle": {
+                      "test": {
+                        "harness": {
+                          "471387f8f8": "Example"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "profile": {
@@ -16518,6 +16613,15 @@
         "AutomationsPageBreadcrumb": {
           "ariaLabel": "Automations breadcrumb",
           "runDetails": "Run details"
+        },
+        "automations": {
+          "page": {
+            "test": {
+              "harness": {
+                "90edd9c380": "Refresh automations"
+              }
+            }
+          }
         }
       },
       "agent": {
@@ -16570,7 +16674,12 @@
           "search": "Search",
           "showUnreadOnly": "Show unread only",
           "showChildAgents": "Show child agents",
-          "activityOptions": "Activity options"
+          "activityOptions": "Activity options",
+          "test": {
+            "fixtures": {
+              "43a827f6a7": "Claude"
+            }
+          }
         },
         "clearCompleted": {
           "clearedOne": "Cleared 1 completed agent",
@@ -17276,7 +17385,14 @@
           "projectKind": "Project · {{spend}} spent",
           "allProjects": "All projects",
           "unreachableTitle": "The control plane is not reachable",
-          "unreachableBody": "Projects, members and workflows live there. Start the local stack, or point ALICORN_CONTROL_API_URL at one."
+          "unreachableBody": "Projects, members and workflows live there. Start the local stack, or point ALICORN_CONTROL_API_URL at one.",
+          "use": {
+            "alicorn": {
+              "projects": {
+                "203752d3d3": "control_plane_unreachable"
+              }
+            }
+          }
         },
         "inbox": {
           "clearTitle": "Nothing is waiting on you",
@@ -17371,7 +17487,12 @@
           "startChat": "Start the project chat",
           "startChatIn": "Start it in {{repo}}",
           "chatNoRepo": "A session needs somewhere to run, and this project has no repository resolved on this machine.",
-          "chatIsWorkspace": "It opens as an ordinary workspace, so it keeps session resume, splits and the side panels."
+          "chatIsWorkspace": "It opens as an ordinary workspace, so it keeps session resume, splits and the side panels.",
+          "deleteTitle": "Delete this project",
+          "deleteDetail": "Its board goes with it. The repositories above are only unbound — nothing on disk is touched.",
+          "deleteAction": "Delete project…",
+          "skills": "Skills",
+          "integrations": "Integrations"
         },
         "projects": {
           "repos": "Repositories",
@@ -17441,7 +17562,8 @@
           "notStarted": "Not started. Starting gives this task its own branch and workspace, and everything that runs in it is attributed back here.",
           "start": "Start task",
           "startIn": "Start in {{repo}}",
-          "noRepoToStart": "This project has no repository resolved on this machine, so there is nowhere to start it."
+          "noRepoToStart": "This project has no repository resolved on this machine, so there is nowhere to start it.",
+          "workspaceOpen": "Opening one shows the terminal, the diff and the source tree for it."
         },
         "mcpAttach": {
           "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",
@@ -17467,6 +17589,34 @@
           "preview": "Creates {{name}} ({{key}}) with {{count}} tasks.",
           "importing": "Importing {{done}} of {{total}}…",
           "import": "Import project"
+        },
+        "deleteProject": {
+          "title": "Delete {{name}}?",
+          "description": "Its board goes with it. The repositories are only unbound — no branch, worktree or file on disk is touched.",
+          "openOne": "One task is still open. It goes too.",
+          "openMany": "{{count}} tasks are still open. They go too.",
+          "confirmLabel": "Type {{name}} to confirm",
+          "confirm": "Delete project"
+        },
+        "screens": {
+          "AlicornNewProjectDialog": {
+            "67e15f46bf": "PAY",
+            "9074bfe087": "Payments Platform"
+          },
+          "AlicornProjectLibrary": {
+            "1013a249e4": "Required Checks",
+            "51cc76f872": "Workflow",
+            "5fa28618f3": "Members"
+          }
+        },
+        "taskChat": {
+          "waiting": "Waiting on you",
+          "working": "Working",
+          "idle": "Idle",
+          "stop": "Stop",
+          "opening": "Opening the session…",
+          "gone": "This conversation is no longer on this machine.",
+          "restart": "Start a new session"
         }
       },
       "composerTaskPlan": {
@@ -17530,6 +17680,34 @@
       },
       "gitlabIpcTimeout": {
         "timedOut": "Timed out talking to GitLab."
+      },
+      "host": {
+        "session": {
+          "mirror": {
+            "frame": {
+              "fixtures": {
+                "17e758e12c": "Codex"
+              }
+            }
+          }
+        }
+      },
+      "fixtures": {
+        "web": {
+          "session": {
+            "terminal": {
+              "orphan": {
+                "recovery": {
+                  "regression": {
+                    "fixtures": {
+                      "f1eb7ee8e3": "Terminal"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "ssh": {
@@ -17562,6 +17740,11 @@
         "label": "Sections",
         "inbox": "Inbox",
         "commandBar": "Command bar"
+      },
+      "shell": {
+        "AppRail": {
+          "eb5ffad696": "NA"
+        }
       }
     }
   },

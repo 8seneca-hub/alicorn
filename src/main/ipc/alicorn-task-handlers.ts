@@ -12,6 +12,7 @@ import type {
   TaskWorktreeTuple,
   TaskWorktreeTupleInput
 } from '../../shared/alicorn/feature-workspace-tuples'
+import { isTaskSessionBinding, type TaskSessionBinding } from '../../shared/alicorn/task-session'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import { getProfileUserDataPath } from '../orca-profiles/profile-storage-paths'
 import { materialiseAlicornMcpConfig } from '../alicorn/alicorn-mcp-config'
@@ -31,6 +32,13 @@ export function registerAlicornTaskHandlers(deps: {
   client: ControlPlaneClient | null
   getOrchestrationDb: () => OrchestrationDb
 }): void {
+  // Written once at startup as well as on demand: a structured session reads this path from the
+  // host's launch args and never asks for it, and Claude exits on a `--mcp-config` that is not
+  // there. The args builder checks for the file, so a failure here costs tools, not a session.
+  void materialiseAlicornMcpConfig(getProfileUserDataPath()).catch((error) => {
+    console.warn('[alicorn] could not write the MCP config', error)
+  })
+
   // Read-only, and deliberately: a policy is admin-authored per project, never by the member it
   // judges, so the renderer can show one but has no way here to write one.
   ipcMain.handle(
@@ -97,6 +105,34 @@ export function registerAlicornTaskHandlers(deps: {
           .getOrchestrationDb()
           .setTaskWorktrees(taskId, args.tuples as TaskWorktreeTupleInput[])
       }
+    }
+  )
+
+  ipcMain.handle(
+    ALICORN_IPC.tasksSessionGet,
+    async (
+      _event,
+      args: { taskId?: unknown }
+    ): Promise<{ ok: true; session: TaskSessionBinding | null } | AlicornFailure> => {
+      const taskId = asNonEmptyString(args?.taskId)
+      if (!taskId) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return { ok: true, session: deps.getOrchestrationDb().getTaskSession(taskId) }
+    }
+  )
+
+  ipcMain.handle(
+    ALICORN_IPC.tasksSessionBind,
+    async (
+      _event,
+      args: { taskId?: unknown; session?: unknown }
+    ): Promise<{ ok: true; session: TaskSessionBinding } | AlicornFailure> => {
+      const taskId = asNonEmptyString(args?.taskId)
+      if (!taskId || !isTaskSessionBinding(args?.session)) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return { ok: true, session: deps.getOrchestrationDb().setTaskSession(taskId, args.session) }
     }
   )
 

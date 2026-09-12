@@ -8,6 +8,7 @@ import type {
   TaskWorktreeTuple,
   TaskWorktreeTupleInput
 } from '../../shared/alicorn/feature-workspace-tuples'
+import type { TaskSessionBinding } from '../../shared/alicorn/task-session'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 import type {
   ContextCaptureDetailResult,
@@ -57,6 +58,14 @@ export type AlicornApi = {
     taskId: string,
     tuples: TaskWorktreeTupleInput[]
   ) => Promise<{ ok: true; tuples: TaskWorktreeTuple[] } | AlicornFailure>
+  /** The chat session this task is worked in. One per task; null until someone starts it. */
+  getTaskSession: (
+    taskId: string
+  ) => Promise<{ ok: true; session: TaskSessionBinding | null } | AlicornFailure>
+  bindTaskSession: (
+    taskId: string,
+    session: TaskSessionBinding
+  ) => Promise<{ ok: true; session: TaskSessionBinding } | AlicornFailure>
   listMembers: () => Promise<{ ok: true; members: Member[] } | AlicornFailure>
   createMember: (input: MemberInput) => Promise<{ ok: true; member: Member } | AlicornFailure>
   updateMember: (

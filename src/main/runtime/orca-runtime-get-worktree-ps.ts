@@ -26,6 +26,7 @@ import { resolveStartupShell, tokenizeStartupCommand } from '../../shared/tui-ag
 import { resolveCodexStructuredAppServerArgs } from '../codex/codex-structured-app-server-args'
 import type { StructuredAgentSessionHandoffTransport } from '../native-chat/agent-session-wire/structured-agent-session-handoff-types'
 import { hostname } from 'node:os'
+import { alicornStructuredClaudeArgs } from '../alicorn/alicorn-structured-launch-args'
 import { claudeStructuredAuthPolicyForSettings } from '../claude-accounts/claude-structured-auth-policy'
 import { probeAgentSessionProcessIdentity } from './agent-session-process-identity-probe'
 import { structuredAgentSessionTabId } from '../../shared/structured-agent-session-projection'
@@ -185,7 +186,12 @@ export class OrcaRuntimeWithGetWorktreePs extends OrcaRuntimeWithStructuredAgent
       resolveTuiAgentLaunchArgs('claude', settings.agentDefaultArgs),
       shell
     )
-    return tokenized.ok ? tokenized.tokens : []
+    // Alicorn: a structured session has no startup command to carry `--mcp-config`, so the host's
+    // configured args are where the agent's own tools go on.
+    return alicornStructuredClaudeArgs(
+      tokenized.ok ? tokenized.tokens : [],
+      getProfileUserDataPath()
+    )
   }
 
   protected resolveConfiguredCodexStructuredArgs(): string[] {
