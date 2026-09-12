@@ -14,6 +14,15 @@ export const WorkflowTemplateStageSchema = z.object({
   name: z.string().min(1).max(120),
   ordinal: z.number().int().nonnegative(),
   memberRole: MemberRoleSchema.nullable(),
+  /**
+   * A specific member to prefer, by name, when the tenant has one.
+   *
+   * A role alone is too coarse for a real pipeline: research, architecture and estimation are all
+   * `analyst`, and binding them all to whichever analyst sorts first makes three distinct jobs one
+   * member's. The role stays as the fallback, so a tenant that never created this member still
+   * gets a sensible binding rather than an empty stage.
+   */
+  memberName: z.string().min(1).max(120).optional(),
   /** Board column that dispatches this stage, or null when no column does. */
   columnId: z.string().min(1).max(64).nullable(),
   reversibility: StageReversibilitySchema,
@@ -47,7 +56,7 @@ export const FEATURE_DELIVERY_TEMPLATE = {
   stages: [
     { key: 'spec', name: 'Spec', ordinal: 0, memberRole: 'analyst', columnId: 'todo', reversibility: 'free', inheritedCost: 'low' },
     // Why: "inherited hard stop" in the prototype — a wrong interface is inherited by everything after it.
-    { key: 'architecture', name: 'Architecture', ordinal: 1, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'high' },
+    { key: 'architecture', name: 'Architecture', ordinal: 1, memberRole: 'analyst', memberName: 'Architect', columnId: null, reversibility: 'free', inheritedCost: 'high' },
     // Why: MEMBER_ROLES has no `designer`; the prototype's Designer maps to `other` until it does.
     { key: 'design', name: 'Design', ordinal: 2, memberRole: 'other', columnId: null, reversibility: 'free', inheritedCost: 'low' },
     { key: 'build', name: 'Build', ordinal: 3, memberRole: 'developer', columnId: 'in-progress', reversibility: 'contained', inheritedCost: 'low' },
@@ -97,19 +106,19 @@ export const CLIENT_DELIVERY_TEMPLATE = {
   description:
     'Raw client documentation through to delivery in chunks: research, PRD, prototype, scope, estimate, architecture, build, review, deliver.',
   stages: [
-    { key: 'intake', name: 'Intake', ordinal: 0, memberRole: 'analyst', columnId: 'todo', reversibility: 'free', inheritedCost: 'low' },
+    { key: 'intake', name: 'Intake', ordinal: 0, memberRole: 'analyst', memberName: 'Researcher', columnId: 'todo', reversibility: 'free', inheritedCost: 'low' },
     // Why inherited: everything downstream reasons from the domain read. A wrong one is not found
     // until the client says "that is not how our business works", by which point it is built.
-    { key: 'research', name: 'Domain research', ordinal: 1, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'high' },
-    { key: 'prd-draft', name: 'Draft PRD', ordinal: 2, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'low' },
-    { key: 'prototype', name: 'Prototype', ordinal: 3, memberRole: 'other', columnId: null, reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'research', name: 'Domain research', ordinal: 1, memberRole: 'analyst', memberName: 'Researcher', columnId: null, reversibility: 'free', inheritedCost: 'high' },
+    { key: 'prd-draft', name: 'Draft PRD', ordinal: 2, memberRole: 'analyst', memberName: 'Researcher', columnId: null, reversibility: 'free', inheritedCost: 'low' },
+    { key: 'prototype', name: 'Prototype', ordinal: 3, memberRole: 'other', memberName: 'Prototyper', columnId: null, reversibility: 'contained', inheritedCost: 'low' },
     // Shown to the client: what they take from it is inherited by the whole engagement.
     { key: 'demo', name: 'Client demo', ordinal: 4, memberRole: null, columnId: null, reversibility: 'contained', inheritedCost: 'high' },
-    { key: 'scope', name: 'Scope agreed', ordinal: 5, memberRole: 'analyst', columnId: null, reversibility: 'irreversible', inheritedCost: 'high' },
-    { key: 'estimate', name: 'Estimate approved', ordinal: 6, memberRole: null, columnId: null, reversibility: 'irreversible', inheritedCost: 'high' },
-    { key: 'prd-final', name: 'Detailed PRD', ordinal: 7, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'low' },
-    { key: 'architecture', name: 'Architecture', ordinal: 8, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'high' },
-    { key: 'breakdown', name: 'Task breakdown', ordinal: 9, memberRole: 'analyst', columnId: null, reversibility: 'free', inheritedCost: 'low' },
+    { key: 'scope', name: 'Scope agreed', ordinal: 5, memberRole: 'analyst', memberName: 'Researcher', columnId: null, reversibility: 'irreversible', inheritedCost: 'high' },
+    { key: 'estimate', name: 'Estimate approved', ordinal: 6, memberRole: 'analyst', memberName: 'Estimator', columnId: null, reversibility: 'irreversible', inheritedCost: 'high' },
+    { key: 'prd-final', name: 'Detailed PRD', ordinal: 7, memberRole: 'analyst', memberName: 'Researcher', columnId: null, reversibility: 'free', inheritedCost: 'low' },
+    { key: 'architecture', name: 'Architecture', ordinal: 8, memberRole: 'analyst', memberName: 'Architect', columnId: null, reversibility: 'free', inheritedCost: 'high' },
+    { key: 'breakdown', name: 'Task breakdown', ordinal: 9, memberRole: 'analyst', memberName: 'Architect', columnId: null, reversibility: 'free', inheritedCost: 'low' },
     { key: 'build', name: 'Build', ordinal: 10, memberRole: 'developer', columnId: 'in-progress', reversibility: 'contained', inheritedCost: 'low' },
     { key: 'review', name: 'Review', ordinal: 11, memberRole: 'reviewer', columnId: 'in-review', reversibility: 'contained', inheritedCost: 'low' },
     { key: 'verify', name: 'Test', ordinal: 12, memberRole: 'qa', columnId: null, reversibility: 'contained', inheritedCost: 'low' },

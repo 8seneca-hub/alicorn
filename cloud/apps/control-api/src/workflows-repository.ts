@@ -284,11 +284,18 @@ export function createWorkflowFromTemplate(
   name?: string
 ): Promise<WriteResult> {
   return withTenant(pool, tenantId, async (client) => {
-    const { rows } = await client.query<{ id: string; role: string }>(
+    const { rows } = await client.query<{ id: string; role: string; name: string }>(
       // Why: deterministic pick — the same template on the same tenant must always bind the same member.
-      `SELECT DISTINCT ON (role) id, role FROM members ORDER BY role, name`
+      `SELECT id, role, name FROM members ORDER BY role, name`
     )
-    const memberIdByRole = new Map(rows.map((r) => [r.role, r.id]))
+    const memberIdByName = new Map(rows.map((r) => [r.name, r.id]))
+    const memberIdByRole = new Map<string, string>()
+    for (const row of rows) {
+      // First by role order, so the fallback stays the same member every time.
+      if (!memberIdByRole.has(row.role)) {
+        memberIdByRole.set(row.role, row.id)
+      }
+    }
     return insertWorkflow(client, tenantId, createdBy, {
       projectId,
       name: name ?? template.name,
@@ -296,7 +303,12 @@ export function createWorkflowFromTemplate(
         key: stage.key,
         name: stage.name,
         ordinal: stage.ordinal,
-        memberId: stage.memberRole ? (memberIdByRole.get(stage.memberRole) ?? null) : null,
+        // A named member first, the role as fallback: research, architecture and estimation are
+        // all `analyst`, and binding them to whichever analyst sorts first would make three
+        // distinct jobs one member's. A tenant missing the named member still gets the role.
+        memberId:
+          (stage.memberName ? (memberIdByName.get(stage.memberName) ?? null) : null) ??
+          (stage.memberRole ? (memberIdByRole.get(stage.memberRole) ?? null) : null),
         columnId: stage.columnId,
         kind: 'worker' as const,
         codeCommand: null,

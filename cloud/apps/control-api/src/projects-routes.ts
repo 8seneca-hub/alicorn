@@ -1,6 +1,6 @@
 import type { Hono } from 'hono'
 import {
-  FEATURE_DELIVERY_TEMPLATE,
+  CLIENT_DELIVERY_TEMPLATE,
   ProjectInputSchema
 } from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
@@ -42,8 +42,10 @@ export function registerProjectsRoutes(app: Hono<ControlApiEnv>, deps: ControlAp
     }
     try {
       const project = await createProject(deps.pool, auth.tenantId, auth.actor, result.data)
-      // Every project starts with the shipped pipeline rather than an empty canvas: a task with no
-      // stage has nowhere to be in a workflow, and the board's columns already name these stages.
+      // Every project starts with the delivery pipeline rather than an empty canvas: a task with
+      // no stage has nowhere to be in a workflow, and the board's columns already name four of
+      // these stages. Client delivery rather than the shorter feature pipeline, because most of
+      // what goes wrong on this team's work happens before any code exists.
       // Best-effort on purpose — a project that exists without its workflow is recoverable (author
       // one), while refusing the whole create because the template failed is not.
       try {
@@ -51,7 +53,7 @@ export function registerProjectsRoutes(app: Hono<ControlApiEnv>, deps: ControlAp
           deps.pool,
           auth.tenantId,
           auth.actor,
-          FEATURE_DELIVERY_TEMPLATE,
+          CLIENT_DELIVERY_TEMPLATE,
           project.id
         )
       } catch (workflowError) {
