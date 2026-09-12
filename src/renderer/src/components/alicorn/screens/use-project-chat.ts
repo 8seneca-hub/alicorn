@@ -14,6 +14,7 @@ import {
   projectChatSubjectId,
   type TaskSessionBinding
 } from '../../../../../shared/alicorn/task-session'
+import { launchAlicornSession } from './launch-alicorn-session'
 import type { Project } from '../../../../../shared/alicorn/projects'
 
 /**
@@ -83,18 +84,10 @@ export function useProjectChat(project: Project | undefined): ProjectChatState {
         setError('no_workspace')
         return
       }
-      const { startStructuredAgentLaunch } = await import('@/lib/structured-agent-session-launch')
-      const launch = startStructuredAgentLaunch(workspace.id, 'claude', {
+      const binding = await launchAlicornSession({
+        worktreeId: workspace.id,
         prompt: projectChatPrompt(project)
       })
-      // Awaited before the binding is written: a session id that never became a session would
-      // leave the project pointing at a conversation nobody can open.
-      await launch.launchResult
-      const binding: TaskSessionBinding = {
-        sessionId: launch.sessionId,
-        agent: 'claude',
-        worktreeId: workspace.id
-      }
       await api.bindSubjectSession(projectChatSubjectId(project.id), binding)
       setSession(binding)
     } catch (cause) {

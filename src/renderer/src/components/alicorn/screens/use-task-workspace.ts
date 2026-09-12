@@ -20,6 +20,7 @@ import React from 'react'
 import { useAppStore } from '@/store'
 import type { TaskWorktreeTuple } from '../../../../../shared/alicorn/feature-workspace-tuples'
 import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'
+import { launchAlicornSession } from './launch-alicorn-session'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 
 /**
@@ -114,18 +115,10 @@ export function useTaskWorkspace(
         if (bound.ok) {
           setTuples(bound.tuples)
         }
-        const { startStructuredAgentLaunch } = await import('@/lib/structured-agent-session-launch')
-        const launch = startStructuredAgentLaunch(workspace.id, 'claude', {
+        const binding = await launchAlicornSession({
+          worktreeId: workspace.id,
           prompt: taskOpeningPrompt(`${projectKey}-${task.number}`, task)
         })
-        // Awaited before the binding is written: a session id that never became a session would
-        // leave the ticket pointing at a conversation nobody can open.
-        await launch.launchResult
-        const binding: TaskSessionBinding = {
-          sessionId: launch.sessionId,
-          agent: 'claude',
-          worktreeId: workspace.id
-        }
         await api.bindSubjectSession(task.id, binding)
         setSession(binding)
       } catch (cause) {

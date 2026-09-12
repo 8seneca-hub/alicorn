@@ -11,6 +11,8 @@
  * whole claim.
  */
 
+import { DEFAULT_WORKSPACE_STATUSES } from '../../shared/workspace-status-defaults'
+
 export type McpToolDefinition = {
   name: string
   description: string
@@ -24,6 +26,25 @@ export type McpToolDefinition = {
   /** Null for a read. A writer returns this sentence plus the undo. */
   receipt: ((result: Record<string, unknown>, args: Record<string, unknown>) => string) | null
 }
+
+/**
+ * The board's columns, named for the agent.
+ *
+ * Sourced from the same defaults the board renders so the two cannot drift, and spelled out
+ * because the trap here is real: the column *labelled* "Done" has the id `completed`, and an agent
+ * that guesses `done` writes a column no board has. The contract keeps the field an opaque string
+ * on purpose — a project may rename its columns — so this list is the tool's answer, not a schema
+ * constraint, and it is the only place an agent can learn the vocabulary.
+ */
+const BOARD_COLUMN_IDS = DEFAULT_WORKSPACE_STATUSES.map((status) => status.id)
+
+const COLUMN_FIELD = {
+  type: 'string',
+  enum: BOARD_COLUMN_IDS,
+  description: `Board column id, not its label. ${DEFAULT_WORKSPACE_STATUSES.map(
+    (status) => `"${status.label}" is ${status.id}`
+  ).join(', ')}.`
+} as const
 
 type TaskLike = { id: string; number: number; title: string; column: string; projectId: string }
 type MemberLike = { id: string; name: string; role: string; backend: string }
@@ -135,10 +156,7 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
           type: 'string',
           description: 'What the agent cannot read off the repo: the constraint, the edge case.'
         },
-        column: {
-          type: 'string',
-          description: 'Board column id. Defaults to todo.'
-        },
+        column: { ...COLUMN_FIELD, description: `${COLUMN_FIELD.description} Defaults to todo.` },
         executionStrategy: {
           type: 'string',
           enum: ['single', 'orchestrated'],
@@ -183,7 +201,7 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
         taskId: { type: 'string' },
         title: { type: 'string' },
         context: { type: 'string' },
-        column: { type: 'string' },
+        column: COLUMN_FIELD,
         executionStrategy: { type: 'string', enum: ['single', 'orchestrated'] },
         memberIds: { type: 'array', items: { type: 'string' } }
       },

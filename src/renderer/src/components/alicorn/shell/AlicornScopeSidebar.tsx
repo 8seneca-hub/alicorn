@@ -307,7 +307,9 @@ export function AlicornScopeSidebar({
             key={section}
             label={PROJECT_SECTION_LABELS[section]}
             Icon={PROJECT_SECTION_ICONS[section]}
-            active={route.section === section}
+            // A task detail belongs to no section — you may have reached it from the board or from
+            // the list, and highlighting whichever you came through says you are still there.
+            active={route.taskId == null && route.section === section}
             meta={
               section === 'inbox' && waiting > 0
                 ? String(waiting)
