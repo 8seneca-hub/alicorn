@@ -58,12 +58,15 @@ export type AlicornApi = {
     taskId: string,
     tuples: TaskWorktreeTupleInput[]
   ) => Promise<{ ok: true; tuples: TaskWorktreeTuple[] } | AlicornFailure>
-  /** The chat session this task is worked in. One per task; null until someone starts it. */
-  getTaskSession: (
-    taskId: string
+  /**
+   * The chat session a subject is worked in — a task id, or `project:<id>` for a project's chat.
+   * One per subject; null until someone starts it.
+   */
+  getSubjectSession: (
+    subjectId: string
   ) => Promise<{ ok: true; session: TaskSessionBinding | null } | AlicornFailure>
-  bindTaskSession: (
-    taskId: string,
+  bindSubjectSession: (
+    subjectId: string,
     session: TaskSessionBinding
   ) => Promise<{ ok: true; session: TaskSessionBinding } | AlicornFailure>
   listMembers: () => Promise<{ ok: true; members: Member[] } | AlicornFailure>

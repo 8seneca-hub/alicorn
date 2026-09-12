@@ -109,30 +109,33 @@ export function registerAlicornTaskHandlers(deps: {
   )
 
   ipcMain.handle(
-    ALICORN_IPC.tasksSessionGet,
+    ALICORN_IPC.sessionGet,
     async (
       _event,
-      args: { taskId?: unknown }
+      args: { subjectId?: unknown }
     ): Promise<{ ok: true; session: TaskSessionBinding | null } | AlicornFailure> => {
-      const taskId = asNonEmptyString(args?.taskId)
-      if (!taskId) {
+      const subjectId = asNonEmptyString(args?.subjectId)
+      if (!subjectId) {
         return { ok: false, error: 'invalid_body' }
       }
-      return { ok: true, session: deps.getOrchestrationDb().getTaskSession(taskId) }
+      return { ok: true, session: deps.getOrchestrationDb().getSubjectSession(subjectId) }
     }
   )
 
   ipcMain.handle(
-    ALICORN_IPC.tasksSessionBind,
+    ALICORN_IPC.sessionBind,
     async (
       _event,
-      args: { taskId?: unknown; session?: unknown }
+      args: { subjectId?: unknown; session?: unknown }
     ): Promise<{ ok: true; session: TaskSessionBinding } | AlicornFailure> => {
-      const taskId = asNonEmptyString(args?.taskId)
-      if (!taskId || !isTaskSessionBinding(args?.session)) {
+      const subjectId = asNonEmptyString(args?.subjectId)
+      if (!subjectId || !isTaskSessionBinding(args?.session)) {
         return { ok: false, error: 'invalid_body' }
       }
-      return { ok: true, session: deps.getOrchestrationDb().setTaskSession(taskId, args.session) }
+      return {
+        ok: true,
+        session: deps.getOrchestrationDb().setSubjectSession(subjectId, args.session)
+      }
     }
   )
 

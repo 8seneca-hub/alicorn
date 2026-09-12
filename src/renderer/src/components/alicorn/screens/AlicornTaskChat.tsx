@@ -95,13 +95,8 @@ export function AlicornTaskChat({
   }
 
   return (
-    <section
-      className={cn(
-        'flex min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card',
-        className
-      )}
-    >
-      <header className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
+    <section className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', className)}>
+      <div className="flex shrink-0 items-center gap-2 px-9 pt-3 text-[11px] text-muted-foreground">
         <span
           className={cn(
             'size-2 shrink-0 rounded-full',
@@ -112,8 +107,7 @@ export function AlicornTaskChat({
                 : 'bg-muted-foreground/40'
           )}
         />
-        <span className="text-[12.5px] font-semibold capitalize">{agent}</span>
-        <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+        <span className="min-w-0 flex-1 truncate">
           {statusLabel(controller.isWorking, prompt !== null)}
         </span>
         {controller.isWorking ? (
@@ -122,7 +116,7 @@ export function AlicornTaskChat({
             {translate('auto.components.alicorn.taskChat.stop', 'Stop')}
           </Button>
         ) : null}
-      </header>
+      </div>
 
       <div className="flex min-h-0 flex-1 flex-col">
         {controller.status === 'error' && controller.messages.length === 0 ? (
@@ -168,7 +162,7 @@ export function AlicornTaskChat({
       />
 
       {controller.error || composerError ? (
-        <p className="px-3 py-1 text-[11px] text-destructive">
+        <p className="px-9 py-1 text-[11px] text-destructive">
           {controller.error ?? composerError}
         </p>
       ) : null}

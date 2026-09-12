@@ -12,6 +12,11 @@ export type TaskSessionBinding = {
   worktreeId: string
 }
 
+/** A project's chat is a subject too — spelled so it can never collide with a task id. */
+export function projectChatSubjectId(projectId: string): string {
+  return `project:${projectId}`
+}
+
 export function isTaskSessionBinding(value: unknown): value is TaskSessionBinding {
   if (!value || typeof value !== 'object') {
     return false

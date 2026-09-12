@@ -75,7 +75,7 @@ export function useTaskWorkspace(
       const api = window.api?.alicorn
       const [worktrees, bound] = await Promise.all([
         api?.listTaskWorktrees?.(task.id),
-        api?.getTaskSession?.(task.id)
+        api?.getSubjectSession?.(task.id)
       ])
       if (cancelled) {
         return
@@ -94,7 +94,7 @@ export function useTaskWorkspace(
   const start = React.useCallback(
     async (repoId: string): Promise<void> => {
       const api = window.api?.alicorn
-      if (!api?.bindTaskWorktrees || !api.bindTaskSession) {
+      if (!api?.bindTaskWorktrees || !api.bindSubjectSession) {
         setError('control_plane_unreachable')
         return
       }
@@ -126,7 +126,7 @@ export function useTaskWorkspace(
           agent: 'claude',
           worktreeId: workspace.id
         }
-        await api.bindTaskSession(task.id, binding)
+        await api.bindSubjectSession(task.id, binding)
         setSession(binding)
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : String(cause))

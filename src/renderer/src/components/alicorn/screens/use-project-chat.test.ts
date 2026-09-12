@@ -1,21 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { projectChatBranch, projectChatPrompt } from './use-project-chat'
+import { projectChatPrompt } from './use-project-chat'
+import { projectChatSubjectId } from '../../../../../shared/alicorn/task-session'
 
-describe('the project chat workspace', () => {
-  // Namespaced so it never collides with a branch someone means to ship.
-  it('takes a branch nobody would create by hand', () => {
-    expect(projectChatBranch('PAY')).toBe('alicorn/pay-chat')
-  })
-
-  it('names the project it is standing in', () => {
+describe('the project chat', () => {
+  it('opens on a brief that names the project and points at the tools', () => {
     const prompt = projectChatPrompt({ name: 'Payments Platform', key: 'PAY' })
-
     expect(prompt).toContain('Payments Platform (PAY)')
-    expect(prompt).toContain('alicorn_*')
+    expect(prompt).toContain('alicorn_* MCP tools')
+    expect(prompt).toContain('receipt')
   })
 
-  // The MCP server's own instructions carry the rules; repeating them is a copy to drift.
-  it('points at the tools rather than restating what they do', () => {
-    expect(projectChatPrompt({ name: 'X', key: 'X' })).not.toContain('alicorn_create_task')
+  // A project chat and a task share one table, so their keys must not be able to collide: no task
+  // id carries a colon.
+  it('keys its session so it can never be mistaken for a task', () => {
+    expect(projectChatSubjectId('prj_1')).toBe('project:prj_1')
   })
 })

@@ -1,5 +1,8 @@
 import type { Hono } from 'hono'
-import { ProjectInputSchema } from '@alicorn-cloud/control-plane-contract'
+import {
+  FEATURE_DELIVERY_TEMPLATE,
+  ProjectInputSchema
+} from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import {
   createProject,
@@ -8,6 +11,7 @@ import {
   listProjects,
   updateProject
 } from './projects-repository.js'
+import { createWorkflowFromTemplate } from './workflows-repository.js'
 import { readJsonBody } from './read-json-body.js'
 import { isValidProjectId } from './project-id-param.js'
 
@@ -38,6 +42,21 @@ export function registerProjectsRoutes(app: Hono<ControlApiEnv>, deps: ControlAp
     }
     try {
       const project = await createProject(deps.pool, auth.tenantId, auth.actor, result.data)
+      // Every project starts with the shipped pipeline rather than an empty canvas: a task with no
+      // stage has nowhere to be in a workflow, and the board's columns already name these stages.
+      // Best-effort on purpose — a project that exists without its workflow is recoverable (author
+      // one), while refusing the whole create because the template failed is not.
+      try {
+        await createWorkflowFromTemplate(
+          deps.pool,
+          auth.tenantId,
+          auth.actor,
+          FEATURE_DELIVERY_TEMPLATE,
+          project.id
+        )
+      } catch (workflowError) {
+        console.warn('[projects] default workflow was not created', workflowError)
+      }
       return c.json({ project }, 201)
     } catch (error) {
       if (isUniqueViolation(error)) return c.json({ error: 'project_exists' }, 409)

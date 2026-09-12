@@ -17492,7 +17492,10 @@
           "deleteDetail": "Its board goes with it. The repositories above are only unbound — nothing on disk is touched.",
           "deleteAction": "Delete project…",
           "skills": "Skills",
-          "integrations": "Integrations"
+          "integrations": "Integrations",
+          "chatNoRepoTitle": "Nowhere to run a session",
+          "chatFailedTitle": "The chat did not open",
+          "chatOpening": "Opening the project chat…"
         },
         "projects": {
           "repos": "Repositories",
@@ -17563,7 +17566,8 @@
           "start": "Start task",
           "startIn": "Start in {{repo}}",
           "noRepoToStart": "This project has no repository resolved on this machine, so there is nowhere to start it.",
-          "workspaceOpen": "Opening one shows the terminal, the diff and the source tree for it."
+          "workspaceOpen": "Opening one shows the terminal, the diff and the source tree for it.",
+          "escalate": "Escalate…"
         },
         "mcpAttach": {
           "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",

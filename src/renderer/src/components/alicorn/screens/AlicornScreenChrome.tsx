@@ -35,6 +35,52 @@ export function projectCrumbs(projectName: string, onAllProjects: () => void): A
   ]
 }
 
+/**
+ * The crumb row, with the back arrow that belongs to it.
+ *
+ * Split from the standard header because a screen with its own header — the task session — still
+ * wants this row spelled identically rather than re-laid out.
+ */
+export function AlicornCrumbs({
+  crumbs,
+  onBack
+}: {
+  crumbs: AlicornCrumb[]
+  /** Renders a back arrow before the trail. Only screens you descend *into* pass one. */
+  onBack?: () => void
+}): React.JSX.Element {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-muted-foreground">
+      {onBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label={translate('auto.components.alicorn.screen.back', 'Back')}
+          className="-ml-1.5 mr-0.5 flex size-5 shrink-0 items-center justify-center rounded-md transition hover:bg-accent hover:text-foreground"
+        >
+          <ArrowLeft className="size-3.5" />
+        </button>
+      ) : null}
+      {crumbTrail(crumbs).map(({ crumb, key }, index) => (
+        <React.Fragment key={key}>
+          {index > 0 ? <span className="opacity-50">/</span> : null}
+          {typeof crumb === 'string' ? (
+            <span>{crumb}</span>
+          ) : (
+            <button
+              type="button"
+              onClick={crumb.onClick}
+              className="hover:text-foreground hover:underline"
+            >
+              {crumb.label}
+            </button>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
 export function AlicornScreenHeader({
   crumbs,
   title,
@@ -60,24 +106,7 @@ export function AlicornScreenHeader({
         </button>
       ) : null}
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-muted-foreground">
-          {crumbTrail(crumbs).map(({ crumb, key }, index) => (
-            <React.Fragment key={key}>
-              {index > 0 ? <span className="opacity-50">/</span> : null}
-              {typeof crumb === 'string' ? (
-                <span>{crumb}</span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={crumb.onClick}
-                  className="hover:text-foreground hover:underline"
-                >
-                  {crumb.label}
-                </button>
-              )}
-            </React.Fragment>
-          ))}
-        </div>
+        <AlicornCrumbs crumbs={crumbs} />
         <h1 className="mt-0.5 text-[17px] font-semibold">{title}</h1>
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}

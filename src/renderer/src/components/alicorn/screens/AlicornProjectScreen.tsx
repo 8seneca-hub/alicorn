@@ -22,6 +22,8 @@ import {
 import { AlicornInboxScreen } from './AlicornInboxScreen'
 import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
+import { AlicornTaskChat } from './AlicornTaskChat'
+import { AlicornProjectChatStarting } from './AlicornProjectChatStarting'
 import {
   AlicornProjectIntegrationsSection,
   AlicornProjectSkillsSection
@@ -253,65 +255,15 @@ export function AlicornProjectScreen({
     return (
       <>
         <AlicornScreenHeader crumbs={crumbs} title={TITLES.chat} />
-        <AlicornScreenBody>
-          <section className="max-w-[640px] rounded-xl border border-border bg-card p-4">
-            <p className="text-[13px] leading-relaxed">
-              {translate(
-                'auto.components.alicorn.project.chatIntro',
-                'A Claude session that can see and change this project in words — its board, its tasks, and the members it draws on. Every change it makes answers with a receipt saying what it did and how to undo it.'
-              )}
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              {chat.worktree ? (
-                <button
-                  type="button"
-                  onClick={chat.open}
-                  className="h-8 rounded-md bg-primary px-3 text-[12.5px] font-medium text-primary-foreground transition hover:bg-primary/90"
-                >
-                  {translate('auto.components.alicorn.project.openChat', 'Open the project chat')}
-                </button>
-              ) : (
-                projectRepos.map((repo) => (
-                  <button
-                    key={repo.id}
-                    type="button"
-                    disabled={chat.starting}
-                    onClick={() => void chat.start(repo.id)}
-                    className="h-8 rounded-md bg-primary px-3 text-[12.5px] font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-                  >
-                    {projectRepos.length === 1
-                      ? translate(
-                          'auto.components.alicorn.project.startChat',
-                          'Start the project chat'
-                        )
-                      : translate(
-                          'auto.components.alicorn.project.startChatIn',
-                          'Start it in {{repo}}',
-                          { repo: repo.displayName }
-                        )}
-                  </button>
-                ))
-              )}
-            </div>
-            {projectRepos.length === 0 ? (
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                {translate(
-                  'auto.components.alicorn.project.chatNoRepo',
-                  'A session needs somewhere to run, and this project has no repository resolved on this machine.'
-                )}
-              </p>
-            ) : (
-              <p className="mt-2 text-[11px] text-muted-foreground">
-                {translate(
-                  'auto.components.alicorn.project.chatIsWorkspace',
-                  'It opens as an ordinary workspace, so it keeps session resume, splits and the side panels.'
-                )}
-              </p>
-            )}
-            {chat.error ? <p className="mt-2 text-[11px] text-destructive">{chat.error}</p> : null}
-          </section>
-        </AlicornScreenBody>
-        {composer}
+        {chat.session ? (
+          <AlicornTaskChat session={chat.session} onRestart={chat.restart} />
+        ) : (
+          <AlicornProjectChatStarting
+            starting={chat.starting}
+            error={chat.error}
+            hasRepo={projectRepos.length > 0}
+          />
+        )}
       </>
     )
   }

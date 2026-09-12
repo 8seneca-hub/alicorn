@@ -1,28 +1,20 @@
 /**
  * The project chat: one Claude session that can see and change the project in words.
  *
- * It is an ordinary Orca workspace, not an embedded pane. Mounting a terminal inside the Alicorn
- * shell would need a tab that belongs to no worktree — exactly the tab-model problem UI5 exists to
- * solve — while a workspace gets session resume, split panes, the right-sidebar panels and the
- * status dot for free. Alicorn's contribution is the brief and the tools.
+ * The same machinery a task's session uses, on a different subject. It opens when the screen does,
+ * for the same reason a ticket's does — what you came to the chat to do is talk, and a button in
+ * front of that is a step that answers nothing.
  *
- * One per project, found by its branch rather than remembered in a table: a chat that has been
- * deleted should be re-creatable, and a row claiming a workspace that no longer exists is worse
- * than looking.
+ * One per project, keyed `project:<id>`, so reopening the screen returns to the conversation rather
+ * than starting a second one beside it.
  */
 import React from 'react'
 import { useAppStore } from '@/store'
-import { buildAgentStartupPlan } from '@/lib/tui-agent-startup'
-import { appendSeatMcpConfigLaunchArgs } from '../../../../../shared/tui-agent-launch-defaults'
-import { isMacUserAgent } from '@/components/terminal-pane/pane-helpers'
+import {
+  projectChatSubjectId,
+  type TaskSessionBinding
+} from '../../../../../shared/alicorn/task-session'
 import type { Project } from '../../../../../shared/alicorn/projects'
-import type { Worktree } from '../../../../../shared/worktree/types'
-import type { WorktreeStartupLaunch } from '../../../../../shared/worktree/launch-types'
-
-/** `alicorn/pay-chat`. Namespaced so it never collides with a branch someone means to ship. */
-export function projectChatBranch(projectKey: string): string {
-  return `alicorn/${projectKey.toLowerCase()}-chat`
-}
 
 /**
  * What the session is told about where it is standing.
@@ -43,105 +35,94 @@ export function projectChatPrompt(project: Pick<Project, 'name' | 'key'>): strin
 }
 
 export type ProjectChatState = {
-  /** The chat workspace, when one already exists. */
-  worktree: Worktree | null
+  session: TaskSessionBinding | null
+  loading: boolean
   starting: boolean
   error: string | null
-  open: () => void
-  start: (repoId: string) => Promise<void>
+  /** Opens a fresh session on the same brief. */
+  restart: () => void
 }
 
 export function useProjectChat(project: Project | undefined): ProjectChatState {
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
-  const createWorktree = useAppStore((state) => state.createWorktree)
-  const setActiveWorktree = useAppStore((state) => state.setActiveWorktree)
-  const setActiveView = useAppStore((state) => state.setActiveView)
+  const [session, setSession] = React.useState<TaskSessionBinding | null>(null)
+  const [loading, setLoading] = React.useState(true)
   const [starting, setStarting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const projectId = project?.id
+  const repoId = project?.repoIds[0]
 
-  const worktree = React.useMemo(() => {
-    if (!project) {
-      return null
-    }
-    const branch = projectChatBranch(project.key)
-    for (const repoId of project.repoIds) {
-      const found = (worktreesByRepo[repoId] ?? []).find((candidate) => candidate.branch === branch)
-      if (found) {
-        return found
+  React.useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setSession(null)
+    void (async () => {
+      const read = projectId
+        ? await window.api?.alicorn?.getSubjectSession?.(projectChatSubjectId(projectId))
+        : null
+      if (!cancelled) {
+        setSession(read?.ok ? read.session : null)
+        setLoading(false)
       }
+    })()
+    return () => {
+      cancelled = true
     }
-    return null
-  }, [project, worktreesByRepo])
+  }, [projectId])
 
-  const open = React.useCallback(() => {
-    if (worktree) {
-      setActiveWorktree(worktree.id)
-      setActiveView('terminal')
+  const start = React.useCallback(async (): Promise<void> => {
+    const api = window.api?.alicorn
+    if (!project || !repoId || !api?.bindSubjectSession) {
+      return
     }
-  }, [setActiveView, setActiveWorktree, worktree])
-
-  const start = React.useCallback(
-    async (repoId: string): Promise<void> => {
-      if (!project) {
+    setStarting(true)
+    setError(null)
+    try {
+      const workspace = (worktreesByRepo[repoId] ?? [])[0]
+      if (!workspace) {
+        setError('no_workspace')
         return
       }
-      setStarting(true)
-      setError(null)
-      try {
-        const configPath = await window.api?.alicorn?.mcpConfigPath?.()
-        const settings = useAppStore.getState().settings
-        const plan = buildAgentStartupPlan({
-          agent: 'claude',
-          prompt: projectChatPrompt(project),
-          cmdOverrides: settings?.agentCmdOverrides ?? {},
-          agentArgs: appendSeatMcpConfigLaunchArgs(
-            null,
-            configPath?.ok ? configPath.path : undefined
-          ),
-          platform: isMacUserAgent() ? 'darwin' : 'linux',
-          allowEmptyPromptLaunch: true
-        })
-        const startup: WorktreeStartupLaunch | undefined = plan
-          ? {
-              command: plan.launchCommand,
-              launchAgent: plan.agent,
-              launchConfig: plan.launchConfig,
-              ...(plan.launchToken ? { launchToken: plan.launchToken } : {}),
-              ...(plan.env ? { env: plan.env } : {}),
-              ...(plan.startupCommandDelivery
-                ? { startupCommandDelivery: plan.startupCommandDelivery }
-                : {})
-            }
-          : undefined
-        const created = await createWorktree(
-          repoId,
-          `${project.key.toLowerCase()}-chat`,
-          undefined,
-          undefined,
-          undefined,
-          'sidebar',
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          'claude',
-          undefined,
-          projectChatBranch(project.key),
-          undefined,
-          undefined,
-          undefined,
-          startup
-        )
-        setActiveWorktree(created.worktree.id)
-        setActiveView('terminal')
-      } catch (cause) {
-        setError(cause instanceof Error ? cause.message : String(cause))
-      } finally {
-        setStarting(false)
+      const { startStructuredAgentLaunch } = await import('@/lib/structured-agent-session-launch')
+      const launch = startStructuredAgentLaunch(workspace.id, 'claude', {
+        prompt: projectChatPrompt(project)
+      })
+      // Awaited before the binding is written: a session id that never became a session would
+      // leave the project pointing at a conversation nobody can open.
+      await launch.launchResult
+      const binding: TaskSessionBinding = {
+        sessionId: launch.sessionId,
+        agent: 'claude',
+        worktreeId: workspace.id
       }
-    },
-    [createWorktree, project, setActiveView, setActiveWorktree]
-  )
+      await api.bindSubjectSession(projectChatSubjectId(project.id), binding)
+      setSession(binding)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause))
+    } finally {
+      setStarting(false)
+    }
+  }, [project, repoId, worktreesByRepo])
 
-  return { worktree, starting, error, open, start }
+  // Opening the screen opens the chat. Once per project and never after a failure, so a refused
+  // start is not retried on every render of the screen it just failed on.
+  const autoStartedProjectId = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (loading || starting || session || !projectId || !repoId) {
+      return
+    }
+    if (autoStartedProjectId.current === projectId) {
+      return
+    }
+    autoStartedProjectId.current = projectId
+    void start()
+  }, [loading, projectId, repoId, session, start, starting])
+
+  return {
+    session,
+    loading,
+    starting,
+    error,
+    restart: () => void start()
+  }
 }
