@@ -15,6 +15,7 @@ export const alicornApi: AlicornApi = {
   listAutonomyPolicies: (projectId) =>
     ipcRenderer.invoke(ALICORN_IPC.autonomyPoliciesList, { projectId }),
   mcpConfigPath: () => ipcRenderer.invoke(ALICORN_IPC.mcpConfigPath),
+  mcpGlobalServers: () => ipcRenderer.invoke(ALICORN_IPC.mcpGlobalServers),
   listTaskWorktrees: (taskId) => ipcRenderer.invoke(ALICORN_IPC.tasksWorktreesList, { taskId }),
   bindTaskWorktrees: (taskId, tuples) =>
     ipcRenderer.invoke(ALICORN_IPC.tasksWorktreesBind, { taskId, tuples }),

@@ -17575,7 +17575,10 @@
           "title": "Alicorn’s control plane",
           "detail": "Lets this repository’s agents read and change Alicorn in words — create a task, move one, add a member. Every change comes back with a receipt saying what it did and how to undo it. Required checks, autonomy and hard stops are not exposed: a member may not author the criteria that judge it.",
           "attached": "Added to .mcp.json",
-          "attach": "Add to this repository"
+          "attach": "Add to this repository",
+          "alreadyOn": "Every session Alicorn starts already holds these tools — a task’s session and the project chat reach the board without anything being written here. Required checks, autonomy and hard stops are not exposed: a member may not author the criteria that judge it.",
+          "inRepo": "It is also in this repository’s .mcp.json, so agents Alicorn did not start — a bare claude in a terminal, another editor — reach it too.",
+          "forOthers": "Adding it to this repository’s .mcp.json extends that to agents Alicorn did not start: a bare claude in a terminal, or another editor."
         },
         "screen": {
           "back": "Back"
@@ -17611,6 +17614,12 @@
             "1013a249e4": "Required Checks",
             "51cc76f872": "Workflow",
             "5fa28618f3": "Members"
+          },
+          "AlicornGlobalMcpSection": {
+            "dbf97a7b83": "Global"
+          },
+          "AlicornNestedRepoScan": {
+            "c0313e4ff7": "The scan did not answer."
           }
         },
         "taskChat": {
@@ -17621,6 +17630,23 @@
           "opening": "Opening the session…",
           "gone": "This conversation is no longer on this machine.",
           "restart": "Start a new session"
+        },
+        "mcpGlobal": {
+          "title": "Every project on this machine",
+          "detail": "Claude Code reads these for every project, so they are listed here rather than edited here — a change would reach every other project on this machine."
+        },
+        "nestedScan": {
+          "title": "Repositories inside {{folder}}",
+          "detail": "This folder is not a git repository, so a task working in it has no branch — and nothing that reads one, like the diff, the checks or provenance, can show anything. Binding the repositories inside it gives a task somewhere with a branch to work.",
+          "scan": "Scan the folder",
+          "scanning": "Looking for repositories…",
+          "none": "No git repositories were found inside this folder.",
+          "truncated": "The scan stopped at its limit, so this is not the whole folder.",
+          "add": "Add {{count}} to Alicorn",
+          "importing": "Adding them…",
+          "addOne": "Add 1 to Alicorn",
+          "selectNone": "Select none",
+          "all": "Select all {{count}}"
         }
       },
       "composerTaskPlan": {

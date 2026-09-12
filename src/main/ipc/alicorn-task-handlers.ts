@@ -1,4 +1,8 @@
 import { ipcMain } from 'electron'
+import { readFile } from 'node:fs/promises'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
+import { inspectMcpConfigContent, type McpServerSummary } from '../../shared/mcp-config'
 import { ALICORN_IPC } from '../../shared/alicorn/ipc-channels'
 import type { ControlPlaneClient } from '../alicorn/control-plane-client'
 import {
@@ -68,6 +72,33 @@ export function registerAlicornTaskHandlers(deps: {
         return { ok: true, path: await materialiseAlicornMcpConfig(getProfileUserDataPath()) }
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) }
+      }
+    }
+  )
+
+  // Claude Code's user-scope servers, read here rather than in the renderer: `fs:readFile` is
+  // sandboxed to workspace directories on purpose, and the home directory is deliberately outside
+  // it. Inspected with the same shared parser the workspace configs use, so the limits, the
+  // env-masking and the refusal on malformed JSON are identical.
+  ipcMain.handle(
+    ALICORN_IPC.mcpGlobalServers,
+    async (): Promise<{ ok: true; path: string; servers: McpServerSummary[] } | AlicornFailure> => {
+      const path = join(homedir(), '.claude.json')
+      try {
+        const content = await readFile(path, 'utf8')
+        const inspection = inspectMcpConfigContent(
+          {
+            format: 'claude',
+            label: 'Global',
+            relativePath: '~/.claude.json',
+            serversPath: ['mcpServers']
+          },
+          content
+        )
+        return { ok: true, path, servers: inspection.servers }
+      } catch {
+        // No user-scope config is the ordinary case on a fresh machine, not a failure.
+        return { ok: true, path, servers: [] }
       }
     }
   )

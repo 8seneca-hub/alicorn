@@ -9,6 +9,7 @@ import type {
   TaskWorktreeTupleInput
 } from '../../shared/alicorn/feature-workspace-tuples'
 import type { TaskSessionBinding } from '../../shared/alicorn/task-session'
+import type { McpServerSummary } from '../../shared/mcp-config'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
 import type {
   ContextCaptureDetailResult,
@@ -49,6 +50,10 @@ export type AlicornApi = {
   ) => Promise<{ ok: true; policies: AutonomyPolicy[] } | AlicornFailure>
   /** Path to the MCP config a session Alicorn starts is pointed at, written on demand. */
   mcpConfigPath: () => Promise<{ ok: true; path: string } | AlicornFailure>
+  /** The servers Claude Code applies to every project on this machine. */
+  mcpGlobalServers: () => Promise<
+    { ok: true; path: string; servers: McpServerSummary[] } | AlicornFailure
+  >
   /** The (repo, branch, worktree) tuples a task is being worked on in. Client-side state. */
   listTaskWorktrees: (
     taskId: string

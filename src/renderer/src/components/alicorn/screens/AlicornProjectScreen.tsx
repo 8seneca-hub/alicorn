@@ -21,6 +21,8 @@ import {
 } from './AlicornScreenChrome'
 import { AlicornInboxScreen } from './AlicornInboxScreen'
 import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
+import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
+import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
 import { AlicornTaskChat } from './AlicornTaskChat'
 import { AlicornProjectChatStarting } from './AlicornProjectChatStarting'
@@ -89,7 +91,13 @@ export function AlicornProjectScreen({
   const projectName = project?.name ?? route.projectId
   const chat = useProjectChat(project)
   const [deleting, setDeleting] = React.useState(false)
+  // The attach card writes one of the files the list below reads; without this it shows the
+  // pre-write state until something else remounts it.
+  const [mcpReloads, setMcpReloads] = React.useState(0)
   const projectRepos = repos.filter((repo) => project?.repoIds.includes(repo.id))
+  // A folder has no branch, so a task working in one has no diff, no checks and no provenance.
+  // The repositories inside it do — the Repositories screen offers to find them.
+  const folderRepos = projectRepos.filter((repo) => repo.kind === 'folder')
   const projectGates = (gates ?? []).filter(
     (gate) => gate.repoId !== null && (project?.repoIds ?? []).includes(gate.repoId)
   )
@@ -216,8 +224,12 @@ export function AlicornProjectScreen({
         <AlicornScreenBody>
           {target ? (
             <>
-              <AlicornMcpAttachCard repo={target} />
-              <McpConfigSection repo={target} />
+              <AlicornMcpAttachCard
+                repo={target}
+                onWritten={() => setMcpReloads((count) => count + 1)}
+              />
+              <AlicornGlobalMcpSection />
+              <McpConfigSection repo={target} reloadSignal={mcpReloads} />
             </>
           ) : (
             <AlicornEmptyState
@@ -293,6 +305,15 @@ export function AlicornProjectScreen({
               ))}
             </ul>
           )}
+          {folderRepos.map((folder) => (
+            <AlicornNestedRepoScan
+              key={folder.id}
+              folder={folder}
+              onImported={() =>
+                onNavigate({ scope: 'projects', projectId: route.projectId, section: 'repos' })
+              }
+            />
+          ))}
           <section className="mt-8 rounded-xl border border-destructive/30 p-4">
             <h2 className="text-[13px] font-semibold">
               {translate('auto.components.alicorn.project.deleteTitle', 'Delete this project')}

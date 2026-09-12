@@ -27,6 +27,8 @@ import { captureDirectSshMutationExpectation } from '@/lib/ssh-mutation-expectat
 
 type McpConfigSectionProps = {
   repo: Repo
+  /** Bumped by a caller that just wrote one of these files, so the list re-reads instead of going stale. */
+  reloadSignal?: number
 }
 
 const EMPTY_WORKTREES: Worktree[] = []
@@ -35,7 +37,10 @@ function countServers(configs: LoadedMcpConfigInspection[]): number {
   return configs.reduce((sum, config) => sum + config.servers.length, 0)
 }
 
-export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Element {
+export function McpConfigSection({
+  repo,
+  reloadSignal = 0
+}: McpConfigSectionProps): React.JSX.Element {
   const openFile = useAppStore((state) => state.openFile)
   const setActiveView = useAppStore((state) => state.setActiveView)
   const setActiveWorktree = useAppStore((state) => state.setActiveWorktree)
@@ -164,7 +169,7 @@ export function McpConfigSection({ repo }: McpConfigSectionProps): React.JSX.Ele
   useEffect(() => {
     void loadConfigs()
     return clearCreateConfirmResetTimer
-  }, [clearCreateConfirmResetTimer, loadConfigs])
+  }, [clearCreateConfirmResetTimer, loadConfigs, reloadSignal])
 
   const handleOpen = (config: LoadedMcpConfigInspection): void => {
     setActiveWorktree(targetWorktreeId)
