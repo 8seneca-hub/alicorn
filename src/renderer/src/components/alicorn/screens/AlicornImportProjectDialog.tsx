@@ -50,7 +50,7 @@ export function AlicornImportProjectDialog(props: Props): React.JSX.Element {
 }
 
 function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.JSX.Element {
-  const openSettingsPage = useAppStore((state) => state.openSettingsPage)
+  const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
   const source = usePlaneImportSource(true)
   const [boardId, setBoardId] = React.useState<string | null>(null)
   const board = usePlaneImportBoard(boardId)
@@ -147,7 +147,13 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
               'Connect Plane in Settings and its boards appear here. An agent with its own PM server can import through Alicorn’s MCP tools meanwhile.'
             )}
           </p>
-          <Button variant="outline" size="sm" onClick={() => openSettingsPage()}>
+          <Button
+            variant="outline"
+            size="sm"
+            // The integrations pane, not the settings root: a button that says it opens the place
+            // to connect Plane and lands on the front page has not done what it said.
+            onClick={() => openSettingsTarget({ pane: 'integrations', repoId: null })}
+          >
             {translate('auto.components.alicorn.import.openSettings', 'Open Settings')}
           </Button>
         </div>

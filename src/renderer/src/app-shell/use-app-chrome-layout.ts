@@ -2,6 +2,10 @@ import { useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { SYNC_FIT_PANES_EVENT } from '@/constants/terminal'
 import { canShowRightSidebarForView } from '@/lib/right-sidebar-visibility'
+import {
+  getAlicornActiveWorkspace,
+  subscribeAlicornActiveWorkspace
+} from '@/components/alicorn/alicorn-active-workspace'
 import { resolveLeftTitlebarChromeLayout } from '@/lib/titlebar-left-chrome'
 import { shouldShowWorktreeCreationSurface } from '@/lib/worktree-creation-surface'
 import { useAppStore } from '../store'
@@ -94,6 +98,15 @@ export function useAppChromeLayout() {
     return () => observer.disconnect()
   }, [isFullScreen, settings?.showTitlebarAppName, leftTitlebarChromeLayout.isFloating])
 
+  // Alicorn only has a workspace while a session is on screen; everywhere else in it — the project
+  // list, the board, the org library — there is nothing for a file tree or a diff to be about.
+  const alicornWorkspace = useSyncExternalStore(
+    subscribeAlicornActiveWorkspace,
+    getAlicornActiveWorkspace,
+    getAlicornActiveWorkspace
+  )
+  const rightSidebarHasSubject = activeView !== 'alicorn' || alicornWorkspace !== null
+
   return {
     activeView,
     activeWorktreeId,
@@ -109,7 +122,8 @@ export function useAppChromeLayout() {
     rightSidebarTab,
     shouldMountTerminalWorkbench,
     // Full-page navigation surfaces own the whole content area, so suppress right-sidebar controls.
-    showRightSidebarControls: !creationLayoutActive && canShowRightSidebarForView(activeView),
+    showRightSidebarControls:
+      !creationLayoutActive && rightSidebarHasSubject && canShowRightSidebarForView(activeView),
     showTitlebarAppName: settings?.showTitlebarAppName !== false,
     showTitlebarExpandButton: workspaceChromeActive && !hasTabBar && effectiveActiveTabExpanded,
     // Why: the workbench stays mounted while hidden, so visibility tracks the same condition separately.

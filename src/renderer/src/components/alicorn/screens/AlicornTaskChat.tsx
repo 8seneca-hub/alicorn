@@ -19,6 +19,7 @@ import {
 } from '../../../../../shared/structured-agent-session-projection'
 import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'
 import { translate } from '@/i18n/i18n'
+import { setAlicornActiveWorkspace } from '../alicorn-active-workspace'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { dispatchStructuredAgentSessionComposerCommand } from '../../../../../shared/structured-agent-session-composer'
@@ -64,6 +65,13 @@ export function AlicornTaskChat({
     isVisible: true
   })
   const prompt = controller.prompts[0] ?? null
+
+  // While this session is on screen, Alicorn has a workspace — which is what lets the right
+  // sidebar's file tree, terminal and diff mean something. It has none anywhere else.
+  React.useEffect(() => {
+    setAlicornActiveWorkspace(session.worktreeId)
+    return () => setAlicornActiveWorkspace(null)
+  }, [session.worktreeId])
   const [composerError, setComposerError] = React.useState<string | null>(null)
   const [optionPickerRequest, setOptionPickerRequest] = React.useState<{
     id: string
