@@ -52,6 +52,10 @@ function Field({
   )
 }
 
+/**
+ * The form is mounted only while the dialog is open, so closing it is what clears the fields.
+ * Resetting them from an effect instead shows the previous server's values for a frame.
+ */
 export function McpAddServerDialog({
   open,
   onOpenChange,
@@ -59,138 +63,153 @@ export function McpAddServerDialog({
   saving,
   onSubmit
 }: Props): React.JSX.Element {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <McpAddServerForm
+          onOpenChange={onOpenChange}
+          relativePath={relativePath}
+          saving={saving}
+          onSubmit={onSubmit}
+        />
+      ) : null}
+    </Dialog>
+  )
+}
+
+function McpAddServerForm({
+  onOpenChange,
+  relativePath,
+  saving,
+  onSubmit
+}: Omit<Props, 'open'>): React.JSX.Element {
   const [name, setName] = React.useState('')
   const [command, setCommand] = React.useState('')
   const [args, setArgs] = React.useState('')
   const [env, setEnv] = React.useState('')
 
-  React.useEffect(() => {
-    if (open) {
-      setName('')
-      setCommand('')
-      setArgs('')
-      setEnv('')
-    }
-  }, [open])
-
   const nameValid = isValidMcpServerName(name)
   const canSubmit = nameValid && command.trim() !== '' && !saving
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {translate('auto.components.settings.mcpAddServer.title', 'Add MCP server')}
-          </DialogTitle>
-          <DialogDescription>
-            {translate(
-              'auto.components.settings.mcpAddServer.description',
-              'Merged into {{path}}. Servers already in the file are kept.',
-              { path: relativePath }
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>
+          {translate('auto.components.settings.mcpAddServer.title', 'Add MCP server')}
+        </DialogTitle>
+        <DialogDescription>
+          {translate(
+            'auto.components.settings.mcpAddServer.description',
+            'Merged into {{path}}. Servers already in the file are kept.',
+            { path: relativePath }
+          )}
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-3">
+        <Field
+          label={translate('auto.components.settings.mcpAddServer.name', 'Name')}
+          hint={
+            name !== '' && !nameValid
+              ? translate(
+                  'auto.components.settings.mcpAddServer.nameInvalid',
+                  'Letters, digits, dash and underscore only.'
+                )
+              : translate(
+                  'auto.components.settings.mcpAddServer.nameHint',
+                  'How the agent refers to the server, for example plane.'
+                )
+          }
+        >
+          <Input
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder={translate(
+              'auto.components.settings.McpAddServerDialog.a79060d51a',
+              'plane'
             )}
-          </DialogDescription>
-        </DialogHeader>
+            aria-label={translate('auto.components.settings.mcpAddServer.name', 'Name')}
+            className="h-8 text-xs"
+          />
+        </Field>
 
-        <div className="space-y-3">
-          <Field
-            label={translate('auto.components.settings.mcpAddServer.name', 'Name')}
-            hint={
-              name !== '' && !nameValid
-                ? translate(
-                    'auto.components.settings.mcpAddServer.nameInvalid',
-                    'Letters, digits, dash and underscore only.'
-                  )
-                : translate(
-                    'auto.components.settings.mcpAddServer.nameHint',
-                    'How the agent refers to the server, for example plane.'
-                  )
-            }
-          >
-            <Input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="plane"
-              aria-label={translate('auto.components.settings.mcpAddServer.name', 'Name')}
-              className="h-8 text-xs"
-            />
-          </Field>
+        <Field
+          label={translate('auto.components.settings.mcpAddServer.command', 'Command')}
+          hint={translate(
+            'auto.components.settings.mcpAddServer.commandHint',
+            'Whatever launches the server, for example npx.'
+          )}
+        >
+          <Input
+            value={command}
+            onChange={(event) => setCommand(event.target.value)}
+            placeholder={translate('auto.components.settings.McpAddServerDialog.ebfde11d78', 'npx')}
+            aria-label={translate('auto.components.settings.mcpAddServer.command', 'Command')}
+            className="h-8 font-mono text-xs"
+          />
+        </Field>
 
-          <Field
-            label={translate('auto.components.settings.mcpAddServer.command', 'Command')}
-            hint={translate(
-              'auto.components.settings.mcpAddServer.commandHint',
-              'Whatever launches the server, for example npx.'
+        <Field
+          label={translate('auto.components.settings.mcpAddServer.args', 'Arguments')}
+          hint={translate('auto.components.settings.mcpAddServer.argsHint', 'Separated by spaces.')}
+        >
+          <Input
+            value={args}
+            onChange={(event) => setArgs(event.target.value)}
+            placeholder={translate(
+              'auto.components.settings.McpAddServerDialog.c1180ab7ed',
+              '-y my-mcp-server'
             )}
-          >
-            <Input
-              value={command}
-              onChange={(event) => setCommand(event.target.value)}
-              placeholder="npx"
-              aria-label={translate('auto.components.settings.mcpAddServer.command', 'Command')}
-              className="h-8 font-mono text-xs"
-            />
-          </Field>
+            aria-label={translate('auto.components.settings.mcpAddServer.args', 'Arguments')}
+            className="h-8 font-mono text-xs"
+          />
+        </Field>
 
-          <Field
-            label={translate('auto.components.settings.mcpAddServer.args', 'Arguments')}
-            hint={translate(
-              'auto.components.settings.mcpAddServer.argsHint',
-              'Separated by spaces.'
+        <Field
+          label={translate(
+            'auto.components.settings.mcpAddServer.env',
+            'Environment variable names'
+          )}
+          hint={translate(
+            'auto.components.settings.mcpAddServer.envHint',
+            'Names only — the value is read from the environment at launch and is never written to this file.'
+          )}
+        >
+          <Input
+            value={env}
+            onChange={(event) => setEnv(event.target.value)}
+            placeholder={translate(
+              'auto.components.settings.McpAddServerDialog.93526133ae',
+              'PLANE_API_KEY, PLANE_BASE_URL'
             )}
-          >
-            <Input
-              value={args}
-              onChange={(event) => setArgs(event.target.value)}
-              placeholder="-y my-mcp-server"
-              aria-label={translate('auto.components.settings.mcpAddServer.args', 'Arguments')}
-              className="h-8 font-mono text-xs"
-            />
-          </Field>
-
-          <Field
-            label={translate(
+            aria-label={translate(
               'auto.components.settings.mcpAddServer.env',
               'Environment variable names'
             )}
-            hint={translate(
-              'auto.components.settings.mcpAddServer.envHint',
-              'Names only — the value is read from the environment at launch and is never written to this file.'
-            )}
-          >
-            <Input
-              value={env}
-              onChange={(event) => setEnv(event.target.value)}
-              placeholder="PLANE_API_KEY, PLANE_BASE_URL"
-              aria-label={translate(
-                'auto.components.settings.mcpAddServer.env',
-                'Environment variable names'
-              )}
-              className="h-8 font-mono text-xs"
-            />
-          </Field>
-        </div>
+            className="h-8 font-mono text-xs"
+          />
+        </Field>
+      </div>
 
-        <DialogFooter>
-          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-            {translate('auto.components.settings.mcpAddServer.cancel', 'Cancel')}
-          </Button>
-          <Button
-            size="sm"
-            disabled={!canSubmit}
-            onClick={() =>
-              onSubmit({
-                name: name.trim(),
-                command: command.trim(),
-                args: parseMcpServerArgs(args),
-                env: parseMcpServerEnvNames(env)
-              })
-            }
-          >
-            {translate('auto.components.settings.mcpAddServer.add', 'Add server')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <DialogFooter>
+        <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+          {translate('auto.components.settings.mcpAddServer.cancel', 'Cancel')}
+        </Button>
+        <Button
+          size="sm"
+          disabled={!canSubmit}
+          onClick={() =>
+            onSubmit({
+              name: name.trim(),
+              command: command.trim(),
+              args: parseMcpServerArgs(args),
+              env: parseMcpServerEnvNames(env)
+            })
+          }
+        >
+          {translate('auto.components.settings.mcpAddServer.add', 'Add server')}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   )
 }

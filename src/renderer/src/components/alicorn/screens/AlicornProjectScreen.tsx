@@ -6,6 +6,7 @@
  * nothing is worse than one that admits the gap — it costs a bug report to discover.
  */
 import React from 'react'
+import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import type { PendingGateView } from '../../../../../shared/alicorn/gate-review'
 import type { Project } from '../../../../../shared/alicorn/projects'
@@ -19,7 +20,12 @@ import {
   projectCrumbs
 } from './AlicornScreenChrome'
 import { AlicornInboxScreen } from './AlicornInboxScreen'
+import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
+import {
+  AlicornProjectIntegrationsSection,
+  AlicornProjectSkillsSection
+} from './AlicornProjectPlaceholderSections'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectChat } from './use-project-chat'
 import { useProjectTasks } from './use-project-tasks'
@@ -56,6 +62,7 @@ export function AlicornProjectScreen({
   composing,
   onComposingChange,
   onResolvedGate,
+  onDeleteProject,
   onNavigate
 }: {
   route: { scope: 'projects'; projectId: string; section: ProjectSection; taskId?: string | null }
@@ -66,6 +73,7 @@ export function AlicornProjectScreen({
   composing: boolean
   onComposingChange: (open: boolean) => void
   onResolvedGate: () => void
+  onDeleteProject: (projectId: string) => Promise<{ ok: true } | { ok: false; error: string }>
   onNavigate: (next: AlicornRoute) => void
 }): React.JSX.Element {
   // Tasks are read here rather than per screen: the board, the list and the overview are three
@@ -78,6 +86,7 @@ export function AlicornProjectScreen({
   const project = projects.find((candidate) => candidate.id === route.projectId)
   const projectName = project?.name ?? route.projectId
   const chat = useProjectChat(project)
+  const [deleting, setDeleting] = React.useState(false)
   const projectRepos = repos.filter((repo) => project?.repoIds.includes(repo.id))
   const projectGates = (gates ?? []).filter(
     (gate) => gate.repoId !== null && (project?.repoIds ?? []).includes(gate.repoId)
@@ -114,6 +123,15 @@ export function AlicornProjectScreen({
     onNewTask: () => onComposingChange(true),
     onOpenTask: (taskId: string) => openTask(taskId)
   }
+  const deleteDialog = (
+    <AlicornDeleteProjectDialog
+      project={deleting ? (project ?? null) : null}
+      openTaskCount={tasks.tasks.filter((row) => row.column !== 'completed').length}
+      onOpenChange={(open) => setDeleting(open)}
+      onDelete={onDeleteProject}
+      onDeleted={allProjects}
+    />
+  )
   const composer = (
     <AlicornNewTaskDialog
       open={composing}
@@ -218,65 +236,16 @@ export function AlicornProjectScreen({
 
   if (route.section === 'skills') {
     return (
-      <>
-        <AlicornScreenHeader crumbs={crumbs} title={TITLES.skills} />
-        <AlicornScreenBody>
-          <AlicornEmptyState
-            title={translate(
-              'auto.components.alicorn.project.skillsTitle',
-              'Skills are a member’s, not a project’s'
-            )}
-            detail={translate(
-              'auto.components.alicorn.project.skillsDetail',
-              'A skill set is bound to a member in the org library, and the catalogue lives in the Skills view. Choosing which of them this project may use is not built yet.'
-            )}
-            action={
-              <button
-                type="button"
-                onClick={() => setActiveView('skills')}
-                className="mt-3 h-8 rounded-md border border-border px-3 text-[12.5px] font-medium transition hover:bg-accent"
-              >
-                {translate(
-                  'auto.components.alicorn.project.openSkills',
-                  'Open the skill catalogue'
-                )}
-              </button>
-            }
-          />
-        </AlicornScreenBody>
-      </>
+      <AlicornProjectSkillsSection crumbs={crumbs} onOpenSkills={() => setActiveView('skills')} />
     )
   }
 
   if (route.section === 'integrations') {
     return (
-      <>
-        <AlicornScreenHeader crumbs={crumbs} title={TITLES.integrations} />
-        <AlicornScreenBody>
-          <AlicornEmptyState
-            title={translate(
-              'auto.components.alicorn.project.integrationsTitle',
-              'Connected per device, not per project'
-            )}
-            detail={translate(
-              'auto.components.alicorn.project.integrationsDetail',
-              'Linear, GitHub and the other providers are connected in Settings, and a task picks up whatever is connected there. Scoping a connection to one project is not built yet.'
-            )}
-            action={
-              <button
-                type="button"
-                onClick={() => openSettingsPage()}
-                className="mt-3 h-8 rounded-md border border-border px-3 text-[12.5px] font-medium transition hover:bg-accent"
-              >
-                {translate(
-                  'auto.components.alicorn.project.openConnections',
-                  'Open connected accounts'
-                )}
-              </button>
-            }
-          />
-        </AlicornScreenBody>
-      </>
+      <AlicornProjectIntegrationsSection
+        crumbs={crumbs}
+        onOpenConnections={() => openSettingsPage()}
+      />
     )
   }
 
@@ -372,7 +341,27 @@ export function AlicornProjectScreen({
               ))}
             </ul>
           )}
+          <section className="mt-8 rounded-xl border border-destructive/30 p-4">
+            <h2 className="text-[13px] font-semibold">
+              {translate('auto.components.alicorn.project.deleteTitle', 'Delete this project')}
+            </h2>
+            <p className="mt-1 max-w-[560px] text-[12.5px] text-muted-foreground">
+              {translate(
+                'auto.components.alicorn.project.deleteDetail',
+                'Its board goes with it. The repositories above are only unbound — nothing on disk is touched.'
+              )}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3 border-destructive/40 text-destructive hover:bg-destructive/10"
+              onClick={() => setDeleting(true)}
+            >
+              {translate('auto.components.alicorn.project.deleteAction', 'Delete project…')}
+            </Button>
+          </section>
         </AlicornScreenBody>
+        {deleteDialog}
       </>
     )
   }

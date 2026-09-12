@@ -142,6 +142,7 @@ export function AlicornShell(): React.JSX.Element {
             composing={composingTask}
             onComposingChange={setComposingTask}
             onResolvedGate={refreshGates}
+            onDeleteProject={projectsState.remove}
             onNavigate={setRoute}
           />
         ) : (

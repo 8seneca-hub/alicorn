@@ -9,6 +9,21 @@ import { translate } from '@/i18n/i18n'
 /** A crumb is a place unless it is given somewhere to go. */
 export type AlicornCrumb = string | { label: string; onClick: () => void }
 
+function crumbLabel(crumb: AlicornCrumb): string {
+  return typeof crumb === 'string' ? crumb : crumb.label
+}
+
+/** Keyed by the trail up to it, not its position: two crumbs may share a label, a path never does. */
+function crumbTrail(crumbs: readonly AlicornCrumb[]): { crumb: AlicornCrumb; key: string }[] {
+  return crumbs.map((crumb, index) => ({
+    crumb,
+    key: crumbs
+      .slice(0, index + 1)
+      .map(crumbLabel)
+      .join(' / ')
+  }))
+}
+
 /** Every project screen wears the same trail, so it is built once. */
 export function projectCrumbs(projectName: string, onAllProjects: () => void): AlicornCrumb[] {
   return [
@@ -46,8 +61,8 @@ export function AlicornScreenHeader({
       ) : null}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5 text-[11.5px] text-muted-foreground">
-          {crumbs.map((crumb, index) => (
-            <React.Fragment key={`${typeof crumb === 'string' ? crumb : crumb.label}-${index}`}>
+          {crumbTrail(crumbs).map(({ crumb, key }, index) => (
+            <React.Fragment key={key}>
               {index > 0 ? <span className="opacity-50">/</span> : null}
               {typeof crumb === 'string' ? (
                 <span>{crumb}</span>

@@ -101,7 +101,7 @@ export function AppRail(): React.JSX.Element {
         <Command className="size-[18px]" strokeWidth={1.75} />
       </button>
       <div className="mt-1 flex size-7 items-center justify-center rounded-full border border-border bg-muted text-[11px] font-semibold">
-        NA
+        {translate('auto.app.shell.AppRail.eb5ffad696', 'NA')}
       </div>
     </nav>
   )

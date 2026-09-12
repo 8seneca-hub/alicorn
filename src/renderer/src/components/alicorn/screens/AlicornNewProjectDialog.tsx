@@ -29,35 +29,40 @@ export function deriveProjectKey(name: string): string {
   return letters.slice(0, 4)
 }
 
-export function AlicornNewProjectDialog({
-  open,
-  onOpenChange,
-  onCreate,
-  onCreated
-}: {
-  open: boolean
+type NewProjectFormProps = {
   onOpenChange: (open: boolean) => void
   onCreate: (
     input: ProjectInput
   ) => Promise<{ ok: true; project: Project } | { ok: false; error: string }>
   onCreated: (projectId: string) => void
-}): React.JSX.Element {
+}
+
+/**
+ * The form is mounted only while the dialog is open, so closing it is what clears the fields —
+ * resetting them from an effect shows the abandoned draft for a frame every time it reopens.
+ */
+export function AlicornNewProjectDialog({
+  open,
+  ...form
+}: NewProjectFormProps & { open: boolean }): React.JSX.Element {
+  return (
+    <Dialog open={open} onOpenChange={form.onOpenChange}>
+      {open ? <AlicornNewProjectForm {...form} /> : null}
+    </Dialog>
+  )
+}
+
+function AlicornNewProjectForm({
+  onOpenChange,
+  onCreate,
+  onCreated
+}: NewProjectFormProps): React.JSX.Element {
   const [name, setName] = React.useState('')
   const [key, setKey] = React.useState('')
   const [keyTouched, setKeyTouched] = React.useState(false)
   const [repoIds, setRepoIds] = React.useState<string[]>([])
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    if (open) {
-      setName('')
-      setKey('')
-      setKeyTouched(false)
-      setRepoIds([])
-      setFailure(null)
-    }
-  }, [open])
 
   const effectiveKey = keyTouched ? key : deriveProjectKey(name)
   const keyValid = KEY_PATTERN.test(effectiveKey)
@@ -68,7 +73,11 @@ export function AlicornNewProjectDialog({
   const submit = async (): Promise<void> => {
     setBusy(true)
     setFailure(null)
-    const result = await onCreate({ name: name.trim(), key: effectiveKey, repoIds })
+    const result = await onCreate({
+      name: name.trim(),
+      key: effectiveKey,
+      repoIds
+    })
     setBusy(false)
     if (!result.ok) {
       setFailure(
@@ -91,81 +100,85 @@ export function AlicornNewProjectDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
-            {translate('auto.components.alicorn.newProject.title', 'New project')}
-          </DialogTitle>
-          <DialogDescription>
-            {translate(
-              'auto.components.alicorn.newProject.description',
-              'One instance of the org library, with its own repositories and board.'
+    <DialogContent className="sm:max-w-lg">
+      <DialogHeader>
+        <DialogTitle>
+          {translate('auto.components.alicorn.newProject.title', 'New project')}
+        </DialogTitle>
+        <DialogDescription>
+          {translate(
+            'auto.components.alicorn.newProject.description',
+            'One instance of the org library, with its own repositories and board.'
+          )}
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <label className="text-xs font-medium" htmlFor="alicorn-project-name">
+            {translate('auto.components.alicorn.newProject.name', 'Name')}
+          </label>
+          <Input
+            id="alicorn-project-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder={translate(
+              'auto.components.alicorn.screens.AlicornNewProjectDialog.9074bfe087',
+              'Payments Platform'
             )}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label className="text-xs font-medium" htmlFor="alicorn-project-name">
-              {translate('auto.components.alicorn.newProject.name', 'Name')}
-            </label>
-            <Input
-              id="alicorn-project-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Payments Platform"
-              className="h-8 text-xs"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium" htmlFor="alicorn-project-key">
-              {translate('auto.components.alicorn.newProject.key', 'Task key')}
-            </label>
-            <Input
-              id="alicorn-project-key"
-              value={effectiveKey}
-              onChange={(event) => {
-                setKeyTouched(true)
-                setKey(event.target.value.toUpperCase())
-              }}
-              placeholder="PAY"
-              className="h-8 font-mono text-xs"
-            />
-            <p
-              className={cn(
-                'text-[11px]',
-                effectiveKey !== '' && !keyValid ? 'text-destructive' : 'text-muted-foreground'
-              )}
-            >
-              {effectiveKey !== '' && !keyValid
-                ? translate(
-                    'auto.components.alicorn.newProject.keyInvalid',
-                    'Two to ten uppercase letters or digits, starting with a letter.'
-                  )
-                : translate(
-                    'auto.components.alicorn.newProject.keyHint',
-                    'Prefixes every task id — {{key}}-142.',
-                    { key: effectiveKey || 'PAY' }
-                  )}
-            </p>
-          </div>
-
-          <AlicornRepoPicker repoIds={repoIds} onChange={setRepoIds} />
-
-          {failure ? <p className="text-[11px] text-destructive">{failure}</p> : null}
+            className="h-8 text-xs"
+          />
         </div>
 
-        <DialogFooter>
-          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
-            {translate('auto.components.alicorn.newProject.cancel', 'Cancel')}
-          </Button>
-          <Button size="sm" disabled={!canSubmit} onClick={() => void submit()}>
-            {translate('auto.components.alicorn.newProject.create', 'Create project')}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-1">
+          <label className="text-xs font-medium" htmlFor="alicorn-project-key">
+            {translate('auto.components.alicorn.newProject.key', 'Task key')}
+          </label>
+          <Input
+            id="alicorn-project-key"
+            value={effectiveKey}
+            onChange={(event) => {
+              setKeyTouched(true)
+              setKey(event.target.value.toUpperCase())
+            }}
+            placeholder={translate(
+              'auto.components.alicorn.screens.AlicornNewProjectDialog.67e15f46bf',
+              'PAY'
+            )}
+            className="h-8 font-mono text-xs"
+          />
+          <p
+            className={cn(
+              'text-[11px]',
+              effectiveKey !== '' && !keyValid ? 'text-destructive' : 'text-muted-foreground'
+            )}
+          >
+            {effectiveKey !== '' && !keyValid
+              ? translate(
+                  'auto.components.alicorn.newProject.keyInvalid',
+                  'Two to ten uppercase letters or digits, starting with a letter.'
+                )
+              : translate(
+                  'auto.components.alicorn.newProject.keyHint',
+                  'Prefixes every task id — {{key}}-142.',
+                  { key: effectiveKey || 'PAY' }
+                )}
+          </p>
+        </div>
+
+        <AlicornRepoPicker repoIds={repoIds} onChange={setRepoIds} />
+
+        {failure ? <p className="text-[11px] text-destructive">{failure}</p> : null}
+      </div>
+
+      <DialogFooter>
+        <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
+          {translate('auto.components.alicorn.newProject.cancel', 'Cancel')}
+        </Button>
+        <Button size="sm" disabled={!canSubmit} onClick={() => void submit()}>
+          {translate('auto.components.alicorn.newProject.create', 'Create project')}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
   )
 }

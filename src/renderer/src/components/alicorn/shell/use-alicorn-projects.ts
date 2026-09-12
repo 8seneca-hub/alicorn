@@ -7,6 +7,7 @@
  */
 import { useCallback, useEffect, useState } from 'react'
 import type { Project, ProjectInput } from '../../../../../shared/alicorn/projects'
+import { translate } from '@/i18n/i18n'
 
 export type AlicornProjectsState = {
   projects: Project[]
@@ -17,6 +18,8 @@ export type AlicornProjectsState = {
   create: (
     input: ProjectInput
   ) => Promise<{ ok: true; project: Project } | { ok: false; error: string }>
+  /** Unbinds the project's repositories and takes its board with it; the repositories stay. */
+  remove: (projectId: string) => Promise<{ ok: true } | { ok: false; error: string }>
 }
 
 export function useAlicornProjects(): AlicornProjectsState {
@@ -62,7 +65,13 @@ export function useAlicornProjects(): AlicornProjectsState {
     ): Promise<{ ok: true; project: Project } | { ok: false; error: string }> => {
       const post = window.api?.alicorn?.createProject
       if (!post) {
-        return { ok: false, error: 'control_plane_unreachable' }
+        return {
+          ok: false,
+          error: translate(
+            'auto.components.alicorn.shell.use.alicorn.projects.203752d3d3',
+            'control_plane_unreachable'
+          )
+        }
       }
       const result = await post(input)
       if (result.ok) {
@@ -76,5 +85,26 @@ export function useAlicornProjects(): AlicornProjectsState {
     []
   )
 
-  return { projects, error, loading, reload, create }
+  const remove = useCallback(
+    async (projectId: string): Promise<{ ok: true } | { ok: false; error: string }> => {
+      const del = window.api?.alicorn?.deleteProject
+      if (!del) {
+        return {
+          ok: false,
+          error: translate(
+            'auto.components.alicorn.shell.use.alicorn.projects.203752d3d3',
+            'control_plane_unreachable'
+          )
+        }
+      }
+      const result = await del(projectId)
+      if (result.ok) {
+        setProjects((current) => current.filter((project) => project.id !== projectId))
+      }
+      return result
+    },
+    []
+  )
+
+  return { projects, error, loading, reload, create, remove }
 }

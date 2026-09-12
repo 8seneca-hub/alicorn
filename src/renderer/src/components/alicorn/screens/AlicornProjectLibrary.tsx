@@ -21,6 +21,14 @@ function Note({ children }: { children: React.ReactNode }): React.JSX.Element {
   return <p className="mt-4 max-w-2xl text-[12.5px] text-muted-foreground">{children}</p>
 }
 
+/**
+ * A check has no id — it is authored as a shape, so the shape is its identity. Two checks that
+ * serialise the same are the same requirement, not two of them.
+ */
+function requiredCheckKey(check: RequiredCheck): string {
+  return JSON.stringify(check)
+}
+
 export function AlicornProjectMembers({
   projectName,
   onAllProjects
@@ -58,7 +66,13 @@ export function AlicornProjectMembers({
 
   return (
     <>
-      <AlicornScreenHeader crumbs={projectCrumbs(projectName, onAllProjects)} title="Members" />
+      <AlicornScreenHeader
+        crumbs={projectCrumbs(projectName, onAllProjects)}
+        title={translate(
+          'auto.components.alicorn.screens.AlicornProjectLibrary.5fa28618f3',
+          'Members'
+        )}
+      />
       <AlicornScreenBody>
         {error ? (
           <AlicornEmptyState
@@ -140,7 +154,13 @@ export function AlicornProjectWorkflow({
 
   return (
     <>
-      <AlicornScreenHeader crumbs={projectCrumbs(projectName, onAllProjects)} title="Workflow" />
+      <AlicornScreenHeader
+        crumbs={projectCrumbs(projectName, onAllProjects)}
+        title={translate(
+          'auto.components.alicorn.screens.AlicornProjectLibrary.51cc76f872',
+          'Workflow'
+        )}
+      />
       <AlicornScreenBody>
         {error ? (
           <AlicornEmptyState
@@ -222,7 +242,10 @@ export function AlicornProjectChecks({
     <>
       <AlicornScreenHeader
         crumbs={projectCrumbs(projectName, onAllProjects)}
-        title="Required Checks"
+        title={translate(
+          'auto.components.alicorn.screens.AlicornProjectLibrary.1013a249e4',
+          'Required Checks'
+        )}
       />
       <AlicornScreenBody>
         {error ? (
@@ -248,9 +271,9 @@ export function AlicornProjectChecks({
         ) : (
           <>
             <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
-              {checks.map((check, index) => (
+              {checks.map((check) => (
                 <li
-                  key={`${check.kind}-${index}`}
+                  key={requiredCheckKey(check)}
                   className="flex items-center gap-3 px-3 py-2.5 text-[13px]"
                 >
                   <span className="min-w-0 flex-1 truncate font-mono">{check.kind}</span>
