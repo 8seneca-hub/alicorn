@@ -1,13 +1,7 @@
-import { ArrowLeft, ArrowRight, MoreHorizontal, PanelLeft } from 'lucide-react'
+import { ArrowLeft, ArrowRight, MoreHorizontal } from 'lucide-react'
 import logo from '../../../../resources/logo.svg'
 import { translate } from '@/i18n/i18n'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger
-} from '@/components/ui/context-menu'
 import { shouldShowWorktreeHistoryControls } from '../lib/titlebar-worktree-history-controls'
 import {
   canGoBackWorktreeHistory,
@@ -19,16 +13,14 @@ import { hasCustomTitleBar, isMac } from './app-window-chrome'
 import type { AppChromeLayout } from './use-app-chrome-layout'
 
 /**
- * The titlebar's left cluster: window chrome padding, app name, sidebar toggle, and the
- * worktree back/forward pair. Shared by the full-width titlebar and the sidebar-width left
- * header so the agent badge popover isn't duplicated.
+ * The titlebar's left cluster: window chrome padding and the worktree back/forward pair.
+ *
+ * The app name and the sidebar toggle went with Orca's workspace sidebar — a toggle for a panel
+ * that no longer exists, and a name the rail already carries.
  */
 export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): React.JSX.Element {
-  const toggleSidebar = useAppStore((s) => s.toggleSidebar)
-  const updateSettings = useAppStore((s) => s.updateSettings)
   const canGoBackWorktree = useAppStore(canGoBackWorktreeHistory)
   const canGoForwardWorktree = useAppStore(canGoForwardWorktreeHistory)
-  const leftSidebarShortcutLabel = useShortcutLabel('sidebar.left.toggle')
   const historyBackShortcutLabel = useShortcutLabel('worktree.history.back')
   const historyForwardShortcutLabel = useShortcutLabel('worktree.history.forward')
 
@@ -65,47 +57,6 @@ export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): R
           </>
         ) : (
           <div className="pl-2" />
-        )}
-        {layout.showSidebar && !hasCustomTitleBar && layout.showTitlebarAppName && (
-          <ContextMenu>
-            <ContextMenuTrigger asChild>
-              <div
-                className="titlebar-app-name"
-                aria-label={translate('auto.App.5096cbbc86', 'Orca')}
-              >
-                <span className="titlebar-app-name-main">
-                  {translate('auto.App.5096cbbc86', 'Orca')}
-                </span>
-              </div>
-            </ContextMenuTrigger>
-            <ContextMenuContent>
-              <ContextMenuItem
-                onSelect={() => {
-                  void updateSettings({ showTitlebarAppName: false })
-                }}
-              >
-                {translate('auto.App.e81217c1b7', 'Hide App Name')}
-              </ContextMenuItem>
-            </ContextMenuContent>
-          </ContextMenu>
-        )}
-        {layout.showSidebar && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                className="sidebar-toggle"
-                onClick={toggleSidebar}
-                aria-label={translate('auto.App.e4b9e7dff7', 'Toggle sidebar')}
-              >
-                <PanelLeft size={16} />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" sideOffset={6}>
-              {translate('auto.App.ce37cf5279', 'Toggle sidebar ({{value0}})', {
-                value0: leftSidebarShortcutLabel
-              })}
-            </TooltipContent>
-          </Tooltip>
         )}
       </div>
       {/* Why: Back/Forward span worktree + page history, so show the cluster wherever the shortcut is live (hidden in Settings/non-stack views). */}

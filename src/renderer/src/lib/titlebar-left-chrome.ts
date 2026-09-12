@@ -1,8 +1,6 @@
 export type LeftTitlebarChromeLayoutInput = {
   workspaceChromeActive: boolean
-  stackedSidebarOpen: boolean
   creationLayoutActive: boolean
-  sidebarOpen: boolean
 }
 
 export type LeftTitlebarChromeLayout = {
@@ -10,15 +8,17 @@ export type LeftTitlebarChromeLayout = {
   isFloating: boolean
 }
 
+/**
+ * Where the window's left controls live.
+ *
+ * Always floating now that Alicorn has removed Orca's workspace sidebar: the controls used to sit
+ * in a header the width of that column, and with nothing under it there is no column to be the
+ * width of. The rail is the leftmost thing on screen and pads for the traffic lights itself.
+ */
 export function resolveLeftTitlebarChromeLayout({
   workspaceChromeActive,
-  stackedSidebarOpen,
-  creationLayoutActive,
-  sidebarOpen
+  creationLayoutActive
 }: LeftTitlebarChromeLayoutInput): LeftTitlebarChromeLayout {
-  const shouldMount = workspaceChromeActive || stackedSidebarOpen || creationLayoutActive
-  return {
-    shouldMount,
-    isFloating: shouldMount && !sidebarOpen && !stackedSidebarOpen
-  }
+  const shouldMount = workspaceChromeActive || creationLayoutActive
+  return { shouldMount, isFloating: shouldMount }
 }

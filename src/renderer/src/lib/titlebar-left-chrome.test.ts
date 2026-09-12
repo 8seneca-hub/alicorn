@@ -2,46 +2,20 @@ import { describe, expect, it } from 'vitest'
 import { resolveLeftTitlebarChromeLayout } from './titlebar-left-chrome'
 
 describe('resolveLeftTitlebarChromeLayout', () => {
-  it('mounts in normal workspace chrome', () => {
+  it('mounts in normal workspace chrome, floating over the content', () => {
     expect(
       resolveLeftTitlebarChromeLayout({
         workspaceChromeActive: true,
-        stackedSidebarOpen: false,
-        creationLayoutActive: false,
-        sidebarOpen: true
+        creationLayoutActive: false
       })
-    ).toEqual({ shouldMount: true, isFloating: false })
-  })
-
-  it('mounts for stacked sidebar pages without floating', () => {
-    expect(
-      resolveLeftTitlebarChromeLayout({
-        workspaceChromeActive: false,
-        stackedSidebarOpen: true,
-        creationLayoutActive: false,
-        sidebarOpen: true
-      })
-    ).toEqual({ shouldMount: true, isFloating: false })
+    ).toEqual({ shouldMount: true, isFloating: true })
   })
 
   it('preserves the left titlebar chrome during visible worktree creation', () => {
     expect(
       resolveLeftTitlebarChromeLayout({
         workspaceChromeActive: false,
-        stackedSidebarOpen: false,
-        creationLayoutActive: true,
-        sidebarOpen: true
-      })
-    ).toEqual({ shouldMount: true, isFloating: false })
-  })
-
-  it('floats during creation when the sidebar is collapsed', () => {
-    expect(
-      resolveLeftTitlebarChromeLayout({
-        workspaceChromeActive: false,
-        stackedSidebarOpen: false,
-        creationLayoutActive: true,
-        sidebarOpen: false
+        creationLayoutActive: true
       })
     ).toEqual({ shouldMount: true, isFloating: true })
   })
@@ -50,9 +24,7 @@ describe('resolveLeftTitlebarChromeLayout', () => {
     expect(
       resolveLeftTitlebarChromeLayout({
         workspaceChromeActive: false,
-        stackedSidebarOpen: false,
-        creationLayoutActive: false,
-        sidebarOpen: false
+        creationLayoutActive: false
       })
     ).toEqual({ shouldMount: false, isFloating: false })
   })

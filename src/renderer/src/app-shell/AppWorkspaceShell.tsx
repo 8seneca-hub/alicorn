@@ -1,12 +1,10 @@
-import { Suspense, useRef } from 'react'
+import { Suspense } from 'react'
 import { lazyWithRetry as lazy } from '@/lib/lazy-with-retry'
 import { translate } from '@/i18n/i18n'
-import Sidebar from '../components/Sidebar'
 import RightSidebar from '../components/right-sidebar'
 import { RecoverableRenderErrorBoundary } from '../components/error-boundaries/RecoverableRenderErrorBoundary'
 import { FloatingTerminalToggleButton } from '../components/floating-terminal/FloatingTerminalToggleButton'
 import { TerminalWorkbenchContainer } from '../components/TerminalWorkbenchContainer'
-import type { VirtualizedScrollAnchor } from '../hooks/useVirtualizedScrollAnchor'
 import { TitlebarLeftControls } from './TitlebarLeftControls'
 import { AppRail } from './AppRail'
 import { RightSidebarToggle, TitlebarMainStrip } from './TitlebarMainStrip'
@@ -34,44 +32,6 @@ const WorkspaceSpacePage = lazy(() => import('../components/workspace-space/Work
 const MobilePage = lazy(() => import('../components/mobile/MobilePage'))
 const Terminal = lazy(() => import('../components/Terminal'))
 
-type WorktreeSidebarScrollRefs = {
-  scrollOffsetRef: React.MutableRefObject<number>
-  scrollAnchorRef: React.MutableRefObject<VirtualizedScrollAnchor>
-}
-
-function WorktreeSidebar({
-  layout,
-  scrollRefs
-}: {
-  layout: AppChromeLayout
-  scrollRefs: WorktreeSidebarScrollRefs
-}): React.JSX.Element {
-  return (
-    <RecoverableRenderErrorBoundary
-      boundaryId="sidebar.worktrees"
-      surface="sidebar"
-      resetKey={layout.activeView}
-      title={translate('auto.App.1468601e7b', 'The workspace list hit an error.')}
-      description={
-        layout.leftTitlebarChromeLayout.shouldMount
-          ? translate(
-              'auto.App.bdc71dddc9',
-              'The active workspace remains open. Retry the list or switch views.'
-            )
-          : translate(
-              'auto.App.cba0fafda5',
-              'The active page remains open. Retry the list or switch views.'
-            )
-      }
-    >
-      <Sidebar
-        worktreeScrollOffsetRef={scrollRefs.scrollOffsetRef}
-        worktreeScrollAnchorRef={scrollRefs.scrollAnchorRef}
-      />
-    </RecoverableRenderErrorBoundary>
-  )
-}
-
 function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element {
   const { activeView, activeWorktreeId, activePendingCreationId, creationLayoutActive } = layout
   return (
@@ -96,7 +56,7 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
   )
 }
 
-/** The left sidebar + titlebar + page/workbench content area + right sidebar. */
+/** The rail + titlebar + page/workbench content area + right sidebar. */
 export function AppWorkspaceShell(props: {
   layout: AppChromeLayout
   floatingWorkspace: FloatingWorkspacePanelState
@@ -104,11 +64,6 @@ export function AppWorkspaceShell(props: {
   const { layout, floatingWorkspace } = props
   const titlebarLeftControls = <TitlebarLeftControls layout={layout} />
   const titlebarMainStrip = <TitlebarMainStrip layout={layout} />
-  // Why: keep virtualized scroll memory above the sidebar's workspace/landing remount so the left list doesn't restart at scrollTop 0.
-  const scrollOffsetRef = useRef(0)
-  const scrollAnchorRef = useRef<VirtualizedScrollAnchor>(null)
-  const sidebarScrollRefs = { scrollOffsetRef, scrollAnchorRef }
-
   return (
     // Why: workspace activation is a hot path; activeWorktreeId in reset keys would remount whole surfaces during wake.
     <RecoverableRenderErrorBoundary
@@ -135,44 +90,16 @@ export function AppWorkspaceShell(props: {
             </div>
           ) : null}
           <div className="flex flex-row flex-1 min-h-0 overflow-hidden">
-            {layout.showSidebar ? (
-              layout.leftTitlebarChromeLayout.shouldMount ? (
-                /* Why: when the sidebar is collapsed, take this titlebar-height header out of flex layout so the terminal/editor reclaim the left edge. */
-                <div
-                  className={`flex min-h-0 flex-col shrink-0${layout.sidebarOpen ? '' : ' relative w-0 overflow-visible'}`}
-                >
-                  <div
-                    // Why: floating titlebar-left occludes the center column's border-l seam; border-r restores that line, w-max sizes it to its own controls.
-                    className={`titlebar-left${
-                      layout.leftTitlebarChromeLayout.isFloating
-                        ? ' titlebar-left-floating absolute top-0 left-0 z-10 w-max border-r border-border'
-                        : ''
-                    }`}
-                    style={{
-                      // Why: custom sidebar appearances are scoped to the sidebar root; mirror those vars onto the header in the same left-column panel.
-                      ...(layout.sidebarOpen ? layout.leftSidebarStyle : undefined),
-                      // Why: size from the wrapper's live width so the header tracks in-flight drag resizes (persisted to Zustand only on mouseup).
-                      width: layout.sidebarOpen ? '100%' : undefined
-                    }}
-                  >
-                    {titlebarLeftControls}
-                  </div>
-                  {/* Why: flex-1/min-h-0 slot needed under the fixed 36px header, else the sidebar collapses to content height and loses its scroll viewport. */}
-                  <div className="flex min-h-0 flex-1">
-                    <WorktreeSidebar layout={layout} scrollRefs={sidebarScrollRefs} />
-                  </div>
+            {/* Why: the left controls float over the content's top-left corner — Alicorn removed the
+                workspace sidebar, so there is no column for them to sit above. */}
+            {layout.leftTitlebarChromeLayout.shouldMount ? (
+              <div className="relative flex w-0 shrink-0 flex-col overflow-visible">
+                <div className="titlebar-left titlebar-left-floating absolute top-0 left-0 z-10 w-max border-r border-border">
+                  {titlebarLeftControls}
                 </div>
-              ) : (
-                <WorktreeSidebar layout={layout} scrollRefs={sidebarScrollRefs} />
-              )
+              </div>
             ) : null}
             <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-hidden">
-              {/* Why: automations/artifacts own their page headers; the stacked titlebar would be an empty 36px stripe. */}
-              {layout.stackedSidebarOpen &&
-              layout.activeView !== 'automations' &&
-              layout.activeView !== 'artifacts' ? (
-                <div className="titlebar">{titlebarMainStrip}</div>
-              ) : null}
               <div className="relative flex flex-1 min-w-0 min-h-0 overflow-hidden">
                 {/* Why: match the RightSidebar header's 36px/top-0 so the toggle's vertical center is identical open vs closed — else the icon jitters. */}
                 {layout.workspaceChromeActive && !layout.rightSidebarOpen && (
