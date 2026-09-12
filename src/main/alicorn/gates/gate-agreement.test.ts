@@ -88,9 +88,9 @@ describe('enqueueGateAgreement', () => {
     db.setGateRecommendation(gate.id, { decision: 'auto', reason: 'auto', level: 1 })
     const resolved = db.resolveGate(gate.id, 'yes')!
 
-    expect(enqueueGateAgreement(db, resolved, { decision: 'gate', recommendationShown: true })).toBe(
-      1
-    )
+    expect(
+      enqueueGateAgreement(db, resolved, { decision: 'gate', recommendationShown: true })
+    ).toBe(1)
     const row = db
       .listDueLedgerOutbox(25)
       .find((candidate) => candidate.kind === 'gate_agreement_patch')!
@@ -111,8 +111,12 @@ describe('enqueueGateAgreement', () => {
     db.setGateRecommendation(gate.id, { decision: 'auto', reason: 'auto', level: 1 })
     const resolved = db.resolveGate(gate.id, 'yes')!
 
-    expect(enqueueGateAgreement(db, resolved, { decision: 'auto', recommendationShown: false })).toBe(1)
-    expect(enqueueGateAgreement(db, resolved, { decision: 'gate', recommendationShown: false })).toBe(0)
+    expect(
+      enqueueGateAgreement(db, resolved, { decision: 'auto', recommendationShown: false })
+    ).toBe(1)
+    expect(
+      enqueueGateAgreement(db, resolved, { decision: 'gate', recommendationShown: false })
+    ).toBe(0)
     expect(
       db.listDueLedgerOutbox(25).filter((row) => row.kind === 'gate_agreement_patch')
     ).toHaveLength(1)
@@ -123,7 +127,11 @@ describe('enqueueGateAgreement', () => {
     const gate = db.createGate({ taskId, question: 'Proceed?' })
     const resolved = db.resolveGate(gate.id, 'yes')!
 
-    expect(enqueueGateAgreement(db, resolved, { decision: 'auto', recommendationShown: false })).toBe(0)
-    expect(db.listDueLedgerOutbox(25).some((row) => row.kind === 'gate_agreement_patch')).toBe(false)
+    expect(
+      enqueueGateAgreement(db, resolved, { decision: 'auto', recommendationShown: false })
+    ).toBe(0)
+    expect(db.listDueLedgerOutbox(25).some((row) => row.kind === 'gate_agreement_patch')).toBe(
+      false
+    )
   })
 })

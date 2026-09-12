@@ -11,6 +11,7 @@ export const ALICORN_IPC = {
   membersDelete: 'alicorn:members:delete',
   orgPolicyGet: 'alicorn:orgPolicy:get',
   requiredChecksGet: 'alicorn:requiredChecks:get',
+  requiredChecksSet: 'alicorn:requiredChecks:set',
   tasksList: 'alicorn:tasks:list',
   tasksCreate: 'alicorn:tasks:create',
   tasksUpdate: 'alicorn:tasks:update',

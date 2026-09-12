@@ -61,8 +61,7 @@ function register(client: ControlPlaneClient | null, db?: OrchestrationDb): void
   handlers.clear()
   registerAlicornHandlers({
     client,
-    getOrchestrationDb: () =>
-      db ?? (({ setTaskExecutionStrategy }) as unknown as OrchestrationDb)
+    getOrchestrationDb: () => db ?? ({ setTaskExecutionStrategy } as unknown as OrchestrationDb)
   })
 }
 
@@ -441,7 +440,7 @@ describe('context capture', () => {
     expect(listRunContextCaptures).not.toHaveBeenCalled()
   })
 
-  it('surfaces a missing capture as the ledger\'s own code, not as an empty prompt', async () => {
+  it("surfaces a missing capture as the ledger's own code, not as an empty prompt", async () => {
     register(
       fakeClient({
         getRunContextCapture: vi
@@ -550,9 +549,10 @@ describe('gate panel reads and resolves (GP3)', () => {
   it('refuses a resolve that names no gate verdict', async () => {
     const { gateId } = pendingGate(1)
 
-    await expect(
-      invoke(ALICORN_IPC.gatesResolve, { gateId, resolution: 'yes' })
-    ).resolves.toEqual({ ok: false, error: 'invalid_body' })
+    await expect(invoke(ALICORN_IPC.gatesResolve, { gateId, resolution: 'yes' })).resolves.toEqual({
+      ok: false,
+      error: 'invalid_body'
+    })
     expect(db.getGate(gateId)?.status).toBe('pending')
   })
 

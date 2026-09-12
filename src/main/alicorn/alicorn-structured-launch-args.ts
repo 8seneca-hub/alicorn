@@ -10,9 +10,11 @@
  * not been written yet must cost the session its tools, never its start.
  */
 import { existsSync } from 'node:fs'
+import { buildClaudeAgentsArgument } from '../../shared/alicorn/default-members'
 import { alicornMcpConfigPath } from './alicorn-mcp-config'
 
 const MCP_CONFIG_FLAG = '--mcp-config'
+const AGENTS_FLAG = '--agents'
 
 function hasMcpConfigFlag(tokens: readonly string[]): boolean {
   return tokens.some(
@@ -26,14 +28,34 @@ function hasMcpConfigFlag(tokens: readonly string[]): boolean {
  * Idempotent, and it yields to the user: someone who configured `--mcp-config` by hand in their
  * default agent args meant that file, and a second flag would be the one Claude ignores.
  */
+function hasFlag(tokens: readonly string[], flag: string): boolean {
+  return tokens.some((token) => token === flag || token.startsWith(`${flag}=`))
+}
+
 export function alicornStructuredClaudeArgs(
   tokens: readonly string[],
   userDataPath: string,
   fileExists: (path: string) => boolean = existsSync
 ): string[] {
-  if (hasMcpConfigFlag(tokens)) {
-    return [...tokens]
+  const next = [...tokens]
+
+  // `--mcp-config` last among Alicorn's own flags would be a trap: it is variadic, so a bare
+  // positional after it is read as a second config path. Nothing here appends a positional, and
+  // nothing should.
+  if (!hasMcpConfigFlag(next)) {
+    const configPath = alicornMcpConfigPath(userDataPath)
+    if (fileExists(configPath)) {
+      next.push(MCP_CONFIG_FLAG, configPath)
+    }
   }
-  const configPath = alicornMcpConfigPath(userDataPath)
-  return fileExists(configPath) ? [...tokens, MCP_CONFIG_FLAG, configPath] : [...tokens]
+
+  // Alicorn's core members, as subagents Claude can actually delegate to. Passed on the command
+  // line rather than written to `.claude/agents/`: that directory belongs to the repository or to
+  // the user, and neither is ours to add files to. Claude Code validates this JSON at startup and
+  // exits on a bad value, so it is built from typed definitions rather than assembled by hand.
+  if (!hasFlag(next, AGENTS_FLAG)) {
+    next.push(AGENTS_FLAG, buildClaudeAgentsArgument())
+  }
+
+  return next
 }

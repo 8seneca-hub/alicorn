@@ -41,7 +41,9 @@ const GRAPH: WorkflowGraphInput = {
 
 const WORKFLOW = { id: 'w1', version: 2, ...GRAPH }
 
-function register(overrides: Partial<ControlPlaneClient> = {}): Record<string, ReturnType<typeof vi.fn>> {
+function register(
+  overrides: Partial<ControlPlaneClient> = {}
+): Record<string, ReturnType<typeof vi.fn>> {
   const client = {
     listWorkflows: vi.fn().mockResolvedValue([]),
     getWorkflow: vi.fn().mockResolvedValue(WORKFLOW),
@@ -114,7 +116,9 @@ describe('workflow writes', () => {
 
   it('surfaces a version conflict as a result the canvas can render', async () => {
     register({
-      updateWorkflow: vi.fn().mockRejectedValue(new ControlPlaneRequestError(409, 'version_conflict'))
+      updateWorkflow: vi
+        .fn()
+        .mockRejectedValue(new ControlPlaneRequestError(409, 'version_conflict'))
     })
     await expect(
       invoke(ALICORN_IPC.workflowUpdate, { id: 'w1', version: 1, graph: GRAPH })
@@ -160,7 +164,9 @@ describe('control plane trouble', () => {
 
   it('answers with the unavailable code rather than rejecting the invoke', async () => {
     register({
-      getWorkflow: vi.fn().mockRejectedValue(new ControlPlaneUnavailableError('control_plane_unreachable'))
+      getWorkflow: vi
+        .fn()
+        .mockRejectedValue(new ControlPlaneUnavailableError('control_plane_unreachable'))
     })
     await expect(invoke(ALICORN_IPC.workflowGet, { id: 'w1' })).resolves.toEqual({
       ok: false,

@@ -86,6 +86,11 @@ export type AlicornApi = {
   getRequiredChecks: (
     projectId: string
   ) => Promise<{ ok: true; checks: RequiredCheck[] } | AlicornFailure>
+  /** Whole-set replace; authored by an org admin, never by the member a check judges. */
+  setRequiredChecks: (
+    projectId: string,
+    checks: RequiredCheck[]
+  ) => Promise<{ ok: true; checks: RequiredCheck[] } | AlicornFailure>
   setTaskExecutionStrategy: (args: {
     taskId: string
     strategy: 'single' | 'orchestrated'

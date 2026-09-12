@@ -24,10 +24,16 @@ export type WorkflowResult = { ok: true; workflow: Workflow } | AlicornFailure
  * malformed invoke fails here rather than as a confusing 400.
  */
 function asGraphInput(value: unknown): WorkflowGraphInput | null {
-  if (!value || typeof value !== 'object') {return null}
+  if (!value || typeof value !== 'object') {
+    return null
+  }
   const graph = value as Partial<WorkflowGraphInput>
-  if (!asNonEmptyString(graph.projectId)) {return null}
-  if (!Array.isArray(graph.stages) || !Array.isArray(graph.transitions)) {return null}
+  if (!asNonEmptyString(graph.projectId)) {
+    return null
+  }
+  if (!Array.isArray(graph.stages) || !Array.isArray(graph.transitions)) {
+    return null
+  }
   return graph as WorkflowGraphInput
 }
 
@@ -39,7 +45,9 @@ export function registerAlicornWorkflowHandlers(deps: { client: ControlPlaneClie
       args: { projectId?: unknown }
     ): Promise<{ ok: true; workflows: WorkflowSummary[] } | AlicornFailure> => {
       const projectId = asNonEmptyString(args?.projectId)
-      if (!projectId) {return { ok: false, error: 'invalid_body' }}
+      if (!projectId) {
+        return { ok: false, error: 'invalid_body' }
+      }
       return attempt(deps.client, async (client) => ({
         ok: true as const,
         workflows: await client.listWorkflows(projectId)
@@ -51,7 +59,9 @@ export function registerAlicornWorkflowHandlers(deps: { client: ControlPlaneClie
     ALICORN_IPC.workflowGet,
     async (_event, args: { id?: unknown }): Promise<WorkflowResult> => {
       const id = asNonEmptyString(args?.id)
-      if (!id) {return { ok: false, error: 'invalid_body' }}
+      if (!id) {
+        return { ok: false, error: 'invalid_body' }
+      }
       return attempt(deps.client, async (client) => ({
         ok: true as const,
         workflow: await client.getWorkflow(id)
@@ -72,7 +82,9 @@ export function registerAlicornWorkflowHandlers(deps: { client: ControlPlaneClie
     ALICORN_IPC.workflowCreate,
     async (_event, args: { graph?: unknown }): Promise<WorkflowResult> => {
       const graph = asGraphInput(args?.graph)
-      if (!graph) {return { ok: false, error: 'invalid_body' }}
+      if (!graph) {
+        return { ok: false, error: 'invalid_body' }
+      }
       return attempt(deps.client, async (client) => ({
         ok: true as const,
         workflow: await client.createWorkflow(graph)
@@ -109,7 +121,9 @@ export function registerAlicornWorkflowHandlers(deps: { client: ControlPlaneClie
     ): Promise<WorkflowResult> => {
       const projectId = asNonEmptyString(args?.projectId)
       const templateKey = asNonEmptyString(args?.templateKey)
-      if (!projectId || !templateKey) {return { ok: false, error: 'invalid_body' }}
+      if (!projectId || !templateKey) {
+        return { ok: false, error: 'invalid_body' }
+      }
       const name = asNonEmptyString(args?.name)
       return attempt(deps.client, async (client) => ({
         ok: true as const,

@@ -7,12 +7,13 @@ import {
   type AlicornFailure
 } from './alicorn-control-plane-result'
 import { registerAlicornTaskHandlers } from './alicorn-task-handlers'
+import { registerAlicornLibraryHandlers } from './alicorn-library-handlers'
+import { seedDefaultMembers } from '../alicorn/seed-default-members'
 import { registerAlicornWorkflowHandlers } from './alicorn-workflow-handlers'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
 import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
-import type { RequiredCheck } from '../../shared/alicorn/members'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import { readForemanRunView } from '../alicorn/foreman/run-view-source'
 import type { ProvenanceViewResult } from '../../shared/alicorn/provenance-view'
@@ -50,23 +51,6 @@ function asProjectInput(value: unknown): ProjectInput | null {
 
 /** Registers every `alicorn:*` IPC handler on the main process. */
 export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
-  ipcMain.handle(
-    ALICORN_IPC.requiredChecksGet,
-    async (
-      _event,
-      args: { projectId?: unknown }
-    ): Promise<{ ok: true; checks: RequiredCheck[] } | AlicornFailure> => {
-      const projectId = asNonEmptyString(args?.projectId)
-      if (!projectId) {
-        return { ok: false, error: 'invalid_body' }
-      }
-      return attempt(deps.client, async (client) => ({
-        ok: true as const,
-        checks: await client.getRequiredChecks(projectId)
-      }))
-    }
-  )
-
   ipcMain.handle(
     ALICORN_IPC.projectsList,
     async (): Promise<{ ok: true; projects: Project[] } | AlicornFailure> =>
@@ -342,5 +326,13 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
   )
 
   registerAlicornTaskHandlers(deps)
+  registerAlicornLibraryHandlers(deps)
+
+  // A fresh install has no one to assign a task to, so the shipped members are created the first
+  // time the library is found empty. Fire and forget: a library that seeds a moment late is fine,
+  // and a control plane that is down must not hold up handler registration.
+  void seedDefaultMembers(deps.client).catch((error) => {
+    console.warn('[alicorn] could not seed the default members', error)
+  })
   registerAlicornWorkflowHandlers(deps)
 }

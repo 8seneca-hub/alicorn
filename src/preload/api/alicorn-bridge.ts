@@ -29,6 +29,8 @@ export const alicornApi: AlicornApi = {
   getOrgPolicy: () => ipcRenderer.invoke(ALICORN_IPC.orgPolicyGet),
   getRequiredChecks: (projectId) =>
     ipcRenderer.invoke(ALICORN_IPC.requiredChecksGet, { projectId }),
+  setRequiredChecks: (projectId, checks) =>
+    ipcRenderer.invoke(ALICORN_IPC.requiredChecksSet, { projectId, checks }),
   setTaskExecutionStrategy: (args) =>
     ipcRenderer.invoke(ALICORN_IPC.tasksSetExecutionStrategy, args),
   getForemanRun: (worktreeId) => ipcRenderer.invoke(ALICORN_IPC.foremanJournal, { worktreeId }),

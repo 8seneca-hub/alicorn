@@ -43,7 +43,11 @@ function renderGateDecisions(view: ProvenanceView): string[] {
       return `- ${step.stageKey}: policy said ${agreement.policyRecommendation} (${agreement.policyRecommendationReason}), human chose ${agreement.humanGateDecision} — ${verdict} the policy; recommendation ${shown}.`
     })
     .filter((line) => line.length > 0)
-  return [`**Gate decisions** — ${parts.join(', ')}.`, ...(lines.length > 0 ? ['', ...lines] : []), '']
+  return [
+    `**Gate decisions** — ${parts.join(', ')}.`,
+    ...(lines.length > 0 ? ['', ...lines] : []),
+    ''
+  ]
 }
 
 function renderExecution(view: ProvenanceView): string {

@@ -17425,7 +17425,12 @@
           "evidenceBar": "{{runs}} runs · {{rate}}% accepted",
           "hardStopNote": "Hard stops never retire. Merge, deploy and anything irreversible or carrying inherited cost gate whatever the record says, because guessing wrong once is a production deploy.",
           "orchestrationNote": "Orchestration is what runs a task with execution_strategy: orchestrated — a lead that writes no code, subagents with a fresh context window each, and schema-bounded returns. It costs roughly an order of magnitude more than one agent, so single stays the default and nothing here changes that.",
-          "openOrchestrationSettings": "Open orchestration settings"
+          "openOrchestrationSettings": "Open orchestration settings",
+          "chatNoRepoTitle": "Nowhere to run a session",
+          "chatNoRepo": "A session runs in a workspace, and no project has a repository resolved on this machine yet. Bind one to a project and the chat opens here.",
+          "chatFailedTitle": "The chat did not open",
+          "chatOpening": "Opening the org chat…",
+          "chat": "Chat"
         },
         "project": {
           "membersErrorTitle": "Members could not be read",
@@ -17495,7 +17500,17 @@
           "integrations": "Integrations",
           "chatNoRepoTitle": "Nowhere to run a session",
           "chatFailedTitle": "The chat did not open",
-          "chatOpening": "Opening the project chat…"
+          "chatOpening": "Opening the project chat…",
+          "stageCode": "code · no member",
+          "stageUnassigned": "unassigned",
+          "stageColumn": "from {{column}}",
+          "stageNoColumn": "no column",
+          "stageHardStop": "always gates",
+          "stageInherited": "inherited cost",
+          "stageOneCheck": "1 check",
+          "stageChecks": "{{count}} checks",
+          "workflowVersionNote": "Version {{version}}. Editing the graph is the workflow canvas’ job and is not wired to this screen yet.",
+          "checksIntro": "What has to pass before a hand-off in this project. Authored here by an org admin and never by the member a check judges — which is why it is not editable from the task a member is working."
         },
         "projects": {
           "repos": "Repositories",
@@ -17620,6 +17635,10 @@
           },
           "AlicornNestedRepoScan": {
             "c0313e4ff7": "The scan did not answer."
+          },
+          "AlicornRequiredCheckComposer": {
+            "26f5de7a59": "pnpm e2e",
+            "f04e67b071": "pnpm test --coverage"
           }
         },
         "taskChat": {
@@ -17647,6 +17666,21 @@
           "addOne": "Add 1 to Alicorn",
           "selectNone": "Select none",
           "all": "Select all {{count}}"
+        },
+        "board": {
+          "unknownColumn": "{{id}} — not a column on this board"
+        },
+        "checks": {
+          "contractDetail": "Every breaking interface change is acknowledged",
+          "threshold": "Percent of changed lines",
+          "lcov": "lcov path",
+          "commandOptional": "Command (optional)",
+          "command": "Command",
+          "repoId": "Repository id",
+          "skillId": "Catalog skill id",
+          "versionId": "Version (optional)",
+          "contractHint": "No parameters: what is breaking is the contract registry’s answer, and who may accept it is the API’s.",
+          "add": "Add check"
         }
       },
       "composerTaskPlan": {

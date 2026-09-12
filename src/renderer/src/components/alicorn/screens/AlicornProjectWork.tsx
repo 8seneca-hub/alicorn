@@ -39,6 +39,26 @@ function useBoardColumns(): readonly { id: string; label: string }[] {
   return statuses
 }
 
+/**
+ * The columns to draw, including any the data mentions and the board does not have.
+ *
+ * `column` is an opaque id by contract, so a project may rename its columns and an agent may write
+ * one that does not exist. Filtering by the known set would then drop the task off the board
+ * entirely, which reads as "the move failed" while the write actually succeeded. An extra column
+ * keeps the work visible and says plainly that the id is not one of ours; it disappears as soon as
+ * nothing is in it.
+ */
+function useBoardColumnsIncludingUnknown(
+  tasks: readonly Task[]
+): readonly { id: string; label: string; unknown?: true }[] {
+  const columns = useBoardColumns()
+  return React.useMemo(() => {
+    const known = new Set(columns.map((column) => column.id))
+    const strays = [...new Set(tasks.map((task) => task.column).filter((id) => !known.has(id)))]
+    return [...columns, ...strays.map((id) => ({ id, label: id, unknown: true as const }))]
+  }, [columns, tasks])
+}
+
 function StrategyBadge({ task }: { task: Task }): React.JSX.Element | null {
   if (task.executionStrategy !== 'orchestrated') {
     return null
@@ -132,8 +152,8 @@ function TasksUnavailable({ error }: { error: string }): React.JSX.Element {
 }
 
 export function AlicornProjectBoard(props: WorkScreenProps): React.JSX.Element {
-  const columns = useBoardColumns()
   const { state } = props
+  const columns = useBoardColumnsIncludingUnknown(state.tasks)
   const [dragging, setDragging] = React.useState<string | null>(null)
   const [over, setOver] = React.useState<string | null>(null)
 
@@ -190,7 +210,15 @@ export function AlicornProjectBoard(props: WorkScreenProps): React.JSX.Element {
                   )}
                 >
                   <header className="flex items-center justify-between px-1 pb-2.5 text-xs font-semibold">
-                    <span>{column.label}</span>
+                    <span className={cn(column.unknown && 'text-status-attention')}>
+                      {column.unknown
+                        ? translate(
+                            'auto.components.alicorn.board.unknownColumn',
+                            '{{id}} — not a column on this board',
+                            { id: column.id }
+                          )
+                        : column.label}
+                    </span>
                     <span className="font-normal tabular-nums text-muted-foreground">
                       {inColumn.length}
                     </span>

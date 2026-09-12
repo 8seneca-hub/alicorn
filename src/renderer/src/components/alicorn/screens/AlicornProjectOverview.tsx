@@ -8,7 +8,7 @@
  * be worse than a dash, because this is the screen a developer decides from.
  */
 import React from 'react'
-import { AlertTriangle, Lock, MessageSquare, Plus } from 'lucide-react'
+import { AlertTriangle, Lock, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
@@ -118,16 +118,10 @@ export function AlicornProjectOverview({
         ]}
         title={translate('auto.components.alicorn.project.overview', 'Overview')}
         actions={
-          <>
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={() => section('chat')}>
-              <MessageSquare className="size-3.5" />
-              {translate('auto.components.alicorn.project.chat', 'Chat')}
-            </Button>
-            <Button size="sm" className="gap-1.5" onClick={onNewTask}>
-              <Plus className="size-3.5" />
-              {translate('auto.components.alicorn.project.newTask', 'New task')}
-            </Button>
-          </>
+          <Button size="sm" className="gap-1.5" onClick={onNewTask}>
+            <Plus className="size-3.5" />
+            {translate('auto.components.alicorn.project.newTask', 'New task')}
+          </Button>
         }
       />
       <AlicornScreenBody>

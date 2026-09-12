@@ -136,8 +136,8 @@ describe('AlicornShell', () => {
       'Skills',
       'MCP Servers',
       'Integrations',
-      'Repositories',
-      'Chat'
+      'Repositories'
+      // Chat is deliberately absent: it is one session for the whole org, not one per project.
     ]) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0)
     }

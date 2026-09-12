@@ -196,7 +196,11 @@ export function startContextCeilingWatcher(deps: ContextCeilingWatcherDeps): {
         repoCount > 1 || !row.worktree_id || !isClaudeBackend(row.start_options)
           ? null
           : ((await contextUsageFor(row.worktree_id))?.contextTokens ?? null)
-      const decision = evaluateEscalationSignal({ repoCount, contextTokens, ceilingTokens: ceiling })
+      const decision = evaluateEscalationSignal({
+        repoCount,
+        contextTokens,
+        ceilingTokens: ceiling
+      })
       if (!decision) {
         continue
       }

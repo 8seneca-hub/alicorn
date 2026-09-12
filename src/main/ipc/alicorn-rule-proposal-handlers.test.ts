@@ -189,14 +189,17 @@ describe('accepting a proposal', () => {
   it('surfaces a server refusal as a result the pane can render', async () => {
     register(
       fakeClient({
-        acceptRuleProposal: vi.fn().mockRejectedValue(new ControlPlaneRequestError(409, 'not_pending'))
+        acceptRuleProposal: vi
+          .fn()
+          .mockRejectedValue(new ControlPlaneRequestError(409, 'not_pending'))
       }),
       vi.fn().mockResolvedValue(COMMITTED)
     )
 
-    expect(
-      await invoke(ALICORN_IPC.ruleProposalsAccept, { id: 'p1', rule: 'A rule.' })
-    ).toEqual({ ok: false, error: 'not_pending' })
+    expect(await invoke(ALICORN_IPC.ruleProposalsAccept, { id: 'p1', rule: 'A rule.' })).toEqual({
+      ok: false,
+      error: 'not_pending'
+    })
   })
 })
 

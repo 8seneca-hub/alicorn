@@ -16,6 +16,28 @@ import type { WorkflowStage } from '../../../../../shared/alicorn/workflows'
 import type { Member } from '../../../../../shared/alicorn/members'
 import { AlicornCrumbs, type AlicornCrumb } from './AlicornScreenChrome'
 
+/**
+ * Which stage a task is at.
+ *
+ * `stageKey` is written by a workflow dispatching the task, and nothing dispatches yet — so it is
+ * null on every task today and the rail would read as "nothing has started" forever. The stage
+ * already names the board column that dispatches it, so the column answers the same question with
+ * the data that exists. An explicit `stageKey` still wins: once something writes one, it is the
+ * authority and this fallback stops being consulted.
+ */
+export function resolveTaskStageKey(
+  stages: readonly WorkflowStage[],
+  task: Pick<Task, 'stageKey' | 'column'>
+): string | null {
+  if (task.stageKey) {
+    return task.stageKey
+  }
+  // Last match, not first: several stages may share a column (Spec and Architecture both sit in
+  // todo), and the furthest one is the honest reading of "how far this has got".
+  const matching = stages.filter((stage) => stage.columnId === task.column)
+  return matching.at(-1)?.key ?? null
+}
+
 /** Done / current / still to come, from the stage's position relative to the task's. */
 function stageState(
   stages: readonly WorkflowStage[],
@@ -148,7 +170,7 @@ export function AlicornTaskHeader({
 
       {stages.length > 0 || members.length > 0 ? (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-9 pb-3">
-          <StageRail stages={stages} stageKey={task.stageKey} />
+          <StageRail stages={stages} stageKey={resolveTaskStageKey(stages, task)} />
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {members.map((member) => (
               <MemberChip key={member.id} member={member} />

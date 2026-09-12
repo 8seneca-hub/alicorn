@@ -20,8 +20,18 @@ function stage(key: string, columnId: string | null): WorkflowStage {
 const GRAPH: Pick<Workflow, 'stages' | 'transitions'> = {
   stages: [stage('build', 'in-progress'), stage('format', 'in-review'), stage('qa', 'completed')],
   transitions: [
-    { from: 'format', to: 'qa', kind: 'forward' as const, trigger: { kind: 'on_success' as const } },
-    { from: 'format', to: 'build', kind: 'correction' as const, trigger: { kind: 'on_failure' as const } }
+    {
+      from: 'format',
+      to: 'qa',
+      kind: 'forward' as const,
+      trigger: { kind: 'on_success' as const }
+    },
+    {
+      from: 'format',
+      to: 'build',
+      kind: 'correction' as const,
+      trigger: { kind: 'on_failure' as const }
+    }
   ]
 }
 
@@ -47,7 +57,17 @@ describe('routeCodeStage', () => {
   // work, and unverified work never advances on its own.
   it('gates a failure with no correction edge', () => {
     const route = routeCodeStage(
-      { ...GRAPH, transitions: [{ from: 'format', to: 'qa', kind: 'forward' as const, trigger: { kind: 'on_success' as const } }] },
+      {
+        ...GRAPH,
+        transitions: [
+          {
+            from: 'format',
+            to: 'qa',
+            kind: 'forward' as const,
+            trigger: { kind: 'on_success' as const }
+          }
+        ]
+      },
       'format',
       'failed'
     )
@@ -59,7 +79,14 @@ describe('routeCodeStage', () => {
     const route = routeCodeStage(
       {
         stages: [stage('format', 'in-review'), stage('triage', null)],
-        transitions: [{ from: 'format', to: 'triage', kind: 'forward' as const, trigger: { kind: 'on_failure' as const } }]
+        transitions: [
+          {
+            from: 'format',
+            to: 'triage',
+            kind: 'forward' as const,
+            trigger: { kind: 'on_failure' as const }
+          }
+        ]
       },
       'format',
       'failed'
@@ -76,7 +103,12 @@ describe('routeCodeStage', () => {
       {
         stages: [stage('format', 'in-review'), stage('triage', 'todo')],
         transitions: [
-          { from: 'format', to: 'triage', kind: 'forward' as const, trigger: { kind: 'on_failure' as const } }
+          {
+            from: 'format',
+            to: 'triage',
+            kind: 'forward' as const,
+            trigger: { kind: 'on_failure' as const }
+          }
         ]
       },
       'format',
@@ -97,7 +129,14 @@ describe('routeCodeStage', () => {
     const route = routeCodeStage(
       {
         stages: [stage('format', 'in-review'), stage('archive', null)],
-        transitions: [{ from: 'format', to: 'archive', kind: 'forward' as const, trigger: { kind: 'on_success' as const } }]
+        transitions: [
+          {
+            from: 'format',
+            to: 'archive',
+            kind: 'forward' as const,
+            trigger: { kind: 'on_success' as const }
+          }
+        ]
       },
       'format',
       'succeeded'
@@ -108,7 +147,17 @@ describe('routeCodeStage', () => {
 
   it('ignores a manual edge out of the stage', () => {
     const route = routeCodeStage(
-      { ...GRAPH, transitions: [{ from: 'format', to: 'qa', kind: 'forward' as const, trigger: { kind: 'manual' as const } }] },
+      {
+        ...GRAPH,
+        transitions: [
+          {
+            from: 'format',
+            to: 'qa',
+            kind: 'forward' as const,
+            trigger: { kind: 'manual' as const }
+          }
+        ]
+      },
       'format',
       'succeeded'
     )

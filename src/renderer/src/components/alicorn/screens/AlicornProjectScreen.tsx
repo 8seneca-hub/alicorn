@@ -24,14 +24,11 @@ import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
 import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
 import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
-import { AlicornTaskChat } from './AlicornTaskChat'
-import { AlicornProjectChatStarting } from './AlicornProjectChatStarting'
 import {
   AlicornProjectIntegrationsSection,
   AlicornProjectSkillsSection
 } from './AlicornProjectPlaceholderSections'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
-import { useProjectChat } from './use-project-chat'
 import { useProjectTasks } from './use-project-tasks'
 import { AlicornProjectOverview } from './AlicornProjectOverview'
 import { AlicornTaskScreen } from './AlicornTaskScreen'
@@ -54,8 +51,7 @@ const TITLES: Record<ProjectSection, string> = {
   skills: 'Skills',
   mcp: 'MCP Servers',
   integrations: 'Integrations',
-  repos: 'Repositories',
-  chat: 'Chat'
+  repos: 'Repositories'
 }
 
 export function AlicornProjectScreen({
@@ -89,7 +85,6 @@ export function AlicornProjectScreen({
   const openSettingsPage = useAppStore((state) => state.openSettingsPage)
   const project = projects.find((candidate) => candidate.id === route.projectId)
   const projectName = project?.name ?? route.projectId
-  const chat = useProjectChat(project)
   const [deleting, setDeleting] = React.useState(false)
   // The attach card writes one of the files the list below reads; without this it shows the
   // pre-write state until something else remounts it.
@@ -260,23 +255,6 @@ export function AlicornProjectScreen({
         crumbs={crumbs}
         onOpenConnections={() => openSettingsPage()}
       />
-    )
-  }
-
-  if (route.section === 'chat') {
-    return (
-      <>
-        <AlicornScreenHeader crumbs={crumbs} title={TITLES.chat} />
-        {chat.session ? (
-          <AlicornTaskChat session={chat.session} onRestart={chat.restart} />
-        ) : (
-          <AlicornProjectChatStarting
-            starting={chat.starting}
-            error={chat.error}
-            hasRepo={projectRepos.length > 0}
-          />
-        )}
-      </>
     )
   }
 

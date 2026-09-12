@@ -7,8 +7,11 @@ import type {
   ProvenanceReport,
   RunCost
 } from '../../shared/alicorn/ledger'
-import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
-import type { ProtectedPath } from '../../shared/alicorn/protected-paths'
+import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
+import {
+  createControlPlaneCheckMethods,
+  type ControlPlaneCheckMethods
+} from './control-plane-check-methods'
 import type { SeatConnectorsResponse } from '../../shared/alicorn/seat-connectors'
 import type {
   AutonomyPolicy,
@@ -31,7 +34,7 @@ import type { Project, ProjectInput } from '../../shared/alicorn/projects'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
 import { createTaskClient } from './control-plane-task-client'
 
-export type ControlPlaneClient = {
+export type ControlPlaneClient = ControlPlaneCheckMethods & {
   listProjects: () => Promise<Project[]>
   createProject: (input: ProjectInput) => Promise<Project>
   updateProject: (id: string, input: ProjectInput) => Promise<Project>
@@ -48,9 +51,7 @@ export type ControlPlaneClient = {
   getOrgPolicy: () => Promise<OrgPolicy>
   /** OP3. `me` is resolved from the bearer, so the desktop never needs its own internal user id. */
   getSeatConnectors: () => Promise<SeatConnectorsResponse>
-  getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
-  /** BR1's authored reach surface — empty means the project protects nothing, not that it is unknown. */
-  getProtectedPaths: (projectId: string) => Promise<ProtectedPath[]>
+  /** BR1's authored reach surface is here too — empty means the project protects nothing. */
   /** Null when the project has authored no policy — distinct from the control plane being down. */
   getAutonomyPolicy: (key: {
     projectId: string
@@ -177,21 +178,7 @@ export function createControlPlaneClient(deps?: {
     getSeatConnectors: () =>
       readJson<SeatConnectorsResponse>('control', '/v1/org/seats/me/connectors'),
 
-    getRequiredChecks: async (projectId) => {
-      const body = await readJson<{ checks: RequiredCheck[] }>(
-        'control',
-        `${projectPath(projectId)}/required-checks`
-      )
-      return body.checks ?? []
-    },
-
-    getProtectedPaths: async (projectId) => {
-      const body = await readJson<{ paths: ProtectedPath[] }>(
-        'control',
-        `${projectPath(projectId)}/protected-paths`
-      )
-      return body.paths ?? []
-    },
+    ...createControlPlaneCheckMethods(readJson, projectPath),
 
     getAutonomyPolicy: async ({ projectId, stageKey, memberId }) => {
       const query = new URLSearchParams({ stageKey })

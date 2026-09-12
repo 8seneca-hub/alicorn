@@ -17,6 +17,15 @@ export function projectChatSubjectId(projectId: string): string {
   return `project:${projectId}`
 }
 
+/**
+ * The org chat: one session for the whole library, not one per project.
+ *
+ * It is the surface you talk to about anything — create a member, add a skill, open a ticket in
+ * whichever project — so scoping it to a project would be the wrong shape. A constant, because
+ * there is exactly one.
+ */
+export const ORG_CHAT_SUBJECT_ID = 'org:chat'
+
 export function isTaskSessionBinding(value: unknown): value is TaskSessionBinding {
   if (!value || typeof value !== 'object') {
     return false

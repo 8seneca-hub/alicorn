@@ -17,12 +17,18 @@ export const PROJECT_SECTIONS = [
   'skills',
   'mcp',
   'integrations',
-  'repos',
-  'chat'
+  'repos'
 ] as const
 export type ProjectSection = (typeof PROJECT_SECTIONS)[number]
 
-export const ORG_SECTIONS = ['members', 'workflows', 'autonomy', 'checks', 'orchestration'] as const
+export const ORG_SECTIONS = [
+  'chat',
+  'members',
+  'workflows',
+  'autonomy',
+  'checks',
+  'orchestration'
+] as const
 export type OrgSection = (typeof ORG_SECTIONS)[number]
 
 export type AlicornRoute =
