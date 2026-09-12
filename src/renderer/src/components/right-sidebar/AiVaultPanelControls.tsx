@@ -94,9 +94,11 @@ export function VaultScopeSwitch({
     'auto.components.right.sidebar.AiVaultPanelControls.workspaceScope',
     'Workspace'
   )
+  // "Project" is Alicorn's own entity, and Orca's project scope here means the repository family
+  // the workspace belongs to — two different things one word away from each other.
   const projectLabel = translate(
-    'auto.components.right.sidebar.AiVaultPanelControls.projectScope',
-    'Project'
+    'auto.components.right.sidebar.AiVaultPanelControls.repoGroupScope',
+    'Repositories'
   )
   const allLabel = translate('auto.components.right.sidebar.AiVaultPanelControls.allScope', 'All')
 

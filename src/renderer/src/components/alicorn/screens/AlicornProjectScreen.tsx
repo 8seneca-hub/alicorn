@@ -24,10 +24,7 @@ import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
 import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
 import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
-import {
-  AlicornProjectIntegrationsSection,
-  AlicornProjectSkillsSection
-} from './AlicornProjectPlaceholderSections'
+import { AlicornProjectSkillsSection } from './AlicornProjectPlaceholderSections'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectTasks } from './use-project-tasks'
 import { AlicornProjectOverview } from './AlicornProjectOverview'
@@ -50,7 +47,6 @@ const TITLES: Record<ProjectSection, string> = {
   checks: 'Required Checks',
   skills: 'Skills',
   mcp: 'MCP Servers',
-  integrations: 'Integrations',
   repos: 'Repositories'
 }
 
@@ -82,7 +78,6 @@ export function AlicornProjectScreen({
   const repos = useAppStore((state) => state.repos)
   const setActiveView = useAppStore((state) => state.setActiveView)
   const setActiveWorktree = useAppStore((state) => state.setActiveWorktree)
-  const openSettingsPage = useAppStore((state) => state.openSettingsPage)
   const project = projects.find((candidate) => candidate.id === route.projectId)
   const projectName = project?.name ?? route.projectId
   const [deleting, setDeleting] = React.useState(false)
@@ -246,15 +241,6 @@ export function AlicornProjectScreen({
   if (route.section === 'skills') {
     return (
       <AlicornProjectSkillsSection crumbs={crumbs} onOpenSkills={() => setActiveView('skills')} />
-    )
-  }
-
-  if (route.section === 'integrations') {
-    return (
-      <AlicornProjectIntegrationsSection
-        crumbs={crumbs}
-        onOpenConnections={() => openSettingsPage()}
-      />
     )
   }
 

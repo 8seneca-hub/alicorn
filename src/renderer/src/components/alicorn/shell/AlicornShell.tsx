@@ -21,6 +21,15 @@ import { AlicornProjectsScreen } from '../screens/AlicornProjectsScreen'
 import { AlicornProjectScreen } from '../screens/AlicornProjectScreen'
 import { AlicornOrgScreen } from '../screens/AlicornOrgScreen'
 import { AlicornInboxScreen } from '../screens/AlicornInboxScreen'
+import { AlicornAssistant, AlicornAssistantTrigger } from '../assistant/AlicornAssistant'
+import {
+  assistantScopeForRoute,
+  setAlicornAssistantScope
+} from '../assistant/alicorn-assistant-store'
+import {
+  ALICORN_ASSISTANT_SHORTCUT_LABEL,
+  useAlicornAssistantShortcut
+} from '../assistant/use-alicorn-assistant-shortcut'
 import { useAlicornProjects } from './use-alicorn-projects'
 import { ALICORN_HOME, isProjectRoute, type AlicornRoute } from './alicorn-shell-route'
 
@@ -109,6 +118,16 @@ export function AlicornShell(): React.JSX.Element {
       : projectsState.projects
   }, [projectsState.projects, filter])
 
+  // The assistant follows the user rather than being navigated to, so the route it is standing in
+  // front of is pushed to it from here — the one place that always knows.
+  useAlicornAssistantShortcut()
+  React.useEffect(() => {
+    const project = isProjectRoute(route)
+      ? projectsState.projects.find((candidate) => candidate.id === route.projectId)
+      : undefined
+    setAlicornAssistantScope(assistantScopeForRoute(route, project?.name ?? null, null))
+  }, [route, projectsState.projects])
+
   return (
     <div className="flex h-full min-h-0 w-full">
       <AlicornScopeSidebar
@@ -160,6 +179,8 @@ export function AlicornShell(): React.JSX.Element {
           />
         )}
       </main>
+      <AlicornAssistant projects={projectsState.projects} />
+      <AlicornAssistantTrigger shortcutLabel={ALICORN_ASSISTANT_SHORTCUT_LABEL} />
     </div>
   )
 }

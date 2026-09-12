@@ -12,8 +12,6 @@ import {
   Inbox,
   LayoutGrid,
   List,
-  MessageSquare,
-  Plug,
   Plus,
   Search,
   Server,
@@ -48,7 +46,6 @@ const PROJECT_SECTION_LABELS: Record<ProjectSection, string> = {
   checks: 'Required Checks',
   skills: 'Skills',
   mcp: 'MCP Servers',
-  integrations: 'Integrations',
   repos: 'Repositories'
 }
 
@@ -62,12 +59,10 @@ const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
   checks: ShieldCheck,
   skills: Sparkles,
   mcp: Server,
-  integrations: Plug,
   repos: GitBranch
 }
 
 const ORG_SECTION_LABELS: Record<OrgSection, string> = {
-  chat: translate('auto.components.alicorn.org.chat', 'Chat'),
   members: 'Members',
   workflows: 'Workflows',
   autonomy: 'Autonomy',
@@ -76,7 +71,6 @@ const ORG_SECTION_LABELS: Record<OrgSection, string> = {
 }
 
 const ORG_SECTION_ICONS: Record<OrgSection, IconComponent> = {
-  chat: MessageSquare,
   members: Users,
   workflows: Workflow,
   autonomy: Gauge,

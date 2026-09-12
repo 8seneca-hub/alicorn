@@ -13265,7 +13265,8 @@
             "currentProjectLower": "current project",
             "project": "Project",
             "hostScopeAriaLabel": "Session History host: {{value0}}",
-            "host": "Host"
+            "host": "Host",
+            "repoGroupScope": "Repositories"
           },
           "AiVaultSessionDetails": {
             "originalAsk": "Original ask",
@@ -17681,6 +17682,16 @@
           "versionId": "Version (optional)",
           "contractHint": "No parameters: what is breaking is the contract registry’s answer, and who may accept it is the API’s.",
           "add": "Add check"
+        },
+        "assistant": {
+          "org": "All projects",
+          "label": "Alicorn assistant",
+          "title": "Assistant",
+          "close": "Close assistant",
+          "noRepo": "The assistant runs in a workspace, and no project has a repository resolved on this machine yet.",
+          "opening": "Opening the assistant…",
+          "openWith": "Assistant ({{shortcut}})",
+          "open": "Open the assistant"
         }
       },
       "composerTaskPlan": {

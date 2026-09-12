@@ -8,7 +8,6 @@
 import React from 'react'
 import { translate } from '@/i18n/i18n'
 import { AlicornMembersPane } from '../../settings/AlicornMembersPane'
-import { AlicornOrgChat } from './AlicornOrgChat'
 import { AlicornWorkflowsPane } from '../../settings/AlicornWorkflowsPane'
 import { AlicornScreenBody, AlicornScreenHeader } from './AlicornScreenChrome'
 import { AlicornOrgAutonomy } from './AlicornOrgAutonomy'
@@ -17,7 +16,6 @@ import type { Project } from '../../../../../shared/alicorn/projects'
 import type { OrgSection } from '../shell/alicorn-shell-route'
 
 const TITLES: Record<OrgSection, string> = {
-  chat: 'Chat',
   members: 'Members',
   workflows: 'Workflows',
   autonomy: 'Autonomy',
@@ -39,44 +37,39 @@ export function AlicornOrgScreen({
         crumbs={[translate('auto.components.alicorn.shell.organisation', 'Organisation')]}
         title={TITLES[section]}
       />
-      {/* The chat takes the page: a scrolling body would put a second scrollbar around a
-          transcript that already manages its own. */}
-      {section === 'chat' ? <AlicornOrgChat projects={projects} /> : null}
-      {section === 'chat' ? null : (
-        <AlicornScreenBody>
-          {section === 'members' ? <AlicornMembersPane /> : null}
-          {section === 'workflows' ? <AlicornWorkflowsPane /> : null}
-          {section === 'autonomy' ? <AlicornOrgAutonomy projects={projects} /> : null}
-          {section === 'orchestration' ? (
-            <div className="max-w-[640px] space-y-3">
-              <p className="text-[12.5px] leading-relaxed text-muted-foreground">
-                {translate(
-                  'auto.components.alicorn.org.orchestrationNote',
-                  'Orchestration is what runs a task with execution_strategy: orchestrated — a lead that writes no code, subagents with a fresh context window each, and schema-bounded returns. It costs roughly an order of magnitude more than one agent, so single stays the default and nothing here changes that.'
-                )}
-              </p>
-              <button
-                type="button"
-                onClick={() => openSettingsPage()}
-                className="h-8 rounded-md border border-border px-3 text-[12.5px] font-medium transition hover:bg-accent"
-              >
-                {translate(
-                  'auto.components.alicorn.org.openOrchestrationSettings',
-                  'Open orchestration settings'
-                )}
-              </button>
-            </div>
-          ) : null}
-          {section === 'checks' ? (
-            <p className="max-w-xl text-[12.5px] text-muted-foreground">
+      <AlicornScreenBody>
+        {section === 'members' ? <AlicornMembersPane /> : null}
+        {section === 'workflows' ? <AlicornWorkflowsPane /> : null}
+        {section === 'autonomy' ? <AlicornOrgAutonomy projects={projects} /> : null}
+        {section === 'orchestration' ? (
+          <div className="max-w-[640px] space-y-3">
+            <p className="text-[12.5px] leading-relaxed text-muted-foreground">
               {translate(
-                'auto.components.alicorn.org.checksNote',
-                'Required checks are authored per project by an org admin, so they live in a project rather than here. A member cannot loosen the criteria that judge it, which is why this pane does not edit them.'
+                'auto.components.alicorn.org.orchestrationNote',
+                'Orchestration is what runs a task with execution_strategy: orchestrated — a lead that writes no code, subagents with a fresh context window each, and schema-bounded returns. It costs roughly an order of magnitude more than one agent, so single stays the default and nothing here changes that.'
               )}
             </p>
-          ) : null}
-        </AlicornScreenBody>
-      )}
+            <button
+              type="button"
+              onClick={() => openSettingsPage()}
+              className="h-8 rounded-md border border-border px-3 text-[12.5px] font-medium transition hover:bg-accent"
+            >
+              {translate(
+                'auto.components.alicorn.org.openOrchestrationSettings',
+                'Open orchestration settings'
+              )}
+            </button>
+          </div>
+        ) : null}
+        {section === 'checks' ? (
+          <p className="max-w-xl text-[12.5px] text-muted-foreground">
+            {translate(
+              'auto.components.alicorn.org.checksNote',
+              'Required checks are authored per project by an org admin, so they live in a project rather than here. A member cannot loosen the criteria that judge it, which is why this pane does not edit them.'
+            )}
+          </p>
+        ) : null}
+      </AlicornScreenBody>
     </>
   )
 }
