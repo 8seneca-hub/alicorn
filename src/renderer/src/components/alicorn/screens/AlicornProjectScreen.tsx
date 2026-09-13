@@ -128,6 +128,9 @@ export function AlicornProjectScreen({
         onResolved={onResolvedGate}
         projectId={route.projectId}
         projectName={projectName}
+        tasks={tasks.tasks}
+        projectKey={project?.key ?? ''}
+        onOpenTask={openTask}
       />
     )
   }

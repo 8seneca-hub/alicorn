@@ -17399,7 +17399,10 @@
         },
         "inbox": {
           "clearTitle": "Nothing is waiting on you",
-          "clearDetail": "A step that needs a decision appears here. Every one you resolve stays on the ledger — the point is to need fewer of them, not to hide them."
+          "clearDetail": "A step that needs a decision appears here. Every one you resolve stays on the ledger — the point is to need fewer of them, not to hide them.",
+          "oneQuestion": "One agent is waiting on you",
+          "questions": "{{count}} agents are waiting on you",
+          "openToAnswer": "Open the task to answer"
         },
         "newProject": {
           "exists": "A project already uses that name or key.",
