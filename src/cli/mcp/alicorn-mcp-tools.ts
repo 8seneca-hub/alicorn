@@ -232,9 +232,31 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
     }
   },
   {
+    name: 'alicorn_advance_stage',
+    description:
+      'Move a task to the next stage of its workflow. This is the only way to advance a task that has one, and it refuses where the workflow gates — a merge, a deploy, anything irreversible or carrying inherited cost, and any stage the project has authored always_gate or has not authored a policy for. A refusal is final: ask the developer to move it, and do not move the board yourself instead.',
+    inputSchema: {
+      type: 'object',
+      properties: { taskId: { type: 'string' } },
+      required: ['taskId']
+    },
+    method: 'alicorn.taskAdvanceStage',
+    receipt: (result) => {
+      if (result.ok !== true) {
+        // A refusal is not a change, so it carries no undo and says so rather than offering one.
+        return { summary: `Not advanced: ${String(result.message ?? result.reason)}`, undo: null }
+      }
+      const task = asTask(result)
+      return {
+        summary: `Advanced to ${String(result.stageName ?? result.stageKey)}`,
+        undo: task ? { action: 'task.update', args: { taskId: task.id } } : null
+      }
+    }
+  },
+  {
     name: 'alicorn_update_task',
     description:
-      'Change a task: move it to another column, retitle it, reassign it, or switch its execution strategy. Only the fields you name change.',
+      'Change a task: retitle it, reassign it, or switch its execution strategy. Only the fields you name change. Moving `column` on a task that has a workflow is refused when it would skip a stage — use alicorn_advance_stage, which gates where it must.',
     inputSchema: {
       type: 'object',
       properties: {

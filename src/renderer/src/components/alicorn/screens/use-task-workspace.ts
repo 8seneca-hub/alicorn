@@ -26,8 +26,10 @@ import type { AgentSessionHandleProvider } from '../../../../../shared/agent-ses
 import type { Member } from '../../../../../shared/alicorn/members'
 import {
   DEFAULT_TASK_BRIEF_TEMPLATE,
+  describeWorkflowForBrief,
   renderTaskBrief
 } from '../../../../../shared/alicorn/task-brief'
+import type { Workflow } from '../../../../../shared/alicorn/workflows'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 
 /**
@@ -57,7 +59,9 @@ export function useTaskWorkspace(
   /** What the project is for. Rides in every brief so a member reads the domain first. */
   projectContext = '',
   /** The member the session runs as — its backend is the agent, its rules ride in the brief. */
-  member: Pick<Member, 'backend' | 'systemRules'> | null = null
+  member: Pick<Member, 'backend' | 'systemRules'> | null = null,
+  /** The task's workflow, so the brief can name the stages the agent is bound by. */
+  workflow: Pick<Workflow, 'name' | 'stages'> | null = null
 ): TaskWorkspaceState {
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
   const [tuples, setTuples] = React.useState<TaskWorktreeTuple[]>([])
@@ -125,7 +129,14 @@ export function useTaskWorkspace(
             title: task.title,
             context: task.context,
             project_context: projectContext,
-            member_rules: member?.systemRules ?? ''
+            member_rules: member?.systemRules ?? '',
+            workflow: workflow
+              ? describeWorkflowForBrief({
+                  name: workflow.name,
+                  stages: workflow.stages,
+                  currentStageKey: task.stageKey
+                })
+              : ''
           })
         })
         await api.bindSubjectSession(task.id, binding)
@@ -136,7 +147,15 @@ export function useTaskWorkspace(
         setStarting(false)
       }
     },
-    [member?.backend, member?.systemRules, projectContext, projectKey, task, worktreesByRepo]
+    [
+      member?.backend,
+      member?.systemRules,
+      projectContext,
+      projectKey,
+      task,
+      workflow,
+      worktreesByRepo
+    ]
   )
 
   // Where the session goes: the repository this task is already bound to, else the project's only

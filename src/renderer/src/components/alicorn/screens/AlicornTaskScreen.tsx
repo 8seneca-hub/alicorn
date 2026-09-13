@@ -54,7 +54,14 @@ export function AlicornTaskScreen({
   // The member the session runs as is the task's first — the author the plan picked. It has to be
   // resolved before the workspace hook, which launches as that member.
   const working = bound.find((member) => member.id === task.memberIds[0]) ?? null
-  const workspace = useTaskWorkspace(task, projectKey, projectRepoIds, projectContext, working)
+  const workspace = useTaskWorkspace(
+    task,
+    projectKey,
+    projectRepoIds,
+    projectContext,
+    working,
+    taskWorkflow
+  )
   const sessionRepoId = workspace.repoId
   const [activity, setActivity] = React.useState<TaskSessionActivity>('offline')
 

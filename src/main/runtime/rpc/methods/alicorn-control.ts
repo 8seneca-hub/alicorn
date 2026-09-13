@@ -12,6 +12,8 @@
  * absence rather than by a flag a caller could set.
  */
 import { z } from 'zod'
+import { describeGateReason, planStageAdvance } from '../../../../shared/alicorn/workflow-gate'
+import { readStageRules, refuseIllegalColumnMove } from './alicorn-stage-rules'
 import { defineMethod, type RpcMethod } from '../core'
 import { OptionalString } from '../schemas'
 import { alicornFetch } from '../../../alicorn/control-plane-http'
@@ -58,8 +60,19 @@ const TaskCreateParams = z.object({
   memberIds: z.array(z.string().min(1)).optional()
 })
 
+/**
+ * Who is asking.
+ *
+ * The board and the MCP tools call the same method, and they are not the same caller: an agent is
+ * bound by the workflow it was given, a human is the one the workflow escalates *to*. Only the MCP
+ * server sets `agent`, and an agent has no way to call this method except through those tools — so
+ * this is a seam, not an honour system.
+ */
+const ActorParam = z.enum(['human', 'agent']).default('human')
+
 const TaskUpdateParams = z.object({
   taskId: z.string().min(1),
+  actor: ActorParam,
   title: OptionalString,
   context: OptionalString,
   column: OptionalString,
@@ -137,6 +150,57 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
         }
       )
       return { project: body.project }
+    }
+  }),
+  defineMethod({
+    name: 'alicorn.taskAdvanceStage',
+    params: z.object({ taskId: z.string().min(1), actor: ActorParam }),
+    handler: async (params) => {
+      const { task } = await readJson<{ task: Task }>(
+        `/v1/tasks/${encodeURIComponent(params.taskId)}`
+      )
+      if (!task.workflowId) {
+        return {
+          ok: false as const,
+          reason: 'no_workflow',
+          message:
+            'This task runs with no workflow, so it has no stages to advance through. Finish it and move the board.'
+        }
+      }
+      const { stages, policies } = await readStageRules(readJson, task)
+      const plan = planStageAdvance({ stages, policies, from: task.stageKey })
+      if (plan.kind === 'finished') {
+        return { ok: false as const, reason: 'finished', message: 'This is the last stage.' }
+      }
+      if (plan.kind === 'unknown-stage') {
+        return {
+          ok: false as const,
+          reason: 'unknown_stage',
+          message: `This task sits at "${task.stageKey}", which its workflow does not have.`
+        }
+      }
+      if (plan.kind === 'gated') {
+        // The refusal is the feature. A human decides, and the agent is told which stage and why,
+        // so it can ask for the right thing rather than retrying.
+        return {
+          ok: false as const,
+          reason: 'gated',
+          stageKey: plan.to.key,
+          stageName: plan.to.name,
+          message: `${describeGateReason(plan.reason, plan.to.name)} Ask the developer to move it; do not move it yourself.`
+        }
+      }
+      const body = await readJson<{ task: Task }>(
+        `/v1/tasks/${encodeURIComponent(params.taskId)}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            stageKey: plan.to.key,
+            ...(plan.to.columnId ? { column: plan.to.columnId } : {})
+          })
+        }
+      )
+      return { ok: true as const, task: body.task, stageKey: plan.to.key, stageName: plan.to.name }
     }
   }),
   defineMethod({
@@ -228,6 +292,14 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
       }
       if (params.memberIds !== undefined) {
         patch.memberIds = params.memberIds
+      }
+      // An agent may not skip a stage by dragging the board. Checked before the read-modify-write
+      // below so a refusal costs nothing and changes nothing.
+      if (params.actor === 'agent' && params.column !== undefined) {
+        const guard = await refuseIllegalColumnMove(readJson, params.taskId, params.column)
+        if (guard) {
+          return guard
+        }
       }
       // Read before writing so the caller can say what it changed *from*. An undo that only knows
       // the new value is not an undo — it is a second guess at what was there before.

@@ -90,7 +90,13 @@ export async function handleMcpRequest(
     }
     const args = (request.params?.arguments ?? {}) as Record<string, unknown>
     try {
-      const result = ((await call(tool.method, args)) ?? {}) as Record<string, unknown>
+      // Every call from this server is an agent, and the server stamps it — a tool's own arguments
+      // never carry the actor, so nothing an agent writes can claim to be the human the workflow
+      // escalates to. The methods that do not read it ignore it.
+      const result = ((await call(tool.method, { ...args, actor: 'agent' })) ?? {}) as Record<
+        string,
+        unknown
+      >
       const body = JSON.stringify(result, null, 2)
       const receipt = tool.receipt?.(result, args)
       if (!receipt) {

@@ -16,7 +16,8 @@ export const TASK_BRIEF_PARAMS = [
   'title',
   'context',
   'project_context',
-  'member_rules'
+  'member_rules',
+  'workflow'
 ] as const
 export type TaskBriefParam = (typeof TASK_BRIEF_PARAMS)[number]
 
@@ -33,10 +34,43 @@ export const DEFAULT_TASK_BRIEF_TEMPLATE = [
   '',
   '{{member_rules}}',
   '',
-  'You are working this task inside Alicorn. Use the alicorn_* MCP tools to move it on the board,',
-  'record what you did and pull in whoever else it needs. Decide for yourself whether this needs',
-  'its own branch or worktree — nothing has been created for you.'
+  '{{workflow}}',
+  '',
+  'You are working this task inside Alicorn. Use the alicorn_* MCP tools to record what you did and',
+  'pull in whoever else it needs. Decide for yourself whether this needs its own branch or worktree',
+  '— nothing has been created for you.'
 ].join('\n')
+
+/**
+ * The stages, and the rule about them.
+ *
+ * Spelled out in the brief rather than left to be discovered by refusal: an agent that learns the
+ * pipeline by being told no wastes a turn and often argues. The refusal still stands on its own —
+ * this is the courtesy, not the enforcement.
+ */
+export function describeWorkflowForBrief(args: {
+  name: string
+  stages: readonly { name: string; key: string }[]
+  currentStageKey: string | null
+}): string {
+  if (args.stages.length === 0) {
+    return ''
+  }
+  const rail = args.stages
+    .map((stage) => (stage.key === args.currentStageKey ? `[${stage.name}]` : stage.name))
+    .join(' → ')
+  const at = args.currentStageKey ? `You are at the stage in brackets.` : `Nothing has started yet.`
+  return [
+    `Workflow: ${args.name}`,
+    rail,
+    at,
+    'Advance with alicorn_advance_stage, one stage at a time. It refuses where the workflow gates —',
+    'a merge, a deploy, anything irreversible or carrying inherited cost, and any stage this project',
+    'has authored always_gate or has not authored a policy for. A refusal is final: ask the',
+    'developer, and do not move the board yourself instead. Moving a column that skips a stage is',
+    'refused too.'
+  ].join('\n')
+}
 
 /** A blank value takes its heading with it, so an empty brief does not leave a dangling label. */
 export function renderTaskBrief(

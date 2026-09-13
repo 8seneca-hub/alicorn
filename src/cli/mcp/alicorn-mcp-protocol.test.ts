@@ -65,8 +65,61 @@ describe('the Alicorn MCP server', () => {
 
     expect(call).toHaveBeenCalledWith('alicorn.taskCreate', {
       projectId: 'prj_1',
-      title: 'Refunds'
+      title: 'Refunds',
+      actor: 'agent'
     })
+  })
+
+  /**
+   * The seam the workflow's teeth rest on: everything through this server is an agent, and the
+   * server says so rather than trusting a field. An agent that could call itself the human would
+   * be able to walk through every gate the workflow sets.
+   */
+  it('stamps the caller as an agent, and will not let arguments claim otherwise', async () => {
+    const call = vi.fn(async () => ({ ok: false, reason: 'gated' }))
+
+    await handleMcpRequest(
+      {
+        jsonrpc: '2.0',
+        id: 41,
+        method: 'tools/call',
+        params: {
+          name: 'alicorn_advance_stage',
+          arguments: { taskId: 'tsk_1', actor: 'human' }
+        }
+      },
+      call
+    )
+
+    expect(call).toHaveBeenCalledWith('alicorn.taskAdvanceStage', {
+      taskId: 'tsk_1',
+      actor: 'agent'
+    })
+  })
+
+  // A refusal changed nothing, so it must not hand back an undo for a change that never happened.
+  it('reports a gated stage as a refusal with no undo', async () => {
+    const call = vi.fn(async () => ({
+      ok: false,
+      reason: 'gated',
+      stageName: 'Merge',
+      message: 'Merge is irreversible, so it always gates.'
+    }))
+
+    const response = await handleMcpRequest(
+      {
+        jsonrpc: '2.0',
+        id: 42,
+        method: 'tools/call',
+        params: { name: 'alicorn_advance_stage', arguments: { taskId: 'tsk_1' } }
+      },
+      call
+    )
+
+    const text = JSON.stringify(response)
+    expect(text).toContain('Not advanced')
+    expect(text).toContain('irreversible')
+    expect(text).not.toContain('"undo":{')
   })
 
   // §3: every mutation returns a receipt — what changed, and undo.
@@ -141,7 +194,8 @@ describe('the Alicorn MCP server', () => {
     expect(call).toHaveBeenCalledWith('alicorn.projectCreate', {
       name: 'Payments Platform',
       key: 'PAY',
-      repoIds: ['repo-a']
+      repoIds: ['repo-a'],
+      actor: 'agent'
     })
     expect(text(response)).toContain('Created project Payments Platform (PAY).')
   })
