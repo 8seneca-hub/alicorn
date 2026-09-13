@@ -11,10 +11,12 @@
  */
 import { existsSync } from 'node:fs'
 import { buildClaudeAgentsArgument } from '../../shared/alicorn/default-members'
+import { ALICORN_SESSION_SYSTEM_PROMPT } from '../../shared/alicorn/session-system-prompt'
 import { alicornMcpConfigPath } from './alicorn-mcp-config'
 
 const MCP_CONFIG_FLAG = '--mcp-config'
 const AGENTS_FLAG = '--agents'
+const SYSTEM_PROMPT_FLAG = '--append-system-prompt'
 
 function hasMcpConfigFlag(tokens: readonly string[]): boolean {
   return tokens.some(
@@ -55,6 +57,14 @@ export function alicornStructuredClaudeArgs(
   // exits on a bad value, so it is built from typed definitions rather than assembled by hand.
   if (!hasFlag(next, AGENTS_FLAG)) {
     next.push(AGENTS_FLAG, buildClaudeAgentsArgument())
+  }
+
+  // Which server owns the word "project". Every structured session this app starts is an Alicorn
+  // session, so this belongs with the MCP config rather than in any one surface's prompt — and it
+  // has to be a system prompt, because a first message is something a long conversation forgets.
+  // Appended, so a developer's own --append-system-prompt is not replaced by it.
+  if (!hasFlag(next, SYSTEM_PROMPT_FLAG)) {
+    next.push(SYSTEM_PROMPT_FLAG, ALICORN_SESSION_SYSTEM_PROMPT)
   }
 
   return next

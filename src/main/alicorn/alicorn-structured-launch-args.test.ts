@@ -48,14 +48,26 @@ describe('the launch args a structured Claude session inherits', () => {
     expect(tokens).toContain('--agents')
   })
 
-  // `--mcp-config` is variadic: a bare positional after it is read as a second config path, which
-  // is how a prompt once became a file Claude could not find.
+  /**
+   * `--mcp-config` is variadic: a bare positional after it is read as a second config path, which
+   * is how a prompt once became a file Claude could not find.
+   *
+   * The check is that every token after it is either a flag or the *value of the flag before it* —
+   * not that it looks like one. An earlier version asserted each token started with `--` or `{`,
+   * which passed by luck: it happened to describe the two flags that existed, and the first flag
+   * whose value was prose broke it while being perfectly safe.
+   */
   it('never leaves a bare positional after the variadic MCP flag', () => {
     const tokens = alicornStructuredClaudeArgs([], USER_DATA, present)
     const after = tokens.indexOf('--mcp-config') + 2
-    expect(
-      tokens.slice(after).every((token) => token.startsWith('--') || token.startsWith('{'))
-    ).toBe(true)
+    const stray = tokens.slice(after).filter((token, index, rest) => {
+      if (token.startsWith('--')) {
+        return false
+      }
+      // A value is only safe when the token before it introduced it.
+      return !(rest[index - 1] ?? '').startsWith('--')
+    })
+    expect(stray).toEqual([])
   })
 })
 

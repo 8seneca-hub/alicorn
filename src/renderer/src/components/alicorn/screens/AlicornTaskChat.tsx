@@ -158,7 +158,6 @@ export function AlicornTaskChat({
           )}
         />
         <span className="min-w-0 flex-1 truncate">{statusLabel(activity, memberName)}</span>
-        <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide">{agent}</span>
         {controller.isWorking ? (
           <Button size="xs" variant="ghost" className="gap-1" onClick={stopTurn}>
             <Square className="size-3" />

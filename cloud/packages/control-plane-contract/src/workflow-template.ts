@@ -57,18 +57,17 @@ export const FEATURE_DELIVERY_TEMPLATE = {
     { key: 'spec', name: 'Spec', ordinal: 0, memberRole: 'analyst', columnId: 'todo', reversibility: 'free', inheritedCost: 'low' },
     // Why: "inherited hard stop" in the prototype — a wrong interface is inherited by everything after it.
     { key: 'architecture', name: 'Architecture', ordinal: 1, memberRole: 'analyst', memberName: 'Architect', columnId: null, reversibility: 'free', inheritedCost: 'high' },
-    // Why: MEMBER_ROLES has no `designer`; the prototype's Designer maps to `other` until it does.
-    { key: 'design', name: 'Design', ordinal: 2, memberRole: 'other', columnId: null, reversibility: 'free', inheritedCost: 'low' },
-    { key: 'build', name: 'Build', ordinal: 3, memberRole: 'developer', columnId: 'in-progress', reversibility: 'contained', inheritedCost: 'low' },
-    { key: 'review', name: 'Review', ordinal: 4, memberRole: 'reviewer', columnId: 'in-review', reversibility: 'contained', inheritedCost: 'low' },
-    { key: 'verify', name: 'Verify', ordinal: 5, memberRole: 'qa', columnId: null, reversibility: 'contained', inheritedCost: 'low' },
-    { key: 'merge', name: 'Merge', ordinal: 6, memberRole: null, columnId: 'completed', reversibility: 'irreversible', inheritedCost: 'low' },
-    { key: 'deploy', name: 'Deploy', ordinal: 7, memberRole: null, columnId: null, reversibility: 'irreversible', inheritedCost: 'low' }
+    // Design is deliberately absent: a ticket that needs one is the exception, and a stage every
+    // task steps over is a stage nobody reads. A project that wants it adds it on the canvas.
+    { key: 'build', name: 'Build', ordinal: 2, memberRole: 'developer', columnId: 'in-progress', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'review', name: 'Review', ordinal: 3, memberRole: 'reviewer', columnId: 'in-review', reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'verify', name: 'Verify', ordinal: 4, memberRole: 'qa', columnId: null, reversibility: 'contained', inheritedCost: 'low' },
+    { key: 'merge', name: 'Merge', ordinal: 5, memberRole: null, columnId: 'completed', reversibility: 'irreversible', inheritedCost: 'low' },
+    { key: 'deploy', name: 'Deploy', ordinal: 6, memberRole: null, columnId: null, reversibility: 'irreversible', inheritedCost: 'low' }
   ],
   transitions: [
     { from: 'spec', to: 'architecture', kind: 'forward', trigger: { kind: 'on_success' } },
-    { from: 'architecture', to: 'design', kind: 'forward', trigger: { kind: 'on_success' } },
-    { from: 'design', to: 'build', kind: 'forward', trigger: { kind: 'on_success' } },
+    { from: 'architecture', to: 'build', kind: 'forward', trigger: { kind: 'on_success' } },
     { from: 'build', to: 'review', kind: 'forward', trigger: { kind: 'on_success' } },
     { from: 'review', to: 'verify', kind: 'forward', trigger: { kind: 'on_success' } },
     { from: 'verify', to: 'merge', kind: 'forward', trigger: { kind: 'on_success' } },
