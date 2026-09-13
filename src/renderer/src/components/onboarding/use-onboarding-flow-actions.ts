@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { applyDocumentTheme } from '@/lib/document-theme'
 import { track } from '@/lib/telemetry'
 import { translate } from '@/i18n/i18n'
+import { setAlicornNewProjectOpen } from '../alicorn/shell/alicorn-new-project-store'
 import { ONBOARDING_FINAL_STEP } from '../../../../shared/constants'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { OnboardingState } from '../../../../shared/onboarding-state-types'
@@ -38,7 +39,6 @@ type OnboardingFlowActionsArgs = {
   settings: GlobalSettings | null
   persistCurrentStep: () => Promise<PersistCurrentStepResult>
   closeWith: CloseWith
-  openModal: (modal: 'add-repo') => void
   getNextStepIndex: (index: number) => number
   onOnboardingChange: (state: OnboardingState) => void
   stepIndex: number
@@ -60,7 +60,6 @@ export function useOnboardingFlowActions({
   settings,
   persistCurrentStep,
   closeWith,
-  openModal,
   getNextStepIndex,
   onOnboardingChange,
   stepIndex,
@@ -120,12 +119,15 @@ export function useOnboardingFlowActions({
             setBusyLabel(
               translate(
                 'components.onboarding.flow.actions.openingAddProject',
-                'Opening Add Project...'
+                'Opening New project...'
               )
             )
             const closed = await closeWith('completed', ONBOARDING_FINAL_STEP, 'add_project_modal')
             if (closed) {
-              openModal('add-repo')
+              // Alicorn's project, not Orca's: a first run should end on the thing this product
+              // calls a project — name, task key, what it is for, the repositories it binds — and
+              // that dialog picks a folder itself, so the repository step is not lost.
+              setAlicornNewProjectOpen(true)
             }
             return
           }
@@ -161,7 +163,6 @@ export function useOnboardingFlowActions({
       currentStep.stepNumber,
       getNextStepIndex,
       onOnboardingChange,
-      openModal,
       persistCurrentStep,
       stepIndex,
       trackCurrentStepCompleted,
@@ -224,7 +225,7 @@ export function useOnboardingFlowActions({
           })
         )
       }
-      openModal('add-repo')
+      setAlicornNewProjectOpen(true)
     } finally {
       setBusyLabel(null)
     }
@@ -235,7 +236,6 @@ export function useOnboardingFlowActions({
     currentStep.id,
     currentStep.stepNumber,
     currentStep.valueKind,
-    openModal,
     selectedAgent,
     settings,
     trackTaskSourcesSnapshot,

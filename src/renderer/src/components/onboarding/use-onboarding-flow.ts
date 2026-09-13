@@ -38,7 +38,6 @@ export function useOnboardingFlow(
   const isDetectingAgents = useAppStore((s) => s.isDetectingAgents || s.isRefreshingAgents)
   const pathSource = useAppStore((s) => s.pathSource)
   const pathFailureReason = useAppStore((s) => s.pathFailureReason)
-  const openModal = useAppStore((s) => s.openModal)
   const preflightStatus = useAppStore((s) => s.preflightStatus)
   const preflightStatusChecked = useAppStore((s) => s.preflightStatusChecked)
   const preflightStatusLoading = useAppStore((s) => s.preflightStatusLoading)
@@ -297,7 +296,6 @@ export function useOnboardingFlow(
     settings,
     persistCurrentStep,
     closeWith,
-    openModal,
     getNextStepIndex,
     onOnboardingChange,
     stepIndex,

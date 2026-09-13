@@ -1,7 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { AGENT_CATALOG } from '@/lib/agent-catalog'
-import { AgentStep } from './AgentStep'
+import { AgentStep, getOnboardingAgentCatalog } from './AgentStep'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 describe('AgentStep', () => {
@@ -11,7 +10,7 @@ describe('AgentStep', () => {
         <AgentStep
           selectedAgent={null}
           onSelect={vi.fn()}
-          detectedSet={new Set([AGENT_CATALOG[0].id])}
+          detectedSet={new Set([getOnboardingAgentCatalog()[0].id])}
           isDetecting={false}
           yoloPermissions
           onYoloPermissionsChange={vi.fn()}
@@ -19,7 +18,7 @@ describe('AgentStep', () => {
       </TooltipProvider>
     )
 
-    expect(html).toContain(`Show ${AGENT_CATALOG.length - 1} more agents→`)
+    expect(html).toContain(`Show ${getOnboardingAgentCatalog().length - 1} more agents→`)
     expect(html).toContain('data-agent-grid-scroll')
     expect(html).toContain('data-slot="checkbox"')
     expect(html).toContain('Yolo / Dangerously skip permissions')
@@ -30,9 +29,9 @@ describe('AgentStep', () => {
     const html = renderToStaticMarkup(
       <TooltipProvider>
         <AgentStep
-          selectedAgent={AGENT_CATALOG[1].id}
+          selectedAgent={getOnboardingAgentCatalog()[1].id}
           onSelect={vi.fn()}
-          detectedSet={new Set([AGENT_CATALOG[0].id])}
+          detectedSet={new Set([getOnboardingAgentCatalog()[0].id])}
           isDetecting={false}
           yoloPermissions
           onYoloPermissionsChange={vi.fn()}
@@ -41,6 +40,6 @@ describe('AgentStep', () => {
     )
 
     expect(html).toContain('Hide agents')
-    expect(html).not.toContain(`Show ${AGENT_CATALOG.length - 1} more agents→`)
+    expect(html).not.toContain(`Show ${getOnboardingAgentCatalog().length - 1} more agents→`)
   })
 })

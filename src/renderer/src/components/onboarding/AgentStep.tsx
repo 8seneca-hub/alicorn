@@ -59,6 +59,21 @@ function useAgentGridScrollMaxHeight(
   return maxHeight
 }
 
+/**
+ * The agents a first run may choose from.
+ *
+ * Claude Agent Teams is absent. It is a TUI agent — a tmux-shim around a terminal — and every
+ * Alicorn task session is a structured SDK session, of which only `claude` and `codex` are
+ * providers, so choosing it would pick a backend no member can run on. It stays in the catalog for
+ * Orca's own terminal surfaces; it is only absent from this choice.
+ *
+ * Exported so the count in the "show N more" summary is derived from the same list the grid draws,
+ * rather than from the full catalog minus a number someone has to remember to change.
+ */
+export function getOnboardingAgentCatalog(): ReturnType<typeof getAgentCatalog> {
+  return getAgentCatalog().filter((agent) => agent.id !== 'claude-agent-teams')
+}
+
 export function AgentStep({
   selectedAgent,
   onSelect,
@@ -67,7 +82,7 @@ export function AgentStep({
   yoloPermissions = true,
   onYoloPermissionsChange
 }: AgentStepProps) {
-  const agentCatalog = getAgentCatalog()
+  const agentCatalog = getOnboardingAgentCatalog()
   const detected = agentCatalog.filter((agent) => detectedSet.has(agent.id))
   const rest = agentCatalog.filter((agent) => !detectedSet.has(agent.id))
   const hasDetected = detected.length > 0

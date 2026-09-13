@@ -31,6 +31,12 @@ import {
   useAlicornAssistantShortcut
 } from '../assistant/use-alicorn-assistant-shortcut'
 import { useAlicornProjects } from './use-alicorn-projects'
+import { useSyncExternalStore } from 'react'
+import {
+  getAlicornNewProjectOpen,
+  setAlicornNewProjectOpen,
+  subscribeAlicornNewProject
+} from './alicorn-new-project-store'
 import {
   ALICORN_HOME,
   DEFAULT_PROJECT_SECTION,
@@ -46,7 +52,13 @@ export function AlicornShell(): React.JSX.Element {
   const costs = useRunCostByDispatch()
   const [route, setRoute] = React.useState<AlicornRoute>(ALICORN_HOME)
   const [filter, setFilter] = React.useState('')
-  const [creating, setCreating] = React.useState(false)
+  // Onboarding ends by opening this, so the flag lives where both can reach it.
+  const creating = useSyncExternalStore(
+    subscribeAlicornNewProject,
+    getAlicornNewProjectOpen,
+    getAlicornNewProjectOpen
+  )
+  const setCreating = setAlicornNewProjectOpen
   const [importing, setImporting] = React.useState(false)
   // The task composer is the shell's so the sidebar's New task and the board's open one dialog.
   const [composingTask, setComposingTask] = React.useState(false)
