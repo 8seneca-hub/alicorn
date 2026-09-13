@@ -14,7 +14,6 @@
 export const FEATURE_DELIVERY_STAGE_KEYS = [
   'spec',
   'architecture',
-  'design',
   'build',
   'review',
   'verify',

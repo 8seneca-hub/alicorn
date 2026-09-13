@@ -13,9 +13,7 @@ import { Button } from '@/components/ui/button'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 import { taskRef } from '../../../../../shared/alicorn/tasks'
 import type { WorkflowStage } from '../../../../../shared/alicorn/workflows'
-import type { Member } from '../../../../../shared/alicorn/members'
 import { AlicornCrumbs, type AlicornCrumb } from './AlicornScreenChrome'
-import type { TaskSessionActivity } from './task-session-activity'
 
 /**
  * Which stage a task is at.
@@ -116,103 +114,11 @@ function StageRail({
   )
 }
 
-const ACTIVITY_DOT: Record<TaskSessionActivity, string> = {
-  working: 'bg-status-running',
-  waiting: 'bg-status-attention',
-  idle: 'bg-muted-foreground/40',
-  offline: 'bg-muted-foreground/25'
-}
-
-function activityLabel(activity: TaskSessionActivity): string {
-  if (activity === 'working') {
-    return translate('auto.components.alicorn.task.memberWorking', 'working')
-  }
-  if (activity === 'waiting') {
-    return translate('auto.components.alicorn.task.memberWaiting', 'waiting on you')
-  }
-  if (activity === 'idle') {
-    return translate('auto.components.alicorn.task.memberIdle', 'idle')
-  }
-  return translate('auto.components.alicorn.task.memberNotStarted', 'not started')
-}
-
-/**
- * One member, and — for the one the session is running as — what it is doing right now.
- *
- * The two read differently on purpose. A reviewer bound to the same ticket is *not* in this
- * session, and two chips that look alike said "both of these are on it", which was the question
- * being asked. The one running is solid and carries the activity; the others are outlined and say
- * which member they are waiting to be.
- */
-function MemberChip({
-  member,
-  activity
-}: {
-  member: Member
-  /** Null for a member bound to the ticket but not running this session. */
-  activity: TaskSessionActivity | null
-}): React.JSX.Element {
-  const initials = member.name
-    .split(/\s+/)
-    .map((word) => word[0] ?? '')
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-  return (
-    <span
-      title={
-        activity
-          ? translate(
-              'auto.components.alicorn.task.memberRunsThis',
-              '{{member}} is running this session on {{backend}}',
-              { member: member.name, backend: member.backend }
-            )
-          : translate(
-              'auto.components.alicorn.task.memberNotInSession',
-              '{{member}} is on this ticket but is not running this session',
-              { member: member.name }
-            )
-      }
-      className={cn(
-        'flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[12px]',
-        activity
-          ? activity === 'working'
-            ? 'border-status-running/50 bg-accent'
-            : 'border-border bg-accent'
-          : 'border-dashed border-border text-muted-foreground'
-      )}
-    >
-      <span
-        className={cn(
-          'flex size-5 items-center justify-center rounded-full text-[10px] font-semibold',
-          activity ? 'bg-foreground text-background' : 'bg-accent'
-        )}
-      >
-        {initials}
-      </span>
-      <span className={cn('truncate', activity ? 'font-semibold' : 'font-medium')}>
-        {member.name}
-      </span>
-      {activity ? (
-        <>
-          <span className={cn('size-1.5 shrink-0 rounded-full', ACTIVITY_DOT[activity])} />
-          <span className="truncate text-[11px] text-muted-foreground">
-            {activityLabel(activity)}
-          </span>
-        </>
-      ) : null}
-      <span className="truncate text-[11px] text-muted-foreground">{member.backend}</span>
-    </span>
-  )
-}
-
 export function AlicornTaskHeader({
   task,
   projectKey,
   crumbs,
   stages,
-  members,
-  activity,
   spentUsd,
   budgetUsd,
   onBack,
@@ -222,9 +128,6 @@ export function AlicornTaskHeader({
   projectKey: string
   crumbs: AlicornCrumb[]
   stages: readonly WorkflowStage[]
-  members: readonly Member[]
-  /** What the session is doing, for the member it is running as — the task's first member. */
-  activity: TaskSessionActivity
   /** Null while nothing has been priced — never a guessed zero. */
   spentUsd: number | null
   budgetUsd: number | null
@@ -263,22 +166,13 @@ export function AlicornTaskHeader({
         </div>
       </div>
 
-      {stages.length > 0 || members.length > 0 ? (
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-9 pb-3">
+      {stages.length > 0 ? (
+        <div className="px-9 pb-3">
           <StageRail
             stages={stages}
             stageKey={resolveTaskStageKey(stages, task)}
             skipped={task.skippedStageKeys}
           />
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            {members.map((member) => (
-              <MemberChip
-                key={member.id}
-                member={member}
-                activity={member.id === task.memberIds[0] ? activity : null}
-              />
-            ))}
-          </div>
         </div>
       ) : null}
     </header>

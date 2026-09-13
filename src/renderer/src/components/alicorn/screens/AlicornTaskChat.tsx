@@ -12,7 +12,7 @@
  * same conversation rather than two views that drift.
  */
 import React from 'react'
-import { Loader2, Square } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import {
   structuredAgentSessionPaneKey,
   structuredAgentSessionTabId
@@ -34,45 +34,13 @@ import type { TaskSessionActivity } from './task-session-activity'
 
 const LOCAL_TARGET = { kind: 'local' } as const
 
-/** Names the member when there is one, so the strip says *who* is working and not only *that*. */
-function statusLabel(activity: TaskSessionActivity, memberName: string | null): string {
-  if (activity === 'waiting') {
-    return memberName
-      ? translate('auto.components.alicorn.taskChat.waitingNamed', '{{member}} is waiting on you', {
-          member: memberName
-        })
-      : translate('auto.components.alicorn.taskChat.waiting', 'Waiting on you')
-  }
-  if (activity === 'working') {
-    return memberName
-      ? translate('auto.components.alicorn.taskChat.workingNamed', '{{member}} is working', {
-          member: memberName
-        })
-      : translate('auto.components.alicorn.taskChat.working', 'Working')
-  }
-  if (activity === 'offline') {
-    return translate(
-      'auto.components.alicorn.taskChat.unreachable',
-      'Not accepting messages — this session is not reachable'
-    )
-  }
-  return memberName
-    ? translate('auto.components.alicorn.taskChat.idleNamed', '{{member}} is idle', {
-        member: memberName
-      })
-    : translate('auto.components.alicorn.taskChat.idle', 'Idle')
-}
-
 export function AlicornTaskChat({
   session,
-  memberName = null,
   className,
   onActivityChange,
   onRestart
 }: {
   session: TaskSessionBinding
-  /** The member this session runs as, named in the strip and lit in the header's chip. */
-  memberName?: string | null
   className?: string
   /** Lifts the one reading of the session's state so the header cannot claim a different one. */
   onActivityChange?: (activity: TaskSessionActivity) => void
@@ -144,32 +112,6 @@ export function AlicornTaskChat({
 
   return (
     <section className={cn('flex min-h-0 flex-1 flex-col overflow-hidden', className)}>
-      <div className="flex shrink-0 items-center gap-2 px-9 pt-3 text-[11px] text-muted-foreground">
-        <span
-          className={cn(
-            'size-2 shrink-0 rounded-full',
-            activity === 'waiting'
-              ? 'bg-status-attention'
-              : activity === 'working'
-                ? 'bg-status-running'
-                : activity === 'offline'
-                  ? 'bg-destructive'
-                  : 'bg-muted-foreground/40'
-          )}
-        />
-        <span className="min-w-0 flex-1 truncate">{statusLabel(activity, memberName)}</span>
-        {controller.isWorking ? (
-          <Button size="xs" variant="ghost" className="gap-1" onClick={stopTurn}>
-            <Square className="size-3" />
-            {translate('auto.components.alicorn.taskChat.stop', 'Stop')}
-          </Button>
-        ) : activity === 'offline' && onRestart ? (
-          <Button size="xs" variant="ghost" onClick={onRestart}>
-            {translate('auto.components.alicorn.taskChat.restart', 'Start a new session')}
-          </Button>
-        ) : null}
-      </div>
-
       <div className="flex min-h-0 flex-1 flex-col">
         {controller.status === 'error' && controller.messages.length === 0 ? (
           // A session the host cannot find is usually one that was closed, or an install whose

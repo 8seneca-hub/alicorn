@@ -16,6 +16,7 @@ import { useAlicornMembers } from '../shell/use-alicorn-members'
 import { useTaskWorkspace } from './use-task-workspace'
 import { AlicornTaskChat } from './AlicornTaskChat'
 import { AlicornTaskHeader } from './AlicornTaskHeader'
+import { AlicornTaskMembers } from './AlicornTaskMembers'
 import { AlicornTaskStartPanel } from './AlicornTaskStartPanel'
 import { useProjectWorkflow } from './use-project-workflow'
 import type { TaskSessionActivity } from './task-session-activity'
@@ -72,8 +73,6 @@ export function AlicornTaskScreen({
         projectKey={projectKey}
         crumbs={crumbs}
         stages={taskWorkflow?.stages ?? []}
-        members={bound}
-        activity={workspace.session ? activity : 'offline'}
         // Null, never a guessed zero: cost attribution covers the backends Alicorn prices, and a
         // task nobody has spent on has no figure rather than a figure of nothing.
         spentUsd={null}
@@ -85,7 +84,6 @@ export function AlicornTaskScreen({
       {workspace.session ? (
         <AlicornTaskChat
           session={workspace.session}
-          memberName={working?.name ?? null}
           onActivityChange={setActivity}
           {...(sessionRepoId ? { onRestart: () => void workspace.start(sessionRepoId) } : {})}
         />
@@ -98,6 +96,12 @@ export function AlicornTaskScreen({
           onOpenWorkspace={onOpenWorkspace}
         />
       )}
+
+      <AlicornTaskMembers
+        members={bound}
+        runningMemberId={task.memberIds[0]}
+        activity={workspace.session ? activity : 'offline'}
+      />
     </>
   )
 }
