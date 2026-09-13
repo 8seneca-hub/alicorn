@@ -1,18 +1,24 @@
 /**
- * Autonomy, read across every project.
+ * Autonomy, across every project.
  *
  * A policy is authored *per project and per stage* — there is no org-wide level, and inventing one
- * here would be a third place for the rule to live. So this is a reading, not an editor: which
- * stages have a policy, what each would do, and which of them can never retire.
+ * here would be a third place for the rule to live. What this screen does org-wide is show them
+ * all, and start one where there is none.
  *
- * Read-only is the invariant, not a gap. CLAUDE.md: a member cannot loosen its own criteria, and
- * autonomy is unlocked by evidence the ledger accumulates rather than by a switch here.
+ * **Authoring here does not loosen anything.** The default is `evidence`, which still gates every
+ * hand-off; what it changes is whether the recorded recommendation says anything useful, which is
+ * the only way evidence ever accumulates. A member still cannot author the criteria that judge it:
+ * the Control API takes the author from the authenticated actor, never from the body.
  */
 import React from 'react'
 import { Lock } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
-import type { AutonomyPolicy } from '../../../../../shared/alicorn/gate-policy'
+import { Button } from '@/components/ui/button'
+import {
+  DEFAULT_AUTONOMY_POLICY,
+  type AutonomyPolicy
+} from '../../../../../shared/alicorn/gate-policy'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import { AlicornEmptyState } from './AlicornScreenChrome'
 
@@ -21,9 +27,11 @@ type ProjectPolicies = { project: Project; policies: AutonomyPolicy[] }
 function usePoliciesByProject(projects: readonly Project[]): {
   rows: ProjectPolicies[]
   loading: boolean
+  reload: () => void
 } {
   const [rows, setRows] = React.useState<ProjectPolicies[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [reloads, setReloads] = React.useState(0)
   const projectIds = projects.map((project) => project.id).join(',')
 
   React.useEffect(() => {
@@ -53,9 +61,57 @@ function usePoliciesByProject(projects: readonly Project[]): {
     }
     // Why the ids and not the array: the projects array is rebuilt on every store write.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectIds])
+  }, [projectIds, reloads])
 
-  return { rows, loading }
+  return { rows, loading, reload: () => setReloads((count) => count + 1) }
+}
+
+/**
+ * The stage a first policy is authored for.
+ *
+ * `build` because it is the stage every workflow has and the one that runs most often, so it is
+ * where evidence accumulates fastest. Other stages are authored on the workflow, one at a time.
+ */
+const FIRST_STAGE = 'build'
+
+function AuthorDefault({
+  project,
+  onAuthored
+}: {
+  project: Project
+  onAuthored: () => void
+}): React.JSX.Element {
+  const [busy, setBusy] = React.useState(false)
+  const [failure, setFailure] = React.useState<string | null>(null)
+
+  const author = async (): Promise<void> => {
+    setBusy(true)
+    setFailure(null)
+    const result = await window.api?.alicorn?.setAutonomyPolicy?.(project.id, {
+      stageKey: FIRST_STAGE,
+      // Null is the wildcard: the policy applies to every member on that stage, which is what a
+      // first policy should do. Narrowing it to one member is a later, deliberate act.
+      memberId: null,
+      ...DEFAULT_AUTONOMY_POLICY
+    })
+    setBusy(false)
+    if (!result?.ok) {
+      setFailure(result?.error ?? 'control_plane_unreachable')
+      return
+    }
+    onAuthored()
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button size="sm" variant="outline" disabled={busy} onClick={() => void author()}>
+        {translate('auto.components.alicorn.org.authorDefault', 'Start one for {{project}}', {
+          project: project.name
+        })}
+      </Button>
+      {failure ? <span className="text-[11px] text-destructive">{failure}</span> : null}
+    </div>
+  )
 }
 
 function ModeBadge({ mode }: { mode: AutonomyPolicy['mode'] }): React.JSX.Element {
@@ -80,8 +136,9 @@ export function AlicornOrgAutonomy({
 }: {
   projects: readonly Project[]
 }): React.JSX.Element {
-  const { rows, loading } = usePoliciesByProject(projects)
+  const { rows, loading, reload } = usePoliciesByProject(projects)
   const withPolicies = rows.filter((row) => row.policies.length > 0)
+  const withoutPolicies = rows.filter((row) => row.policies.length === 0)
 
   return (
     <>
@@ -104,8 +161,15 @@ export function AlicornOrgAutonomy({
           )}
           detail={translate(
             'auto.components.alicorn.org.noAutonomyDetail',
-            'No project has authored an autonomy policy, so every hand-off asks a human. That is the right starting point: evidence only accumulates by running gated.'
+            'No project has authored an autonomy policy, so every hand-off asks a human. That is the right starting point: evidence only accumulates by running gated. Starting one changes what gets recorded, not what gets gated.'
           )}
+          action={
+            <div className="mt-3 space-y-1.5">
+              {rows.map((row) => (
+                <AuthorDefault key={row.project.id} project={row.project} onAuthored={reload} />
+              ))}
+            </div>
+          }
         />
       ) : (
         withPolicies.map((row) => (
@@ -140,6 +204,19 @@ export function AlicornOrgAutonomy({
           </section>
         ))
       )}
+
+      {!loading && withPolicies.length > 0 && withoutPolicies.length > 0 ? (
+        <section className="mb-4">
+          <h2 className="mb-2 text-[13px] font-semibold">
+            {translate('auto.components.alicorn.org.noPolicyYet', 'No policy yet')}
+          </h2>
+          <div className="space-y-1.5">
+            {withoutPolicies.map((row) => (
+              <AuthorDefault key={row.project.id} project={row.project} onAuthored={reload} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <p className="mt-5 flex max-w-[640px] items-start gap-2 text-[11px] text-muted-foreground">
         <Lock className="mt-0.5 size-3 shrink-0" />

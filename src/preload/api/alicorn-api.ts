@@ -2,7 +2,7 @@ import type { EscalationOffer } from '../../shared/alicorn/escalation-offer'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import type { Member, MemberInput, OrgPolicy, RequiredCheck } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
-import type { AutonomyPolicy } from '../../shared/alicorn/gate-policy'
+import type { AutonomyPolicy, AutonomyPolicyInput } from '../../shared/alicorn/gate-policy'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
 import type {
   TaskWorktreeTuple,
@@ -48,6 +48,14 @@ export type AlicornApi = {
   listAutonomyPolicies: (
     projectId: string
   ) => Promise<{ ok: true; policies: AutonomyPolicy[] } | AlicornFailure>
+  /**
+   * Authors a policy for one (project, stage, member). The actor is the authenticated caller, never
+   * a field — a member may not author the criteria that judge it.
+   */
+  setAutonomyPolicy: (
+    projectId: string,
+    policy: AutonomyPolicyInput
+  ) => Promise<{ ok: true; policy: AutonomyPolicy } | AlicornFailure>
   /** Path to the MCP config a session Alicorn starts is pointed at, written on demand. */
   mcpConfigPath: () => Promise<{ ok: true; path: string } | AlicornFailure>
   /** The servers Claude Code applies to every project on this machine. */

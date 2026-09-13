@@ -11,7 +11,7 @@ import {
   type AlicornFailure
 } from './alicorn-control-plane-result'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
-import type { AutonomyPolicy } from '../../shared/alicorn/gate-policy'
+import type { AutonomyPolicy, AutonomyPolicyInput } from '../../shared/alicorn/gate-policy'
 import type {
   TaskWorktreeTuple,
   TaskWorktreeTupleInput
@@ -43,8 +43,6 @@ export function registerAlicornTaskHandlers(deps: {
     console.warn('[alicorn] could not write the MCP config', error)
   })
 
-  // Read-only, and deliberately: a policy is admin-authored per project, never by the member it
-  // judges, so the renderer can show one but has no way here to write one.
   ipcMain.handle(
     ALICORN_IPC.autonomyPoliciesList,
     async (
@@ -58,6 +56,29 @@ export function registerAlicornTaskHandlers(deps: {
       return attempt(deps.client, async (client) => ({
         ok: true as const,
         policies: await client.listAutonomyPolicies(projectId)
+      }))
+    }
+  )
+
+  /**
+   * Authoring a policy. Admin-authored per project, never by the member it judges — which the
+   * Control API enforces by taking the author from the authenticated actor rather than the body,
+   * so there is nothing here that could pass one.
+   */
+  ipcMain.handle(
+    ALICORN_IPC.autonomyPolicySet,
+    async (
+      _event,
+      args: { projectId?: unknown; policy?: unknown }
+    ): Promise<{ ok: true; policy: AutonomyPolicy } | AlicornFailure> => {
+      const projectId = asNonEmptyString(args?.projectId)
+      const policy = args?.policy
+      if (!projectId || !policy || typeof policy !== 'object') {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => ({
+        ok: true as const,
+        policy: await client.putAutonomyPolicy(projectId, policy as AutonomyPolicyInput)
       }))
     }
   )

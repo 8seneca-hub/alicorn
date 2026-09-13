@@ -17436,7 +17436,9 @@
           "chatNoRepo": "A session runs in a workspace, and no project has a repository resolved on this machine yet. Bind one to a project and the chat opens here.",
           "chatFailedTitle": "The chat did not open",
           "chatOpening": "Opening the org chat…",
-          "chat": "Chat"
+          "chat": "Chat",
+          "authorDefault": "Start one for {{project}}",
+          "noPolicyYet": "No policy yet"
         },
         "project": {
           "membersErrorTitle": "Members could not be read",

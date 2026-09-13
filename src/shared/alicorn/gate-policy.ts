@@ -29,6 +29,25 @@ export type AutonomyPolicy = {
   expiresAt: string | null
 }
 
+/**
+ * What a project gets when it authors a policy without editing anything.
+ *
+ * Mirrored from the contract's `DEFAULT_AUTONOMY_POLICY_FIELDS`. `evidence` rather than
+ * `always_gate` because level 0 already gates everything — the difference is whether the recorded
+ * recommendation says anything useful, which is the whole point of running gated.
+ */
+export const DEFAULT_AUTONOMY_POLICY = {
+  mode: 'evidence',
+  minRuns: 10,
+  minAcceptRate: 0.9,
+  maxFiles: null,
+  maxSpendCents: null,
+  expiresAt: null
+} as const satisfies Pick<
+  AutonomyPolicy,
+  'mode' | 'minRuns' | 'minAcceptRate' | 'maxFiles' | 'maxSpendCents' | 'expiresAt'
+>
+
 export type StageConfig = {
   reversibility: StageReversibility
   inheritedCost: InheritedCost
