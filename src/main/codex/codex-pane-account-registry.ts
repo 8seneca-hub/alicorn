@@ -24,7 +24,7 @@ export type {
  * Why: `CODEX_HOME` is baked into a PTY's environment at spawn and can never be
  * changed afterwards, so a shell keeps launching Codex against the account that
  * was selected when the terminal opened. The daemon keeps those shells alive
- * across app restarts, so without an on-disk record Orca forgets a pane is on
+ * across app restarts, so without an on-disk record Alicorn forgets a pane is on
  * the old account and the user is stuck there with no prompt to escape it.
  */
 

@@ -6,7 +6,7 @@ import type { MemberBackend } from './members'
 export const EXECUTION_STRATEGIES = ['single', 'orchestrated'] as const
 export type ExecutionStrategy = (typeof EXECUTION_STRATEGIES)[number]
 
-// `other` covers agents Orca launches but Alicorn does not price or police. `code` is a stage that
+// `other` covers agents Alicorn launches but Alicorn does not price or police. `code` is a stage that
 // ran a command instead of a model — deliberately not a `MemberBackend`, because no member can be
 // configured to run one.
 export type StepOutcomeBackend = MemberBackend | 'other' | 'code'

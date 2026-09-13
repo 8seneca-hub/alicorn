@@ -158,7 +158,7 @@ function runNpxSkills(args: string[]): Promise<number> {
 
 type SkillMutationVerb = 'install' | 'update'
 
-/** Agents Orca can see on this host, as `skills --agent` keys. */
+/** Agents Alicorn can see on this host, as `skills --agent` keys. */
 function detectSkillsCliAgentKeys(): string[] {
   const runtime = process.platform
   const probes = getTuiAgentDetectionProbeCommands(KNOWN_TUI_AGENT_DETECTION_COMMANDS, runtime)
@@ -215,7 +215,7 @@ function resolveInstallAgentKeys(flags: Map<string, string | boolean>): string[]
     'invalid_environment',
     'No coding agent detected on this host, so there is no install target. Pass ' +
       '--agent <name>[,<name>...] to choose targets explicitly — --agent universal ' +
-      'writes only the shared .agents/skills directory that Orca reads.'
+      'writes only the shared .agents/skills directory that Alicorn reads.'
   )
 }
 
@@ -273,7 +273,7 @@ function createSkillMutationHandler(verb: SkillMutationVerb): CommandHandler {
       throw new RuntimeClientError(
         'invalid_environment',
         `alicorn skills ${verb} writes to the machine that runs it, but this shell forwards ` +
-          `alicorn to the Orca host. Run the same alicorn skills ${verb} command on the machine ` +
+          `alicorn to the Alicorn host. Run the same alicorn skills ${verb} command on the machine ` +
           "you want it on, where it can detect that host's agents."
       )
     }

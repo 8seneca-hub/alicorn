@@ -185,7 +185,7 @@ export function canCleanupUnregisteredOrcaWorktreeDirectory(args: {
   }
 
   // Why: path shape alone is not authority; users can create plain Git
-  // worktrees inside Orca's workspace directory too.
+  // worktrees inside Alicorn's workspace directory too.
   return false
 }
 

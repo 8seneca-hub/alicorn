@@ -608,9 +608,9 @@ describe('removeWorktree cascade', () => {
   })
 
   it.each([
-    'Could not connect to the remote Orca runtime.',
-    'Remote Orca runtime closed the connection.',
-    'Timed out waiting for the remote Orca runtime to respond.'
+    'Could not connect to the remote Alicorn runtime.',
+    'Remote Alicorn runtime closed the connection.',
+    'Timed out waiting for the remote Alicorn runtime to respond.'
   ])(
     'does not offer force delete for wrapped remote runtime failure: %s',
     async (runtimeFailure) => {
@@ -659,7 +659,7 @@ describe('removeWorktree cascade', () => {
     }
   )
 
-  it('offers force delete for orphaned Orca worktree directories', async () => {
+  it('offers force delete for orphaned Alicorn worktree directories', async () => {
     const store = createTestStore()
     const worktreeId = 'repo1::/path/wt1'
 

@@ -469,7 +469,7 @@ describe('registerPtyHandlers', () => {
             env: {
               PATH: `/tmp/orca-agent-teams-bin${delimiter}/usr/bin`,
               ALICORN_AGENT_TEAMS_TEAM_ID: 'team-test',
-              TERM_PROGRAM: 'Orca'
+              TERM_PROGRAM: 'Alicorn'
             },
             envToDelete: ['TERM_PROGRAM']
           })
@@ -513,7 +513,7 @@ describe('registerPtyHandlers', () => {
             {
               PATH: `/tmp/orca-agent-teams-bin${delimiter}/usr/bin`,
               ALICORN_AGENT_TEAMS_TEAM_ID: 'team-test',
-              TERM_PROGRAM: 'Orca'
+              TERM_PROGRAM: 'Alicorn'
             },
             undefined,
             undefined,

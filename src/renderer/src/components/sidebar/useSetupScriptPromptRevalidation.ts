@@ -43,7 +43,7 @@ export function useSetupScriptPromptRevalidation(input: {
       (promptState?.status === 'ok' && !promptState.hasEffectiveSetup))
 
   // Why: orca.yaml is edited on disk or the hook runs in a terminal outside React
-  // state. Re-inspect on window focus so returning to Orca detects it (mirrors
+  // state. Re-inspect on window focus so returning to Alicorn detects it (mirrors
   // useInstalledAgentSkills' focus revalidation).
   useEffect(() => {
     if (

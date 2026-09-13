@@ -4,7 +4,7 @@ import { BASH_PROMPT_COMMAND_COMPOSITION_BLOCK } from '../bash-prompt-command-co
 import { BASH_FEATURE_CHANNEL_BLOCK, SHELL_STARTUP_IDENTITY_MARKER_BLOCK } from '../shell-templates'
 
 export function getDaemonBashShellReadyRcfileContent(): string {
-  return `# Orca daemon bash shell-ready wrapper
+  return `# Alicorn daemon bash shell-ready wrapper
 ${BASH_FEATURE_CHANNEL_BLOCK}
 ${SHELL_STARTUP_IDENTITY_MARKER_BLOCK}
 # Why a plain variable: the channel is consumed and destroyed in these first
@@ -21,7 +21,7 @@ elif [[ -f "$HOME/.bash_login" ]]; then
 elif [[ -f "$HOME/.profile" ]]; then
   source "$HOME/.profile"
 fi
-# Why: enable bracketed paste so Orca can deliver a multiline startup prompt as
+# Why: enable bracketed paste so Alicorn can deliver a multiline startup prompt as
 # a single literal paste (ESC[200~…ESC[201~); without it, older readline builds
 # treat each embedded newline as Enter and mangle the prompt into PS2
 # continuation. Modern readline defaults this on; force it for the rest.
@@ -34,12 +34,12 @@ __orca_restore_agent_teams_path() {
   export PATH="\${ALICORN_AGENT_TEAMS_SHIM_DIR}:$PATH"
 }
 __orca_restore_agent_teams_path
-# Why: user startup files may set the default OpenCode config after Orca's
+# Why: user startup files may set the default OpenCode config after Alicorn's
 # spawn env; restore the Orca-managed config dir before the first prompt.
 [[ -n "\${ALICORN_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${ALICORN_OPENCODE_CONFIG_DIR}"
 [[ -n "\${ALICORN_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${ALICORN_MIMOCODE_HOME}"
 ${getPosixOmpShellWrapper()}
-# Why: Codex must keep using Orca's runtime CODEX_HOME after profile scripts.
+# Why: Codex must keep using Alicorn's runtime CODEX_HOME after profile scripts.
 [[ -n "\${ALICORN_CODEX_HOME:-}" ]] && export CODEX_HOME="\${ALICORN_CODEX_HOME}"
 ${getPosixCodexShellLaunchPreflight()}
 # Why: emit OSC 133 C/D so terminal-command-lifecycle can drop stale agent
@@ -107,7 +107,7 @@ __orca_osc133_preexec() {
   printf "\\033]133;C\\007"
   __orca_in_command=1
 }
-# Why: adopt the latest user trap before Orca retakes lifecycle ownership.
+# Why: adopt the latest user trap before Alicorn retakes lifecycle ownership.
 __orca_osc133_epilogue() {
   unset __orca_in_prompt_command
   __orca_adopt_outer_debug_trap

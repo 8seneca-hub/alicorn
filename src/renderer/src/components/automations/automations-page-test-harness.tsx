@@ -210,7 +210,7 @@ vi.mock('./AutomationsListPanel', () => ({
     mocks.listPanel = { ...props, selectAutomationRow }
     return (
       <div data-testid="list-panel">
-        <button aria-label="Refresh automations" onClick={props.onRefresh} />
+        <button aria-label={translate("auto.components.automations.automations.page.test.harness.90edd9c380", "Refresh automations")} onClick={props.onRefresh} />
         {props.filteredRows.map((row) => (
           <button
             type="button"
@@ -270,6 +270,7 @@ vi.mock('./AutomationDeleteDialogs', () => ({
 
 import AutomationsPage from './AutomationsPage'
 import { makeAutomation, makeRun, makeStoreState } from './automations-page-fixtures'
+import { translate } from '@/i18n/i18n'
 
 function mockGroup<K extends string>(...names: K[]): Record<K, Mock> {
   return Object.fromEntries(names.map((name) => [name, vi.fn()])) as Record<K, Mock>

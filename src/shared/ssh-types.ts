@@ -12,7 +12,7 @@ export const SSH_RELAY_CONFIGURE_GRACE_TIME_METHOD = 'relay.configureGraceTime'
 export type SshTarget = {
   id: string
   label: string
-  /** Internal owner for targets that Orca creates as implementation details.
+  /** Internal owner for targets that Alicorn creates as implementation details.
    *  Owned targets are hidden from normal SSH-host management surfaces. */
   owner?: { type: 'on-demand-runtime'; runtimeId: string }
   /** Host alias to resolve through OpenSSH config (ssh -G). */
@@ -111,10 +111,10 @@ export type SshConfigHostSummary = {
   identityFile?: string
   proxyCommand?: string
   jumpHost?: string
-  /** True when an Orca SSH target already uses this config alias. */
+  /** True when an Alicorn SSH target already uses this config alias. */
   alreadyInOrca: boolean
   /**
-   * True when the user deleted this alias from Orca (tombstone). Still listed so they
+   * True when the user deleted this alias from Alicorn (tombstone). Still listed so they
    * can re-pick it; passive import and "Add all" keep it out until re-adopt / save.
    */
   previouslyRemoved?: boolean

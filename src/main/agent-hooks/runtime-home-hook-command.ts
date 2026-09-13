@@ -10,7 +10,7 @@ const WINDOWS_GIT_BASH_RUNTIME_HOME_UNSAFE = '*\\&*|*\\^*|*\\(*|*\\)*|*\\;*|*,*|
 
 export function wrapRuntimeHomeHookCommand(
   scriptBaseName: string,
-  // `requiredEnvVar` names a variable Orca sets only on the panes this hook is meant for, so
+  // `requiredEnvVar` names a variable Alicorn sets only on the panes this hook is meant for, so
   // every other session answers without spawning a shell for the script — the same reasoning as
   // `wrapPosixHookCommand`, which cannot be reused here because it resolves no runtime home.
   options: { neutralJsonWhenMissing?: boolean; requiredEnvVar?: string } = {}

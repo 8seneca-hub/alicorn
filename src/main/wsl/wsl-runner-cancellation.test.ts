@@ -35,7 +35,7 @@ vi.mock('./wsl-executable-path', () => ({
 import { runWslProcess } from './wsl-runner'
 
 // Drops the wsl-side argv (`-d <distro> --exec`) and becomes the guest command,
-// so killing what Orca spawned is killing the "guest".
+// so killing what Alicorn spawned is killing the "guest".
 const FAKE_WSL = `#!/bin/sh
 while [ $# -gt 0 ] && [ "$1" != "--exec" ]; do shift; done
 [ $# -gt 0 ] && shift

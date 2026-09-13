@@ -7,7 +7,7 @@ import { homedir } from 'node:os'
  * Why this exists (#16463): the WSL command builders set `cwd: undefined`,
  * meaning "the directory is already expressed inside the command" — but that is
  * not what `undefined` means to `CreateProcessW`. libuv passes NULL for
- * `lpCurrentDirectory`, and NULL means *inherit the parent's*. Orca launched by
+ * `lpCurrentDirectory`, and NULL means *inherit the parent's*. Alicorn launched by
  * `orca-ide` from a WSL shell inherits `\\wsl.localhost\<distro>\...\<worktree>`
  * as its Win32 cwd; Linux can delete that directory out from under a Windows
  * process across the 9P share, and from then on `CreateProcessW` fails

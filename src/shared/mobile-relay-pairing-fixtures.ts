@@ -65,12 +65,18 @@ export function createMobileRelayPairingFixtures(now: number): PairingFixture[] 
     },
     {
       name: 'non-canonical director origin is invalid',
-      payload: { ...directOffer, relay: { ...relay, directorUrl: 'https://relay.alicorn.8seneca.com/' } },
+      payload: {
+        ...directOffer,
+        relay: { ...relay, directorUrl: 'https://relay.alicorn.8seneca.com/' }
+      },
       expected: null
     },
     {
       name: 'non-HTTPS cell origin is invalid',
-      payload: { ...directOffer, relay: { ...relay, cellUrl: 'http://relay-c1.alicorn.8seneca.com' } },
+      payload: {
+        ...directOffer,
+        relay: { ...relay, cellUrl: 'http://relay-c1.alicorn.8seneca.com' }
+      },
       expected: null
     },
     {

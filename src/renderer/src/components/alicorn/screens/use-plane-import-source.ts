@@ -2,7 +2,7 @@
  * The PM side of an import: is a provider connected, what boards does it have, and what is on one.
  *
  * Plane only, for now, and shaped so a second provider is another branch rather than a rewrite —
- * Orca already carries Linear and Jira clients with the same connect/status/list trio. Everything
+ * Alicorn already carries Linear and Jira clients with the same connect/status/list trio. Everything
  * here is a read; nothing is created until the dialog says so.
  */
 import React from 'react'

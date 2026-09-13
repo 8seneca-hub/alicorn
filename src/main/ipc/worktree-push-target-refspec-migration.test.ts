@@ -354,7 +354,7 @@ describe('migrateForkRemoteRefspecsWithExec', () => {
     const migrated = await migrateForkRemoteRefspecsWithExec(
       REPO_PATH,
       REPO_ID,
-      // Only proof of Orca provenance; the branch itself comes from local config.
+      // Only proof of Alicorn provenance; the branch itself comes from local config.
       storeOf({ [worktreeId('/wt/gone')]: forkTarget({ branchName: 'contributor/fix' }) }),
       exec
     )

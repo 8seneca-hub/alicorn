@@ -467,7 +467,7 @@ describe('backgrounded-session pane guard (#9236)', () => {
         // Why: the guard is worthless if it runs after the post it is meant to prevent.
         expect(script.indexOf('CLAUDE_JOB_DIR')).toBeLessThan(script.indexOf('curl'))
         if (target === 'win32') {
-          // Why: a worker is outside an Orca pane, where reading stdin to EOF never returns (#11549).
+          // Why: a worker is outside an Alicorn pane, where reading stdin to EOF never returns (#11549).
           expect(guard).not.toContain(WINDOWS_HOOK_STDIN_DRAIN_LABEL)
         }
       } finally {
@@ -478,7 +478,7 @@ describe('backgrounded-session pane guard (#9236)', () => {
     }
   })
 
-  it('exits rather than draining stdin on Windows, where a worker has no Orca pane', () => {
+  it('exits rather than draining stdin on Windows, where a worker has no Alicorn pane', () => {
     const platform = Object.getOwnPropertyDescriptor(process, 'platform')!
     const tmpHome = mkdtempSync(join(tmpdir(), 'orca-claude-bg-'))
     Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
@@ -590,7 +590,7 @@ describe('ClaudeHookService.installRemote', () => {
     )
     await svc.installRemote(sftp, '/home/dev')
     const parsed = JSON.parse(fs.files.get('/home/dev/.claude/settings.json')!)
-    // Original user-authored entry survives, while stale Orca entries are
+    // Original user-authored entry survives, while stale Alicorn entries are
     // replaced with the current managed hook command.
     const stopDefs = parsed.hooks.Stop as { hooks: { command: string }[] }[]
     const userCmds = stopDefs.flatMap((d) => d.hooks.map((h) => h.command))

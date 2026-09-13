@@ -67,7 +67,7 @@ export function installBrowserClickedLinkRouting(
       return
     }
     // Shift alone is browser-native new-window intent; keep OAuth and other
-    // opener-dependent window flows in Orca's guarded popup window.
+    // opener-dependent window flows in Alicorn's guarded popup window.
     if (event.shiftKey && !modifierClick) {
       return
     }

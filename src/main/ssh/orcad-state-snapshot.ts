@@ -3,7 +3,7 @@
  *
  * `docs/design/shipping-orcad.html` §04's state-schema row asks for "backward-readable
  * migrations or a pre-activation snapshot". Only the second is available here, and not as a
- * preference: Orca's persisted state carries **no schema version**. Migrations are cohort
+ * preference: Alicorn's persisted state carries **no schema version**. Migrations are cohort
  * and shape heuristics that run on load and rewrite in place, and the load path rebuilds
  * `settings` and `ui` from known fields — so a newer build's nested additions are silently
  * dropped by an older one rather than rejected. There is nothing to compare and nothing that

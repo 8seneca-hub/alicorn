@@ -6,7 +6,7 @@ const CLOUD_FLAGS = ['api-url']
 export const ARTIFACT_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['artifacts', 'share'],
-    summary: 'Share an HTML or Markdown file with your Orca account',
+    summary: 'Share an HTML or Markdown file with your Alicorn account',
     usage: 'alicorn artifacts share <file> [--api-url <url>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, ...CLOUD_FLAGS, 'file'],
     positionalArgs: ['file'],
@@ -14,7 +14,7 @@ export const ARTIFACT_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['artifacts', 'update'],
-    summary: 'Update a file previously shared from this Orca profile',
+    summary: 'Update a file previously shared from this Alicorn profile',
     usage: 'alicorn artifacts update <file> [--api-url <url>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, ...CLOUD_FLAGS, 'file'],
     positionalArgs: ['file']
@@ -29,7 +29,7 @@ export const ARTIFACT_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['artifacts', 'list'],
-    summary: 'List artifacts owned by the signed-in Orca account',
+    summary: 'List artifacts owned by the signed-in Alicorn account',
     usage: 'alicorn artifacts list [--cursor <cursor>] [--api-url <url>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, ...CLOUD_FLAGS, 'cursor']
   },
@@ -37,7 +37,7 @@ export const ARTIFACT_COMMAND_SPECS: CommandSpec[] = [
     path: ['artifacts', 'delete'],
     aliases: [['artifacts', 'rm']],
     destructive: true,
-    summary: 'Delete an artifact owned by the signed-in Orca account',
+    summary: 'Delete an artifact owned by the signed-in Alicorn account',
     usage: 'alicorn artifacts delete <id> [--api-url <url>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, ...CLOUD_FLAGS, 'id'],
     positionalArgs: ['id']

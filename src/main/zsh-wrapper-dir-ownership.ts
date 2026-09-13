@@ -1,11 +1,11 @@
 /**
- * Decides which inherited ZDOTDIR Orca may treat as the user's real zsh config
+ * Decides which inherited ZDOTDIR Alicorn may treat as the user's real zsh config
  * dir, on the Node side of the launch.
  *
- * Why: Orca used to recognise only its OWN wrapper path shape (a path ending in
+ * Why: Alicorn used to recognise only its OWN wrapper path shape (a path ending in
  * shell-ready/zsh). Launched from any other terminal that had already
- * hijacked ZDOTDIR, Orca captured that dir as "the user's config" and re-sourced
- * it. Ownership is now established positively — a stamped marker file, or Orca's
+ * hijacked ZDOTDIR, Alicorn captured that dir as "the user's config" and re-sourced
+ * it. Ownership is now established positively — a stamped marker file, or Alicorn's
  * own dir shape for wrappers written by older builds — and a dir holding no zsh
  * startup file at all is not a config dir whoever wrote it. No vendor is
  * detected by name, because that can never be complete.
@@ -48,7 +48,7 @@ function usableInheritedZdotdir(value: string | undefined): string | null {
  *
  * Why null rather than a $HOME fallback: the wrapper hands this value straight
  * back to the shell, and a user with no ZDOTDIR must end up with none — not with
- * one Orca invented. `ZDOTDIR=$HOME` and an unset ZDOTDIR look identical to zsh
+ * one Alicorn invented. `ZDOTDIR=$HOME` and an unset ZDOTDIR look identical to zsh
  * when it reads startup files, but they are different environments for
  * everything the pane goes on to launch.
  */

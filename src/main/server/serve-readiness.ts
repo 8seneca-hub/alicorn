@@ -95,7 +95,7 @@ export function renderServeReadiness(
 
 function renderHumanReadiness(readiness: ServeReadiness): string {
   const lines = [
-    'Orca server ready',
+    'Alicorn server ready',
     `Bound endpoint: ${readiness.boundEndpoint ?? 'websocket unavailable'}`,
     `Advertised endpoint: ${readiness.advertisedEndpoint ?? 'unavailable'}`
   ]

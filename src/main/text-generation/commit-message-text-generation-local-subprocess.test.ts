@@ -165,7 +165,7 @@ describe('generateCommitMessageFromContext', () => {
         ['-d', 'Ubuntu 24.04', '--exec', 'sh', '-lc', expect.any(String)],
         expect.objectContaining({
           // Why a concrete directory (#16463): `undefined` makes CreateProcessW inherit
-          // Orca's own cwd, a deletable WSL UNC path when it was launched from a
+          // Alicorn's own cwd, a deletable WSL UNC path when it was launched from a
           // worktree. The Linux directory still rides inside the command (/mnt/c/repo,
           // asserted below), so the Windows-side cwd never decides where the agent runs.
           cwd: expect.any(String),
@@ -265,7 +265,7 @@ describe('generateCommitMessageFromContext', () => {
       expect(result).toEqual({
         success: false,
         error:
-          'C:/tools/agent.cmd cannot be run as a Windows batch command with the prompt in argv. Remove {prompt} so Orca sends the prompt on stdin.'
+          'C:/tools/agent.cmd cannot be run as a Windows batch command with the prompt in argv. Remove {prompt} so Alicorn sends the prompt on stdin.'
       })
       expect(spawnMock).not.toHaveBeenCalled()
     })

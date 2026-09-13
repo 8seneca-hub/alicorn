@@ -45,7 +45,7 @@ export function getGrokToolEventMatcherForTests(): string {
 function getConfigPath(): string {
   // Why: Grok loads trusted global hook files from $GROK_HOME/hooks/*.json
   // (or ~/.grok when unset). Honor GROK_HOME so install/status match the same
-  // home Grok and transcript lookup use; keep Orca entries in a dedicated file
+  // home Grok and transcript lookup use; keep Alicorn entries in a dedicated file
   // so user-authored hook files stay untouched.
   return join(resolveGrokHomeDir(), 'hooks', 'orca-status.json')
 }
@@ -159,7 +159,7 @@ export class GrokHookService {
     // setting back on is an equally explicit choice, and the later one. Without this the toggle
     // silently does nothing forever and the only way back is deleting a file in a hidden directory.
     // A symlinked empty config is also respected unless its content and file identity match the
-    // marker written by Orca's own prior cleanup.
+    // marker written by Alicorn's own prior cleanup.
     const configIsSymlink = isSymbolicLinkSync(configPath)
     const reinstallsOwnSymlinkCleanup =
       configIsSymlink &&

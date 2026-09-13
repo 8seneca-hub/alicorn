@@ -107,12 +107,16 @@ describe('transient lock removal options', () => {
     expect(POLICY_DECLARATION.test('    retryDelay: WINDOWS_RM_RETRY_DELAY_MS')).toBe(false)
   })
 
-  it('is the only file that states the policy', () => {
-    // Why a ratchet: a second copy is how "8 attempts" becomes 8 in one file and 4 in another,
-    // and nothing fails until a Windows lane goes red for a reason nobody can place.
-    expect(
-      findPolicyDeclarations(),
-      'declare the retry policy once, in src/shared/windows-transient-lock-removal.ts, and import it'
-    ).toEqual([OWNING_MODULE])
-  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
+  it(
+    'is the only file that states the policy',
+    () => {
+      // Why a ratchet: a second copy is how "8 attempts" becomes 8 in one file and 4 in another,
+      // and nothing fails until a Windows lane goes red for a reason nobody can place.
+      expect(
+        findPolicyDeclarations(),
+        'declare the retry policy once, in src/shared/windows-transient-lock-removal.ts, and import it'
+      ).toEqual([OWNING_MODULE])
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 })

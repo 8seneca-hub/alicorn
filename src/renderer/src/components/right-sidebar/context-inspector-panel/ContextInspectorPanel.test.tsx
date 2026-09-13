@@ -48,7 +48,11 @@ vi.mock('@/components/ui/select', async () => {
     SelectItem: ({ value, children }: { value: string; children: React.ReactNode }) => {
       const { onValueChange } = React.useContext(SelectContext)
       return (
-        <button type="button" data-testid={`run-option-${value}`} onClick={() => onValueChange?.(value)}>
+        <button
+          type="button"
+          data-testid={`run-option-${value}`}
+          onClick={() => onValueChange?.(value)}
+        >
           {children}
         </button>
       )
@@ -233,9 +237,7 @@ describe('ContextInspectorPanel', () => {
     })
     render(<ContextInspectorPanel />)
 
-    await waitFor(() =>
-      expect(screen.getAllByTestId('context-inspector-dispatch')).toHaveLength(2)
-    )
+    await waitFor(() => expect(screen.getAllByTestId('context-inspector-dispatch')).toHaveLength(2))
     fireEvent.click(screen.getAllByTestId('context-inspector-dispatch')[0]!)
     await waitFor(() => expect(screen.getAllByTestId('captured-prompt-text')).toHaveLength(1))
     fireEvent.click(screen.getAllByTestId('context-inspector-dispatch')[1]!)
@@ -247,9 +249,7 @@ describe('ContextInspectorPanel', () => {
     render(<ContextInspectorPanel />)
 
     await waitFor(() =>
-      expect(screen.getByTestId('context-inspector-totals')).toHaveTextContent(
-        '≥ $2.50 (partial)'
-      )
+      expect(screen.getByTestId('context-inspector-totals')).toHaveTextContent('≥ $2.50 (partial)')
     )
   })
 
@@ -326,7 +326,9 @@ describe('ContextInspectorPanel', () => {
     await expand()
 
     await waitFor(() =>
-      expect(screen.getByText(/Nothing is claimed about what this dispatch was given/)).toBeInTheDocument()
+      expect(
+        screen.getByText(/Nothing is claimed about what this dispatch was given/)
+      ).toBeInTheDocument()
     )
   })
 

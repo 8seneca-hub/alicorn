@@ -1,7 +1,7 @@
 /**
  * Drives a real zsh through a real PTY, to the first prompt and beyond.
  *
- * Why a PTY and not `zsh -i -c '<probe>'`: everything Orca owns now runs from a
+ * Why a PTY and not `zsh -i -c '<probe>'`: everything Alicorn owns now runs from a
  * `precmd` hook, and `-c` never reaches a prompt, so `precmd` never fires. A
  * probe run that way would report the wrapper doing nothing at all — for the
  * right reason, at the wrong question. These tests have to reach a prompt to

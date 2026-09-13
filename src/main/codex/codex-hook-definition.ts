@@ -12,7 +12,7 @@ import { CODEX_HOOK_EVENT_LABEL, getCodexManagedScriptFileName } from './codex-h
 import { getManagedScript } from './codex-hook-script'
 import type { CodexEventLabel } from './config-toml-trust'
 
-// Why: Pre/PostToolUse feed the live in-flight-tool readout; PermissionRequest exits with no decision so Codex still shows its approval UI while Orca flips the pane to waiting.
+// Why: Pre/PostToolUse feed the live in-flight-tool readout; PermissionRequest exits with no decision so Codex still shows its approval UI while Alicorn flips the pane to waiting.
 export const CODEX_EVENTS = [
   'SessionStart',
   'UserPromptSubmit',
@@ -32,7 +32,7 @@ export function writeCodexHooksJson(
   configPath: string,
   hooks: Record<string, HookDefinition[]>
 ): void {
-  // Why: Codex rejects unknown top-level hooks.json fields, so plugin bookkeeping like `_managed` must not survive Orca's rewrite.
+  // Why: Codex rejects unknown top-level hooks.json fields, so plugin bookkeeping like `_managed` must not survive Alicorn's rewrite.
   writeHooksJson(configPath, { hooks })
 }
 

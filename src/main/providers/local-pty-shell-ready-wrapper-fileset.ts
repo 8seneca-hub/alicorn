@@ -17,7 +17,7 @@ export function getLocalShellReadyWrapperPaths(root: string): readonly string[] 
 
 export function getLocalZshWrapperSpec(): ZshStartupHookSpec {
   return {
-    headerLabel: 'Orca zsh shell-ready wrapper',
+    headerLabel: 'Alicorn zsh shell-ready wrapper',
     readyMarkerEscaped: SHELL_READY_MARKER_ESCAPED,
     osc133CommandMarkers: true,
     startupCommandDelivery: true,
@@ -38,7 +38,7 @@ export function getLocalZshWrapperSpec(): ZshStartupHookSpec {
 // path.join would emit backslashes on Windows, where a shell literal reads them
 // as escapes -- and would desync the written path from the launched one.
 // Why only .zshenv: the hook hands ZDOTDIR back on its first lines, so zsh reads
-// .zprofile, .zshrc and .zlogin from the user's own directory. Nothing Orca
+// .zprofile, .zshrc and .zlogin from the user's own directory. Nothing Alicorn
 // writes is read after this file.
 export function buildLocalShellReadyWrapperFiles(root: string): readonly ShellWrapperFile[] {
   const [zshEnvPath, zshMarkerPath, bashRcfilePath] = getLocalShellReadyWrapperPaths(root)

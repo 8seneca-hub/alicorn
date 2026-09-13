@@ -73,7 +73,7 @@ export class OpenCodeHookService {
 
   buildPtyEnv(ptyId: string, existingConfigDir?: string | undefined): Record<string, string> {
     if (!isUsableId(ptyId)) {
-      // Why: on a bad id, still preserve a user-set OPENCODE_CONFIG_DIR; only the Orca status plugin is forfeited.
+      // Why: on a bad id, still preserve a user-set OPENCODE_CONFIG_DIR; only the Alicorn status plugin is forfeited.
       return existingConfigDir ? { OPENCODE_CONFIG_DIR: existingConfigDir } : {}
     }
 
@@ -156,7 +156,7 @@ export class OpenCodeHookService {
     }
   }
 
-  // Why: mirror user config entries as symlinks so edits propagate live; only plugins/ becomes a real overlay dir so Orca can drop a sibling plugin file.
+  // Why: mirror user config entries as symlinks so edits propagate live; only plugins/ becomes a real overlay dir so Alicorn can drop a sibling plugin file.
   private mirrorUserConfig(sourceDir: string, overlayDir: string): void {
     const previousManifest = this.readOverlayManifest(overlayDir)
     // Why: overlays persist across terminals; remove only Orca-mirrored paths so stale user config clears but OpenCode runtime dirs (node_modules) survive.
@@ -186,7 +186,7 @@ export class OpenCodeHookService {
           const overlayPluginsDir = join(overlayDir, 'plugins')
           mkdirSync(overlayPluginsDir, { recursive: true })
           for (const pluginEntry of readdirSync(resolvedSource, { withFileTypes: true })) {
-            // Why: skip a user plugin sharing Orca's filename; mirroring it would let writePluginIntoOverlay clobber the user's file.
+            // Why: skip a user plugin sharing Alicorn's filename; mirroring it would let writePluginIntoOverlay clobber the user's file.
             if (pluginEntry.name === ALICORN_OPENCODE_PLUGIN_FILE) {
               continue
             }

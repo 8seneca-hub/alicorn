@@ -116,7 +116,7 @@ describePosix('daemon shell-ready bash wrapper', () => {
     'still emits 133;C when bash-preexec re-arms the DEBUG trap at first prompt',
     async () => {
       const { getDaemonBashShellReadyRcfileContent } = await importFreshDaemonBashRcfile()
-      // Minimal bash-preexec imitation: re-arms its own DEBUG trap from PROMPT_COMMAND at first prompt, silencing Orca's trap.
+      // Minimal bash-preexec imitation: re-arms its own DEBUG trap from PROMPT_COMMAND at first prompt, silencing Alicorn's trap.
       writeFileSync(
         join(userDataPath, '.bash_profile'),
         [
@@ -139,7 +139,7 @@ describePosix('daemon shell-ready bash wrapper', () => {
   )
 
   itWithBash(
-    'dispatches a non-empty preexec_functions against the real command, not Orca hooks',
+    'dispatches a non-empty preexec_functions against the real command, not Alicorn hooks',
     async () => {
       const { getDaemonBashShellReadyRcfileContent } = await importFreshDaemonBashRcfile()
       // Why: the epilogue chains bash-preexec's re-armed DEBUG trap, so a real preexec callback must fire against the user's command.

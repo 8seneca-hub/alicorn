@@ -15,7 +15,7 @@ export function readMetadata(userDataPath: string): RuntimeMetadata {
     if (!metadata || !findTransport(metadata, 'unix', 'named-pipe') || !metadata.authToken) {
       throw new RuntimeClientError(
         'runtime_unavailable',
-        `Orca runtime metadata is incomplete at ${metadataPath}`
+        `Alicorn runtime metadata is incomplete at ${metadataPath}`
       )
     }
     return metadata
@@ -25,7 +25,7 @@ export function readMetadata(userDataPath: string): RuntimeMetadata {
     }
     throw new RuntimeClientError(
       'runtime_unavailable',
-      `Could not read Orca runtime metadata at ${metadataPath}. Start the Orca app first.`
+      `Could not read Alicorn runtime metadata at ${metadataPath}. Start the Alicorn app first.`
     )
   }
 }
@@ -43,7 +43,7 @@ export function getDefaultUserDataPath(
   platform: NodeJS.Platform = process.platform,
   homeDir = homedir()
 ): string {
-  // Why: in dev mode (and for parallel Orca instances), the Electron app writes
+  // Why: in dev mode (and for parallel Alicorn instances), the Electron app writes
   // runtime metadata to a separate userData directory (e.g. `orca-dev`) to avoid
   // clobbering the production app's metadata. The CLI needs to find the same
   // metadata file, so this env var lets the CLI target a specific instance.
@@ -58,7 +58,7 @@ export function getDefaultUserDataPath(
     if (!appData) {
       throw new RuntimeClientError(
         'runtime_unavailable',
-        'APPDATA is not set, so the Orca runtime metadata path cannot be resolved.'
+        'APPDATA is not set, so the Alicorn runtime metadata path cannot be resolved.'
       )
     }
     return join(appData, 'orca')

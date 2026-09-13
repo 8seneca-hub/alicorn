@@ -20,7 +20,7 @@ const TAB_ID = 'tab-worker'
 const WORKTREE_ID = 'wt-worker'
 const PTY_ID = 'pty-worker'
 
-// Captured verbatim from cursor-agent 2026.08.11-e8db854 driven through Orca.
+// Captured verbatim from cursor-agent 2026.08.11-e8db854 driven through Alicorn.
 function fixture(name: string): string {
   return readFileSync(join(__dirname, '../../__fixtures__', `${name}.txt`), 'utf8')
 }
@@ -143,7 +143,7 @@ describe('worker-show interactive wait (STA-3714, STA-4513)', () => {
   })
 
   it('omits the field entirely for a worker it could not verify', async () => {
-    // Why not null: null is a claim that Orca looked. A replaced process is never looked at,
+    // Why not null: null is a claim that Alicorn looked. A replaced process is never looked at,
     // and reporting "no wait" there is the false negative this field exists to remove.
     const result = (await showWorkerPaneServing(fixture('cursor-agent-approval-prompt'), {
       breakIdentity: true

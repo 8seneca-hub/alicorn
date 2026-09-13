@@ -7,7 +7,7 @@ import { mockContractFromWorktree } from '../../main/alicorn/contracts/mock-from
 
 /**
  * Local by design — no runtime call. The mock is derived from the worktree's own OpenAPI documents,
- * so it works in a worker's terminal with no Orca server running and no control-plane token.
+ * so it works in a worker's terminal with no Alicorn server running and no control-plane token.
  */
 export const CONTRACT_HANDLERS: Record<string, CommandHandler> = {
   'contracts mock': async ({ flags, cwd, json }) => {

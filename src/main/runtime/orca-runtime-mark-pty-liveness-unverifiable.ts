@@ -23,7 +23,7 @@ export class OrcaRuntimeWithMarkPtyLivenessUnverifiable extends OrcaRuntimeWithO
   }
 
   /**
-   * Records that Orca asked this PTY to stop — a close, a stop, a teardown.
+   * Records that Alicorn asked this PTY to stop — a close, a stop, a teardown.
    *
    * Why before the kill and not at the exit: a requested stop can still be
    * delivered by the provider's own exit event, which carries a process status

@@ -7,10 +7,10 @@ describe('classifyDaemonSpawnerPath', () => {
 
   it('classifies the installed app, the ShipIt staging area, and everything else', () => {
     expect(
-      classifyDaemonSpawnerPath('/Applications/Orca.app/Contents/MacOS/Orca', alwaysExists)
+      classifyDaemonSpawnerPath('/Applications/Alicorn.app/Contents/MacOS/Alicorn', alwaysExists)
     ).toBe('applications')
     expect(
-      classifyDaemonSpawnerPath('/private/Applications/Orca.app/Contents/MacOS/Orca', alwaysExists)
+      classifyDaemonSpawnerPath('/private/Applications/Alicorn.app/Contents/MacOS/Alicorn', alwaysExists)
     ).toBe('applications')
     expect(
       classifyDaemonSpawnerPath(
@@ -19,16 +19,16 @@ describe('classifyDaemonSpawnerPath', () => {
       )
     ).toBe('updater-cache')
     expect(
-      classifyDaemonSpawnerPath('/Users/a/Applications/Orca.app/Contents/MacOS/Orca', alwaysExists)
+      classifyDaemonSpawnerPath('/Users/a/Applications/Alicorn.app/Contents/MacOS/Alicorn', alwaysExists)
     ).toBe('other')
-    expect(classifyDaemonSpawnerPath('/tmp/OrcaA.app/Contents/MacOS/Orca', alwaysExists)).toBe(
+    expect(classifyDaemonSpawnerPath('/tmp/OrcaA.app/Contents/MacOS/Alicorn', alwaysExists)).toBe(
       'other'
     )
   })
 
   it('reports a deleted spawner as missing and an unrecorded one as unknown', () => {
     expect(
-      classifyDaemonSpawnerPath('/Applications/Orca.app/Contents/MacOS/Orca', () => false)
+      classifyDaemonSpawnerPath('/Applications/Alicorn.app/Contents/MacOS/Alicorn', () => false)
     ).toBe('missing')
     expect(classifyDaemonSpawnerPath(null, alwaysExists)).toBe('unknown')
   })
@@ -68,7 +68,7 @@ describe('daemon_adopted / daemon_pty_cwd_denied schemas', () => {
 
   it('rejects leaked paths, versions, counts, and unknown enum values', () => {
     for (const leak of [
-      { spawner_exec_path: '/Users/alice/Library/Caches/ShipIt/Orca.app' },
+      { spawner_exec_path: '/Users/alice/Library/Caches/ShipIt/Alicorn.app' },
       { app_version: '1.4.187' },
       { live_session_count: 3 },
       { cwd: '/Users/alice/Documents' }

@@ -37,9 +37,9 @@ export type LinuxTerminalOrcaCliShimOptions = {
 }
 
 // Why: on Linux the CLI installs as `alicorn-ide` so it never shadows the GNOME
-// Orca screen reader at /usr/bin/orca — but agent-facing surfaces (skills,
+// Alicorn screen reader at /usr/bin/orca — but agent-facing surfaces (skills,
 // dispatch preambles, CLI hints) invoke the bare command, so on stock Ubuntu an
-// agent inside an Orca terminal would launch the screen reader instead
+// agent inside an Alicorn terminal would launch the screen reader instead
 // (stablyai/orca#7904). Prepending this userData-scoped shim dir to managed-PTY
 // PATH makes the bare command resolve to this app's CLI inside its terminals only,
 // leaving the user's own shells (and their screen reader) untouched.
@@ -189,7 +189,7 @@ launcher=${quotedLauncherPath}
 expected_runtime_identity=${expectedRuntimeIdentity}
 expected_launcher_identity=${expectedLauncherIdentity}
 fail() {
-  printf 'Orca CLI is unavailable; reopen Orca or register the CLI again.\\n' >&2
+  printf 'Alicorn CLI is unavailable; reopen Alicorn or register the CLI again.\\n' >&2
   exit 1
 }
 proc_stat_path="/proc/$runtime_pid/stat"

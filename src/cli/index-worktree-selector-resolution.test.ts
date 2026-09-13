@@ -100,7 +100,7 @@ describe('orca cli worktree awareness', () => {
   })
 
   it('resolves the invocation cwd from ALICORN_CLI_CWD when no cwd is passed', async () => {
-    // Why: the SSH relay bridge runs the CLI on the Orca host with the remote
+    // Why: the SSH relay bridge runs the CLI on the Alicorn host with the remote
     // shell's cwd carried in ALICORN_CLI_CWD (#7716); cwd-based selectors must
     // resolve against it, not the host process cwd.
     process.env.ALICORN_CLI_CWD = '/tmp/repo/feature/src'
@@ -132,7 +132,7 @@ describe('orca cli worktree awareness', () => {
   })
 
   it.skipIf(process.platform === 'win32')(
-    'prepares and starts Claude Agent Teams in the current Orca terminal',
+    'prepares and starts Claude Agent Teams in the current Alicorn terminal',
     async () => {
       process.env.ALICORN_PANE_KEY = 'tab-1:11111111-1111-4111-8111-111111111111'
       queueFixtures(

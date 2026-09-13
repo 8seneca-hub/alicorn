@@ -28,7 +28,7 @@ export type TaskInput = {
   title: string
   /** The brief: what the agent cannot read off the repo. */
   context: string
-  /** A board column id — one of Orca's workspace statuses. */
+  /** A board column id — one of Alicorn's workspace statuses. */
   column: string
   executionStrategy: ExecutionStrategy
   stageKey: string | null

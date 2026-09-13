@@ -5,7 +5,7 @@ import {
 } from '../agent-hooks/installer-utils'
 
 // Why: Copilot's user-level hook files can use VS Code-compatible PascalCase
-// names, which match the event vocabulary already normalized by Orca's hook
+// names, which match the event vocabulary already normalized by Alicorn's hook
 // server and avoid wrapper-side event remapping.
 export const COPILOT_EVENTS = [
   'SessionStart',
@@ -16,7 +16,7 @@ export const COPILOT_EVENTS = [
   'PostToolUseFailure',
   // Why: GitHub's current reference documents subagentStart with only the
   // camelCase payload shape. The wrapper passes the event name separately, so
-  // Orca can normalize it without depending on a PascalCase payload.
+  // Alicorn can normalize it without depending on a PascalCase payload.
   'subagentStart',
   'SubagentStop',
   'PreCompact',

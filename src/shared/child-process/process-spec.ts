@@ -1,4 +1,4 @@
-// The public contract for Orca's single child-process entry point. Split from
+// The public contract for Alicorn's single child-process entry point. Split from
 // run-process.ts so the runner stays under its line cap; import the runtime
 // functions from run-process, which re-exports everything here.
 import type { ChildProcess, SpawnOptions as NodeSpawnOptions } from 'node:child_process'
@@ -8,7 +8,7 @@ export type ChildProcessHandle = ChildProcess
 export type SpawnedProcess = ChildProcess
 
 /**
- * The single place Orca starts a child process.
+ * The single place Alicorn starts a child process.
  *
  * Why one place: six decisions have to be made every time a child is spawned,
  * POSIX forgives all six, and Windows punishes each of them differently —

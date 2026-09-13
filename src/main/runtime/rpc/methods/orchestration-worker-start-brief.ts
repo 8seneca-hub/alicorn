@@ -6,7 +6,12 @@ import type { MemberDirectory } from '../../../alicorn/member-directory'
 import type { OrcaRuntimeService } from '../../orca-runtime'
 import type { OrchestrationDb } from '../../orchestration/db'
 import type { WorkerStartInput } from './orchestration-worker-start-schema'
-import type { DecisionGateRow, DispatchContextRow, RunRow, TaskRow } from '../../orchestration/types'
+import type {
+  DecisionGateRow,
+  DispatchContextRow,
+  RunRow,
+  TaskRow
+} from '../../orchestration/types'
 
 /**
  * The whole brief a worker start sends: the fields every dispatch carries, the member's own

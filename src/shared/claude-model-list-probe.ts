@@ -109,7 +109,7 @@ export function parseClaudeModelList(stdout: string): ClaudeListedModel[] {
     for (const entry of models) {
       const model = toListedModel(entry)
       // Why: the `default` row mirrors whichever entry it currently resolves
-      // to; Orca's pickers manage their own default selection.
+      // to; Alicorn's pickers manage their own default selection.
       if (!model || model.id === 'default' || seen.has(model.id)) {
         continue
       }

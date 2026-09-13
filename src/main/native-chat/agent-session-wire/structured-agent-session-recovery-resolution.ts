@@ -54,7 +54,7 @@ export function structuredSessionRecoveryIsResolvable(record: AgentSessionRecord
   return runtimeKind === 'native' || ownerProcess === null
 }
 
-/** Stopping a matched owner is only Orca's call when Orca owned its transport. A conflicted claim
+/** Stopping a matched owner is only Alicorn's call when Alicorn owned its transport. A conflicted claim
  *  means ownership was never settled, and a TUI child is the user's foreground agent. */
 function recoveryMayStopOwner(record: AgentSessionRecord): boolean {
   return record.lease.runtimeKind === 'native' && record.lease.claimStatus !== 'conflicted'

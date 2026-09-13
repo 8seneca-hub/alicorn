@@ -59,13 +59,13 @@ export function claudeResultFailure(
 }
 
 /**
- * What a message part that Orca cannot render says for itself. The kinds under
+ * What a message part that Alicorn cannot render says for itself. The kinds under
  * `message:<role>:content:*` are synthesised from whatever `part.type` the CLI
  * sends, so they can never be catalogued ahead of time; printing one is leaking
  * wire vocabulary at a user who cannot act on it. The frame stays on the row's
  * disclosure, so nothing is dropped and the next reader can still name it.
  */
-export const CLAUDE_UNRENDERABLE_CONTENT_TEXT = 'Claude sent content Orca cannot display yet'
+export const CLAUDE_UNRENDERABLE_CONTENT_TEXT = 'Claude sent content Alicorn cannot display yet'
 
 export function isModeledClaudeContent(value: unknown): boolean {
   const part = claudeRecord(value)
@@ -80,7 +80,7 @@ export function isModeledClaudeContent(value: unknown): boolean {
     if (source?.type === 'url') {
       return claudeText(source.url) !== null
     }
-    // A local attachment is replayed as the base64 (or file) source Orca itself
+    // A local attachment is replayed as the base64 (or file) source Alicorn itself
     // sent, so it is content we recognise -- not an unknown part to surface.
     return source?.type === 'base64' || source?.type === 'file'
   }

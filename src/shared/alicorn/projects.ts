@@ -6,7 +6,7 @@ export type ProjectInput = {
   name: string
   /** Prefixes every task id in the project — PAY-142. Uppercase, 2-10 characters. */
   key: string
-  /** Orca repo ids. A repository belongs to at most one project. */
+  /** Alicorn repo ids. A repository belongs to at most one project. */
   repoIds: string[]
 }
 

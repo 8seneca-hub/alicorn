@@ -47,7 +47,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: absentUsrLocalBin,
@@ -82,7 +82,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         defaultMacCommandPath: installPath,
         processPathEnv: usrLocalBin
@@ -95,7 +95,7 @@ describe('CliInstaller', () => {
     }
   )
 
-  // Why: users can have a managed Orca command in ~/.local/bin even when
+  // Why: users can have a managed Alicorn command in ~/.local/bin even when
   // /usr/local/bin exists; Settings must follow the shell-visible command.
   it.skipIf(process.platform === 'win32')(
     'uses an existing managed macOS alicorn command from the shell PATH before /usr/local/bin',
@@ -117,7 +117,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -149,7 +149,14 @@ describe('CliInstaller', () => {
       const defaultInstallPath = join(usrLocalBin, 'alicorn')
       const userInstallPath = join(userLocalBin, 'alicorn')
       const launcherPath = join(resourcesPath, 'bin', 'alicorn')
-      const oldLauncherPath = join(fixture.root, 'Old.app', 'Contents', 'Resources', 'bin', 'alicorn')
+      const oldLauncherPath = join(
+        fixture.root,
+        'Old.app',
+        'Contents',
+        'Resources',
+        'bin',
+        'alicorn'
+      )
       await mkdir(usrLocalBin, { recursive: true })
       await mkdir(userLocalBin, { recursive: true })
       await symlink(oldLauncherPath, userInstallPath)
@@ -159,7 +166,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -204,7 +211,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -218,7 +225,7 @@ describe('CliInstaller', () => {
   )
 
   // Why: shells skip missing PATH entries, so a managed command later in PATH
-  // is still the shell-visible Orca command until the default path is installed.
+  // is still the shell-visible Alicorn command until the default path is installed.
   it.skipIf(process.platform === 'win32')(
     'uses a later managed macOS alicorn command when the default command is missing',
     async () => {
@@ -239,7 +246,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -256,7 +263,7 @@ describe('CliInstaller', () => {
     }
   )
 
-  // Why: bash/zsh skip non-executable PATH entries even at Orca's configured
+  // Why: bash/zsh skip non-executable PATH entries even at Alicorn's configured
   // install slot, then keep looking for a runnable command later in PATH.
   it.skipIf(process.platform === 'win32')(
     'uses a later managed macOS alicorn command when the default command is not executable',
@@ -279,7 +286,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -296,7 +303,7 @@ describe('CliInstaller', () => {
     }
   )
 
-  // Why: a non-Orca command after an empty default install slot can be shadowed
+  // Why: a non-Alicorn command after an empty default install slot can be shadowed
   // by installing the default path without replacing the user's command.
   it.skipIf(process.platform === 'win32')(
     'installs the default macOS command instead of replacing an unmanaged later command',
@@ -321,7 +328,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -362,7 +369,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -404,7 +411,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -414,7 +421,7 @@ describe('CliInstaller', () => {
       const status = await installer.getStatus()
       expect(status.commandPath).toBe(userInstallPath)
       expect(status.state).toBe('conflict')
-      await expect(installer.install()).rejects.toThrow('Refusing to replace non-Orca command')
+      await expect(installer.install()).rejects.toThrow('Refusing to replace non-Alicorn command')
       await expect(lstat(defaultInstallPath)).rejects.toMatchObject({ code: 'ENOENT' })
       await expect(readFile(userInstallPath, 'utf8')).resolves.toContain('other-orca')
     }
@@ -442,7 +449,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: defaultInstallPath,
@@ -475,7 +482,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: absentUsrLocalBin,
@@ -501,7 +508,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: absentUsrLocalBin,
@@ -539,7 +546,7 @@ describe('CliInstaller', () => {
         isPackaged: true,
         resourcesPath,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         homePath,
         defaultMacCommandPath: absentUsrLocalBin,

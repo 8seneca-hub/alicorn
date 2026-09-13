@@ -7,7 +7,7 @@ import type { InstallDirAclPoisonDiagnosis } from '../startup/windows-install-di
  */
 
 const GENERIC_DETAIL =
-  'This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch Orca.'
+  'This is often a graphics-driver or installation problem. Reload to try again, or quit and relaunch Alicorn.'
 // Why keep it alongside the ACL diagnosis: the probe cannot name-check every
 // locale, so a driver crash on a healthy install must not lose its only hint.
 const DRIVER_FALLBACK = 'If that does not help, the cause is usually a graphics driver.'
@@ -34,9 +34,9 @@ export async function presentRendererRecoveryPrompt(
       buttons,
       defaultId: 0,
       cancelId: buttons.length - 1,
-      title: 'Orca keeps failing to load',
+      title: 'Alicorn keeps failing to load',
       message: 'The app window crashed repeatedly and stopped reloading automatically.',
-      detail: `Orca tried to recover ${deps.recentRecoveryCount} times in a row without success.\n\n${
+      detail: `Alicorn tried to recover ${deps.recentRecoveryCount} times in a row without success.\n\n${
         diagnosis ? `${diagnosis.detail}\n\n${DRIVER_FALLBACK}` : GENERIC_DETAIL
       }`
     })

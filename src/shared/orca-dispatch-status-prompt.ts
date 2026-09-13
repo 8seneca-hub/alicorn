@@ -1,4 +1,4 @@
-// Why: full Orca dispatch preambles are multi-KB (CLI instructions before
+// Why: full Alicorn dispatch preambles are multi-KB (CLI instructions before
 // `=== TASK ===`). A naive first-N-char fold of the agent-status prompt keeps
 // only lifecycle boilerplate and drops the task body the UI needs as a
 // fallback label before orchestration metadata arrives. Compact the status
@@ -6,7 +6,7 @@
 // inside AGENT_STATUS_MAX_FIELD_LENGTH.
 
 export const ALICORN_DISPATCH_STATUS_PREAMBLE_PREFIX =
-  'You are working inside Orca, a multi-agent IDE.'
+  'You are working inside Alicorn, a multi-agent IDE.'
 export const ALICORN_DISPATCH_STATUS_TASK_MARKER = '=== TASK ==='
 const ALICORN_DISPATCH_STATUS_TASK_ID_MARKER = 'Your task ID is:'
 // Why: real preambles put === TASK === near the end (~4KB+). Scan past the
@@ -85,9 +85,9 @@ export function compactDispatchPromptForStatus(
 }
 
 /**
- * Locate the Orca task separator in a dispatch prompt scan window.
+ * Locate the Alicorn task separator in a dispatch prompt scan window.
  * Why: base-drift commit subjects are repository-controlled and may mention
- * `=== TASK ===`. Raw multi-line preambles must use the standalone line Orca
+ * `=== TASK ===`. Raw multi-line preambles must use the standalone line Alicorn
  * emits; already-normalized single-line status previews intentionally keep the
  * marker inline so re-normalization and UI helpers stay consistent.
  */

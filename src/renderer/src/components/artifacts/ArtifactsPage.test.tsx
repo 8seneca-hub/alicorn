@@ -171,12 +171,17 @@ describe('ArtifactsPage', () => {
     await waitFor(() => {
       const preview = document.querySelector('webview[aria-label="Artifact preview"]')
       expect(preview).toHaveAttribute('partition', 'persist:orca-default')
-      expect(preview).toHaveAttribute('src', 'https://share.alicorn.8seneca.com/a/report-123?embed=1')
+      expect(preview).toHaveAttribute(
+        'src',
+        'https://share.alicorn.8seneca.com/a/report-123?embed=1'
+      )
     })
 
     fireEvent.click(copyButton)
     await waitFor(() =>
-      expect(mocks.writeClipboardText).toHaveBeenCalledWith('https://share.alicorn.8seneca.com/a/report-123')
+      expect(mocks.writeClipboardText).toHaveBeenCalledWith(
+        'https://share.alicorn.8seneca.com/a/report-123'
+      )
     )
     expect(mocks.toastSuccess).toHaveBeenCalledWith('Artifact link copied')
 
@@ -357,7 +362,7 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Orca again to load artifacts.')).not.toBeInTheDocument()
+      expect(screen.queryByText('Sign in to Alicorn again to load artifacts.')).not.toBeInTheDocument()
     )
   })
 
@@ -397,7 +402,7 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Orca again to load artifacts.')).not.toBeInTheDocument()
+      expect(screen.queryByText('Sign in to Alicorn again to load artifacts.')).not.toBeInTheDocument()
     )
   })
 

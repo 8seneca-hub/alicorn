@@ -194,7 +194,7 @@ export abstract class BrowserManagerVisibility extends BrowserManagerState {
                 ${JSON.stringify(prev?.targetBrowserPageId)} &&
               typeof state.setActiveBrowserPage === 'function'
             ) {
-              // Why: Orca remembers the last browser workspace/page even when
+              // Why: Alicorn remembers the last browser workspace/page even when
               // the user is currently in terminal/editor view. Screenshot prep
               // temporarily switches that hidden browser selection state, so
               // restore it independently of the visible tab type.

@@ -4,12 +4,12 @@ import { GLOBAL_FLAGS } from '../args'
 export const FILE_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['file', 'open'],
-    summary: 'Open a workspace file in the Orca editor',
+    summary: 'Open a workspace file in the Alicorn editor',
     usage: 'alicorn file open <path> [--worktree <selector>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'path', 'worktree'],
     positionalArgs: ['path'],
     notes: [
-      'The path may be relative to the selected worktree or an absolute path inside that worktree. When --worktree is omitted, local CLI calls infer the current Orca worktree from cwd.'
+      'The path may be relative to the selected worktree or an absolute path inside that worktree. When --worktree is omitted, local CLI calls infer the current Alicorn worktree from cwd.'
     ],
     examples: [
       'alicorn file open src/App.tsx',
@@ -18,7 +18,7 @@ export const FILE_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['file', 'diff'],
-    summary: 'Open a workspace file diff in the Orca editor',
+    summary: 'Open a workspace file diff in the Alicorn editor',
     usage: 'alicorn file diff <path> [--staged] [--worktree <selector>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'path', 'staged', 'worktree'],
     positionalArgs: ['path'],

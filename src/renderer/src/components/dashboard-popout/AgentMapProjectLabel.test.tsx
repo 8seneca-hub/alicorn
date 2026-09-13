@@ -11,7 +11,7 @@ const LAYOUT: AgentMapLayout = {
   projects: [
     {
       id: 'repo-1',
-      name: 'Orca',
+      name: 'Alicorn',
       x: 120,
       y: 120,
       radius: 96,

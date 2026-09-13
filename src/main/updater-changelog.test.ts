@@ -251,7 +251,11 @@ describe('fetchChangelog', () => {
 
   it('strips version from the returned release object', async () => {
     const entries = makeEntries([
-      { version: '1.1.17', description: 'Feature', mediaUrl: 'https://alicorn.8seneca.com/media/demo.gif' },
+      {
+        version: '1.1.17',
+        description: 'Feature',
+        mediaUrl: 'https://alicorn.8seneca.com/media/demo.gif'
+      },
       { version: '1.1.15' }
     ])
     fetchMock.mockResolvedValue(jsonResponse(entries))

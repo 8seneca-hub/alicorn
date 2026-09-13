@@ -128,7 +128,7 @@ function giteaPullRequestScanKey(repo: GiteaRepoRef): string {
   return `${configuredApiBaseUrl(repo)}/${encodedRepoPath(repo)}`
 }
 
-/** Invalidate the shared /pulls scan after Orca itself creates a PR so the
+/** Invalidate the shared /pulls scan after Alicorn itself creates a PR so the
  *  next worktree-card refresh sees it instead of a cached miss. */
 export function invalidateGiteaPullRequestScanForRepo(repo: GiteaRepoRef): void {
   invalidateGiteaPullRequestScan(giteaPullRequestScanKey(repo))

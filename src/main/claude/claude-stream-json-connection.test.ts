@@ -81,7 +81,7 @@ function launchFor(
   }
 }
 
-/** The derived child environment, captured where Orca actually hands it to the OS. */
+/** The derived child environment, captured where Alicorn actually hands it to the OS. */
 const spawned: ProcessSpec[] = []
 /** The retained child, so a test can end it the way a crashing CLI would. */
 const spawnedChildren: SpawnedProcess[] = []
@@ -195,7 +195,7 @@ describe('Claude stream-json connection', () => {
     const report = await until(() => readReportSafely(scenario), 'the scripted CLI report')
     expect(report.argv[0]).toBe(FAKE_CLI)
     // The .mjs fixture makes the SDK run it under node; a real CLI path is the program
-    // itself. Either way the resolved path is what Orca's spawner is asked to execute.
+    // itself. Either way the resolved path is what Alicorn's spawner is asked to execute.
     expect([spawned.at(-1)?.program, ...(spawned.at(-1)?.args ?? [])]).toContain(FAKE_CLI)
     expect(report.argv).toContain('--replay-user-messages')
     expect(report.argv).toContain(`--session-id=${SESSION_ID}`)
@@ -436,7 +436,7 @@ describe('Claude stream-json connection', () => {
     expect(written.response.response).toMatchObject({ behavior: 'deny', message: 'No' })
   })
 
-  it('drives Orca control methods onto the SDK and times out with the init proof message', async () => {
+  it('drives Alicorn control methods onto the SDK and times out with the init proof message', async () => {
     const scenario = scriptScenario([HOLD_OPEN], {
       initialize: { models: [{ value: 'sonnet' }], account: { tokenSource: 'oauth' } },
       get_settings: { env: { ANTHROPIC_BASE_URL: 'https://settings.example.test' } }

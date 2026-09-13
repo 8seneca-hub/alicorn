@@ -45,7 +45,7 @@ export function finalizeWindowsLocalPtySpawnEnvironment(args: {
         }
       }
     } else if (isHostCodexHomeForWsl(env.CODEX_HOME)) {
-      // Why: Orca's Codex home is host-local; WSL Codex must use its Linux-side ~/.codex, not a Windows path.
+      // Why: Alicorn's Codex home is host-local; WSL Codex must use its Linux-side ~/.codex, not a Windows path.
       delete env.CODEX_HOME
       delete env.ALICORN_CODEX_HOME
     } else if (env.CODEX_HOME) {

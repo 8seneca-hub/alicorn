@@ -65,7 +65,7 @@ export function withLegacyEnvKeys(names: readonly string[]): string[] {
   )
 }
 
-/** True for either spelling of an Orca/Alicorn-owned env name, for "strip our own vars" filters. */
+/** True for either spelling of an Alicorn/Alicorn-owned env name, for "strip our own vars" filters. */
 export function isAlicornOwnedEnvName(name: string): boolean {
   return name.startsWith(ALICORN_PREFIX) || name.startsWith(LEGACY_PREFIX)
 }

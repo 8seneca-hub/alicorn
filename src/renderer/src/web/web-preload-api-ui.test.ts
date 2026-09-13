@@ -748,7 +748,7 @@ describe('web UI preload API', () => {
               ok: true,
               result: {
                 platform: 'darwin',
-                helperAppPath: '/Applications/Orca Computer Use.app',
+                helperAppPath: '/Applications/Alicorn Computer Use.app',
                 helperUnavailableReason: null,
                 permissions: [
                   { id: 'accessibility', status: 'granted' },
@@ -764,7 +764,7 @@ describe('web UI preload API', () => {
               ok: true,
               result: {
                 platform: 'darwin',
-                helperAppPath: '/Applications/Orca Computer Use.app',
+                helperAppPath: '/Applications/Alicorn Computer Use.app',
                 permissionId:
                   params && typeof params === 'object' ? (params as { id?: string }).id : undefined,
                 openedSettings: true,

@@ -289,7 +289,7 @@ export async function hasUncommittedChanges(
   return await anyRecordIsUserDirt(repoPath, records, options)
 }
 
-/** True when any record is real user work rather than a shared symlink Orca put
+/** True when any record is real user work rather than a shared symlink Alicorn put
  *  in the worktree.
  *
  *  Fails closed on purpose: anything not positively identified as an Orca-owned
@@ -307,7 +307,7 @@ async function anyRecordIsUserDirt(
   // Why: only entries that are configured AND really symlinks are excluded, so a
   // regular file the user created at a configured name still blocks creation.
   // Why the distro: git ran in the guest, so an untranslated lstat fails here and this
-  // fail-closed check would block review creation over Orca's own symlink.
+  // fail-closed check would block review creation over Alicorn's own symlink.
   const sharedLinks = new Set(
     await findExistingWorktreeSymlinkPaths(worktreePath, sharedLinkPaths, {
       wslDistro: getHostedReviewLocalGitOptions(options).wslDistro

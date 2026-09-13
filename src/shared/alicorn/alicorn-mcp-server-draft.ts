@@ -1,7 +1,7 @@
 /**
  * How an agent reaches Alicorn: one MCP server, spelled the same everywhere.
  *
- * `command` is the bare CLI name rather than a path. Orca already puts its own CLI wrapper on the
+ * `command` is the bare CLI name rather than a path. Alicorn already puts its own CLI wrapper on the
  * PATH of every terminal it launches (the dev build's `out/bin`, the packaged build's installed
  * bin), and that wrapper is what knows which profile's app to talk to. A resolved absolute path
  * here would be correct on the machine that wrote the file and wrong in the repository it gets

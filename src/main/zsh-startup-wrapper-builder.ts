@@ -1,19 +1,19 @@
 /**
- * The single `.zshenv` Orca writes for every transport: local PTY, daemon/SSH,
+ * The single `.zshenv` Alicorn writes for every transport: local PTY, daemon/SSH,
  * and relay.
  *
- * Orca needs to run code AFTER the user's own zsh startup files. The old shape
- * bought that by keeping ZDOTDIR pointed at Orca's wrapper dir for the whole of
+ * Alicorn needs to run code AFTER the user's own zsh startup files. The old shape
+ * bought that by keeping ZDOTDIR pointed at Alicorn's wrapper dir for the whole of
  * startup and sourcing each user file by hand — four generated files, and a
  * fake ZDOTDIR live while `/etc/zshrc` ran. That one decision was the root of a
  * whole bug family: `/etc/zshrc` assigns `HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history`
- * unconditionally, so history landed inside Orca's own dir (#11044); zsh's
+ * unconditionally, so history landed inside Alicorn's own dir (#11044); zsh's
  * `sourcehome()` ignores ZDOTDIR once the shell enters sh/ksh emulation, so a
  * user file ending in `emulate sh` hid every later wrapper file; and one wrapper
  * dir shared by two installed builds could mix files from both.
  *
  * This shape gives ZDOTDIR back before anything else can observe it, then defers
- * Orca's work to a `precmd` hook that runs at the first prompt — after
+ * Alicorn's work to a `precmd` hook that runs at the first prompt — after
  * `.zprofile`, `/etc/zshrc`, `.zshrc` and `.zlogin`, all of which zsh now reads
  * from the user's own directory exactly as in an unwrapped shell. #11044 becomes
  * unreachable rather than repaired, and the emulation and mixed-build classes
@@ -38,18 +38,18 @@ import {
 
 /** Runtime values the hook re-exports after the user's own startup files ran. */
 export type ZshWrapperRestoreSpec = {
-  /** Orca's agent-teams shim dir back onto PATH. */
+  /** Alicorn's agent-teams shim dir back onto PATH. */
   agentTeamsPath: boolean
   /** Remote CLI bin dir onto PATH — relay hosts only. */
   remoteCliBinDir: boolean
-  /** Orca's runtime CODEX_HOME. */
+  /** Alicorn's runtime CODEX_HOME. */
   codexHome: boolean
-  /** The `codex()` wrapper that runs Orca's launch preflight. */
+  /** The `codex()` wrapper that runs Alicorn's launch preflight. */
   codexLaunchPreflight: boolean
 }
 
 export type ZshStartupHookSpec = {
-  /** First line of the generated file, e.g. `# Orca zsh shell-ready wrapper`. */
+  /** First line of the generated file, e.g. `# Alicorn zsh shell-ready wrapper`. */
   headerLabel: string
   readyMarkerEscaped: string
   /** OSC 133 command-lifecycle hooks (behind the `markers` feature). */
@@ -73,7 +73,7 @@ __orca_restore_agent_teams_path`
 const OPENCODE_CONFIG_DIR_RESTORE = `[[ -n "\${ALICORN_OPENCODE_CONFIG_DIR:-}" ]] && export OPENCODE_CONFIG_DIR="\${ALICORN_OPENCODE_CONFIG_DIR}"`
 const MIMOCODE_HOME_RESTORE = `[[ -n "\${ALICORN_MIMOCODE_HOME:-}" ]] && export MIMOCODE_HOME="\${ALICORN_MIMOCODE_HOME}"`
 const REMOTE_CLI_BIN_DIR_RESTORE = `[[ -n "\${ALICORN_REMOTE_CLI_BIN_DIR:-}" ]] && case ":$PATH:" in *:"\${ALICORN_REMOTE_CLI_BIN_DIR}":*) ;; *) export PATH="\${ALICORN_REMOTE_CLI_BIN_DIR}:$PATH" ;; esac`
-const CODEX_HOME_RESTORE = `# Why: Codex must keep using Orca's runtime CODEX_HOME after rc files.
+const CODEX_HOME_RESTORE = `# Why: Codex must keep using Alicorn's runtime CODEX_HOME after rc files.
 [[ -n "\${ALICORN_CODEX_HOME:-}" ]] && export CODEX_HOME="\${ALICORN_CODEX_HOME}"`
 
 /**
@@ -130,7 +130,7 @@ function getOverlayRestoreBlocks(spec: ZshStartupHookSpec): (string | null)[] {
 }
 
 /**
- * Everything Orca owns that must run after the user's config, in one function
+ * Everything Alicorn owns that must run after the user's config, in one function
  * invoked from the first prompt's precmd sweep and then retired.
  */
 function buildDeferredInit(spec: ZshStartupHookSpec): string {
@@ -138,7 +138,7 @@ function buildDeferredInit(spec: ZshStartupHookSpec): string {
   // permanent precmd, so swapping this hook for it keeps the array position the
   // user's own hooks were registered around. With no permanent hook to leave
   // behind, removing is what keeps a history-only pane observably identical to
-  // the unwrapped pane it was — no stray Orca name in `precmd_functions`.
+  // the unwrapped pane it was — no stray Alicorn name in `precmd_functions`.
   // Verified on zsh 5.9 that self-removal mid-sweep skips no later hook, from
   // the head, the middle and the tail of the array.
   const permanentPrecmd = spec.osc133CommandMarkers

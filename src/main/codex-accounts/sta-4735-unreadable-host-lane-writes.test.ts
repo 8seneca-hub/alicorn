@@ -138,7 +138,7 @@ describe('STA-4735 an unreadable runtime auth.json must not be written over', ()
     // The fault really was consumed by the code under test.
     expect(denials.readsFor(runtimeAuthPath)).toBeGreaterThan(0)
     // THE FIX. Before it, "could not read" counted as "differs" and the write
-    // below replaced a freshly rotated refresh token with Orca's stale copy.
+    // below replaced a freshly rotated refresh token with Alicorn's stale copy.
     expect(wrote).toBe(false)
     expect(realFs.readFileSync(runtimeAuthPath, 'utf-8')).toBe(ROTATED)
   })

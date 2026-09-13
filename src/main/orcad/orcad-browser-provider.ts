@@ -63,14 +63,14 @@ export function installedElectronCandidates(
   environment: NodeJS.ProcessEnv
 ): string[] {
   const joinPath = platform === 'win32' ? win32.join : posix.join
-  // Why the Orca entries: an in-place upgrade keeps the pre-rebrand install tree, so both
+  // Why the Alicorn entries: an in-place upgrade keeps the pre-rebrand install tree, so both
   // product names have to resolve until Orca-era installs stop being supported.
   if (platform === 'darwin') {
     return [
       '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
       joinPath(homePath, 'Applications', 'Alicorn.app', 'Contents', 'MacOS', 'Alicorn'),
-      '/Applications/Orca.app/Contents/MacOS/Orca',
-      joinPath(homePath, 'Applications', 'Orca.app', 'Contents', 'MacOS', 'Orca')
+      '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
+      joinPath(homePath, 'Applications', 'Alicorn.app', 'Contents', 'MacOS', 'Alicorn')
     ]
   }
   if (platform === 'win32') {
@@ -78,13 +78,13 @@ export function installedElectronCandidates(
       ...(environment.LOCALAPPDATA
         ? [
             joinPath(environment.LOCALAPPDATA, 'Programs', 'Alicorn', 'Alicorn.exe'),
-            joinPath(environment.LOCALAPPDATA, 'Programs', 'Orca', 'Orca.exe')
+            joinPath(environment.LOCALAPPDATA, 'Programs', 'Alicorn', 'Alicorn.exe')
           ]
         : []),
       ...(environment.ProgramFiles
         ? [
             joinPath(environment.ProgramFiles, 'Alicorn', 'Alicorn.exe'),
-            joinPath(environment.ProgramFiles, 'Orca', 'Orca.exe')
+            joinPath(environment.ProgramFiles, 'Alicorn', 'Alicorn.exe')
           ]
         : [])
     ]
@@ -97,7 +97,7 @@ export function installedElectronCandidates(
     joinPath(homePath, '.local', 'bin', 'orca-ide'),
     '/usr/local/bin/orca-ide',
     '/usr/bin/orca-ide',
-    '/opt/Orca/orca-ide'
+    '/opt/Alicorn/orca-ide'
   ]
 }
 

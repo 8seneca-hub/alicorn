@@ -352,7 +352,7 @@ describe('PortsStatusSegment popover host routing', () => {
     })
 
     // Local label comes from the scan's own platform, not the renderer's
-    // userAgent — a paired web client is not the Orca host.
+    // userAgent — a paired web client is not the Alicorn host.
     expect(container.textContent).toContain(
       'Port scan unavailable on Local Mac: lsof is unavailable'
     )

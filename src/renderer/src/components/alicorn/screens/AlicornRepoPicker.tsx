@@ -5,7 +5,7 @@
  * the same question, and two pickers would drift on the rule that matters — a project needs at
  * least one, and binding a repository here moves it off whatever project held it before.
  *
- * The "choose a folder" button is Orca's own picker, which already knows about git repos, folder
+ * The "choose a folder" button is Alicorn's own picker, which already knows about git repos, folder
  * workspaces, SSH targets and every setup path this would otherwise have to learn a second time.
  */
 import React from 'react'

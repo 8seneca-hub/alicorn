@@ -562,7 +562,7 @@ describe('resolveSessionFilePath', () => {
   })
 
   it('resolves a rollout from the orca-managed Codex home (ALICORN_USER_DATA_PATH)', async () => {
-    // Orca launches Codex with its own managed CODEX_HOME, so rollout files land
+    // Alicorn launches Codex with its own managed CODEX_HOME, so rollout files land
     // under <userData>/codex-runtime-home/home/sessions, NOT ~/.codex/sessions.
     const root = await makeRoot('orca-native-chat-resolve-managed-')
     const managedSessionsDir = join(root, 'codex-runtime-home', 'home', 'sessions')

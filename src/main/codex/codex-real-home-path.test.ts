@@ -26,7 +26,7 @@ afterEach(() => {
 })
 
 describe('hasCustomCodexHomeOverride', () => {
-  it('recognizes normalized aliases of Orca-owned CODEX_HOME', () => {
+  it('recognizes normalized aliases of Alicorn-owned CODEX_HOME', () => {
     const managedHome = `${process.cwd()}${sep}codex-runtime-home${sep}home`
 
     expect(
@@ -86,7 +86,7 @@ describe('hasCustomCodexHomeOverride', () => {
   )
 
   // Why: a fish user who exports XDG_CONFIG_HOME from config.fish never passes it to
-  // a Dock-launched Orca, so the launch env is the only place it appears. Reading the
+  // a Dock-launched Alicorn, so the launch env is the only place it appears. Reading the
   // main process env instead scans ~/.config and misses the override entirely.
   it.skipIf(process.platform === 'win32')(
     'resolves a fish override under the launch env XDG_CONFIG_HOME, not the process one',

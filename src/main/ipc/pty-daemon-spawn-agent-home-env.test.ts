@@ -212,12 +212,12 @@ describe('registerPtyHandlers', () => {
         try {
           const spawnOptions = await daemonSpawnAndGetOptions(
             {},
-            () => 'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home',
+            () => 'C:\\Users\\test\\AppData\\Roaming\\Alicorn\\codex-runtime-home\\home',
             undefined,
             {
-              CODEX_HOME: 'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home',
+              CODEX_HOME: 'C:\\Users\\test\\AppData\\Roaming\\Alicorn\\codex-runtime-home\\home',
               ALICORN_CODEX_HOME:
-                'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
+                'C:\\Users\\test\\AppData\\Roaming\\Alicorn\\codex-runtime-home\\home'
             },
             {
               cwd: '\\\\wsl.localhost\\Ubuntu\\home\\test\\repo',
@@ -246,12 +246,12 @@ describe('registerPtyHandlers', () => {
         try {
           const spawnOptions = await daemonSpawnAndGetOptions(
             {},
-            () => 'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home',
+            () => 'C:\\Users\\test\\AppData\\Roaming\\Alicorn\\codex-runtime-home\\home',
             undefined,
             {
               CODEX_HOME: 'C:\\Users\\test\\.codex',
               ALICORN_CODEX_HOME:
-                'C:\\Users\\test\\AppData\\Roaming\\Orca\\codex-runtime-home\\home'
+                'C:\\Users\\test\\AppData\\Roaming\\Alicorn\\codex-runtime-home\\home'
             },
             { shellOverride: 'wsl.exe' }
           )
@@ -332,7 +332,7 @@ describe('registerPtyHandlers', () => {
           spy.mockRestore()
         }
       })
-      it('strips the daemon-inherited Orca-owned CODEX_HOME for real-home routing', async () => {
+      it('strips the daemon-inherited Alicorn-owned CODEX_HOME for real-home routing', async () => {
         const spawnOptions = await daemonSpawnAndGetOptions(
           {},
           () => null,

@@ -44,10 +44,10 @@ export function buildPosixHookSpoolLines(source: string, eventNameVar?: string):
       ? `  case "\${${eventNameVar}:-}" in PreToolUse|PostToolUse|PostToolUseFailure) return 0 ;; esac`
       : '  case "$payload" in *\'"PreToolUse"\'*|*\'"PostToolUse"\'*|*\'"PostToolUseFailure"\'*) return 0 ;; esac',
     '  [ -n "${ALICORN_AGENT_HOOK_ENDPOINT:-}" ] || return 0',
-    // Why: an endpoint can linger in a parent shell after leaving Orca; without a pane key
+    // Why: an endpoint can linger in a parent shell after leaving Alicorn; without a pane key
     // the record is un-attributable and would accumulate as pane-unknown.jsonl.
     '  [ -n "${ALICORN_PANE_KEY:-}" ] || return 0',
-    // Why: a stale env var must not create a spool tree for an Orca that is not installed here.
+    // Why: a stale env var must not create a spool tree for an Alicorn that is not installed here.
     '  [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ] || return 0',
     '  spool_base=${ALICORN_AGENT_HOOK_ENDPOINT%/*}',
     '  spool_dir="$spool_base/spool"',
@@ -74,9 +74,9 @@ export const WINDOWS_HOOK_STDIN_DRAIN_LABEL = 'orca_agent_hook_drain_stdin'
 export const WINDOWS_HOOK_STDIN_READER = '"%SystemRoot%\\System32\\more.com"'
 export const WINDOWS_HOOK_STDIN_DRAIN_COMMAND = `${WINDOWS_HOOK_STDIN_READER} >nul 2>nul`
 
-// Why (#11549): missing Orca context means the hook ran outside an Orca pane, where the caller
+// Why (#11549): missing Alicorn context means the hook ran outside an Alicorn pane, where the caller
 // may abandon stdin rather than close it — a read-to-EOF then blocks forever and strands a
-// visible window per hook event. The Windows rule: a hook must check the Orca env before it
+// visible window per hook event. The Windows rule: a hook must check the Alicorn env before it
 // owns stdin, and exit without reading when the env is missing — the payload is discarded on
 // that path anyway. This applies to .cmd, the copilot .ps1, and the Git Bash kimi .sh alike.
 // POSIX hooks keep capture-first: their callers close stdin, and exiting mid-write there

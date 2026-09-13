@@ -8,7 +8,7 @@ import {
   resolveWslInteropSpawnCwd
 } from './wsl-interop-spawn-directory'
 
-// Regression coverage for #16463 ("Removing the worktree Orca was launched from
+// Regression coverage for #16463 ("Removing the worktree Alicorn was launched from
 // breaks every wsl.exe spawn for the rest of the session"). The WSL command
 // builders passed `cwd: undefined` meaning "the directory is inside the
 // command", but CreateProcessW reads NULL as "inherit the parent's" — and the

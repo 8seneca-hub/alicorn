@@ -138,7 +138,7 @@ export class OrcaRuntimeWithEmitDaemonPtyTransientFact extends OrcaRuntimeWithSc
     const recordTitle = this.ptysById.get(ptyId)?.lastOscTitle
     const normalizedTitle = tracker?.getLastNormalizedTitle() ?? null
     // Why: a record-fallback snapshot must not replay the bare cursor-agent literal over a
-    // tracker title Orca synthesized from hooks — but with no tracker title it is the pane's
+    // tracker title Alicorn synthesized from hooks — but with no tracker title it is the pane's
     // only Cursor identity, so restored/mobile tabs keep it (#10258).
     const rawTitle =
       recordTitle && (normalizedTitle === null || !isCursorNativeAgentTitle(recordTitle))

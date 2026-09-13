@@ -4,7 +4,7 @@ import { GLOBAL_FLAGS } from '../args'
 export const DIAGNOSTICS_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['diagnostics', 'memory'],
-    summary: 'Collect a memory snapshot for Orca and managed terminals',
+    summary: 'Collect a memory snapshot for Alicorn and managed terminals',
     usage: 'alicorn diagnostics memory [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [

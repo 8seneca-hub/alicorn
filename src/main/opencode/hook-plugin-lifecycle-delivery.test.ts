@@ -1,6 +1,6 @@
 /**
  * Executes the generated OpenCode plugin source because this delivery state
- * lives inside OpenCode's process, not in Orca's TypeScript runtime.
+ * lives inside OpenCode's process, not in Alicorn's TypeScript runtime.
  */
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'

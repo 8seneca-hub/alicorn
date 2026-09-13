@@ -297,10 +297,10 @@ describe('alicorn root help', () => {
     await main([], '/tmp/repo')
 
     expect(logSpy.mock.calls.flat().join('\n')).toContain(
-      'account add               Add a managed Claude or Codex account on this Orca host'
+      'account add               Add a managed Claude or Codex account on this Alicorn host'
     )
     expect(logSpy.mock.calls.flat().join('\n')).toContain(
-      'account list              List managed Claude and Codex accounts on this Orca host'
+      'account list              List managed Claude and Codex accounts on this Alicorn host'
     )
     logSpy.mockRestore()
   })
@@ -339,7 +339,7 @@ describe('alicorn root help', () => {
       'alicorn terminal create --worktree active --command "codex"'
     )
     expect(logSpy.mock.calls[0][0]).toContain(
-      'orchestration worker-start Start a supervised worker locally or on a connected Orca server'
+      'orchestration worker-start Start a supervised worker locally or on a connected Alicorn server'
     )
     expect(logSpy.mock.calls[0][0]).toContain(
       'orchestration ask         Ask the coordinator a blocking question'
@@ -491,13 +491,13 @@ describe('alicorn root help', () => {
     expect(createHelp).not.toContain('checkout/workspace')
     expect(createHelp).not.toContain('caller workspace')
     expect(createHelp).not.toContain('current workspace')
-    expect(createHelp).not.toContain('active Orca workspace')
+    expect(createHelp).not.toContain('active Alicorn workspace')
     expect(createHelp).not.toContain('folderWorkspaceId')
     expect(createHelp).toContain('folder:<id>')
     expect(createHelp).toContain('folder:<folderId>')
     expect(createHelp).toContain('worktree:<worktreeId>')
     expect(createHelp).toContain(
-      '--no-parent only affects Orca lineage; omit --base-branch to use the repo default base'
+      '--no-parent only affects Alicorn lineage; omit --base-branch to use the repo default base'
     )
 
     logSpy.mockClear()

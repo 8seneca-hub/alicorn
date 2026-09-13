@@ -12,7 +12,7 @@ export abstract class BrowserManagerFinal extends BrowserManagerEventForwarding 
     if (!normalizedUrl || normalizedUrl === ALICORN_BROWSER_BLANK_URL) {
       return false
     }
-    // Why: only the renderer owns Orca's worktree/tab model; main forwards a validated URL, never letting guest content mutate it.
+    // Why: only the renderer owns Alicorn's worktree/tab model; main forwards a validated URL, never letting guest content mutate it.
     renderer.send('browser:open-link-in-orca-tab', {
       browserPageId: browserTabId,
       url: normalizedUrl

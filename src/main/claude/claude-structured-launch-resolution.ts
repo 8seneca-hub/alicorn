@@ -45,7 +45,7 @@ export type ClaudeStructuredSdkOptions = Pick<
  * `-p`, `--input-format`, `--output-format` and `--verbose` are implied by
  * `query()`; `--permission-prompt-tool stdio` is emitted because a `canUseTool`
  * callback is supplied. `--replay-user-messages` has no option — the SDK never
- * emits it — and Orca's send acknowledgement depends on the replay.
+ * emits it — and Alicorn's send acknowledgement depends on the replay.
  */
 export const CLAUDE_STRUCTURED_BASE_OPTIONS: ClaudeStructuredSdkOptions = {
   includePartialMessages: true,
@@ -114,7 +114,7 @@ export function claudeSdkOptionsForLaunchArgs(
 }
 
 export type ClaudeStructuredLaunch = {
-  /** Always Orca's resolved user CLI: the SDK's bundled binaries are excluded from the install. */
+  /** Always Alicorn's resolved user CLI: the SDK's bundled binaries are excluded from the install. */
   pathToClaudeCodeExecutable: string
   options: ClaudeStructuredSdkOptions
   cwd: string

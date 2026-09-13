@@ -9,7 +9,7 @@
 // Each Pi process gets its own paneKey through env. Like the OpenCode plugin,
 // the returned source is a string (loaded by jiti from disk inside the pi process), so we
 // keep the source body in plain JS without TS types and avoid pulling pi or
-// any Orca dep into the pi runtime.
+// any Alicorn dep into the pi runtime.
 import type { PiAgentKind } from '../../shared/pi-agent-kind'
 import { getPiAgentStatusHandlerSourceLines } from './agent-status-handler-source'
 import { getPiAgentStatusRuntimeDetectionSourceLines } from './agent-status-runtime-detection-source'
@@ -87,9 +87,9 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
       : '    payload: { hook_event_name: hookEventName, ...metadata, ...extra },'
 
   // Why: keep this string self-contained — it runs inside the pi process,
-  // so it cannot import from Orca's main bundle. fs/http coords come from
+  // so it cannot import from Alicorn's main bundle. fs/http coords come from
   // the same endpoint file the OpenCode plugin reads (process.env is frozen
-  // at PTY spawn, so on Orca restart we have to re-read it from disk).
+  // at PTY spawn, so on Alicorn restart we have to re-read it from disk).
   return [
     '// Why: no package-specific type import here. Pi and OMP expose the same',
     '// extension API, but publish their types under different package names.',
@@ -98,7 +98,7 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     'let warnedBadEndpoint = false',
     '// Why: Pi awaits extension handlers. Status delivery stays off that',
     '// critical path, and the latest-only pending slot prevents a stalled',
-    '// Orca receiver from building an unbounded queue of obsolete snapshots.',
+    '// Alicorn receiver from building an unbounded queue of obsolete snapshots.',
     'const HOOK_POST_TIMEOUT_MS = 1000',
     'let activePost = false',
     'let pendingPost: { hookEventName: string; extra: Record<string, unknown>; metadata: Record<string, unknown>; ompRuntime: boolean } | null = null',
@@ -208,7 +208,7 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     '  const timeoutPromise = new Promise<never>((_resolve, reject) => {',
     '    timeout = setTimeout(() => {',
     '      controller?.abort()',
-    "      reject(new Error('Orca hook delivery timed out'))",
+    "      reject(new Error('Alicorn hook delivery timed out'))",
     '    }, HOOK_POST_TIMEOUT_MS)',
     "    if (typeof timeout.unref === 'function') timeout.unref()",
     '  })',
@@ -226,8 +226,8 @@ export function getPiAgentStatusExtensionSource(kind: PiAgentKind = 'pi'): strin
     '      timeoutPromise,',
     '    ])',
     '  } catch {',
-    '    // Why: status reporting must never fail the pi run just because Orca',
-    '    // is unavailable or the loopback request failed (e.g. Orca restart).',
+    '    // Why: status reporting must never fail the pi run just because Alicorn',
+    '    // is unavailable or the loopback request failed (e.g. Alicorn restart).',
     '    if (!isWslRuntime()) return',
     '    postViaWindowsCurl(body, ompRuntime)',
     '  } finally {',

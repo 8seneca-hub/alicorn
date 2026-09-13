@@ -15,7 +15,7 @@ export function configureBrowserRoutePartitionBindingsForOrcaProfile(options: {
   activeOrcaProfileId = options.orcaProfileId
 }
 
-/** Null before the active Orca profile is known, when no partition can exist yet. */
+/** Null before the active Alicorn profile is known, when no partition can exist yet. */
 export function activeBrowserRoutePartitionOrcaProfileId(): string | null {
   return activeOrcaProfileId
 }

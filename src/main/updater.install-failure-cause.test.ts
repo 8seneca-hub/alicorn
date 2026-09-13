@@ -113,7 +113,7 @@ const DEB_ELEVATION_ERROR =
 
 // electron-updater's ERR_UPDATER_INVALID_SIGNATURE text, which drives its own card in UpdateCard.
 const WINDOWS_SIGNATURE_MISMATCH_ERROR =
-  'New version 1.4.163 is not signed by the application owner: publisherNames: Orca, Inc.'
+  'New version 1.4.163 is not signed by the application owner: publisherNames: Alicorn, Inc.'
 
 type CapturedSpan = {
   readonly name: string
@@ -171,7 +171,7 @@ warmUpdaterModule()
 
 /**
  * On a `.deb` Linux host electron-updater's `install()` catches the failed elevation and
- * re-dispatches it through the 'error' event *synchronously* inside `quitAndInstall()`. Orca
+ * re-dispatches it through the 'error' event *synchronously* inside `quitAndInstall()`. Alicorn
  * recovers the app state, so the payload has to survive on the status and the span has to exit
  * Failure — otherwise the only record of why the install never ran is destroyed (#11906).
  */

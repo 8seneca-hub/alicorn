@@ -24,7 +24,7 @@ const realClaudeAvailable =
   }).status === 0
 const authStatusLaunch = getSpawnArgsForWindows(command, ['auth', 'status', '--json'])
 /** The CLI's own account report — the only source of truth for where it writes that
- *  is not derived from Orca's own path expressions. */
+ *  is not derived from Alicorn's own path expressions. */
 const realClaudeAuthStatus = (() => {
   if (!realClaudeAvailable) {
     return null
@@ -169,7 +169,7 @@ describe.skipIf(!realClaudeAvailable)('Claude structured real CLI handshake', ()
   // Mobile native chat never reads the structured journal — it reads the CLI's own
   // transcript through native-chat/session-file-resolver.ts. So this resolves the way
   // transcript-read-cache.ts:104 does, with NO root override, and checks the answer
-  // against the root the CLI itself reports. Deriving the expected root from Orca's own
+  // against the root the CLI itself reports. Deriving the expected root from Alicorn's own
   // `CLAUDE_CONFIG_DIR || ~/.claude` expression — the same one the code under test uses —
   // would move both sides together and stay green in exactly the environment that
   // blacks mobile out.
@@ -217,7 +217,7 @@ describe.skipIf(!realClaudeAvailable)('Claude structured real CLI handshake', ()
   // adoption evidence, and it arrives on the init frame that opens each turn. This
   // asserts that frame carries the resolved model against the live binary; it goes
   // red the day the CLI stops reporting it, which is the day the confirmation
-  // silently degrades to echoing back whatever Orca sent.
+  // silently degrades to echoing back whatever Alicorn sent.
   it.skipIf(!realClaudeAuthenticated)(
     'reports the model it adopted on the init frame that opens each turn',
     async () => {
@@ -265,7 +265,7 @@ describe.skipIf(!realClaudeAvailable)('Claude structured real CLI handshake', ()
 
         expect(frames).not.toHaveLength(0)
         // Both halves: the field exists, and it names the model the picker asked
-        // for in the catalog's resolved shape rather than the id Orca sent.
+        // for in the catalog's resolved shape rather than the id Alicorn sent.
         expect(frames[0]?.model).toEqual(expect.any(String))
         expect(frames[0]?.model).toBe('claude-haiku-4-5-20251001')
         await expect(

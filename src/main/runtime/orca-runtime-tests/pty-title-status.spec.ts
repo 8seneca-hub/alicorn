@@ -120,7 +120,7 @@ describe('OrcaRuntimeService', () => {
   // Why: this pins the mechanism the refusals below exist for. cursor-agent emits only the
   // bare native title, and the tracker drops it on sight — so a pane can never hold it
   // because Cursor said so *now*. The one route into main's records is the stale-working
-  // clear stripping the spinner off Orca's synthesized title after 3s of quiet output, and
+  // clear stripping the spinner off Alicorn's synthesized title after 3s of quiet output, and
   // that fires whether Cursor parked idle or exited and the shell took the pane back. That
   // is exactly why the title cannot tell a live pane from a dead one.
   it('only records the bare Cursor native title via the stale-working clear', async () => {
@@ -141,7 +141,7 @@ describe('OrcaRuntimeService', () => {
       runtime.onPtyData(ptyId, '\x1b]0;Cursor Agent\x07', 100)
       expect((await runtime.listTerminals()).terminals[0].title).not.toBe('Cursor Agent')
 
-      // Orca's synthesized spinner, then quiet output: the clear strips it to the bare title.
+      // Alicorn's synthesized spinner, then quiet output: the clear strips it to the bare title.
       runtime.onPtyData(ptyId, '\x1b]0;⠋ Cursor Agent\x07', 101)
       runtime.onPtyData(ptyId, 'agent finished; shell prompt returns\r\n', 102)
       await vi.advanceTimersByTimeAsync(3_000)

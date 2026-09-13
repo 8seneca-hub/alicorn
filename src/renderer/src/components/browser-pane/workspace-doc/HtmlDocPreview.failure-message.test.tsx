@@ -190,7 +190,7 @@ describe('HtmlDocPreview failure messages', () => {
     })
 
     expect(container.textContent).toContain(
-      'Orca could not read assets/logo.png from the workspace.'
+      'Alicorn could not read assets/logo.png from the workspace.'
     )
 
     await act(async () => {
@@ -210,7 +210,7 @@ describe('HtmlDocPreview failure messages', () => {
     })
 
     expect(container.textContent).toContain(
-      'Orca could not read assets/logo.png from the workspace.'
+      'Alicorn could not read assets/logo.png from the workspace.'
     )
     expect(container.textContent).not.toContain('files in this document')
   })
@@ -419,7 +419,7 @@ describe('HtmlDocPreview failure messages', () => {
   })
 
   // Why: the document chooses when and how often to ask, so a per-attempt row would let a page
-  // scroll Orca's own chrome off the screen.
+  // scroll Alicorn's own chrome off the screen.
   it('shows one refusal notice however often the document asks', async () => {
     await renderPreview(container, root)
 
@@ -444,7 +444,7 @@ describe('HtmlDocPreview failure messages', () => {
 
     expect(container.textContent).toContain('Downloads are disabled in document previews.')
     expect(container.textContent).toContain(
-      'Orca could not read assets/logo.png from the workspace.'
+      'Alicorn could not read assets/logo.png from the workspace.'
     )
     // The asset count describes files the document could not load; a refusal is not one of them.
     expect(container.textContent).not.toContain('2 files in this document')
@@ -467,7 +467,7 @@ describe('HtmlDocPreview failure messages', () => {
       emitFailure({ grantId: GRANT_ID, relativePath: ENTRY_RELATIVE_PATH, reason: 'unreadable' })
     })
 
-    expect(container.textContent).toContain('Orca could not read this file from the workspace.')
+    expect(container.textContent).toContain('Alicorn could not read this file from the workspace.')
   })
 
   it('ignores a failure minted for another preview tab', async () => {

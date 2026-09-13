@@ -259,7 +259,7 @@ export function hasCachedWslDistros(): boolean {
 
 // Why: report the last observed answer even once it is stale. An empty list is a real
 // probe result, so it must keep driving the `wsl-distro-missing` repair prompt; going
-// null instead fails open and silently spawns `wsl.exe -d <distro>` for a distro Orca
+// null instead fails open and silently spawns `wsl.exe -d <distro>` for a distro Alicorn
 // last saw was absent. Staleness self-corrects — `listWslDistros` re-probes after the
 // retry window and a distro installed since clears the prompt on its own.
 export function getCachedWslDistros(): string[] | null {

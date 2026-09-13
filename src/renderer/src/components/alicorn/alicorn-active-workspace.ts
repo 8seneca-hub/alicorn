@@ -1,7 +1,7 @@
 /**
  * The workspace Alicorn currently has in scope, if any.
  *
- * Orca's right sidebar is keyed to the *active worktree*, which survives everything — deleting a
+ * Alicorn's right sidebar is keyed to the *active worktree*, which survives everything — deleting a
  * project does not unregister a repository, so the file tree happily keeps describing a workspace
  * the product no longer references. On the projects list that reads as a contradiction: "No
  * projects yet" beside a folder listing.

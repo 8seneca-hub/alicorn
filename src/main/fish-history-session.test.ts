@@ -199,7 +199,7 @@ describe('orphaned fish history sweep', () => {
 
 /**
  * A relay host keyed by its CLIENT's worktree ids shares one fish data dir with
- * any desktop Orca on the same machine, whose live set knows nothing of those
+ * any desktop Alicorn on the same machine, whose live set knows nothing of those
  * ids. The name is the only thing that keeps that sweep off remote history.
  */
 describe('relay fish history naming', () => {

@@ -172,7 +172,7 @@ describe('a failed verdict does not outlive its usefulness', () => {
 describe('invalidation', () => {
   it('re-probes after the caller invalidates, so a newly installed tool appears', async () => {
     // A user who installs nvm inside a running distro would otherwise keep the
-    // pre-install PATH until Orca restarts, and read that as the detection bug
+    // pre-install PATH until Alicorn restarts, and read that as the detection bug
     // this cache exists to fix.
     respondWithPayload(GOOD)
     await getWslGuestEnvironment('Ubuntu')

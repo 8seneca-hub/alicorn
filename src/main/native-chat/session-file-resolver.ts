@@ -47,11 +47,11 @@ function claudeProjectsDirs(): string[] {
   return candidates.filter((dir, index) => candidates.indexOf(dir) === index)
 }
 
-// Why: Orca launches Codex with ALICORN_CODEX_HOME pointing at its own managed
+// Why: Alicorn launches Codex with ALICORN_CODEX_HOME pointing at its own managed
 // runtime home, so Orca-started Codex rollout files land under
 // `<managed home>/sessions`, NOT `~/.codex/sessions`. Search the managed home
 // first (that's where this main process's Codex sessions actually live), then
-// fall back to CODEX_HOME/~/.codex so a non-Orca Codex transcript still resolves.
+// fall back to CODEX_HOME/~/.codex so a non-Alicorn Codex transcript still resolves.
 // Duplicates are filtered so a managed-home symlink to ~/.codex isn't scanned twice.
 // WSL roots are a separate lazy tier — see resolveCodexSessionFile.
 // Why: resolveOrcaManagedCodexHomePath avoids the mkdirSync performed by the

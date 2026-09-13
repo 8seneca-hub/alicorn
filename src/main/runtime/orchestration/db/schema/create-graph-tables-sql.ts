@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS dispatch_contexts (
     CHECK(status IN ('pending', 'dispatched', 'completed', 'failed', 'circuit_broken')),
   failure_count       INTEGER NOT NULL DEFAULT 0,
   last_failure        TEXT,
-  -- Why the process is gone, when Orca could establish it. See TerminalExitCause.
+  -- Why the process is gone, when Alicorn could establish it. See TerminalExitCause.
   termination_reason  TEXT,
   -- Nesting depth: a root coordinator's worker is 1, its worker's worker is 2.
   -- Defaults to 1 so an unstamped row fails closed rather than reading as a root.

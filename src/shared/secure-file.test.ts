@@ -259,7 +259,7 @@ describe('hardenSecurePath', () => {
     writeFileSync(targetPath, '{}')
 
     // Simulate the env-store read loop: hardenExistingSecureFile called many times while
-    // another part of Orca writes to the same directory (changing its mtime).
+    // another part of Alicorn writes to the same directory (changing its mtime).
     hardenExistingSecureFile(targetPath)
     await waitForFileTimestampTick()
     // Simulate a write to another file in the same dir (changes dir mtime)

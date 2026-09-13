@@ -21,7 +21,7 @@ export const AGENT_HOOK_METHODS: readonly RpcMethod[] = [
     params: PrepareCodexForWslPaneParams,
     handler: async (params, { runtime, clientKind }) => {
       if (clientKind !== undefined) {
-        throw new Error('Codex hook preparation is only available to the local Orca CLI.')
+        throw new Error('Codex hook preparation is only available to the local Alicorn CLI.')
       }
       const settings = runtime.getClientSettings()
       return await prepareManagedWslCodexHomeBeforeShellLaunch({

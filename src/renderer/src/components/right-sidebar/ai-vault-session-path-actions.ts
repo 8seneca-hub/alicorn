@@ -20,7 +20,7 @@ export function canUseLocalAiVaultSessionPathActions(
 
 /**
  * Whether AI Vault `View Log` / `Open Log` can open this session's log inside
- * Orca as a read-only tab: a non-blank, local, single-file (non-synthetic)
+ * Alicorn as a read-only tab: a non-blank, local, single-file (non-synthetic)
  * path. Remote/runtime and synthetic identities are withheld until AI Vault has
  * a provider-owned log-resource contract.
  */

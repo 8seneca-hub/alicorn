@@ -22,7 +22,7 @@ const temporaryDirectories: string[] = []
 
 const execFileAsync = promisify(execFile)
 
-// Why: hashed with real git, not Orca's tree-sha port — the port validating
+// Why: hashed with real git, not Alicorn's tree-sha port — the port validating
 // itself here would prove nothing about matching the updater lock's hash.
 async function gitTreeShaOf(directory: string): Promise<string> {
   const gitDir = await mkdtemp(join(tmpdir(), 'orca-skill-hash-'))
@@ -661,7 +661,7 @@ describe('read-only skill freshness inventory', () => {
 
   it('reads a plugin-cache copy with untouched official files as current', async () => {
     // The deliberate posture change behind #12694: an unlisted neighbour is not evidence
-    // of an edit, so the bytes Orca owns decide alone — here and in every scope, not just
+    // of an edit, so the bytes Alicorn owns decide alone — here and in every scope, not just
     // the canonical copy the updater writes. The drifted-SKILL.md case above still fails
     // closed, which is what keeps "unrecognized" meaningful.
     const test = await fixture()
@@ -677,7 +677,7 @@ describe('read-only skill freshness inventory', () => {
     )
     await mkdir(withSidecarRoot, { recursive: true })
     await writeFile(join(withSidecarRoot, 'SKILL.md'), test.currentMarkdown)
-    await writeFile(join(withSidecarRoot, 'README.md'), 'Neighbouring file Orca never shipped\n')
+    await writeFile(join(withSidecarRoot, 'README.md'), 'Neighbouring file Alicorn never shipped\n')
 
     const inventory = await inventorySkillFreshness({
       currentAppVersion: '2.0.0',

@@ -1,9 +1,9 @@
 /**
  * Executes the generated OpenCode plugin source (the artifact that runs inside
  * OpenCode's process) to verify streamed message.part.updated events are
- * coalesced and capped before POSTing to Orca's agent-hook server. The
+ * coalesced and capped before POSTing to Alicorn's agent-hook server. The
  * un-throttled plugin re-posted the full accumulated reply per streamed
- * append — O(n²) bytes per turn — which saturated Orca's main + renderer
+ * append — O(n²) bytes per turn — which saturated Alicorn's main + renderer
  * event loops on Windows and froze the UI mid-reply.
  */
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'

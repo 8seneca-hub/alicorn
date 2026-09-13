@@ -46,7 +46,7 @@ function rejectForwardedSkillFilesystem(ctx: HandlerContext, command: string): v
   }
   throw new RuntimeClientError(
     'invalid_environment',
-    `alicorn skills ${command} must run on the machine whose installed skills you want to use. Run the command from an Orca terminal on that machine.`
+    `alicorn skills ${command} must run on the machine whose installed skills you want to use. Run the command from an Alicorn terminal on that machine.`
   )
 }
 
@@ -74,7 +74,7 @@ function requireCloudOperation<T>(operation: SkillCloudOperation<T>): T {
     return operation.value
   }
   if (operation.status === 'reconnect-required') {
-    throw new RuntimeClientError('authentication_required', 'Sign in to Orca and try again.')
+    throw new RuntimeClientError('authentication_required', 'Sign in to Alicorn and try again.')
   }
   throw new RuntimeClientError('authentication_unconfigured', operation.message)
 }
@@ -134,7 +134,7 @@ async function callShare(
     if (error instanceof RuntimeRpcFailureError && error.code === 'method_not_found') {
       throw new RuntimeClientError(
         'update_required',
-        'The connected Orca runtime does not support agent skill sharing yet. Update Orca on that machine and try again.'
+        'The connected Alicorn runtime does not support agent skill sharing yet. Update Alicorn on that machine and try again.'
       )
     }
     throw error

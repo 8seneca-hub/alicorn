@@ -6,7 +6,7 @@ import { AGENT_STATUS_STALE_AFTER_MS, type AgentStatusEntry } from '../../shared
 // Write permission prompt (epoch ms, one capture of two with identical structure):
 //   ...900370  PreToolUse Write
 //   ...900382  title "◐ Claude Code" → "✳ Claude Code"    settle, working→idle
-//   ...900421  PermissionRequest Write                     the hook Orca reports as `waiting`
+//   ...900421  PermissionRequest Write                     the hook Alicorn reports as `waiting`
 //   ...900544  title → "✳ probe2.txt Write tool file"      same idle class, last write
 //   then 31s of silence with the prompt still up.
 // The trailing same-class repaint is the whole defect: it advances lastOscTitleEpochMs

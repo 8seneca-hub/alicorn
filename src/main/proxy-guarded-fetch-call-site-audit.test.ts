@@ -92,53 +92,63 @@ function auditedSourceFiles(mainRoot: string): { file: string; content: string }
 describe('proxy-guarded fetch call-site audit (main)', () => {
   const sources = auditedSourceFiles(__dirname)
 
-  it('keeps every net.fetch/net.request on the guarded default session', () => {
-    const offenders: string[] = []
-    for (const { file, content } of sources) {
-      for (const match of content.matchAll(NET_REQUEST_CALL)) {
-        const args = callArgumentText(content, match.index + match[0].length)
-        if (SESSION_SCOPED_OPTION.test(args)) {
-          offenders.push(`${file}:${content.slice(0, match.index).split('\n').length}`)
+  it(
+    'keeps every net.fetch/net.request on the guarded default session',
+    () => {
+      const offenders: string[] = []
+      for (const { file, content } of sources) {
+        for (const match of content.matchAll(NET_REQUEST_CALL)) {
+          const args = callArgumentText(content, match.index + match[0].length)
+          if (SESSION_SCOPED_OPTION.test(args)) {
+            offenders.push(`${file}:${content.slice(0, match.index).split('\n').length}`)
+          }
         }
       }
-    }
-    expect(
-      offenders.sort(),
-      'This request names its own session/partition, so it is not covered by ' +
-        'installElectronProxyRequestGuard(session.defaultSession) and startup never applies the ' +
-        'persisted proxy to it. Either drop the option, or apply the proxy to that session ' +
-        'yourself (see main/rate-limits/opencode-go-request-session.ts) and allowlist it here.'
-    ).toEqual([])
-  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
+      expect(
+        offenders.sort(),
+        'This request names its own session/partition, so it is not covered by ' +
+          'installElectronProxyRequestGuard(session.defaultSession) and startup never applies the ' +
+          'persisted proxy to it. Either drop the option, or apply the proxy to that session ' +
+          'yourself (see main/rate-limits/opencode-go-request-session.ts) and allowlist it here.'
+      ).toEqual([])
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 
-  it('keeps every non-default-session fetcher audited with its expected count', () => {
-    const found = new Map<string, number>()
-    for (const { file, content } of sources) {
-      const hits = [...content.matchAll(FETCH_CALL)].filter((match) => {
-        const receiver = RECEIVER_IDENTIFIER.exec(content.slice(0, match.index))?.[1]
-        // A chained (`session.fromPartition(...).fetch(`) or member (`ctx.session.fetch(`)
-        // receiver has no bare trailing identifier, and is never the default session.
-        return receiver === undefined || !DEFAULT_SESSION_RECEIVERS.has(receiver)
-      }).length
-      if (hits > 0) {
-        found.set(file, hits)
+  it(
+    'keeps every non-default-session fetcher audited with its expected count',
+    () => {
+      const found = new Map<string, number>()
+      for (const { file, content } of sources) {
+        const hits = [...content.matchAll(FETCH_CALL)].filter((match) => {
+          const receiver = RECEIVER_IDENTIFIER.exec(content.slice(0, match.index))?.[1]
+          // A chained (`session.fromPartition(...).fetch(`) or member (`ctx.session.fetch(`)
+          // receiver has no bare trailing identifier, and is never the default session.
+          return receiver === undefined || !DEFAULT_SESSION_RECEIVERS.has(receiver)
+        }).length
+        if (hits > 0) {
+          found.set(file, hits)
+        }
       }
-    }
 
-    const drifted = [...found]
-      .filter(([file, count]) => AUDITED_NON_NET_FETCH_CALLS.get(file) !== count)
-      .map(([file, count]) => `${file}: found ${count} call(s)`)
-      .sort()
-    expect(
-      drifted,
-      'A session.fromPartition(...) session is not covered by ' +
-        'installElectronProxyRequestGuard(session.defaultSession), so nothing holds its requests ' +
-        'until the proxy lands and startup never applies the proxy to it. Apply the proxy to that ' +
-        'session yourself (see main/rate-limits/opencode-go-request-session.ts), then update ' +
-        'AUDITED_NON_NET_FETCH_CALLS.'
-    ).toEqual([])
+      const drifted = [...found]
+        .filter(([file, count]) => AUDITED_NON_NET_FETCH_CALLS.get(file) !== count)
+        .map(([file, count]) => `${file}: found ${count} call(s)`)
+        .sort()
+      expect(
+        drifted,
+        'A session.fromPartition(...) session is not covered by ' +
+          'installElectronProxyRequestGuard(session.defaultSession), so nothing holds its requests ' +
+          'until the proxy lands and startup never applies the proxy to it. Apply the proxy to that ' +
+          'session yourself (see main/rate-limits/opencode-go-request-session.ts), then update ' +
+          'AUDITED_NON_NET_FETCH_CALLS.'
+      ).toEqual([])
 
-    const stale = [...AUDITED_NON_NET_FETCH_CALLS.keys()].filter((file) => !found.has(file)).sort()
-    expect(stale, 'Remove audited entries whose .fetch( calls are gone.').toEqual([])
-  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
+      const stale = [...AUDITED_NON_NET_FETCH_CALLS.keys()]
+        .filter((file) => !found.has(file))
+        .sort()
+      expect(stale, 'Remove audited entries whose .fetch( calls are gone.').toEqual([])
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 })

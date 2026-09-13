@@ -122,12 +122,12 @@ function normalizeWindowsSkillUpdateCommand(
 
 /**
  * Where a built skill command is going: the user's clipboard (their own shell)
- * or the setup terminal Orca spawns itself.
+ * or the setup terminal Alicorn spawns itself.
  */
 type SkillCommandTarget = 'copied-command' | 'orca-setup-terminal'
 
 /**
- * Adapts a copied skill command for Orca's inline setup terminal auto-paste.
+ * Adapts a copied skill command for Alicorn's inline setup terminal auto-paste.
  * Host Windows installs may gain an npx preflight; WSL-targeted PowerShell wrappers
  * must become bash-native because the daemon forces wsl.exe for WSL worktrees.
  */

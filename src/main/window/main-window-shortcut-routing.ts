@@ -127,7 +127,7 @@ export function installMainWindowShortcutRouting(args: {
     }
 
     if (isMacAppPasteInput(input)) {
-      // Why: chat/terminal panes hold focus without native editable controls, so route Cmd+V through Orca's paste ownership.
+      // Why: chat/terminal panes hold focus without native editable controls, so route Cmd+V through Alicorn's paste ownership.
       event.preventDefault()
       mainWindow.webContents.send('ui:appMenuPaste')
       return

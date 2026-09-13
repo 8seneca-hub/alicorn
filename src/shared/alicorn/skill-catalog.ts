@@ -5,7 +5,7 @@ export const SKILL_SCOPES = ['member', 'project', 'org'] as const
 
 /**
  * PS1's third scope. `org` is the admin-authored catalog, `project` is a repo-committed skill dir
- * Orca already discovers, `member` is the member's own — the only one with no catalog id, which is
+ * Alicorn already discovers, `member` is the member's own — the only one with no catalog id, which is
  * exactly what keeps it unnameable by a stage check.
  *
  * The catalog itself only knows `org | project`; `member` exists only in a resolved list.

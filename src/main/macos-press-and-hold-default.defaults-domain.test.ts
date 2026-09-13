@@ -22,7 +22,7 @@ import {
  * is distinguishable from one explicitly set to `false`. Electron's `systemPreferences` cannot tell
  * them apart, so if `defaults` could not either, "only write when unset" would be unimplementable.
  *
- * Every domain used here is a throwaway UUID under Orca's own prefix, deleted along with its plist
+ * Every domain used here is a throwaway UUID under Alicorn's own prefix, deleted along with its plist
  * in `afterEach`; the real `com.stablyai.orca` domain is never read or written.
  */
 

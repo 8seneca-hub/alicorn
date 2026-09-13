@@ -13,10 +13,10 @@ export type GetStatusOptions = GitRuntimeOptions & {
    */
   limit?: number
   bypassEffectiveUpstreamNegativeCache?: boolean
-  /** Paths Orca may have symlinked into this worktree (per-user shared paths
+  /** Paths Alicorn may have symlinked into this worktree (per-user shared paths
    *  plus `orca.yaml` shared directories). Untracked entries that are one of
    *  these *and* really symlinks are dropped: Git cannot ignore them when the
-   *  repo's rule is directory-only (`node_modules/`), but they are Orca's own
+   *  repo's rule is directory-only (`node_modules/`), but they are Alicorn's own
    *  artifacts, not user work. */
   sharedLinkPaths?: readonly string[]
 }

@@ -123,7 +123,7 @@ describe('resolveSkillProviderDestinations', () => {
     ).toThrow('skill-install-provider-root-collision')
   })
 
-  it('ignores agents Orca cannot place skills for', () => {
+  it('ignores agents Alicorn cannot place skills for', () => {
     expect(
       resolveSkillProviderDestinations({
         scope: 'global',

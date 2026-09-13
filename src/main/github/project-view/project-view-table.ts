@@ -122,7 +122,7 @@ export async function getProjectViewTable(
       ok: false,
       error: {
         type: 'unsupported_layout',
-        message: `Orca only renders table views. This is a ${selectedView.layout.replace('_LAYOUT', '').toLowerCase()} view.`
+        message: `Alicorn only renders table views. This is a ${selectedView.layout.replace('_LAYOUT', '').toLowerCase()} view.`
       },
       ...(typeof count === 'number' ? { totalCount: count } : {})
     }

@@ -3,7 +3,7 @@ import { createProcessTableSnapshotReader } from '../../shared/process-table-sna
 import { readWindowsProcessRowsWithCim } from './windows-process-table-cim-scan'
 
 /**
- * The only place Orca reads the Windows process table.
+ * The only place Alicorn reads the Windows process table.
  *
  * Every previous reader forked `powershell.exe` to run a `Get-CimInstance
  * Win32_Process` scan (with a `wmic` fallback that Windows 11 24H2 has

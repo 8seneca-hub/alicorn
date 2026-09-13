@@ -32,10 +32,10 @@ export const FEATURE_WALL_SETUP_STEPS: readonly FeatureWallSetupStep[] = [
   },
   {
     id: 'browser',
-    name: "Use Orca's browser",
-    subtitle: "Use Orca's browser",
+    name: "Use Alicorn's browser",
+    subtitle: "Use Alicorn's browser",
     description:
-      'Browse your web app without leaving Orca. Grab any element and send its exact source and styles to an agent with one click.'
+      'Browse your web app without leaving Alicorn. Grab any element and send its exact source and styles to an agent with one click.'
   },
   {
     id: 'notifications',
@@ -51,10 +51,10 @@ export const FEATURE_WALL_SETUP_STEPS: readonly FeatureWallSetupStep[] = [
   },
   {
     id: 'agent-capabilities',
-    name: 'Enable Orca CLI',
-    subtitle: 'Enable Orca CLI',
+    name: 'Enable Alicorn CLI',
+    subtitle: 'Enable Alicorn CLI',
     description:
-      'Register the Orca shell command and install agent skills for browser, computer, and orchestration workflows.'
+      'Register the Alicorn shell command and install agent skills for browser, computer, and orchestration workflows.'
   },
   {
     id: 'task-sources',
@@ -74,7 +74,7 @@ export const FEATURE_WALL_SETUP_STEPS: readonly FeatureWallSetupStep[] = [
     name: 'Start work in multiple repos',
     subtitle: 'Start work in multiple repos',
     description:
-      'Bring your key repos into Orca so you can start agent work without hunting for folders.'
+      'Bring your key repos into Alicorn so you can start agent work without hunting for folders.'
   }
 ] as const
 

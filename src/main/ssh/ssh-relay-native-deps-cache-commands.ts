@@ -77,7 +77,7 @@ export function ensureRelayNativeDepsCacheCommand(
   deps: Readonly<Record<string, string>>
 ): string {
   const { entry, target, nodeModules, root } = cachePaths(paths)
-  // Why grep the sibling's manifest: an older Orca pinned different versions, and a
+  // Why grep the sibling's manifest: an older Alicorn pinned different versions, and a
   // toolchain-skip host wrote one with node-pty removed. Both must fail to qualify.
   const depGuards = Object.entries(deps).map(
     ([name, version]) => `grep -F -q ${shellEscape(`"${name}":"${version}"`)} "$pj" || continue`

@@ -91,7 +91,7 @@ import { createHostedReview } from './hosted-review-creation'
 // Why: a directory-only ignore rule (`node_modules/`) never matches the
 // worktree's symlink, so Git reports it untracked. Without the exclusion the
 // dirty preflight blocks Create PR and tells the user to commit an entry they
-// cannot commit — it is a symlink Orca created.
+// cannot commit — it is a symlink Alicorn created.
 describe('createHostedReview with shared symlinks', () => {
   let worktree: string
   let statusOutput: string
@@ -217,7 +217,7 @@ describe('createHostedReview with shared symlinks', () => {
     expect(createGitHubPullRequestMock).not.toHaveBeenCalled()
   })
 
-  // Why: only an *untracked* record can be Orca's artifact. A tracked change at a
+  // Why: only an *untracked* record can be Alicorn's artifact. A tracked change at a
   // declared path is committable work, so waving it through would create a review
   // off a branch missing it.
   it('still blocks on a tracked change at the declared shared path', async () => {

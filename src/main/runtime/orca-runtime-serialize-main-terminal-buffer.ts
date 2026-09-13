@@ -96,7 +96,7 @@ export class OrcaRuntimeWithSerializeMainTerminalBuffer extends OrcaRuntimeWithA
     )
   }
 
-  // Why: daemon-backed PTYs that the runtime adopted after an Orca relaunch
+  // Why: daemon-backed PTYs that the runtime adopted after an Alicorn relaunch
   // start with a fresh headless emulator that has zero scrollback, even though
   // the daemon's on-disk checkpoint and the desktop xterm both contain the
   // full prior history. Without this hydration, mobile subscribers see only

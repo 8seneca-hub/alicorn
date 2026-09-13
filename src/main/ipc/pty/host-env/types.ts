@@ -14,7 +14,7 @@ export type BuildPtyHostEnvOptions = {
   selectedCodexHomePath: string | null
   skipCodexHomeEnv?: boolean
   /** System-default real-home routing (flag ON): inject no managed CODEX_HOME,
-   *  and strip only an inherited Orca-owned override so nested Orca panes do not
+   *  and strip only an inherited Orca-owned override so nested Alicorn panes do not
    *  leak the parent's managed home. A user-set CODEX_HOME is preserved. */
   stripInheritedOrcaCodexHome?: boolean
   /** Launch command the renderer chose (e.g. 'pi', 'omp', 'claude'); resolves the per-agent
@@ -29,7 +29,7 @@ export type BuildPtyHostEnvOptions = {
   agentStatusHooksEnabled: boolean
   codexStatusHooksEnabled?: boolean
   networkProxySettings?: NetworkProxySettings
-  /** Headless paired runtimes hand browser launches to the client-hosted Orca browser. */
+  /** Headless paired runtimes hand browser launches to the client-hosted Alicorn browser. */
   routeBrowserOpensToClient?: boolean
   /** Keep indexed Git config off the sparse daemon wire; the daemon appends guard entries after merging its inherited env. */
   deferGitConfigGuardToDaemon?: boolean

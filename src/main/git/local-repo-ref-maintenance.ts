@@ -167,9 +167,9 @@ function refsDirectoryForMainProcess(commonDir: string, wslDistro: string | unde
 
 /**
  * `maintenance.auto=false` and `gc.auto=0` are the two knobs a user reaches for
- * to tell Git to stop maintaining a repository on its own. Orca sets both on its
+ * to tell Git to stop maintaining a repository on its own. Alicorn sets both on its
  * own fetches, but only as per-invocation `-c` flags, so this probe sees the
- * user's persisted config and never Orca's own suppression.
+ * user's persisted config and never Alicorn's own suppression.
  */
 export function isGitAutoMaintenanceDisabled(configOutput: string): boolean {
   return configOutput

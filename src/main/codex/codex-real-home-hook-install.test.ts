@@ -117,7 +117,7 @@ describe('ensureRealHomeCodexHookState (install)', () => {
     ).resolves.toBe('removed')
   })
 
-  it('creates hooks.json with the Orca entry in every managed event for a fresh home', async () => {
+  it('creates hooks.json with the Alicorn entry in every managed event for a fresh home', async () => {
     grantSucceeds()
 
     const lane = await ensureRealHomeCodexHookState({
@@ -390,7 +390,7 @@ describe('ensureRealHomeCodexHookState (install)', () => {
     expect(plan.managedEntries.find((entry) => entry.eventLabel === 'stop')?.groupIndex).toBe(1)
   })
 
-  it("keeps later user handler trust positions stable inside Orca's hook group", async () => {
+  it("keeps later user handler trust positions stable inside Alicorn's hook group", async () => {
     grantSucceeds()
     await ensureRealHomeCodexHookState({ hooksEnabled: true, userDataPath: userDataDir })
     const installed = readRealHooksJson()
@@ -427,7 +427,7 @@ describe('ensureRealHomeCodexHookState (opt-out sweep)', () => {
     expect(readFileSync(getRealHooksJsonPath(), 'utf-8')).toBe('{ not json')
   })
 
-  it('rebases trust when a user appended hooks after Orca installed', async () => {
+  it('rebases trust when a user appended hooks after Alicorn installed', async () => {
     grantSucceeds()
     const before = { type: 'command', command: 'before.sh' }
     writeFileSync(
@@ -483,7 +483,7 @@ describe('ensureRealHomeCodexHookState (opt-out sweep)', () => {
     const operations: string[] = []
     rebaseInternals.setSessionRunner(async (request) => {
       operations.push(request.operation)
-      // A user save (or a second Orca instance) lands while the RPC runs.
+      // A user save (or a second Alicorn instance) lands while the RPC runs.
       writeFileSync(getRealHooksJsonPath(), concurrentSave, 'utf-8')
       return {
         outcome: 'inspected',
@@ -505,7 +505,7 @@ describe('ensureRealHomeCodexHookState (opt-out sweep)', () => {
     expect(readFileSync(getRealConfigTomlPath(), 'utf-8')).toBe(userTrustToml)
   })
 
-  it('removes only Orca entries and reports the removed lane', async () => {
+  it('removes only Alicorn entries and reports the removed lane', async () => {
     grantSucceeds()
     const userStop = {
       matcher: 'deploy-*',
@@ -546,7 +546,7 @@ describe('ensureRealHomeCodexHookState (opt-out sweep)', () => {
     expect(existsSync(getRealHooksJsonPath())).toBe(false)
   })
 
-  it('removes only hash-proven Orca trust from a mixed hook group', async () => {
+  it('removes only hash-proven Alicorn trust from a mixed hook group', async () => {
     const material = getCodexManagedHookInstallMaterial()
     const userCommand = 'my-user-hook.sh'
     writeFileSync(

@@ -164,7 +164,7 @@ async function captureSnapshot(
   )
   if (capture === 'failed') {
     throw new Error(
-      `Could not snapshot ${options.userDataDir} before activating ${fullVersion}. Orca's ` +
+      `Could not snapshot ${options.userDataDir} before activating ${fullVersion}. Alicorn's ` +
         'persisted state carries no schema version, so without a snapshot a rollback has no ' +
         'way back. Refusing to activate.'
     )

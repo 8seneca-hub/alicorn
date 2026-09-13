@@ -100,7 +100,7 @@ describe('foreman preamble sections', () => {
 
     // The coordinator writes two columns; a lead that does not know which will either fight it or
     // stop filling the rest.
-    it('says which plan columns Orca writes and which belong to the lead', () => {
+    it('says which plan columns Alicorn writes and which belong to the lead', () => {
       expect(text).toContain('Status and Dispatch columns')
       expect(text).toContain('Title, Owner, Depends on, Model and Files are yours')
     })

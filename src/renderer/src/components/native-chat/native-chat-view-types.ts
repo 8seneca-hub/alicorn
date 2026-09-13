@@ -21,7 +21,7 @@ export type NativeChatBridgeViewProps = NativeChatOrchestrationProps & {
   paneKey?: string
   /** PTY bound to `paneKey`, used for composer and interactive-card sends. */
   targetPtyId?: string | null
-  /** Launch-time agent hint from the TerminalTab, when Orca started one. */
+  /** Launch-time agent hint from the TerminalTab, when Alicorn started one. */
   launchAgent?: TuiAgent | null
   /** Trusted title/foreground fallback for manually-started agents. */
   resolvedAgent?: TuiAgent | null

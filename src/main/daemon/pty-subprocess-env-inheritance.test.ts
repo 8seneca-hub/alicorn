@@ -119,7 +119,7 @@ describe('createPtySubprocess', () => {
     )
   })
 
-  it('does not inherit parent Orca pane identity when caller omits pane env', async () => {
+  it('does not inherit parent Alicorn pane identity when caller omits pane env', async () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
     const saved = {
@@ -149,7 +149,7 @@ describe('createPtySubprocess', () => {
     expect(env.ALICORN_WORKTREE_ID).toBeUndefined()
   })
 
-  it('preserves explicit child Orca pane identity over parent env', async () => {
+  it('preserves explicit child Alicorn pane identity over parent env', async () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
     const saved = {
@@ -192,7 +192,7 @@ describe('createPtySubprocess', () => {
     // fish EXPORTS fish_history, so a daemon started from a fish pane would hand
     // every session the launching worktree's history file (STA-4682). Only the
     // name this spawn asked for — the isolated one, or the user's — may stand.
-    ['drops an inherited Orca fish_history', undefined, undefined],
+    ['drops an inherited Alicorn fish_history', undefined, undefined],
     ['keeps the session this spawn injected', 'orca_c0ffee', 'orca_c0ffee'],
     ['keeps a caller-supplied value', 'mine', 'mine']
   ])('%s', async (_name, requested, expected) => {
@@ -219,9 +219,9 @@ describe('createPtySubprocess', () => {
   })
 
   it.each([
-    // HISTFILE is exported too, so a daemon started from an Orca pane would hand
+    // HISTFILE is exported too, so a daemon started from an Alicorn pane would hand
     // every session the launching worktree's history file.
-    ['drops an inherited Orca HISTFILE', undefined, undefined],
+    ['drops an inherited Alicorn HISTFILE', undefined, undefined],
     [
       'keeps the path this spawn injected',
       '/fake/userData/terminal-history/00112233445566aa/zsh_history',
@@ -253,10 +253,10 @@ describe('createPtySubprocess', () => {
 
   it.each([
     // ALICORN_HISTFILE is exported into every pane, so a daemon started from an
-    // Orca pane inherits one. Left in place it BOTH re-scopes the pane to
+    // Alicorn pane inherits one. Left in place it BOTH re-scopes the pane to
     // another worktree's history file (#11146) and wraps a zsh pane nothing
     // asked to wrap, since `history` is selected on its presence.
-    ['drops an inherited Orca ALICORN_HISTFILE', undefined, undefined],
+    ['drops an inherited Alicorn ALICORN_HISTFILE', undefined, undefined],
     [
       'keeps the path this spawn injected',
       '/fake/userData/terminal-history/00112233445566aa/zsh_history',
@@ -286,7 +286,7 @@ describe('createPtySubprocess', () => {
 
     const env = spawnMock.mock.calls.at(-1)?.[2].env
     expect(env.ALICORN_HISTFILE).toBe(expected)
-    // The wrapping consequence: no inherited value may point a pane at Orca's
+    // The wrapping consequence: no inherited value may point a pane at Alicorn's
     // ZDOTDIR that the client scoped no history for.
     expect(env.ALICORN_SHELL_FEATURES).toBe(expected === undefined ? undefined : 'history')
   })
@@ -378,8 +378,8 @@ describe('createPtySubprocess', () => {
   })
 
   it('does not inherit NODE_ENV from the daemon process env', async () => {
-    // Why: a dev-mode Orca forks the daemon with NODE_ENV=development; leaking
-    // Orca's build mode into user shells breaks `next build` and Vitest.
+    // Why: a dev-mode Alicorn forks the daemon with NODE_ENV=development; leaking
+    // Alicorn's build mode into user shells breaks `next build` and Vitest.
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
     const previous = process.env.NODE_ENV

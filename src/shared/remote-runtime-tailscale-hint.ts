@@ -11,8 +11,11 @@ const TAILSCALE_DOWNLOAD_URL = 'https://tailscale.com/download'
 
 // Why: only the "runtime is unreachable" family of failures has a Tailscale
 // remedy; auth/protocol errors pass through untouched.
+// Both brands on purpose: the local copy says "Alicorn runtime" now, but a paired server running
+// an older build still sends the Orca wording over the wire, and dropping it would silently stop
+// offering the hint to exactly the mixed-version pairing that most needs it.
 const REMOTE_RUNTIME_UNREACHABLE_RE =
-  /could not connect to the remote orca runtime|remote orca runtime closed the connection|timed out (?:waiting for|while connecting to) the remote orca runtime/i
+  /could not connect to the remote (?:orca|alicorn) runtime|remote (?:orca|alicorn) runtime closed the connection|timed out (?:waiting for|while connecting to) the remote (?:orca|alicorn) runtime/i
 
 const TAILSCALE_MAGIC_DNS_SUFFIX_RE = /(?:^|\.)ts\.net$/i
 // Why: gate the CGNAT check on a full IPv4 literal — the range regex alone also

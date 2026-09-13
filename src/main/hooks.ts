@@ -62,7 +62,7 @@ const RECOGNIZED_ORCA_YAML_KEYS = new Set([
   'worktree'
 ])
 
-/** True when `orca.yaml` has a top-level key this version of Orca does not handle. */
+/** True when `orca.yaml` has a top-level key this version of Alicorn does not handle. */
 export function hasUnrecognizedOrcaYamlKeys(repoPath: string): boolean {
   try {
     const content = readFileSync(join(repoPath, 'orca.yaml'), 'utf-8')

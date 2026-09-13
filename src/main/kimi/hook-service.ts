@@ -67,8 +67,8 @@ function getManagedScript(target: 'local' | 'posix' = 'local'): string {
   // the capture owns stdin. POSIX callers close stdin (#8110), so posix keeps capture-first.
   const windowsLocal = target === 'local' && process.platform === 'win32'
   const endpointRefreshAndGuard = [
-    // Why: refresh PORT/TOKEN/ENV/VERSION from the current Orca install so a PTY
-    // that survived an Orca restart still reaches the live listener. See
+    // Why: refresh PORT/TOKEN/ENV/VERSION from the current Alicorn install so a PTY
+    // that survived an Alicorn restart still reaches the live listener. See
     // claude/hook-service.ts for the full rationale.
     'if [ -n "$ALICORN_AGENT_HOOK_ENDPOINT" ] && [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ]; then',
     '  . "$ALICORN_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
@@ -218,7 +218,7 @@ export class KimiHookService {
     return this.getStatus()
   }
 
-  // Why: install Orca's managed Kimi hooks on a remote box over SFTP, mirroring
+  // Why: install Alicorn's managed Kimi hooks on a remote box over SFTP, mirroring
   // the local install. POSIX-only by design (Kimi's shell is sh/Git Bash); the
   // managed script body is already platform-independent.
   async installRemote(sftp: SFTPWrapper, remoteHome: string): Promise<AgentHookInstallStatus> {

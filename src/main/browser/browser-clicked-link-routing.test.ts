@@ -64,7 +64,7 @@ describe('browser clicked-link routing', () => {
     vi.restoreAllMocks()
   })
 
-  it('routes plain target=_blank links into a new Orca tab', () => {
+  it('routes plain target=_blank links into a new Alicorn tab', () => {
     const link = document.createElement('a')
     link.href = 'https://docs.example.com/guide'
     link.target = '_blank'
@@ -198,7 +198,7 @@ describe('browser clicked-link routing', () => {
     expect(script).not.toContain('BrowserClickedLinkRoutingState')
   })
 
-  it('routes plain iframe target=_blank links into a new Orca tab', () => {
+  it('routes plain iframe target=_blank links into a new Alicorn tab', () => {
     const link = document.createElement('a')
     link.href = 'https://example.com/from-frame'
     link.target = '_blank'

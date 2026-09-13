@@ -23,7 +23,7 @@ function link(pid: number, ppid: number): { pid: number; ppid: number } {
   return { pid, ppid }
 }
 
-/** Windows: services.exe → svchost.exe, a chain that never reaches Orca. */
+/** Windows: services.exe → svchost.exe, a chain that never reaches Alicorn. */
 const SYSTEM_CHAIN = [link(4, 0), link(700, 4), link(900, 700)]
 
 describe('classifyWindowsTreeKillTarget', () => {
@@ -34,12 +34,12 @@ describe('classifyWindowsTreeKillTarget', () => {
 
   it('accepts a winpty shell reached through the winpty-agent hop', () => {
     // node-pty falls back to winpty below Windows build 18309, so the shell's
-    // parent is winpty-agent.exe rather than Orca itself.
+    // parent is winpty-agent.exe rather than Alicorn itself.
     const rows = [link(ALICORN_PID, 900), link(6100, ALICORN_PID), link(4242, 6100)]
     expect(classifyWindowsTreeKillTarget(4242, rows, ALICORN_PID)).toBe('own')
   })
 
-  it('documents that a recycled PID under another Orca pane still classifies as own', () => {
+  it('documents that a recycled PID under another Alicorn pane still classifies as own', () => {
     // Dead PTY root 4242 recycled as a tool under a different pane's agent tree.
     // Ancestry still reaches us, so taskkill is allowed — wrong process, own tree.
     // Closing this needs spawn-time CreationDate / Job Object (#10680).
@@ -68,7 +68,7 @@ describe('classifyWindowsTreeKillTarget', () => {
     expect(classifyWindowsTreeKillTarget(4242, rows, ALICORN_PID)).toBe('foreign')
   })
 
-  it('rejects a chain longer than the ConPTY/winpty depth even if Orca is above it', () => {
+  it('rejects a chain longer than the ConPTY/winpty depth even if Alicorn is above it', () => {
     const rows = [
       link(ALICORN_PID, 900),
       link(10, ALICORN_PID),

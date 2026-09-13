@@ -208,9 +208,9 @@ describe('LocalPtyProvider', () => {
     })
 
     it.each([
-      // fish EXPORTS fish_history, so an Orca launched from a fish pane hands every
+      // fish EXPORTS fish_history, so an Alicorn launched from a fish pane hands every
       // pane the LAUNCHING worktree's session — even with isolation off (STA-4682).
-      ['an inherited Orca session', 'orca_abc123', undefined],
+      ['an inherited Alicorn session', 'orca_abc123', undefined],
       ['a user value', 'mine', 'mine']
     ])('history isolation off: %s', async (_kind, inherited, expected) => {
       const previous = process.env.fish_history
@@ -230,10 +230,10 @@ describe('LocalPtyProvider', () => {
     })
 
     it.each([
-      // HISTFILE is exported, so an Orca launched from a pane in another worktree
+      // HISTFILE is exported, so an Alicorn launched from a pane in another worktree
       // hands every pane that worktree's history file — isolation off included.
       [
-        'an inherited Orca path',
+        'an inherited Alicorn path',
         '/fake/userData/terminal-history/aabbccddeeff0011/zsh_history',
         undefined
       ],
@@ -255,8 +255,8 @@ describe('LocalPtyProvider', () => {
       expect(spawnMock.mock.calls.at(-1)![2].env.HISTFILE).toBe(expected)
     })
 
-    it('does not inherit NODE_ENV from the Orca process env', async () => {
-      // Why: NODE_ENV in Orca's process is Orca's build mode (electron-vite sets
+    it('does not inherit NODE_ENV from the Alicorn process env', async () => {
+      // Why: NODE_ENV in Alicorn's process is Alicorn's build mode (electron-vite sets
       // `development` in dev runs); leaking it breaks `next build` and Vitest.
       const previous = process.env.NODE_ENV
       process.env.NODE_ENV = 'development'
@@ -327,7 +327,7 @@ describe('LocalPtyProvider', () => {
     it('honors explicit terminal env overrides after deleting requested defaults', async () => {
       provider.configure({
         buildSpawnEnv: (_id, env) => {
-          env.TERM_PROGRAM = 'Orca'
+          env.TERM_PROGRAM = 'Alicorn'
           env.ALICORN_STALE_TEST_ENV = '/tmp/orca-stale'
           env.PATH = `/tmp/orca-stale:${env.PATH ?? ''}`
           return env
@@ -559,7 +559,7 @@ describe('LocalPtyProvider', () => {
       expect(spawnEnv.Path.split(':')[0]).toBe('/tmp/orca-agent-teams-bin')
     })
 
-    it('does not inherit parent Orca pane identity when caller omits pane env', async () => {
+    it('does not inherit parent Alicorn pane identity when caller omits pane env', async () => {
       const saved = {
         ALICORN_PANE_KEY: process.env.ALICORN_PANE_KEY,
         ALICORN_TAB_ID: process.env.ALICORN_TAB_ID,
@@ -587,7 +587,7 @@ describe('LocalPtyProvider', () => {
       expect(spawnCall[2].env.ALICORN_WORKTREE_ID).toBeUndefined()
     })
 
-    it('preserves explicit child Orca pane identity over parent env', async () => {
+    it('preserves explicit child Alicorn pane identity over parent env', async () => {
       const saved = {
         ALICORN_PANE_KEY: process.env.ALICORN_PANE_KEY,
         ALICORN_TAB_ID: process.env.ALICORN_TAB_ID,

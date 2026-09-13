@@ -119,7 +119,7 @@ describe('Endpoint file lifecycle', () => {
   })
 
   it('leaves the endpoint file in place on stop()', async () => {
-    // Why: stop() leaves the file (stale = fail-open); unlinking would race a concurrent Orca instance rewriting it between token-check and unlink (TOCTOU).
+    // Why: stop() leaves the file (stale = fail-open); unlinking would race a concurrent Alicorn instance rewriting it between token-check and unlink (TOCTOU).
     const server = new AgentHookServer()
     await server.start({ env: 'production', userDataPath })
     const filePath = server.endpointFilePath!

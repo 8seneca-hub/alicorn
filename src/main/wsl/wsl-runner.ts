@@ -7,7 +7,7 @@ import { getWslGuestEnvironment, type WslGuestEnvironment } from './wsl-guest-en
 import { resolveWslExecutablePath } from './wsl-executable-path'
 
 /**
- * The single place Orca runs a program inside WSL.
+ * The single place Alicorn runs a program inside WSL.
  *
  * Five things have to be decided per call -- separator, shell, stdout fencing,
  * WSLENV, payload transport -- and each has shipped wrong: #12964, #14288 /
@@ -73,7 +73,7 @@ export type WslSpec = WslCommand & {
   timeoutMs?: number
   maxOutputBytes?: number
   /**
-   * Kills the `wsl.exe` Orca spawned, not just the promise: `runProcess` signals it and SIGKILLs
+   * Kills the `wsl.exe` Alicorn spawned, not just the promise: `runProcess` signals it and SIGKILLs
    * it after its grace. Proven against a real spawned process in wsl-runner-cancellation.test.ts,
    * because a test asserting only that the promise settled passes with the child still running.
    *
@@ -239,7 +239,7 @@ export async function runWslProcess(spec: WslSpec): Promise<WslResult> {
   // prepended after this point and are part of the same budget.
   const fullLine = [resolveWslExecutablePath(), ...buildWslExecArgs(spec.distro, argvForm)]
   // Argv is the default, but it has a hard ceiling that stdin does not. A user's
-  // `orca.yaml` hook is the one unbounded script Orca runs, so past the cap the
+  // `orca.yaml` hook is the one unbounded script Alicorn runs, so past the cap the
   // choice is between failing to spawn at all and accepting the stdin caveat.
   const delivery: 'argv' | 'stdin' =
     spec.script !== undefined && commandLineLength(fullLine) > MAX_COMMAND_LINE_CHARS
@@ -254,7 +254,7 @@ export async function runWslProcess(spec: WslSpec): Promise<WslResult> {
     program: resolveWslExecutablePath(),
     args: buildWslExecArgs(spec.distro, argv),
     // Name a Windows directory rather than inheriting one: an inherited cwd that
-    // is later deleted (the worktree Orca launched from) fails every later spawn
+    // is later deleted (the worktree Alicorn launched from) fails every later spawn
     // (#16463). Never the guest cwd -- withGuestCwd still cds inside.
     cwd: resolveWslInteropSpawnCwd(),
     env: buildHostEnv(spec.env),

@@ -21,7 +21,7 @@ export abstract class CodexRuntimeHomeLaunch extends CodexRuntimeHomeRouting {
       settings.codexManagedAccounts,
       normalizeCodexRuntimeSelection(settings).host
     )
-    // Why: WSL-managed homes never touch host ~/.codex; treating one as "last synced" makes cold start mangle host auth Orca never touched.
+    // Why: WSL-managed homes never touch host ~/.codex; treating one as "last synced" makes cold start mangle host auth Alicorn never touched.
     this.lastSyncedAccountId = this.getWslManagedHomePath(activeAccount)
       ? null
       : normalizeCodexRuntimeSelection(settings).host
@@ -55,7 +55,7 @@ export abstract class CodexRuntimeHomeLaunch extends CodexRuntimeHomeRouting {
         return perAccountHome
       }
       // Why: only an untrusted home clears the selection; fall through to the
-      // system default without injecting a path Orca cannot prove it owns.
+      // system default without injecting a path Alicorn cannot prove it owns.
     }
     if (this.isHostSystemDefaultRealHome(launchEnv)) {
       // Why: the system default runs Codex on the user's own ~/.codex.

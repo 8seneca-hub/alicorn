@@ -9,6 +9,7 @@ import type {
   TerminalCreateSurfacingScenario,
   TerminalCreateSurfacingStore
 } from './ipc-events-terminal-create-scenario-types'
+import { translate } from '@/i18n/i18n'
 
 // Why: the terminal-create surfacing scenario is one long ordered assertion run;
 // its store/window/mock wiring lives here so the assertions stay under budget.
@@ -39,7 +40,7 @@ export async function setupTerminalCreateSurfacing(
   const createFloatingWorkspaceTerminalTab = vi.fn()
   const createWebRuntimeSessionTerminal = vi.fn().mockResolvedValue({
     status: 'failed',
-    message: 'The workspace is not connected to a remote Orca host.'
+    message: translate("auto.hooks.ipc.events.terminal.create.test.harness.8cb0ed2e32", "The workspace is not connected to a remote Alicorn host.")
   })
   const focusRuntimeTerminalSurface = vi.fn(() => false)
   const focusTerminalTabSurface = vi.fn()

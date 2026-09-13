@@ -4,7 +4,7 @@ import { GLOBAL_FLAGS } from '../args'
 export const SERVE_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['serve'],
-    summary: 'Start an Orca runtime server without opening a desktop window',
+    summary: 'Start an Alicorn runtime server without opening a desktop window',
     usage:
       'alicorn serve [--port <port>] [--pairing-address <host>] [--mobile-pairing] [--no-pairing] [--project-root <path>] [--recipe-json] [--json]',
     allowedFlags: [

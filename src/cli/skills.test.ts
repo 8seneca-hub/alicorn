@@ -222,10 +222,10 @@ describe('alicorn skills CLI', () => {
       'get                Print a version-matched skill guide'
     )
     expect(String(logSpy.mock.calls[1]?.[0])).toContain(
-      'install            Install bundled Orca skills'
+      'install            Install bundled Alicorn skills'
     )
     expect(String(logSpy.mock.calls[1]?.[0])).toContain(
-      'update             Update already-installed Orca skills'
+      'update             Update already-installed Alicorn skills'
     )
     expect(String(logSpy.mock.calls[2]?.[0])).toContain('Skills:\n  skills installed')
     expect(String(logSpy.mock.calls[2]?.[0])).toContain('skills update')
@@ -631,13 +631,13 @@ describe('alicorn skills CLI', () => {
     )
   })
 
-  it('refuses a real run when the shell forwards alicorn to the Orca host', async () => {
+  it('refuses a real run when the shell forwards alicorn to the Alicorn host', async () => {
     vi.stubEnv('ALICORN_CLI_CWD', '/home/alice/wt')
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     await main(['skills', 'install', '--skill', 'alpha'], '/tmp/repo')
 
-    // Why: the SSH relay and WSL bridge run argv on the Orca host, so a real
+    // Why: the SSH relay and WSL bridge run argv on the Alicorn host, so a real
     // install there would silently skip the machine the user is sitting on.
     expect(spawnMock).not.toHaveBeenCalled()
     expect(process.exitCode).toBe(1)
@@ -758,7 +758,7 @@ describe('alicorn skills CLI', () => {
     expect(spawnMock.mock.calls[0]?.[2]?.env?.PATH).toBe(`/usr/bin${delimiter}/bin`)
   })
 
-  it('refuses to install when Orca detects no agent, instead of targeting them all', async () => {
+  it('refuses to install when Alicorn detects no agent, instead of targeting them all', async () => {
     detectCommandsMock.mockReturnValue(new Set<string>())
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -792,14 +792,14 @@ describe('alicorn skills CLI', () => {
     expect(detectCommandsMock).not.toHaveBeenCalled()
   })
 
-  it('maps detected agents onto the skills CLI namespace, not Orca ids', async () => {
+  it('maps detected agents onto the skills CLI namespace, not Alicorn ids', async () => {
     const stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     detectCommandsMock.mockReturnValue(new Set<string>(['claude', 'cursor-agent', 'rovo']))
 
     await main(['skills', 'install', '--skill', 'alpha', '--dry-run'], '/tmp/repo')
 
     // Why: `skills add` exits 1 on an unknown --agent, and the ids differ —
-    // Orca's `claude` is `claude-code` and its `rovo` is `rovodev`.
+    // Alicorn's `claude` is `claude-code` and its `rovo` is `rovodev`.
     expect(stdoutText(stdoutSpy)).toContain(
       '--agent claude-code --agent cursor --agent rovodev --agent universal'
     )

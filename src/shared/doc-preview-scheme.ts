@@ -37,7 +37,7 @@ export type DocPreviewFileFailure = {
 
 /**
  * A download the preview partition refused. Why it carries no path: the document names the file it
- * offers, and the notice this becomes is Orca's chrome — a payload with a path invites rendering
+ * offers, and the notice this becomes is Alicorn's chrome — a payload with a path invites rendering
  * page-authored text in the app's own UI, and a path equal to the entry document's would route a
  * refused download into the panel that hides the page.
  */

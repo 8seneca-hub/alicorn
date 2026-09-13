@@ -70,7 +70,7 @@ describe('patchPackagedProcessPath', () => {
     const segments = (process.env.PATH ?? '').split(':')
     // Why: issue #829 — ~/.opencode/bin and ~/.vite-plus/bin are the documented
     // fallback install locations for the opencode and Pi CLI install scripts.
-    // Without them on PATH, GUI-launched Orca reports both as "Not installed"
+    // Without them on PATH, GUI-launched Alicorn reports both as "Not installed"
     // even when `which` resolves them in the user's shell.
     expect(segments).toContain(join('/Users/tester', '.opencode/bin'))
     expect(segments).toContain(join('/Users/tester', '.vite-plus/bin'))

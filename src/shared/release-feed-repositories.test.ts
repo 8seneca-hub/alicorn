@@ -22,7 +22,7 @@ describe('release feed repositories', () => {
     )
   })
 
-  // The users this exists for: a build installed before the rebrand reads the Orca feed, and its
+  // The users this exists for: a build installed before the rebrand reads the Alicorn feed, and its
   // entries are what carry them across to the first Alicorn-published release.
   it('still parses a tag from the pre-rebrand owner', () => {
     const body = [

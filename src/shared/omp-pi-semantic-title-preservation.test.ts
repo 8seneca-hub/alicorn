@@ -6,10 +6,10 @@
  * (packages/coding-agent/src/utils/title-generator.ts): `DEFAULT_TERMINAL_TITLE = "π"` (:25)
  * and `buildTerminalTitleWithState` (:530-544) compose `π ⠋ <label>` / `π > <label>` /
  * `π ! <label>` — always the π glyph. On an Orca-hosted pane OMP's native titler cedes
- * entirely to Orca's OWN injected extension (src/main/pi/titlebar-extension-source.ts:21,44),
+ * entirely to Alicorn's OWN injected extension (src/main/pi/titlebar-extension-source.ts:21,44),
  * which writes `π - <session> - <cwd>` and `⠋ π - <session> - <cwd>` every 80ms.
  *
- * Both flapping strings were manufactured by Orca:
+ * Both flapping strings were manufactured by Alicorn:
  *   "OMP" — `driveSyntheticTitleFromHook` (src/main/index.ts), from the omp profile's label.
  *   "Pi"  — `normalizeTerminalTitle` collapsing our own extension's output to a hardcoded
  *           literal, discarding the session name and cwd along with it (#16093).
@@ -37,7 +37,7 @@ const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '
 
 describe('normalizeTerminalTitle keeps the OMP/Pi session label', () => {
   it.each([
-    ['Orca extension (spinner leads)', ALICORN_EXTENSION_WORKING],
+    ['Alicorn extension (spinner leads)', ALICORN_EXTENSION_WORKING],
     ['OMP native (spinner is medial)', OMP_NATIVE_WORKING]
   ])('collapses every %s frame to one value without losing the label', (_name, build) => {
     const normalized = new Set(FRAMES.map((frame) => normalizeTerminalTitle(build(frame))))
@@ -116,7 +116,7 @@ describe('the churn is gone at the suppressor', () => {
   })
 })
 
-describe('Orca stops writing over the working title it does not own', () => {
+describe('Alicorn stops writing over the working title it does not own', () => {
   // Why: the agent animates its own working title, so synthesizing there both replaced the
   // session label and fought its frames at 80ms — that pair is the flap.
   it.each(['omp', 'pi'] as const)('synthesizes no working title for %s', (agent) => {
@@ -197,7 +197,7 @@ describe('the state separator does not fire on ordinary titles', () => {
 
 describe('one real OMP turn', () => {
   // Why: the reported symptom was ~12 committed store patches per second on a working OMP tab.
-  // This drives a full turn of the frames Orca's injected extension actually emits and counts
+  // This drives a full turn of the frames Alicorn's injected extension actually emits and counts
   // what survives the churn gate. Before the fix each frame alternated "⠋ Pi"/"⠋ OMP" and every
   // one of them committed.
   it('commits twice across 30 working frames plus the idle transition', () => {

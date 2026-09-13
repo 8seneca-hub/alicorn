@@ -156,7 +156,7 @@ function shellProbeEnv(): NodeJS.ProcessEnv {
   return env
 }
 
-/** Run a synchronous launcher without passing Orca's seeded PATH to its child. */
+/** Run a synchronous launcher without passing Alicorn's seeded PATH to its child. */
 export function runWithLaunchPath<T>(action: () => T): T {
   const key = launchPathOverride?.key ?? LAUNCH_PATH_KEY
   const value = launchPathOverride?.value ?? LAUNCH_PATH
@@ -209,7 +209,7 @@ function spawnShellAndReadPath(shell: string): Promise<HydrationResult> {
       // Why: inherit current env so the shell sees the same baseline, then let
       // it layer its own rc files on top. Do NOT forward stdio — some shells
       // (oh-my-zsh setups, powerlevel10k) print a lot to stderr on startup,
-      // and we don't want that in Orca's console.
+      // and we don't want that in Alicorn's console.
       env: shellProbeEnv(),
       stdio: ['ignore', 'pipe', 'ignore'],
       detached: false,

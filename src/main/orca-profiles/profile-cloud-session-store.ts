@@ -130,7 +130,7 @@ export function saveOrcaCloudSession(
     return 'dev-plaintext'
   }
 
-  // Why: Orca account refresh tokens must not silently fall back to plaintext
+  // Why: Alicorn account refresh tokens must not silently fall back to plaintext
   // in production. Memory-only keeps cloud features usable until restart.
   memorySessions.set(cacheKey, { session, persistence: 'memory-only' })
   return 'memory-only'
@@ -219,7 +219,7 @@ export function readOrcaCloudSession(
     return {
       status: 'decrypt-failed',
       persistence: 'none',
-      error: 'Could not decrypt saved Orca account session.'
+      error: 'Could not decrypt saved Alicorn account session.'
     }
   }
 }

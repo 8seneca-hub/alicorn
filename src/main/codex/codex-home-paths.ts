@@ -103,7 +103,7 @@ function linkSystemCodexResource(
 ): void {
   const sourcePath = join(systemHomePath, entryName)
   const targetPath = join(managedHomePath, entryName)
-  // Why: both branches below DELETE Orca's mirrored copy because the system
+  // Why: both branches below DELETE Alicorn's mirrored copy because the system
   // resource "is not there". `existsSync` and the old `catch { return false }`
   // both reported that for a source we merely could not read, so one denied
   // read on ~/.codex/AGENTS.md removed the managed copy on the next launch.

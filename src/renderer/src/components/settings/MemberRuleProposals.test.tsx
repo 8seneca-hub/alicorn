@@ -59,13 +59,11 @@ function proposal(overrides: Partial<RuleProposal> = {}): RuleProposal {
 beforeEach(async () => {
   await i18n.changeLanguage('en')
   listRuleProposals.mockReset().mockResolvedValue({ ok: true, proposals: [proposal()] })
-  acceptRuleProposal
-    .mockReset()
-    .mockResolvedValue({
-      ok: true,
-      proposal: proposal({ status: 'accepted' }),
-      commit: { status: 'committed', filePath: '.alicorn/rules/builder-m1.md' }
-    })
+  acceptRuleProposal.mockReset().mockResolvedValue({
+    ok: true,
+    proposal: proposal({ status: 'accepted' }),
+    commit: { status: 'committed', filePath: '.alicorn/rules/builder-m1.md' }
+  })
   rejectRuleProposal
     .mockReset()
     .mockResolvedValue({ ok: true, proposal: proposal({ status: 'rejected' }) })

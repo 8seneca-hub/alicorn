@@ -21,7 +21,7 @@ export type AppApi = {
   getFeatureWallAssetBaseUrl: () => Promise<string>
   /** Relaunches the app (app.relaunch() + app.exit(0)) for settings that need a full restart to apply. */
   relaunch: () => Promise<void>
-  /** Restarts Orca through the normal quit pipeline so daemon-backed terminal
+  /** Restarts Alicorn through the normal quit pipeline so daemon-backed terminal
    *  sessions survive and can reattach after the new process starts. */
   restart: () => Promise<void>
   /** Reloads the current app renderer through main so expected renderer
@@ -61,7 +61,7 @@ export type AppApi = {
   setUnreadDockBadgeCount: (count: number) => Promise<void>
   /** Resolves the launch directory for global Floating Terminal tabs. */
   getFloatingTerminalCwd: (args?: FloatingTerminalCwdRequest) => Promise<string>
-  /** Resolves Orca's app-owned directory for auto-created Floating Workspace
+  /** Resolves Alicorn's app-owned directory for auto-created Floating Workspace
    *  markdown notes. */
   getFloatingMarkdownDirectory: () => Promise<string>
   /** Opens a native picker for markdown documents, rooted in the floating

@@ -171,7 +171,7 @@ describe('describeInstallDirAclPoison', () => {
   it('offers the copyable commands, and drops them once the repair lands', async () => {
     await probeThenRecover((target) => icaclsDacl(target, [ORPHAN_PACKAGE_ACE]))
     const repaired = describeInstallDirAclPoison()
-    expect(repaired?.detail).toContain('Orca repaired the permissions')
+    expect(repaired?.detail).toContain('Alicorn repaired the permissions')
     expect(repaired?.detail).not.toContain('Administrator Command Prompt')
     expect(repaired?.commands).toEqual([
       `icacls "${INSTALL_DIR}" /grant "*S-1-15-2-2:(OI)(CI)(RX)"`,
@@ -241,7 +241,7 @@ describe('install-dir ACL repair vs the GPU safe-graphics marker', () => {
   it('clears the sticky safe-graphics marker once the real cause is repaired', async () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'orca-acl-gpu-'))
     // The machine is in the reproduced state: the poisoned install DACL killed the
-    // GPU child three times, so Orca latched safe graphics for this build.
+    // GPU child three times, so Alicorn latched safe graphics for this build.
     writeGpuFallbackMarker(
       userDataPath,
       { engagedAt: Date.now(), crashesInWindow: 3, userConfirmed: false },
@@ -267,7 +267,7 @@ describe('install-dir ACL repair vs the GPU safe-graphics marker', () => {
   })
 
   // "Keep safe graphics" is a durable user choice with its own reasons; the repair
-  // only retires the latch Orca engaged on its own.
+  // only retires the latch Alicorn engaged on its own.
   it('leaves a user-confirmed safe-graphics marker alone', async () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'orca-acl-gpu-'))
     writeGpuFallbackMarker(
@@ -576,7 +576,7 @@ describe('repairKnownPoisonedInstallDirBeforeWindow', () => {
 })
 
 // The repair marker matches whatever the outcome, so on its own 'marker-hit' cannot tell a
-// finished tree from one Orca gave up on. Both callers hold outstanding poison evidence —
+// finished tree from one Alicorn gave up on. Both callers hold outstanding poison evidence —
 // this launch's probe reading, or the persisted marker that armed the gate — so a recorded
 // success never stands in for the repair, and 'marker-hit' only ever means budget spent.
 describe('a repair marker recording a completed repair', () => {
@@ -639,7 +639,7 @@ describe('a repair marker recording a completed repair', () => {
   })
 
   // The budget is what stops the retry above running forever; a spent one must still read
-  // as "Orca could not fix this", never as a repair it never made.
+  // as "Alicorn could not fix this", never as a repair it never made.
   it('does not let the gate report a spent budget as a repair', async () => {
     const userDataPath = mkdtempSync(join(tmpdir(), 'orca-acl-gate-budget-'))
     writeFileSync(

@@ -32,7 +32,7 @@ export function hasCustomCodexHomeOverride(env: NodeJS.ProcessEnv = process.env)
     ? normalizePathForComparison(orcaCodexHome)
     : undefined
   // Why: phase 1 owns only ~/.codex and can clean that path on downgrade. A
-  // custom home needs cross-home ownership tracking before Orca may mutate it.
+  // custom home needs cross-home ownership tracking before Alicorn may mutate it.
   return Boolean(
     normalizedCodexHome &&
     normalizedCodexHome !== normalizedOrcaCodexHome &&

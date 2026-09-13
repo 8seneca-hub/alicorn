@@ -39,7 +39,7 @@ function requireCapturedOwner<T extends { owner?: AutomationOwnerRef | null }>(
 }
 
 /**
- * Holds the probe pool's priority lease for the duration of Orca's own automation
+ * Holds the probe pool's priority lease for the duration of Alicorn's own automation
  * work. Without this, a queued external probe competes with the list and mutation
  * traffic the user is actually waiting on.
  */
@@ -72,7 +72,7 @@ export function registerAutomationHandlers(store: Store, service: AutomationServ
     scheduler: probeScheduler,
     cache: managerCache
   })
-  // Why: Orca automation CRUD now arrives over the local runtime RPC surface,
+  // Why: Alicorn automation CRUD now arrives over the local runtime RPC surface,
   // so the runtime methods take the lease through this hook instead of an arm here.
   service.externalProbePriority = (run) => underOrcaPriority(probeScheduler, run)
   // Scoped external-manager surface: one captured desktop owner in, one host's

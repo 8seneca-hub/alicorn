@@ -84,13 +84,13 @@ function readHookTrustProvenance(
 }
 
 /**
- * Records the runtime config.toml trust state Orca leaves behind after an
- * install/refresh, so the next launch can tell "entry Orca wrote" apart from
+ * Records the runtime config.toml trust state Alicorn leaves behind after an
+ * install/refresh, so the next launch can tell "entry Alicorn wrote" apart from
  * "entry Codex wrote after a user approval". Call after all trust writes.
  */
 /**
  * Why: this record is the only thing that tells a later launch which
- * `config.toml` trust entries Orca wrote apart from which the user approved
+ * `config.toml` trust entries Alicorn wrote apart from which the user approved
  * inside Codex. Overwriting it from the current config state after a failed
  * read stamps the user's approval as Orca-written, and promotion then skips it
  * forever — a permanent loss from one unreadable file. Keep the old record and
@@ -167,10 +167,10 @@ function promoteCodexRuntimeHookApprovalsToSystemUnsafe(runtimeHomePath: string)
   if (!existsSync(runtimeTomlPath)) {
     return
   }
-  // Why: without a snapshot of what Orca last wrote (first launch after
+  // Why: without a snapshot of what Alicorn last wrote (first launch after
   // upgrading to a build with promotion, or a corrupted snapshot), a mirrored
   // copy of since-revoked system trust is indistinguishable from a genuine
-  // in-Orca approval. Promoting would resurrect trust the user revoked in
+  // in-Alicorn approval. Promoting would resurrect trust the user revoked in
   // ~/.codex, so skip this launch — install() writes the first snapshot and
   // promotion starts on the next one.
   const provenance = readHookTrustProvenance(runtimeHomePath)
@@ -206,7 +206,7 @@ function promoteCodexRuntimeHookApprovalsToSystemUnsafe(runtimeHomePath: string)
       previous.trustedHash === state.trustedHash &&
       (previous.enabled ?? true) === (state.enabled ?? true)
     ) {
-      // Orca wrote this entry and nothing touched it since — not an approval.
+      // Alicorn wrote this entry and nothing touched it since — not an approval.
       continue
     }
     const eventName = CODEX_EVENT_NAME_BY_LABEL[parsed.eventLabel]
@@ -217,8 +217,8 @@ function promoteCodexRuntimeHookApprovalsToSystemUnsafe(runtimeHomePath: string)
     const hook = Array.isArray(definition?.hooks)
       ? definition.hooks[parsed.handlerIndex]
       : undefined
-    // Why: never write trust for Orca's managed status hook into the user's
-    // real config — mutating ~/.codex for Orca's own hooks is exactly what the
+    // Why: never write trust for Alicorn's managed status hook into the user's
+    // real config — mutating ~/.codex for Alicorn's own hooks is exactly what the
     // runtime CODEX_HOME isolation exists to prevent.
     if (!definition || !hook?.command || isManagedCommand(hook.command)) {
       continue

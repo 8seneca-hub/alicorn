@@ -309,7 +309,7 @@ export function configureRuntimeServices(runtime: OrcaRuntimeService): void {
     }
   })
   runtime.setCommitMessageAgentEnvironmentResolvers({
-    // Why: Codex hooks/auth live in Orca's managed runtime home even for the default path, so every launch must resolve CODEX_HOME via runtime-home.
+    // Why: Codex hooks/auth live in Alicorn's managed runtime home even for the default path, so every launch must resolve CODEX_HOME via runtime-home.
     prepareForCodexLaunch: prepareCodexRuntimeHomeForLaunch,
     prepareForClaudeLaunch: (target) => state.claudeRuntimeAuth!.prepareForClaudeLaunch(target)
   })

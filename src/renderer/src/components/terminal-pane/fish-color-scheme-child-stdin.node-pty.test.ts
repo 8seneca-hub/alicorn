@@ -1,5 +1,5 @@
 /**
- * Real-fish regression for #9993: Orca must never write `CSI ?997;Nn` into a PTY
+ * Real-fish regression for #9993: Alicorn must never write `CSI ?997;Nn` into a PTY
  * because fish armed DECSET 2031 around a prompt.
  *
  * fish toggles `?2031h ... ?2031l` in tty_handoff.rs every time it paints a prompt and

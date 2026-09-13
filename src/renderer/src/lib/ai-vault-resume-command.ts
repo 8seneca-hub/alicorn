@@ -64,7 +64,7 @@ type AiVaultResumeWorktreeArgs = {
 
 export function buildAiVaultResumeCopyCommandForWorktree(args: AiVaultResumeWorktreeArgs): string {
   // Why an `env -u` prefix on the agent rather than a preceding clear statement:
-  // this text is COPIED, so it runs in a shell Orca never spawned and cannot
+  // this text is COPIED, so it runs in a shell Alicorn never spawned and cannot
   // seed. A clear statement has to test `$fish_pid`, an unbound expansion that
   // aborts the line under `set -u` — and because the clear came first, it took
   // the agent launch down with it (the regression that reverted #14863).

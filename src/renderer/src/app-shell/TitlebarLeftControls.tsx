@@ -15,7 +15,7 @@ import type { AppChromeLayout } from './use-app-chrome-layout'
 /**
  * The titlebar's left cluster: window chrome padding and the worktree back/forward pair.
  *
- * The app name and the sidebar toggle went with Orca's workspace sidebar — a toggle for a panel
+ * The app name and the sidebar toggle went with Alicorn's workspace sidebar — a toggle for a panel
  * that no longer exists, and a name the rail already carries.
  */
 export function TitlebarLeftControls({ layout }: { layout: AppChromeLayout }): React.JSX.Element {

@@ -16,7 +16,7 @@ import type { RuntimeClient } from './runtime-client'
 import { RuntimeClientError } from './runtime/types'
 
 export type HostFlagRoutingSelection = {
-  // Why: SSH targets live in the running Orca host, not on disk, so enumerating them needs a
+  // Why: SSH targets live in the running Alicorn host, not on disk, so enumerating them needs a
   // client. Injected as a thunk so the lookup only happens on the error path we are explaining.
   listSshTargets: () => Promise<SshTargetSummary[]>
   pairingCode: string | null
@@ -79,13 +79,13 @@ export async function resolveHostFlagEnvironmentId(
     const sshTargets = await selection.listSshTargets()
     throw new RuntimeClientError(
       'invalid_argument',
-      `Unknown Orca server in --host ${host.id}: no paired Orca server is named or has id ${host.environmentId}.`,
+      `Unknown Alicorn server in --host ${host.id}: no paired Alicorn server is named or has id ${host.environmentId}.`,
       {
         knownEnvironments: environments,
         knownSshTargets: sshTargets,
         nextSteps: [
           ...crossKindNextSteps(host.environmentId, { environments, sshTargets }, 'environment'),
-          'Run `alicorn environment list` to see paired Orca servers.',
+          'Run `alicorn environment list` to see paired Alicorn servers.',
           'Use --host local to target this machine.'
         ]
       }
@@ -94,7 +94,7 @@ export async function resolveHostFlagEnvironmentId(
   if (selection.pairingCode) {
     throw new RuntimeClientError(
       'invalid_argument',
-      `--host ${host.id} already selects a paired Orca server; use either --host runtime:<id> or --pairing-code, not both.`
+      `--host ${host.id} already selects a paired Alicorn server; use either --host runtime:<id> or --pairing-code, not both.`
     )
   }
   if (selection.environmentSelector) {
@@ -102,7 +102,7 @@ export async function resolveHostFlagEnvironmentId(
     if (selected.id !== environment.id) {
       throw new RuntimeClientError(
         'invalid_argument',
-        `--host ${host.id} and ${selection.environmentSelector.label} ${selection.environmentSelector.value} name different Orca servers.`
+        `--host ${host.id} and ${selection.environmentSelector.label} ${selection.environmentSelector.value} name different Alicorn servers.`
       )
     }
   }
@@ -161,7 +161,7 @@ function assertEnvironmentNameUnambiguous(
   }
   throw new RuntimeClientError(
     'invalid_argument',
-    `Ambiguous Orca server in ${flag}: ${ambiguous.length} paired servers are named ${name}. Use the environment id.`,
+    `Ambiguous Alicorn server in ${flag}: ${ambiguous.length} paired servers are named ${name}. Use the environment id.`,
     {
       knownEnvironments: ambiguous,
       nextSteps: ambiguous.map(
@@ -194,7 +194,7 @@ export async function assertEnvironmentSelectorResolvable(
   const sshTargets = await listSshTargetsForSuggestion()
   throw new RuntimeClientError(
     'invalid_argument',
-    `Unknown Orca server in --environment ${selector}: no paired Orca server is named or has id ${selector}.`,
+    `Unknown Alicorn server in --environment ${selector}: no paired Alicorn server is named or has id ${selector}.`,
     {
       knownEnvironments: environments,
       knownSshTargets: sshTargets,

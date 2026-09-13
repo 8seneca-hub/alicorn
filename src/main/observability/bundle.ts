@@ -1,5 +1,5 @@
 // Diagnostic bundle collection + upload (Mode 3, telemetry-error-tracking.md): the one
-// user-initiated network path from the error-tracking lane to Orca infra. The per-bundle
+// user-initiated network path from the error-tracking lane to Alicorn infra. The per-bundle
 // submission ID NEVER carries install_id (security-review Issue 8), and main retains the
 // uploadable payload so a compromised renderer can't substitute bytes after preview.
 // Server endpoint contract lives in telemetry-error-tracking.md §Endpoint contract; we

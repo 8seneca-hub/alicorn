@@ -112,9 +112,9 @@ describe('normalizeTaskWorktreeTuples', () => {
 
 describe('spansMultipleRepos', () => {
   it('is false for a single-repo task, which is the shape everything had before MR1', () => {
-    expect(spansMultipleRepos(normalizeTaskWorktreeTuples([{ repoId: 'a', worktreeId: 'w1' }]))).toBe(
-      false
-    )
+    expect(
+      spansMultipleRepos(normalizeTaskWorktreeTuples([{ repoId: 'a', worktreeId: 'w1' }]))
+    ).toBe(false)
   })
 
   it('is true once a second repo is bound — the signal MR2 offers escalation on', () => {

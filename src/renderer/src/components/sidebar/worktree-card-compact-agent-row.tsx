@@ -33,7 +33,7 @@ export function getCompactAgentSecondary(
   if (agent.entry.interrupted === true) {
     return 'Interrupted by user'
   }
-  // Why: the only honest thing to say about a pane Orca still holds but no longer hears
+  // Why: the only honest thing to say about a pane Alicorn still holds but no longer hears
   // from is how long the silence has run; the user supplies the meaning.
   if (agent.state === 'unverifiable') {
     return agentNoUpdateLabel(agent.entry, now)

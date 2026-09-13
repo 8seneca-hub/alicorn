@@ -181,20 +181,20 @@ export function formatFlagHelp(flag: string): string {
     agent: '--agent <id>          Launch a known TUI agent in the first terminal',
     'base-branch': '--base-branch <ref>    Base branch/ref to create the worktree from',
     command: '--command <text>       Command to run in the terminal on startup',
-    comment: '--comment <text>       Comment stored in Orca metadata',
+    comment: '--comment <text>       Comment stored in Alicorn metadata',
     cursor: '--cursor <n>           Line cursor from a previous read (returns only new output)',
     action: '--action <name>       Secondary accessibility action name',
-    activate: '--activate             Reveal the new worktree in the Orca app',
+    activate: '--activate             Reveal the new worktree in the Alicorn app',
     app: '--app <app>            App name, bundle ID, or pid:N',
     direction:
       '--direction <dir>      Direction: up|down|left|right for scroll, horizontal|vertical for split',
-    'display-name': '--display-name <name>  Override the Orca display name',
+    'display-name': '--display-name <name>  Override the Alicorn display name',
     'element-index': '--element-index <n>   Element index from get-app-state',
     title: '--title <text>         Custom title for the terminal tab (omit to reset)',
     enter: '--enter                Append Enter after sending text',
     force:
       '--force                Force worktree removal when supported; does not force branch deletion',
-    focus: '--focus                Reveal the created terminal session in Orca',
+    focus: '--focus                Reveal the created terminal session in Alicorn',
     for: '--for exit|tui-idle    Wait condition to satisfy',
     'from-element-index': '--from-element-index <n> Source element index from get-app-state',
     'from-x': '--from-x <x>           Source window-local x coordinate',
@@ -285,7 +285,7 @@ export function formatFlagHelp(flag: string): string {
   }
 
   if (flag === 'current') {
-    return '--current              Use the current Orca worktree linked Linear issue'
+    return '--current              Use the current Alicorn worktree linked Linear issue'
   }
   if (flag === 'comments') {
     return '--comments             Include threaded Linear comments'

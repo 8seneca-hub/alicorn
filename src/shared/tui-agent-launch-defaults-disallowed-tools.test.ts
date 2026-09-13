@@ -18,7 +18,7 @@ describe('appendDisallowedToolsLaunchArgs', () => {
     )
   })
 
-  // Why: the defaults are Orca's own launch flags, and dropping them would change how the agent runs.
+  // Why: the defaults are Alicorn's own launch flags, and dropping them would change how the agent runs.
   it('keeps the existing args ahead of the flag', () => {
     expect(
       appendDisallowedToolsLaunchArgs(resolveTuiAgentLaunchArgs('claude', null), [

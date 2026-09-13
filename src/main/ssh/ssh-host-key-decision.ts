@@ -253,7 +253,7 @@ export function decideHostKey(input: HostKeyDecisionInput): HostKeyDecision {
   // all, and OpenSSH itself treats a CA-covered host that presents a plain key as first contact and
   // connects (verified live). Refusing was stricter than ssh and, because `@cert-authority *` is the
   // normal Teleport/Vault-SSH/Smallstep shape, it failed EVERY target for those users — with an
-  // escape hatch that is an environment variable, unreachable when Orca is launched from the Dock.
+  // escape hatch that is an environment variable, unreachable when Alicorn is launched from the Dock.
   // The residual risk is real and accepted: for a CA-protected host we accept a plain key we cannot
   // tie to the CA. The outcome is preserved so the decision is still auditable.
   if (STRICT_VALUES.has(strict)) {

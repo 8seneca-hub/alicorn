@@ -15,7 +15,7 @@ const STAR_GH_TIMEOUT_MS = 15_000
 let inFlightStarCheck: Promise<boolean | null> | null = null
 
 /**
- * Check if the authenticated user has starred the Orca repo.
+ * Check if the authenticated user has starred the Alicorn repo.
  * Returns true if starred, false if not, null if unable to determine (gh unavailable).
  */
 export function checkOrcaStarred(): Promise<boolean | null> {
@@ -60,7 +60,7 @@ async function runOrcaStarredCheck(): Promise<boolean | null> {
 }
 
 /**
- * Star the Orca repo for the authenticated user.
+ * Star the Alicorn repo for the authenticated user.
  */
 export async function starOrca(): Promise<boolean> {
   await acquire()

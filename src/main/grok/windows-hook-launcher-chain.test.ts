@@ -160,7 +160,7 @@ describe('Windows Grok managed hook launch shape', () => {
         expect(all).not.toContain(staleCommand)
         expect(all.filter((command) => /-EncodedCommand/i.test(command))).toEqual([])
         expect(config.hooks.SubagentStop).toBeUndefined()
-        // Why: sweeping stale Orca entries must not touch hooks the user wrote.
+        // Why: sweeping stale Alicorn entries must not touch hooks the user wrote.
         expect(all).toContain('/usr/local/bin/user-hook')
         expect(all.filter((command) => command === scriptPath)).toHaveLength(
           GROK_EVENT_NAMES.length

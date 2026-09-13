@@ -82,7 +82,7 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
           type: 'array',
           items: { type: 'string' },
           description:
-            'Orca repo ids, from alicorn_list_projects’ existing projects or the desktop.'
+            'Alicorn repo ids, from alicorn_list_projects’ existing projects or the desktop.'
         }
       },
       required: ['name', 'key', 'repoIds']

@@ -5,7 +5,7 @@ import { createWebRuntimeSessionBrowserTab } from '@/runtime/web-runtime-session
 /**
  * Last committed URL, reduced to what is safe to restore on another browser engine.
  * A blank or non-web destination reopens blank rather than replaying something the
- * new page cannot reproduce; Orca never reconstructs a request body.
+ * new page cannot reproduce; Alicorn never reconstructs a request body.
  */
 export function resolveBrowserReopenOnServerUrl(
   url: string | null | undefined

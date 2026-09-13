@@ -241,8 +241,8 @@ describe('spawnShellWithFallback macOS TCC login wrapping', () => {
 
   it('drops the primary shell’s launch env when an unwrapped fallback takes over', () => {
     // Why: nothing in an unwrapped bash pane consumes the feature channel, so a
-    // leftover ZDOTDIR would point a nested zsh at Orca's wrapper and turn on
-    // features Orca never selected for it.
+    // leftover ZDOTDIR would point a nested zsh at Alicorn's wrapper and turn on
+    // features Alicorn never selected for it.
     const zshLaunchEnv = {
       ZDOTDIR: '/userdata/shell-ready/zsh',
       ALICORN_ORIG_ZDOTDIR: '/home/jin',

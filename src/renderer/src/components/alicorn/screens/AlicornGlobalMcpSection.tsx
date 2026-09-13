@@ -1,7 +1,7 @@
 /**
  * The servers every project on this machine gets.
  *
- * Orca's config panel is workspace-relative by construction — it inspects `.mcp.json`,
+ * Alicorn's config panel is workspace-relative by construction — it inspects `.mcp.json`,
  * `.cursor/mcp.json` and the two Claude files *inside the repository*. Claude Code also reads a
  * user-scope config in the home directory, and a server configured there is invisible to that
  * panel while being very much present in every session. This is that file.

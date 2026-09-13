@@ -154,7 +154,7 @@ describe('registerPtyHandlers', () => {
 
     it('answers unknown for remote-scoped ids without consulting local providers', async () => {
       // Why: a locally routed provider would answer confidently — and wrongly —
-      // for a PTY that lives on a remote Orca host.
+      // for a PTY that lives on a remote Alicorn host.
       setLocalPtyProvider(new LocalPtyProvider())
       const controller = registerAgentClaimController()
 

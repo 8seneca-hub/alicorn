@@ -473,7 +473,7 @@ describe('getPiAgentStatusExtensionSource', () => {
     await Promise.resolve()
 
     // Why: Pi awaits extension handlers, so loopback status delivery cannot
-    // remain on the agent's critical path when Orca is stalled or restarting.
+    // remain on the agent's critical path when Alicorn is stalled or restarting.
     expect(harness.fetchMock).toHaveBeenCalledTimes(1)
     await vi.waitFor(() => expect(handlerReturned).toBe(true))
 

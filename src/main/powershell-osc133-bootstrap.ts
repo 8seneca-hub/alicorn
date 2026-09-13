@@ -35,7 +35,7 @@ export { encodePowerShellCommand } from '../shared/powershell-command-encoding'
  * `/K` to stdin because node-pty's argv escaping mangled their quotes; PowerShell
  * never needed that workaround, because `-EncodedCommand` is quoting-proof.
  */
-const POWERSHELL_OSC133_BOOTSTRAP = `# Orca OSC 133 shell integration for PowerShell.
+const POWERSHELL_OSC133_BOOTSTRAP = `# Alicorn OSC 133 shell integration for PowerShell.
 # Profiles have already loaded normally by the time -EncodedCommand runs.
 # Restore managed ownership before the shell-integration compatibility guard.
 if ($env:ALICORN_OPENCODE_CONFIG_DIR) { $env:OPENCODE_CONFIG_DIR = $env:ALICORN_OPENCODE_CONFIG_DIR }

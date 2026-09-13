@@ -109,7 +109,7 @@ export async function sendNotificationSettingsTestNotification(
         {
           description: translate(
             'auto.components.settings.NotificationsPane.115437bc35',
-            'If no macOS banner appeared, enable Allow notifications for Orca.'
+            'If no macOS banner appeared, enable Allow notifications for Alicorn.'
           ),
           action: {
             label: translate(
@@ -157,7 +157,7 @@ export async function sendNotificationSettingsTestNotification(
         {
           description: translate(
             'auto.components.settings.NotificationsPane.4676a95bc3',
-            'Check your desktop notification settings for Orca.'
+            'Check your desktop notification settings for Alicorn.'
           )
         }
       )

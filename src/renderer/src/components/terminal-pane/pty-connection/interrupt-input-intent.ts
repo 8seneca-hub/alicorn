@@ -30,7 +30,7 @@ export function installInterruptInputIntent(session: ConnectPanePtySession): voi
       }
       // Why: restored idle agent TUIs can repaint after reattach SIGWINCH and
       // reapply DECSCUSR steady-bar; the normal working→idle reset will not
-      // fire because the agent was already idle before Orca restarted.
+      // fire because the agent was already idle before Alicorn restarted.
       session.queueAgentIdleTerminalModeReset()
     }, REATTACH_IDLE_AGENT_CURSOR_RESET_DELAY_MS)
   }

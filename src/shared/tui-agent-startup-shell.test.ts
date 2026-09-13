@@ -68,7 +68,7 @@ describe('tokenizeStartupCommand spans (windows shells)', () => {
 describe('one Unix startup dialect', () => {
   it('clears variables with a self-contained branch, not a per-shell builtin', () => {
     // Why not `unset`/`set -e` alone, and why not a wrapper-defined helper:
-    // Orca only wraps zsh/bash/fish, so an `sh`/`dash`/`ksh` login shell — and
+    // Alicorn only wraps zsh/bash/fish, so an `sh`/`dash`/`ksh` login shell — and
     // any shell the user pastes copied text into — would not have the helper.
     // startup-shell-portability.live-shell.test.ts proves this form works in
     // real sh/bash/zsh/dash/ksh/fish.

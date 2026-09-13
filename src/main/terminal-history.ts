@@ -206,8 +206,8 @@ export function injectHistoryEnv(
   cwd: string,
   options: { wslDistro?: string | null } = {}
 ): HistoryInjectionResult {
-  // Why unconditionally first: ALICORN_HISTFILE is Orca-owned, and an Orca PTY
-  // launched from inside another Orca PTY inherits the parent's. Left in place,
+  // Why unconditionally first: ALICORN_HISTFILE is Orca-owned, and an Alicorn PTY
+  // launched from inside another Alicorn PTY inherits the parent's. Left in place,
   // the zsh wrapper would re-export a PREVIOUS worktree's history path into this
   // shell — the cross-worktree leak this feature exists to prevent — and it would
   // also override a caller-supplied HISTFILE on the early return below.
@@ -219,7 +219,7 @@ export function injectHistoryEnv(
   dropInheritedOrcaFishHistory(spawnEnv)
   // Why HISTFILE too: it stays EXPORTED after the wrapper restores it, so the
   // same nesting hands this process worktree A's path — and the check-before-set
-  // below would honour it for every pane, in every worktree. Only a path Orca
+  // below would honour it for every pane, in every worktree. Only a path Alicorn
   // minted is dropped; a user's own HISTFILE still wins.
   dropInheritedOrcaHistFile(spawnEnv)
 
@@ -276,7 +276,7 @@ export function injectHistoryEnv(
   // For WSL, convert the Windows path to a Linux-visible path.
   spawnEnv.HISTFILE = wslDistro ? toLinuxPath(histFilePath) : histFilePath
   // Why a second variable: macOS `/etc/zshrc` assigns HISTFILE unconditionally
-  // (`HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history`) and runs before Orca's wrapper
+  // (`HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history`) and runs before Alicorn's wrapper
   // .zshrc, so by then the injected value is gone from HISTFILE itself. The
   // wrapper restores it from here once the user's own config has loaded (#11044).
   spawnEnv.ALICORN_HISTFILE = spawnEnv.HISTFILE

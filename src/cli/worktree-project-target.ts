@@ -86,7 +86,7 @@ export async function resolveProjectCreateTarget(
     if (error instanceof RuntimeClientError && error.code === 'method_not_found') {
       throw new RuntimeClientError(
         'incompatible_runtime',
-        'This Orca server does not support project host setup yet. Update Orca on the server and try again.'
+        'This Alicorn server does not support project host setup yet. Update Alicorn on the server and try again.'
       )
     }
     throw error

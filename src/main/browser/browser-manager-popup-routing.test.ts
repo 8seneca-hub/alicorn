@@ -161,7 +161,7 @@ describe('browserManager', () => {
       }
     })
     // Why: the custom createWindow is what swaps the chrome-less native child
-    // for Orca's origin-bar window without losing the popup contents.
+    // for Alicorn's origin-bar window without losing the popup contents.
     expect(typeof response.createWindow).toBe('function')
 
     expect(shellOpenExternalMock).not.toHaveBeenCalled()
@@ -379,7 +379,7 @@ describe('browserManager', () => {
     expect(openPopupWithOriginBarMock).toHaveBeenCalledTimes(childHandlers.length)
   })
 
-  it('keeps plain links current and routes explicit new-tab gestures to Orca tabs', async () => {
+  it('keeps plain links current and routes explicit new-tab gestures to Alicorn tabs', async () => {
     const rendererSendMock = vi.fn()
     const executeJavaScriptInIsolatedWorldMock = vi.fn().mockResolvedValue(undefined)
     const guest = {
@@ -709,7 +709,7 @@ describe('browserManager', () => {
     expect(shellOpenExternalMock).toHaveBeenCalledWith('https://example.com/login')
   })
 
-  it('offers opening a link in another Orca browser tab from the guest context menu', () => {
+  it('offers opening a link in another Alicorn browser tab from the guest context menu', () => {
     const rendererSendMock = vi.fn()
     const guest = {
       id: 104,

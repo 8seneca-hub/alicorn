@@ -95,7 +95,7 @@ function electronArgs(protectedSession: boolean, forcedQuicPort: number): string
     `--enable-features=${DIRECT_SOCKETS_FEATURES.join(',')}`
   ]
   if (protectedSession) {
-    // Why: the guest arm launches with the exact list Orca ships, so this proves the shipped switch, not a bare flag.
+    // Why: the guest arm launches with the exact list Alicorn ships, so this proves the shipped switch, not a bare flag.
     args.push(`--disable-features=${DISABLED_CHROMIUM_FEATURES.join(',')}`)
   }
   return args

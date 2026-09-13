@@ -32,7 +32,7 @@ export async function listCleanupGitWorktrees(
   }
   if (route.kind === 'ssh') {
     if (!route.provider) {
-      // Why: cleanup should reflect only workspaces Orca can currently inspect.
+      // Why: cleanup should reflect only workspaces Alicorn can currently inspect.
       return { route, gitWorktrees: [] }
     }
     const provider = route.provider
@@ -73,7 +73,7 @@ export function handleRepoWorktreeListError(args: {
     console.error('Workspace cleanup repo scan failed', error)
   }
   if (isRemoteWorkspaceCleanupHost(repo) && !targeted) {
-    // Why: broad cleanup only shows remote workspaces Orca can inspect now.
+    // Why: broad cleanup only shows remote workspaces Alicorn can inspect now.
     // A remote repo that fails mid-scan is omitted, not bannered.
     return { scannedAt, candidates: [], errors: [] }
   }

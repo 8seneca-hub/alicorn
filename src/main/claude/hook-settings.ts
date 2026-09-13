@@ -49,7 +49,7 @@ export const CLAUDE_EVENTS = [
     definition: { hooks: [{ type: 'command', command: '' }] }
   },
   // Why: OpenClaude skips normal Stop hooks after API/model errors and emits
-  // StopFailure instead; without this hook Orca leaves the turn spinning.
+  // StopFailure instead; without this hook Alicorn leaves the turn spinning.
   {
     eventName: 'StopFailure',
     definition: { hooks: [{ type: 'command', command: '' }] }

@@ -2,11 +2,11 @@ import { getAppEnvironment, hasAppEnvironment } from '../shared/app-environment'
 import { recordCoalescedDurableCrashBreadcrumb } from './crash-reporting/durable-crash-breadcrumb'
 
 /**
- * PIDs of Orca's own Chromium processes — browser, renderers, GPU, utilities.
+ * PIDs of Alicorn's own Chromium processes — browser, renderers, GPU, utilities.
  *
  * Why: `taskkill /T /F` aimed at one of these kills a renderer we depend on, and
  * the `render-process-gone` it produces is indistinguishable from an external
- * kill in every field Orca records (#10680). A pid in this set is proof the
+ * kill in every field Alicorn records (#10680). A pid in this set is proof the
  * target is ours to keep, not ours to tear down.
  *
  * Empty on a Node host and empty on failure: that is "no refusal proven", never
@@ -31,7 +31,7 @@ import { recordCoalescedDurableCrashBreadcrumb } from './crash-reporting/durable
  * installs a Node one whose `getAppMetrics()` is `[]`, so this set is empty in
  * both — and that is sound, not a hole: the pid-addressed kills those hosts
  * issue go through `classifyWindowsTreeKillTarget`, which walks ancestry back to
- * the *killing* process's own pid. Orca's Chromium processes are children of
+ * the *killing* process's own pid. Alicorn's Chromium processes are children of
  * Electron main, so they never classify `own` from a daemon or orcad host, and
  * on an SSH/serve host there is no Chromium on the machine at all.
  */

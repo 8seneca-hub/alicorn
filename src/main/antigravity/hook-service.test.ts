@@ -28,7 +28,7 @@ const ANTIGRAVITY_POST_TOOL_USE_COMMAND =
   process.platform === 'win32' ? 'antigravity-post-tool-use.cmd' : 'antigravity-hook.sh'
 const ANTIGRAVITY_PRE_TOOL_USE_COMMAND =
   process.platform === 'win32' ? 'antigravity-pre-tool-use.cmd' : 'antigravity-hook.sh'
-// Why: the gate decision Orca is allowed to emit — "allow" would auto-approve every observed tool call.
+// Why: the gate decision Alicorn is allowed to emit — "allow" would auto-approve every observed tool call.
 const PRE_TOOL_USE_DECISION = '{"decision":"ask"}'
 const POLICY_OVERRIDING_DECISIONS = ['allow', 'deny', 'force_ask', 'deny_unless_prior_grant']
 
@@ -286,7 +286,7 @@ describe('AntigravityHookService', () => {
     })
   })
 
-  it('preserves user-authored hook bundles and entries in Orca bundle', () => {
+  it('preserves user-authored hook bundles and entries in Alicorn bundle', () => {
     const configPath = join(homeDir, '.gemini', 'config', 'hooks.json')
     mkdirSync(dirname(configPath), { recursive: true })
     writeFileSync(

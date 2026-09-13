@@ -54,7 +54,7 @@ describe('CodexRuntimeHomeService', () => {
     teardownRuntimeHomeTest()
   })
 
-  it('returns the Orca-managed runtime home for Codex launch and rate-limit preparation', async () => {
+  it('returns the Alicorn-managed runtime home for Codex launch and rate-limit preparation', async () => {
     const markerPath = join(
       testState.userDataDir,
       'codex-session-backfill',
@@ -194,7 +194,7 @@ describe('CodexRuntimeHomeService', () => {
     process.env.ALICORN_CODEX_HOME = getRuntimeCodexHomePath()
     try {
       // Background fetchers prefer ambient CODEX_HOME when passed null, so an
-      // explicit path proves nested Orca launches cannot poll the managed home.
+      // explicit path proves nested Alicorn launches cannot poll the managed home.
       expect(service.prepareForRateLimitFetch()).toEqual({
         kind: 'ready',
         codexHomePath: getSystemCodexHomePath()
@@ -282,7 +282,7 @@ describe('CodexRuntimeHomeService', () => {
     }
   })
 
-  it('resolves only Orca-owned homes used by live retained host shells', async () => {
+  it('resolves only Alicorn-owned homes used by live retained host shells', async () => {
     const accountHome = createManagedAuth(
       testState.userDataDir,
       'account-1',

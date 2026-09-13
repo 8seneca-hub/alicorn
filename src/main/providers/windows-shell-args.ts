@@ -147,7 +147,7 @@ function buildWslShellArgs(linuxCwd: string, distro?: string): string[] {
     buildWslInteractiveLoginShellCommand()
   ].join(' && ')
   // Why: WSL users often customize zsh rather than bash; launch the distro's
-  // login shell so terminal PATH matches the environment Orca detects.
+  // login shell so terminal PATH matches the environment Alicorn detects.
   return buildWslExecArgs(distro, ['sh', '-c', setupCommand])
 }
 

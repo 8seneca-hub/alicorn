@@ -2,7 +2,7 @@
  * Making a task move dispatch a member.
  *
  * Board automation already turns a column change into a dispatch, keyed to a worktree and a
- * workspace status. A task column *is* a workspace status id — the board's columns are Orca's own
+ * workspace status. A task column *is* a workspace status id — the board's columns are Alicorn's own
  * statuses — so a task that owns a workspace can drive the existing engine rather than needing a
  * second one. That is the whole join: without it, dragging a card updates a row in Postgres and
  * dispatches nobody, which is v1.0's exit criterion failing quietly.

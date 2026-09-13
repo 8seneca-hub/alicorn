@@ -338,9 +338,9 @@ describe('daemon-init: runRestartDaemon (7-step sequence)', () => {
       pid: 101,
       startedAtMs: 1_000_000,
       launchNonce: 'socket-owner',
-      entryPath: '/Applications/Orca 2.app/Contents/out/main/daemon-entry.js',
+      entryPath: '/Applications/Alicorn 2.app/Contents/out/main/daemon-entry.js',
       appVersion: '9.9.9',
-      spawnerExecPath: '/Applications/Orca 2.app/Contents/MacOS/Orca'
+      spawnerExecPath: '/Applications/Alicorn 2.app/Contents/MacOS/Alicorn'
     }
     daemonClientMock.mockImplementationOnce(function MockAdoptionClient() {
       return {
@@ -373,9 +373,9 @@ describe('daemon-init: runRestartDaemon (7-step sequence)', () => {
         pid: 101,
         startedAtMs: 1_000_000,
         launchNonce: 'socket-owner',
-        entryPath: '/Applications/Orca 2.app/Contents/out/main/daemon-entry.js',
+        entryPath: '/Applications/Alicorn 2.app/Contents/out/main/daemon-entry.js',
         appVersion: '9.9.9',
-        spawnerExecPath: '/Applications/Orca 2.app/Contents/MacOS/Orca'
+        spawnerExecPath: '/Applications/Alicorn 2.app/Contents/MacOS/Alicorn'
       })
       handle.releaseAdoptionLease?.()
     } finally {

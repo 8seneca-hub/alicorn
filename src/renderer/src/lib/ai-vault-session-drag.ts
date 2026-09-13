@@ -146,7 +146,7 @@ export function writeAiVaultSessionDragData(
   activeAiVaultSessionDragPayload = { ...payload }
   dataTransfer.effectAllowed = 'copy'
   // Why: avoid text/plain so terminal/native drop targets cannot paste the
-  // resume command instead of letting Orca's pane drop layer handle it.
+  // resume command instead of letting Alicorn's pane drop layer handle it.
   dataTransfer.setData(AI_VAULT_SESSION_DRAG_TYPE, serialized)
 }
 

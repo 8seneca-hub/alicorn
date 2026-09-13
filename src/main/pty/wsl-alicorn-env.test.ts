@@ -20,7 +20,7 @@ const bothSpellings = (...entries: string[]): string[] =>
 const wslenv = (...entries: string[]): string => bothSpellings(...entries).join(':')
 
 describe('addOrcaWslInteropEnv', () => {
-  it('marks the Orca terminal handle for Windows to WSL env import', () => {
+  it('marks the Alicorn terminal handle for Windows to WSL env import', () => {
     const env: Record<string, string> = { ALICORN_TERMINAL_HANDLE: 'term_wsl' }
 
     addOrcaWslInteropEnv(env)
@@ -76,9 +76,9 @@ describe('addOrcaWslInteropEnv', () => {
   it('marks OMP status and hook env for Windows to WSL import', () => {
     const env: Record<string, string> = {
       ALICORN_TERMINAL_HANDLE: 'term_wsl',
-      ALICORN_USER_DATA_PATH: 'C:\\Users\\jin\\AppData\\Roaming\\Orca',
+      ALICORN_USER_DATA_PATH: 'C:\\Users\\jin\\AppData\\Roaming\\Alicorn',
       ALICORN_CLI_COMMAND: 'orca-ide',
-      ALICORN_CODEX_LAUNCH_PREFLIGHT: 'C:\\Program Files\\Orca\\resources\\bin\\orca.exe',
+      ALICORN_CODEX_LAUNCH_PREFLIGHT: 'C:\\Program Files\\Alicorn\\resources\\bin\\orca.exe',
       ALICORN_OMP_STATUS_EXTENSION: 'C:\\Users\\jin\\.omp\\agent\\extensions\\orca-agent-status.ts',
       ALICORN_PRIME_AGENT_STATUS_EXTENSION: 'C:\\stale\\orca-agent-status.ts',
       ALICORN_PANE_KEY: 'tab-1:leaf-1',
@@ -152,7 +152,7 @@ describe('addOrcaWslInteropEnv', () => {
   it('path-translates a Windows hook endpoint but passes a guest-side one untouched', () => {
     const windowsEnv: Record<string, string> = {
       ALICORN_AGENT_HOOK_ENDPOINT:
-        'C:\\Users\\jin\\AppData\\Roaming\\Orca\\agent-hooks\\endpoint.cmd'
+        'C:\\Users\\jin\\AppData\\Roaming\\Alicorn\\agent-hooks\\endpoint.cmd'
     }
     addOrcaWslInteropEnv(windowsEnv)
     expect(windowsEnv.WSLENV).toContain('ALICORN_AGENT_HOOK_ENDPOINT/p')
@@ -247,10 +247,10 @@ describe('addOrcaWslInteropEnv', () => {
   it('never crosses a Windows OpenCode config dir into the guest', () => {
     // Why: the relay spawn env spreads process.env and the daemon inherits its
     // own — a /p entry here would deliver C:\... as /mnt/c and in-guest OpenCode
-    // would adopt Orca's Windows overlay as its config root.
+    // would adopt Alicorn's Windows overlay as its config root.
     const env: Record<string, string> = {
-      OPENCODE_CONFIG_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Orca\\opencode-overlays\\abc',
-      ALICORN_OPENCODE_CONFIG_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Orca\\opencode-overlays\\abc'
+      OPENCODE_CONFIG_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Alicorn\\opencode-overlays\\abc',
+      ALICORN_OPENCODE_CONFIG_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Alicorn\\opencode-overlays\\abc'
     }
     addOrcaWslInteropEnv(env)
     expect(env.WSLENV).not.toContain('OPENCODE_CONFIG_DIR')

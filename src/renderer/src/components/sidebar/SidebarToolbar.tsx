@@ -24,7 +24,7 @@ const SidebarToolbar = React.memo(function SidebarToolbar({
   onWorkspaceBoardToggle
 }: SidebarToolbarProps) {
   // Why: this memo boundary needs its own language subscription, while
-  // translate() preserves Orca's pseudo-localization behavior. Without it the
+  // translate() preserves Alicorn's pseudo-localization behavior. Without it the
   // toolbar (and the ScrollToCurrentWorkspaceToolbarButton it renders) keeps
   // whatever language was active at boot — English, since the persisted locale
   // is applied asynchronously after the lazy catalog loads.

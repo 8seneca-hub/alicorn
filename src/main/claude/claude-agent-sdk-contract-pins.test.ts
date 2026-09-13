@@ -20,7 +20,7 @@ import { createClaudeStructuredLaunchResolver } from './claude-structured-launch
 
 // Contract pins for @anthropic-ai/claude-agent-sdk, run against the real SDK
 // driving a scripted fake CLI (never the real Claude binary). These tests exist
-// to catch a future SDK version drifting under Orca: unknown-frame pass-through,
+// to catch a future SDK version drifting under Alicorn: unknown-frame pass-through,
 // spawner env fidelity, argument parity with the pre-SDK argv,
 // permission-callback semantics, and executable-path override.
 
@@ -283,7 +283,7 @@ describe('Claude Agent SDK contract pins', () => {
 
     const env = spawns[0]!.env
     // Supplied values arrive verbatim: the config-dir pin and spawn token are
-    // observable at this boundary, so Orca's auth scrubbing stays assertable.
+    // observable at this boundary, so Alicorn's auth scrubbing stays assertable.
     expect(env.CLAUDE_CONFIG_DIR).toBe('/pinned/claude-config')
     expect(env.ALICORN_AGENT_SESSION_SPAWN_TOKEN).toBe('spawn-token-1')
     // Ambient process.env is NOT merged in when env is supplied.
@@ -306,7 +306,7 @@ describe('Claude Agent SDK contract pins', () => {
     })
 
     // Omitting env reproduces the ambient-auth-leak failure mode: the child
-    // sees everything in process.env. Orca must therefore always pass an
+    // sees everything in process.env. Alicorn must therefore always pass an
     // explicit, fully-constructed env.
     expect(spawns[0]!.env.ALICORN_SDK_CONTRACT_AMBIENT_CANARY).toBe('inherited-from-process-env')
   })

@@ -1,6 +1,6 @@
 import { runProcess } from '../../shared/child-process/run-process'
 
-/** Session-name namespace Orca gives one daemon per browser tab. */
+/** Session-name namespace Alicorn gives one daemon per browser tab. */
 export const ALICORN_TAB_SESSION_PREFIX = 'orca-tab-'
 
 const SWEEP_TIMEOUT_MS = 5_000
@@ -25,19 +25,19 @@ function parseSessionNames(stdout: string): string[] {
 }
 
 /**
- * Close agent-browser daemons left behind by a previous Orca run.
+ * Close agent-browser daemons left behind by a previous Alicorn run.
  *
  * A crash (or SIGKILL) leaves one daemon per open tab with nobody holding its
  * name; `closeStaleAgentBrowserSession` only resets the single name a new tab
  * is about to reuse, so the rest persist. This closes them through
  * agent-browser's own CLI rather than by walking pids.
  *
- * Scoping — this only runs when Orca derived the socket directory itself
+ * Scoping — this only runs when Alicorn derived the socket directory itself
  * (`ownsSocketDirectory`), because that private per-profile directory is what
- * proves the enumeration can only see this Orca profile's daemons. An inherited
- * `AGENT_BROWSER_SOCKET_DIR` can be shared with a second Orca profile, and
+ * proves the enumeration can only see this Alicorn profile's daemons. An inherited
+ * `AGENT_BROWSER_SOCKET_DIR` can be shared with a second Alicorn profile, and
  * Windows gets none at all (named pipes make the directory moot); both cases
- * skip the sweep rather than run a `session list` that could close a daemon Orca
+ * skip the sweep rather than run a `session list` that could close a daemon Alicorn
  * does not own, and stay bounded by `AGENT_BROWSER_IDLE_TIMEOUT_MS` instead.
  *
  * `ALICORN_DISABLE_AGENT_BROWSER_SWEEP=1` turns it off in the field. The other two

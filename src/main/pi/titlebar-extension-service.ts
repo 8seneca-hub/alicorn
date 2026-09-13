@@ -42,7 +42,7 @@ type PiManagedExtensionEnv = {
 
 type LegacyOverlayAgentKind = Exclude<PiAgentKind, 'prime-agent'>
 
-// Why: old Orca versions used per-kind overlay roots. Keep the names so
+// Why: old Alicorn versions used per-kind overlay roots. Keep the names so
 // upgrade-time cleanup can remove stale PTY-scoped Pi/OMP overlay dirs without
 // guessing which agent a terminated pane launched.
 const OVERLAY_ROOT_DIR_NAME: Record<LegacyOverlayAgentKind, string> = {
@@ -54,7 +54,7 @@ const OVERLAY_ROOT_DIR_NAME: Record<LegacyOverlayAgentKind, string> = {
 // by which `~/.<agent>/agent` dir happens to exist on disk first. A
 // cross-agent fallback (Pi -> OMP or vice versa) silently shadows the other
 // agent's user extensions when both are installed and the user picks the
-// shadowed one in Orca's per-launch agent picker.
+// shadowed one in Alicorn's per-launch agent picker.
 const AGENT_HOME_DIR_NAME: Record<PiAgentKind, string> = {
   pi: '.pi',
   omp: '.omp',
@@ -87,7 +87,7 @@ export class PiTitlebarExtensionService {
   }
 
   private getPtyOverlayDir(ptyId: string, kind: LegacyOverlayAgentKind): string {
-    // Why: old Orca versions used PTY-scoped hashed overlays. Keep resolving
+    // Why: old Alicorn versions used PTY-scoped hashed overlays. Keep resolving
     // that path so new spawns/teardowns can clean stale pre-migration dirs.
     return join(this.getOverlayRoot(kind), toSafeOverlayDirName(ptyId))
   }

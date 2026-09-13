@@ -27,9 +27,6 @@ export function policyWouldHaveSentence(decision: GateVerdict): string {
 /** The human's own call, in the same two words the policy speaks so the two can be compared. */
 export function humanVerdictLabel(decision: GateVerdict): string {
   return decision === 'auto'
-    ? translate(
-        'auto.components.right.sidebar.gate.panel.verdict.auto',
-        'Could have proceeded'
-      )
+    ? translate('auto.components.right.sidebar.gate.panel.verdict.auto', 'Could have proceeded')
     : translate('auto.components.right.sidebar.gate.panel.verdict.gate', 'Needed me')
 }

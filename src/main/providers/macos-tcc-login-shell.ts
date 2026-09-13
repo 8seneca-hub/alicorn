@@ -296,9 +296,9 @@ export async function probeMacosLoginSessionAlive(
 
 /**
  * Wrap a macOS shell spawn in `/usr/bin/login -flpq <user> …` so terminal children
- * get their own TCC identity instead of collapsing into Orca's bundle id — signed
+ * get their own TCC identity instead of collapsing into Alicorn's bundle id — signed
  * CLIs like `op` otherwise re-prompt every launch because tccd attributes the grant
- * to Orca and never persists it (#6996, #8985).
+ * to Alicorn and never persists it (#6996, #8985).
  *
  * A clean bash trampoline restores SHELL after login(1) overwrites it, then replaces
  * itself with the configured shell. Values stay positional so custom paths and
@@ -352,7 +352,7 @@ export function wrapShellSpawnForMacosTccAttribution(
   }
 
   const shellEnvValue = env?.SHELL || file
-  // Why: Bash ignores --rcfile when argv[0] marks it as a login shell; Orca's
+  // Why: Bash ignores --rcfile when argv[0] marks it as a login shell; Alicorn's
   // rcfile already reproduces login startup and must remain the active wrapper.
   const trampoline =
     basename(file).toLowerCase() === 'bash' && args.includes('--rcfile')

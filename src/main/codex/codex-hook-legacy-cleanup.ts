@@ -113,10 +113,10 @@ async function sweepLegacySystemManagedHooks(): Promise<void> {
     }
   }
 
-  // Why: Codex hooks moved to Orca's managed CODEX_HOME; stale ~/.codex entries would keep external Codex sessions reporting into Orca.
+  // Why: Codex hooks moved to Alicorn's managed CODEX_HOME; stale ~/.codex entries would keep external Codex sessions reporting into Alicorn.
   if (removedManagedHook) {
-    // Why: this is the user's system hooks file, not Orca's runtime copy.
-    // Remove only stale Orca hook entries and preserve other managers' metadata.
+    // Why: this is the user's system hooks file, not Alicorn's runtime copy.
+    // Remove only stale Alicorn hook entries and preserve other managers' metadata.
     const hooksWritePath = resolveHooksJsonWritePath(legacyConfigPath)
     const previousMode = statSync(hooksWritePath).mode
     await mutateRealHomeHooksPreservingUserTrust({
@@ -178,7 +178,7 @@ function cleanupLegacyCodexProfileHooks(): void {
   if (next === existing) {
     return
   }
-  // Why: #2778 wrote Orca hooks into a Codex profile file; runtime CODEX_HOME supersedes it, so remove only Orca's marked block.
+  // Why: #2778 wrote Alicorn hooks into a Codex profile file; runtime CODEX_HOME supersedes it, so remove only Alicorn's marked block.
   if (next.trim().length === 0) {
     unlinkSync(profilePath)
   } else {

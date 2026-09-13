@@ -460,7 +460,7 @@ describe('RepoRefMaintenance single-flight and backoff', () => {
   })
 
   it('counts a pack that could not lock every ref as a success', async () => {
-    // Field-observed on a machine running several Orca sessions: a branch moved
+    // Field-observed on a machine running several Alicorn sessions: a branch moved
     // mid-pack, Git reported an error, and 36,688 loose refs still became 3.
     // Retrying that aggressively would be wrong -- the backlog is gone.
     const refs = await refsDirectoryWith(THRESHOLD + 2)

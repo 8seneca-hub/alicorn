@@ -5,7 +5,7 @@ import { normalizeRuntimePathForComparison } from '../../shared/cross-platform-p
 // Why: Codex OAuth uses rotating refresh tokens stored in each home's auth.json.
 // Two Orca-spawned codex processes refreshing the same home concurrently can
 // consume one rotation twice and permanently invalidate the stored credential,
-// so Orca's own spawns (quota probes, commit-message runs) serialize per home.
+// so Alicorn's own spawns (quota probes, commit-message runs) serialize per home.
 // User terminal panes are intentionally not serialized here.
 
 const lockTails = new Map<string, Promise<unknown>>()

@@ -4,7 +4,7 @@ import { readOrcaChromiumProcessPids } from './orca-chromium-process-pids'
 /**
  * Whether a PID still sits inside this process's own subtree. Note this is
  * subtree membership, not root identity: a recycled PID that lands on any other
- * Orca descendant also reads `own`. It bounds the blast radius of a bad
+ * Alicorn descendant also reads `own`. It bounds the blast radius of a bad
  * `taskkill /T /F` to our own tree; it does not prove we spawned this PTY.
  * - `own`: ancestry reaches us, so the tree is eligible for guarded teardown.
  * - `absent`: the PID is gone; `taskkill` would no-op anyway.
@@ -25,13 +25,13 @@ export type WindowsProcessLinkReader = () => Promise<readonly ProcessLink[] | nu
 
 /**
  * Classify `rootPid` by walking its ancestry back to `ownerPid`. A recycled PID
- * usually belongs to an unrelated process whose chain never passes through Orca,
+ * usually belongs to an unrelated process whose chain never passes through Alicorn,
  * so it resolves `foreign` and must never reach `taskkill /T /F`. Ambiguous
  * tables resolve `unknown` because ambiguity is not evidence of ownership.
  *
  * Known limit (#10680): a recycle that lands on one of our OWN descendants —
  * another pane's shell, an agent CLI, a `git.exe` we spawned — still reads
- * `own`. That is not remote during teardown, when Orca is itself the process
+ * `own`. That is not remote during teardown, when Alicorn is itself the process
  * allocating pids. Closing it needs real identity (a `Win32_Process.CreationDate`
  * baseline, the analogue of the POSIX `lstart` check, or an inherited handle /
  * Job Object). The Chromium-process half of it IS closed: `ownChromiumPids`
@@ -45,13 +45,13 @@ export function classifyWindowsTreeKillTarget(
 ): WindowsTreeKillTarget {
   // Why: our own pid is never a PTY root, so reading it here means the pid is
   // corrupt. `foreign` is the refusing verdict, which is what that must get —
-  // `taskkill /T /F` on ourselves would take Orca and every pane down with it.
+  // `taskkill /T /F` on ourselves would take Alicorn and every pane down with it.
   if (!Number.isInteger(rootPid) || rootPid <= 0 || rootPid === ownerPid) {
     return 'foreign'
   }
   // Same reasoning one hop out: our renderer, GPU and utility children are all
   // direct children of ownerPid, so the ancestry walk below calls them `own` and
-  // hands teardown a licence to taskkill /T /F Orca's own UI (#10680).
+  // hands teardown a licence to taskkill /T /F Alicorn's own UI (#10680).
   if (ownChromiumPids.has(rootPid)) {
     return 'foreign'
   }

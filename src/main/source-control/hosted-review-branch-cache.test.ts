@@ -241,7 +241,7 @@ describe('hosted review branch cache (#11532)', () => {
     expect(lookup).toHaveBeenCalledTimes(4)
   })
 
-  it('retires a cached no-review answer when Orca opens a review', async () => {
+  it('retires a cached no-review answer when Alicorn opens a review', async () => {
     const lookup = vi
       .fn<() => Promise<HostedReviewInfo | null>>()
       .mockResolvedValueOnce(null)
@@ -256,7 +256,7 @@ describe('hosted review branch cache (#11532)', () => {
     expect(lookup).toHaveBeenCalledTimes(2)
   })
 
-  it('discards a lookup that was already in flight when Orca opened a review', async () => {
+  it('discards a lookup that was already in flight when Alicorn opened a review', async () => {
     let resolveLookup: (value: HostedReviewInfo | null) => void = () => {}
     const lookup = vi
       .fn<() => Promise<HostedReviewInfo | null>>()
@@ -901,7 +901,7 @@ describe('hosted review branch cache (#11532)', () => {
       stale.resolve(null)
       await expect(inflight).resolves.toBeNull()
 
-      // Stored, that "no review" would hide the review Orca had just opened for
+      // Stored, that "no review" would hide the review Alicorn had just opened for
       // the whole no-review interval.
       const next = vi.fn(async () => openReview)
       await expect(withHostedReviewBranchCache(identity, { headOid: null }, next)).resolves.toEqual(

@@ -69,7 +69,7 @@ export type TerminalShortcutAction =
 
 /**
  * Resolves terminal keyboard events before xterm receives them, centralizing
- * Orca shortcuts and terminal byte fallbacks in one platform-aware policy.
+ * Alicorn shortcuts and terminal byte fallbacks in one platform-aware policy.
  */
 export function resolveTerminalShortcutAction(
   event: TerminalShortcutEvent,

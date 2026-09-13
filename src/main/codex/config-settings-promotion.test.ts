@@ -304,7 +304,7 @@ describe('codex settings write-back promotion', () => {
     expect(readRuntimeConfig()).toContain('[mcp_servers.linear]')
     expect(readRuntimeConfig()).toContain('[features]')
     expect(readRuntimeConfig()).toContain('model = "o4"')
-    // Trust stays runtime-owned; Orca must not write it into the real ~/.codex.
+    // Trust stays runtime-owned; Alicorn must not write it into the real ~/.codex.
     expect(readRuntimeConfig()).toContain('[projects."/repo"]')
     expect(readSystemConfig()).not.toContain('[projects."/repo"]')
     expect(readSystemConfig()).toContain('[mcp_servers.linear]')

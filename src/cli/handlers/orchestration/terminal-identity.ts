@@ -146,6 +146,6 @@ export function throwNoActiveSenderTerminal(): never {
   throw new RuntimeClientError(
     'no_active_sender_terminal',
     'Could not determine the sender terminal for this orchestration command. ' +
-      'Pass --from <terminal-handle> or run the command inside a live Orca terminal with ALICORN_TERMINAL_HANDLE set.'
+      'Pass --from <terminal-handle> or run the command inside a live Alicorn terminal with ALICORN_TERMINAL_HANDLE set.'
   )
 }

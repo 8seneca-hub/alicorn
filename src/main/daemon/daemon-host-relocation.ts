@@ -20,7 +20,7 @@ import { inspectProcessLiveness, mergeProcessLivenessVerdict } from './daemon-pr
  * Relocate the terminal daemon's process image out of the app install dir into LOCAL userData so it
  * survives Windows auto-updates: the NSIS installer deletes the old install and force-kills every process
  * imaged under it, which would otherwise kill the daemon and its live terminals. The relocated exe is a
- * run-as-node Orca.exe copy (not node.exe) so there's no console flash and asar still resolves. Fail-open:
+ * run-as-node Alicorn.exe copy (not node.exe) so there's no console flash and asar still resolves. Fail-open:
  * any failure returns null and the caller forks the install-dir host (pre-relocation behavior).
  */
 
@@ -35,12 +35,12 @@ const HOST_SUBDIR = 'daemon-host'
 const MARKER_NAME = '.materialized.json'
 
 // LOCAL appData (not roaming) so OneDrive/roaming never syncs this ~260MB runtime. Shared with NSIS uninstall (config/nsis/orca-installer-hooks.nsh) — keep in sync.
-const LOCAL_HOST_ROOT_NAME = 'Orca'
+const LOCAL_HOST_ROOT_NAME = 'Alicorn'
 
-// Copy of Orca.exe renamed to a distinct image name so the NSIS updater's `taskkill /IM Orca.exe` can't match it.
+// Copy of Alicorn.exe renamed to a distinct image name so the NSIS updater's `taskkill /IM Alicorn.exe` can't match it.
 const DAEMON_HOST_EXE_NAME = 'orca-terminal-daemon.exe'
 
-// V8 snapshots + ICU data the Electron bootstrap reads even under ELECTRON_RUN_AS_NODE; siblings of Orca.exe.
+// V8 snapshots + ICU data the Electron bootstrap reads even under ELECTRON_RUN_AS_NODE; siblings of Alicorn.exe.
 const RUNTIME_DATA_FILES = ['icudtl.dat', 'snapshot_blob.bin', 'v8_context_snapshot.bin']
 
 type CopyOp = {

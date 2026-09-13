@@ -242,7 +242,7 @@ export function registerAutoUpdaterHandlers({
       }
     }
     // Why: a later check can report no newer release while a verified deb/rpm is still waiting for
-    // the user to install it outside Orca. Keep both the artifact and its recovery card reachable.
+    // the user to install it outside Alicorn. Keep both the artifact and its recovery card reachable.
     sendStatus(
       retainedStatus ?? { state: 'not-available', userInitiated: wasUserInitiated || undefined }
     )

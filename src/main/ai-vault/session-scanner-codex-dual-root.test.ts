@@ -21,7 +21,7 @@ describe('scanAiVaultSessions codex dual-root dedup', () => {
     const root = await mkdtemp(join(tmpdir(), 'orca-ai-vault-codex-dedup-'))
     tempRoots.push(root)
     const roots = isolatedScanRoots(root)
-    // Sandbox "real ~/.codex" and Orca managed runtime home, hardlinked the
+    // Sandbox "real ~/.codex" and Alicorn managed runtime home, hardlinked the
     // same way the session backfill links managed rollouts into the real home.
     const realHome = join(root, 'real-codex-home')
     const realSessionsDir = join(realHome, 'sessions')

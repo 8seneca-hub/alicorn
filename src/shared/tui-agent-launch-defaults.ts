@@ -29,7 +29,7 @@ function sanitizeTuiAgentLaunchArgs(agent: TuiAgent, args: string): string {
     return args.trim()
   }
   // Why: a few agents have removed, relocated, or never exposed Claude-style
-  // skip-permission flags on the interactive TUI command Orca launches.
+  // skip-permission flags on the interactive TUI command Alicorn launches.
   return unsupportedArgs.reduce((next, arg) => next.replace(argPattern(arg), ' '), args).trim()
 }
 
@@ -107,7 +107,7 @@ export function resolveTuiAgentLaunchEnv(
  * Appends `--disallowedTools` to a launch-args string. Tool names are bare identifiers, so
  * nothing here needs quoting.
  *
- * Advisory on its own: Orca launches Claude with `--dangerously-skip-permissions`, which skips the
+ * Advisory on its own: Alicorn launches Claude with `--dangerously-skip-permissions`, which skips the
  * permission checks this flag is one of. It is the belt; a `PreToolUse` deny hook — which runs
  * whatever the permission mode — is the braces.
  */

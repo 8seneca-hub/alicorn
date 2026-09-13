@@ -163,7 +163,7 @@ export async function installCodexHooksExclusively(
     } else {
       // Why: system user hook approvals are mirrored into runtime CODEX_HOME.
       // If the user later revokes approval in ~/.codex/config.toml, preserving
-      // all old runtime [hooks.state.*] blocks would keep Orca Codex trusted.
+      // all old runtime [hooks.state.*] blocks would keep Alicorn Codex trusted.
       // Upsert first so duplicate repair can preserve a disabled managed copy
       // before stale cleanup removes old managed hook keys.
       upsertHookTrustEntries(tomlPath, trustEntries)

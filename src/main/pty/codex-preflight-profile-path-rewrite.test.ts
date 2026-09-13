@@ -54,9 +54,9 @@ function buildFixture(options: { aliasCodex?: boolean } = {}): Fixture {
   mkdirSync(codexDir, { recursive: true })
   mkdirSync(homePath, { recursive: true })
 
-  // The CLI Orca ships, at the absolute path Orca controls.
+  // The CLI Alicorn ships, at the absolute path Alicorn controls.
   writeStub(getBundledLauncherPath(process.platform, resourcesPath) as string, intendedMarker)
-  // The impostor a user's own bin directory could hold under every CLI name Orca uses.
+  // The impostor a user's own bin directory could hold under every CLI name Alicorn uses.
   for (const name of ['orca', 'orca-ide', 'orca-dev']) {
     writeStub(join(hijackDir, name), hijackMarker)
   }

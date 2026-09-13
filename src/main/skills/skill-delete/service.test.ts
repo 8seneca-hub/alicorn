@@ -244,7 +244,7 @@ describe('deleteSkills', () => {
     const result = await run(home, stateDirectory, await request(join(link, 'SKILL.md')))
     expect(result.skills[0].status).toBe('deleted')
     expect(await exists(link)).toBe(false)
-    // The whole point: Orca removed its own pointer, not the tool's content.
+    // The whole point: Alicorn removed its own pointer, not the tool's content.
     expect(await exists(join(managedElsewhere, 'SKILL.md'))).toBe(true)
   })
 

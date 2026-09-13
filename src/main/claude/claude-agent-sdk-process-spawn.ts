@@ -9,7 +9,7 @@ const STDERR_TAIL_MAX_BYTES = 8192
 export type ClaudeCodeProcessSpawn = {
   /** Pass as the SDK's `spawnClaudeCodeProcess`; the SDK never learns the pid because it never owns it. */
   spawn: (options: ClaudeAgentSdkSpawnOptions) => ClaudeCodeChild
-  /** The retained child, so Orca keeps its own tree-kill and exit-proof ladder. Null until the SDK spawns. */
+  /** The retained child, so Alicorn keeps its own tree-kill and exit-proof ladder. Null until the SDK spawns. */
   readonly child: ClaudeCodeChild | null
   /** Ownership proof: the durable lease adjudicates on this pid plus start time plus the spawn token. */
   readonly pid: number | undefined
@@ -27,9 +27,9 @@ function definedEnv(env: Record<string, string | undefined>): Record<string, str
 }
 
 /**
- * Orca supplies the Claude Code child rather than letting the SDK spawn it.
+ * Alicorn supplies the Claude Code child rather than letting the SDK spawn it.
  *
- * Two independent reasons: the SDK's `SpawnedProcess` has no pid, and Orca's
+ * Two independent reasons: the SDK's `SpawnedProcess` has no pid, and Alicorn's
  * spawner is the only path that encodes `.cmd` arguments safely on Windows.
  */
 export function createClaudeCodeProcessSpawn(
@@ -40,7 +40,7 @@ export function createClaudeCodeProcessSpawn(
   return {
     spawn: (options) => {
       // Why `options.signal` is dropped: it would let the SDK kill the child outside
-      // Orca's ladder, and close() may never report an exit it did not observe.
+      // Alicorn's ladder, and close() may never report an exit it did not observe.
       const spawned = spawnImpl({
         program: options.command,
         args: [...options.args],

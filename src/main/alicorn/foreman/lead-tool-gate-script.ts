@@ -33,10 +33,10 @@ export function getLeadToolGateScript(target: 'local' | 'posix' = 'local'): stri
     return [
       '@echo off',
       'setlocal',
-      // Why: refresh endpoint coordinates for PTYs surviving an Orca restart — a stale port
+      // Why: refresh endpoint coordinates for PTYs surviving an Alicorn restart — a stale port
       // would silently leave the lead unrestricted.
       'if defined ALICORN_AGENT_HOOK_ENDPOINT if exist "%ALICORN_AGENT_HOOK_ENDPOINT%" call "%ALICORN_AGENT_HOOK_ENDPOINT%" 2>nul',
-      // Why (#11549): outside an Orca pane the caller may abandon stdin, so answer without
+      // Why (#11549): outside an Alicorn pane the caller may abandon stdin, so answer without
       // reading it; in a pane, a non-lead drains as usual.
       'if "%ALICORN_AGENT_HOOK_PORT%"=="" goto :orca_lead_gate_neutral',
       'if "%ALICORN_AGENT_HOOK_TOKEN%"=="" goto :orca_lead_gate_neutral',
@@ -49,8 +49,8 @@ export function getLeadToolGateScript(target: 'local' | 'posix' = 'local'): stri
         `"http://127.0.0.1:%ALICORN_AGENT_HOOK_PORT%${ALICORN_LEAD_TOOL_GATE_PATHNAME}"`,
         ...CURL_FLAGS,
         '-H "X-Orca-Agent-Hook-Token: %ALICORN_AGENT_HOOK_TOKEN%"',
-        `-H "X-Alicorn-Role: %${ALICORN_ROLE_ENV_VAR}%"`,
-        '-H "X-Alicorn-Cwd: %CD%"',
+        `-H "X-Orca-Role: %${ALICORN_ROLE_ENV_VAR}%"`,
+        '-H "X-Orca-Cwd: %CD%"',
         '--data-binary @-',
         '-o "%ALICORN_LEAD_GATE_OUT%" >nul 2>&1'
       ].join(' '),
@@ -71,7 +71,7 @@ export function getLeadToolGateScript(target: 'local' | 'posix' = 'local'): stri
     // Why capture first (#8110): every POSIX managed hook owns stdin before it can exit, or the
     // agent sees a broken pipe mid-write. It also means the guards below need no drain.
     ...buildPosixHookPayloadCapture('empty-object'),
-    // Why: refresh endpoint coordinates for PTYs surviving an Orca restart — a stale port would
+    // Why: refresh endpoint coordinates for PTYs surviving an Alicorn restart — a stale port would
     // silently leave the lead unrestricted.
     'if [ -n "${ALICORN_AGENT_HOOK_ENDPOINT:-}" ] && [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ]; then',
     '  . "$ALICORN_AGENT_HOOK_ENDPOINT" 2>/dev/null || :',
@@ -85,8 +85,8 @@ export function getLeadToolGateScript(target: 'local' | 'posix' = 'local'): stri
       `"http://127.0.0.1:\${ALICORN_AGENT_HOOK_PORT}${ALICORN_LEAD_TOOL_GATE_PATHNAME}"`,
       ...CURL_FLAGS,
       '-H "X-Orca-Agent-Hook-Token: ${ALICORN_AGENT_HOOK_TOKEN}"',
-      `-H "X-Alicorn-Role: \${${ALICORN_ROLE_ENV_VAR}}"`,
-      '-H "X-Alicorn-Cwd: ${PWD:-}"',
+      `-H "X-Orca-Role: \${${ALICORN_ROLE_ENV_VAR}}"`,
+      '-H "X-Orca-Cwd: ${PWD:-}"',
       '--data-binary @- 2>/dev/null) || orca_lead_gate=""'
     ].join(' '),
     // Why the shape check: only a JSON object is a decision. Anything else — an error page, a

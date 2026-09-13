@@ -1,5 +1,5 @@
-const MANAGED_MARKER = '# Orca managed WSL CLI launcher'
-const BRIDGE_MANAGED_MARKER = '# Orca managed WSL CLI PowerShell bridge'
+const MANAGED_MARKER = '# Alicorn managed WSL CLI launcher'
+const BRIDGE_MANAGED_MARKER = '# Alicorn managed WSL CLI PowerShell bridge'
 
 export function buildWslLauncher(
   windowsLauncherPath: string,
@@ -17,7 +17,7 @@ if command -v powershell.exe >/dev/null 2>&1; then
 elif [ -x /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe ]; then
   ALICORN_POWERSHELL=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 else
-  echo "Orca WSL CLI requires Windows interop and could not find powershell.exe." >&2
+  echo "Alicorn WSL CLI requires Windows interop and could not find powershell.exe." >&2
   exit 1
 fi
 # Why: a shell can outlive a deleted worktree; keep explicit CLI selectors and
@@ -67,14 +67,14 @@ $exitCode = 0
 try {
   # Why: a param block prefix-binds forwarded flags such as --for in PowerShell 5.1.
   if ($args.Count -lt 1) {
-    throw 'Invalid Orca WSL CLI bridge invocation.'
+    throw 'Invalid Alicorn WSL CLI bridge invocation.'
   }
   [string]$OrcaLauncher = $args[0]
   [string]$WslCwd = ''
   [int]$ForwardArgStart = 1
   if ($args.Count -ge 2 -and $args[1] -eq '-WslCwd') {
     if ($args.Count -lt 3) {
-      throw 'Invalid Orca WSL CLI bridge invocation.'
+      throw 'Invalid Alicorn WSL CLI bridge invocation.'
     }
     $WslCwd = $args[2]
     $ForwardArgStart = 3
@@ -106,7 +106,7 @@ try {
   $StartInfo.WorkingDirectory = $LauncherDirectory
   $Process = [System.Diagnostics.Process]::Start($StartInfo)
   if ($null -eq $Process) {
-    throw 'Unable to start the Orca Windows CLI launcher.'
+    throw 'Unable to start the Alicorn Windows CLI launcher.'
   }
   $Process.WaitForExit()
   $exitCode = $Process.ExitCode
@@ -142,7 +142,7 @@ export function buildSafeReplaceGuard(path: string, managedMarker: string): stri
 
 export function buildRegistrationLockPrelude(commandPath: string): string {
   const lockDir = getPosixDirname(getBridgePathFromCommandPath(commandPath))
-  // Why: the per-distro queue only serializes one Orca process; flock covers
+  // Why: the per-distro queue only serializes one Alicorn process; flock covers
   // a second install (e.g. stable + nightly) mutating the same distro files.
   return [
     `if command -v flock >/dev/null 2>&1 && mkdir -p ${quoteShell(lockDir)} 2>/dev/null; then`,

@@ -1,9 +1,9 @@
 /**
  * Real-zsh proof that a worktree-scoped HISTFILE survives shell startup, and
- * that the rest of Orca's startup features arrive with it.
+ * that the rest of Alicorn's startup features arrive with it.
  *
  * macOS `/etc/zshrc` assigns `HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history` with no
- * check-before-set. Orca used to fight that by keeping its own ZDOTDIR in place
+ * check-before-set. Alicorn used to fight that by keeping its own ZDOTDIR in place
  * across `/etc/zshrc` and repairing the damage afterwards (#11044). It now hands
  * ZDOTDIR back before that file runs, so the value `/etc/zshrc` derives is the
  * user's own path and the scoped one is re-applied from the deferred hook.
@@ -15,7 +15,7 @@
  *
  * These tests drive the REAL launch decision (`selectShellStartupFeatures` +
  * `getShellLaunchConfig`) rather than an inline copy of the gate, so a pane that
- * Orca would not wrap cannot pass here by construction.
+ * Alicorn would not wrap cannot pass here by construction.
  */
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync } from 'node:fs'
@@ -58,7 +58,7 @@ const systemZshrcClobbersHistfile = (() => {
 
 const itWithClobber = systemZshrcClobbersHistfile ? itWithZsh : it.skip
 
-/** The launch config Orca produces for a pane with exactly these features. */
+/** The launch config Alicorn produces for a pane with exactly these features. */
 function launchPane(
   home: string,
   scopedHistfile: string | null,
@@ -108,7 +108,7 @@ describe.skipIf(process.platform === 'win32')(
   'worktree-scoped HISTFILE survives zsh startup',
   () => {
     itWithZsh(
-      'wraps a plain pane once Orca injected a worktree HISTFILE',
+      'wraps a plain pane once Alicorn injected a worktree HISTFILE',
       withHome(USER_FILES, async (home) => {
         const { features, launch } = launchPane(home, join(home, 'zsh_history'))
 
@@ -157,7 +157,7 @@ describe.skipIf(process.platform === 'win32')(
     )
 
     itWithZsh(
-      'never leaves history inside Orca’s own wrapper directory',
+      'never leaves history inside Alicorn’s own wrapper directory',
       withHome(USER_FILES, async (home) => {
         const { env, launch } = launchPane(home, join(home, 'orca-history', 'zsh_history'))
 
@@ -188,12 +188,12 @@ describe.skipIf(process.platform === 'win32')(
     )
 
     itWithZsh(
-      'leaves HISTFILE exactly as an unwrapped zsh would when Orca injects nothing',
+      'leaves HISTFILE exactly as an unwrapped zsh would when Alicorn injects nothing',
       withHome(USER_FILES, async (home) => {
         // Why compared against an unwrapped run rather than asserted non-empty:
         // what zsh defaults to is platform-specific. macOS /etc/zshrc assigns
         // HISTFILE, so it is always set there; a stock Ubuntu zsh leaves it EMPTY.
-        // The contract is that Orca's wrapper does not change it either way.
+        // The contract is that Alicorn's wrapper does not change it either way.
         const overlayEnv = { ALICORN_CODEX_HOME: join(home, 'codex') }
         const features = selectShellStartupFeatures({
           shellPath: ZSH_PATH,
@@ -253,7 +253,7 @@ describe.skipIf(process.platform === 'win32')('the deferred hook delivers every 
   )
 
   itWithZsh(
-    'restores Orca’s overlay values after the user’s config overwrites them',
+    'restores Alicorn’s overlay values after the user’s config overwrites them',
     withHome(
       {
         ...USER_FILES,
@@ -285,7 +285,7 @@ describe.skipIf(process.platform === 'win32')('the deferred hook delivers every 
         })
 
         // The point of running last: the user's .zshrc set both of these after
-        // the spawn env did, and Orca's values still win.
+        // the spawn env did, and Alicorn's values still win.
         expect(values.CODEX_HOME).toBe('/orca/codex')
         expect(values.PATH.startsWith('/orca/shim:')).toBe(true)
       }
@@ -300,7 +300,7 @@ describe.skipIf(process.platform === 'win32')(
      * Why these three cases and not the old degrade matrix: zsh's `sourcehome()`
      * ignores ZDOTDIR once the shell is in sh/ksh emulation, which used to hide
      * every wrapper file after the one that entered it — so emulation from
-     * `.zshenv` or `.zprofile` cost the pane all of Orca's features. Only one
+     * `.zshenv` or `.zprofile` cost the pane all of Alicorn's features. Only one
      * wrapper file is read now, and it is read before any user file can change
      * modes, so these are wins rather than degradations.
      */
@@ -342,7 +342,7 @@ describe.skipIf(process.platform === 'win32')(
         const { values } = await runZshPty({ env, report })
         // Why compared against an unwrapped run rather than asserted to differ
         // from the scoped path: whether the scoped value survives at all is the
-        // host's call, not Orca's. macOS /etc/zshrc overwrites HISTFILE, so it
+        // host's call, not Alicorn's. macOS /etc/zshrc overwrites HISTFILE, so it
         // does not; a host with no such assignment keeps whatever the spawn env
         // set. The contract on both is the same — this pane is the pane the user
         // would have had unwrapped.

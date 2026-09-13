@@ -1,6 +1,6 @@
 import type { RuntimeStatus } from './runtime-types'
 
-// Why: a headed Orca server keeps answering status.get after its workspace window
+// Why: a headed Alicorn server keeps answering status.get after its workspace window
 // closes, so "a status came back" is not evidence that graph-backed workspace work
 // will succeed there. desktopWindowStatus is only 'openable' when no live renderer
 // window exists (orca-runtime.ts:4806), so pairing it with a non-ready graph is the

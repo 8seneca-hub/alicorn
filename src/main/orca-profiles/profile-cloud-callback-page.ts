@@ -7,7 +7,7 @@ export const ALICORN_CLOUD_CALLBACK_RESPONSE_HEADERS = {
   'x-content-type-options': 'nosniff'
 } as const
 
-// Why: the loopback callback cannot load Orca's renderer bundle, so this
+// Why: the loopback callback cannot load Alicorn's renderer bundle, so this
 // standalone page mirrors its canonical light/dark tokens without external assets.
 export const ALICORN_CLOUD_CALLBACK_SUCCESS_PAGE = `<!doctype html>
 <html lang="en">
@@ -15,7 +15,7 @@ export const ALICORN_CLOUD_CALLBACK_SUCCESS_PAGE = `<!doctype html>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <title>Signed in to Orca</title>
+    <title>Signed in to Alicorn</title>
     <style>
       :root {
         --background: #fff;
@@ -82,7 +82,7 @@ export const ALICORN_CLOUD_CALLBACK_SUCCESS_PAGE = `<!doctype html>
           <path d="m5 12 4 4L19 6"></path>
         </svg>
       </div>
-      <h1>Signed in to Orca</h1>
+      <h1>Signed in to Alicorn</h1>
       <p>You can close this tab and return to the app.</p>
     </main>
   </body>

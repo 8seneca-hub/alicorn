@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 // STA-4735: the hook-trust provenance file is the only record of which
-// config.toml trust entries Orca wrote versus which the user approved inside
+// config.toml trust entries Alicorn wrote versus which the user approved inside
 // Codex. An unreadable one was rebuilt from the current config on the same
 // pass, stamping the user's approval as Orca-written — after which promotion
 // skips it forever.
@@ -124,8 +124,8 @@ describe('STA-4735 snapshotCodexRuntimeHookTrustProvenance', () => {
     snapshotCodexRuntimeHookTrustProvenance(runtimeHomePath)
 
     // Before the fix this rewrote the file from the current config.toml, which
-    // holds no record of what Orca wrote — so a user approval made since the
-    // last pass was permanently reclassified as Orca's own write.
+    // holds no record of what Alicorn wrote — so a user approval made since the
+    // last pass was permanently reclassified as Alicorn's own write.
     expect(realFs.readFileSync(provenancePath(), 'utf-8')).toBe(recorded)
   })
 

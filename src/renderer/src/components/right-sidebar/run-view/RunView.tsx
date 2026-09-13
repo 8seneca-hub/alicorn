@@ -109,7 +109,7 @@ function CostMeter({
         {cost.partial
           ? translate(
               'auto.components.right.sidebar.run.view.RunView.812f26e81d',
-              'A floor, not a total — some dispatches ran on a backend Orca does not price, or have not been measured yet.'
+              'A floor, not a total — some dispatches ran on a backend Alicorn does not price, or have not been measured yet.'
             )
           : translate(
               'auto.components.right.sidebar.run.view.RunView.7cf5a7f9b2',

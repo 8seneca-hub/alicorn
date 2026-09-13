@@ -201,7 +201,7 @@ function trackInflight(key: string, record: InflightRecord): void {
 }
 
 /**
- * Drops every cached answer for a repo. Called when Orca itself opens a review,
+ * Drops every cached answer for a repo. Called when Alicorn itself opens a review,
  * so the new one is visible immediately instead of after the no-review interval.
  */
 export function invalidateHostedReviewBranchCache(

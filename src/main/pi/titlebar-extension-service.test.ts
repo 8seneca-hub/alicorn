@@ -120,7 +120,7 @@ describe('PiTitlebarExtensionService', () => {
     })
   }
 
-  it('buildPtyEnv installs Orca extensions into the user agent dir without redirecting the home', () => {
+  it('buildPtyEnv installs Alicorn extensions into the user agent dir without redirecting the home', () => {
     const svc = new PiTitlebarExtensionService()
     const env = svc.buildPtyEnv('pty-1', piHome, 'pi')
 
@@ -460,7 +460,7 @@ describe('PiTitlebarExtensionService', () => {
     expectPiHomeIntact()
   })
 
-  it('rebuilding updates Orca-owned extensions while preserving user files', () => {
+  it('rebuilding updates Alicorn-owned extensions while preserving user files', () => {
     const svc = new PiTitlebarExtensionService()
     svc.buildPtyEnv('pty-refresh-1', piHome, 'pi')
     writeFileSync(
@@ -485,7 +485,7 @@ describe('PiTitlebarExtensionService', () => {
     )
   })
 
-  it("does not overwrite a user's same-named Orca extension file", () => {
+  it("does not overwrite a user's same-named Alicorn extension file", () => {
     const userStatusExtension = 'user-owned status extension'
     writeFileSync(join(piHome, 'extensions', 'orca-agent-status.ts'), userStatusExtension, 'utf-8')
 
@@ -499,7 +499,7 @@ describe('PiTitlebarExtensionService', () => {
     expectPiHomeIntact()
   })
 
-  it('uses an Orca-owned OMP status extension when a same-named user file exists', () => {
+  it('uses an Alicorn-owned OMP status extension when a same-named user file exists', () => {
     const userStatusExtension = 'user-owned status extension'
     const userStatusPath = join(piHome, 'extensions', 'orca-agent-status.ts')
     writeFileSync(userStatusPath, userStatusExtension, 'utf-8')
@@ -549,7 +549,7 @@ describe('PiTitlebarExtensionService', () => {
   it.skipIf(process.platform === 'win32')(
     'safely handles a pre-existing stale overlay with dangling symlinks',
     () => {
-      // Why: simulate an overlay that was left behind by a prior Orca session,
+      // Why: simulate an overlay that was left behind by a prior Alicorn session,
       // where the original Pi home it mirrored has since moved. The teardown
       // should unlink the dangling symlinks in place without trying to follow them.
       const legacyOverlayDir = legacyOverlayPath('pi', 'pty-4')
@@ -567,7 +567,7 @@ describe('PiTitlebarExtensionService', () => {
     }
   )
 
-  // Why: per-agent source dir. Orca's user picks Pi or OMP per
+  // Why: per-agent source dir. Alicorn's user picks Pi or OMP per
   // launch (the agent kind isn't a global install-time choice), so each
   // build's source dir MUST be resolved from the agent kind, not from a
   // disk-presence check that silently shadows the other agent's user
@@ -637,7 +637,7 @@ describe('PiTitlebarExtensionService', () => {
 
     it('launching omp when only ~/.pi/agent exists does NOT mirror Pi state', () => {
       // Why: missing source dir for the resolved kind must materialize the
-      // overlay from empty (Orca extensions only) — never cross-pollinate
+      // overlay from empty (Alicorn extensions only) — never cross-pollinate
       // from the other agent's dir.
       const fakeHome = mkdtempSync(join(tmpdir(), 'orca-omp-only-pi-'))
       seedAgentDir(fakeHome, '.pi', 'pi')

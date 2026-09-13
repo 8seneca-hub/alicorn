@@ -68,7 +68,7 @@ export async function installCopilotHooksRemote(
     config.version = 1
     delete config.disableAllHooks
     config.hooks = nextHooks
-    // Why: SSH remotes use POSIX scripts regardless of Orca's local OS. Write
+    // Why: SSH remotes use POSIX scripts regardless of Alicorn's local OS. Write
     // the script before hooks/orca.json so a partial install cannot point
     // Copilot at a missing managed command.
     await writeManagedScriptRemote(sftp, remoteScriptPath, getManagedScript('posix'))

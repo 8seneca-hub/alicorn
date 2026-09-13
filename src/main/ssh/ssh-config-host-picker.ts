@@ -52,7 +52,7 @@ export function searchSshConfigHosts(
     seenAliases.add(normalizedAlias)
     const alreadyInOrca = existingAliases.has(normalizedAlias)
     // Why: tombstones only block passive bulk import — the picker still lists the
-    // Host so deleting one Orca target never looks like "~/.ssh/config is empty".
+    // Host so deleting one Alicorn target never looks like "~/.ssh/config is empty".
     const previouslyRemoved = !alreadyInOrca && suppressedAliasSet.has(normalizedAlias)
     totalHostCount += 1
     // Why: "Add all" must match importFromSshConfig without reAdopt (tombstones stay).

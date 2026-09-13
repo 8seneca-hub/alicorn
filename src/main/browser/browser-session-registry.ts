@@ -182,7 +182,7 @@ class BrowserSessionRegistry {
 
   resolveKnownPartition(profileId: string | null | undefined): string | null {
     if (!profileId) {
-      // Why: use the active Orca profile's default partition, not the legacy constant, or profiles resolve local-default's cookie jar.
+      // Why: use the active Alicorn profile's default partition, not the legacy constant, or profiles resolve local-default's cookie jar.
       return this.defaultPartition
     }
     return this.profiles.get(profileId)?.partition ?? null

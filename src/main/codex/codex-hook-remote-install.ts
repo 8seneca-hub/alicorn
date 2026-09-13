@@ -92,9 +92,9 @@ export async function installCodexHooksRemote(
 
     config.hooks = nextHooks
     // Why: write script/settings before trust TOML; a partial trust write leaves Codex asking approval instead of running a missing script.
-    // Why: SSH remotes use POSIX `.sh` paths even when Orca runs on Windows; never derive remote script syntax from local OS.
+    // Why: SSH remotes use POSIX `.sh` paths even when Alicorn runs on Windows; never derive remote script syntax from local OS.
     await writeManagedScriptRemote(sftp, remoteScriptPath, getManagedScript('posix'))
-    // Why: SSH edits the user's remote ~/.codex/hooks.json directly, so preserve non-Orca top-level metadata while replacing the hooks tree.
+    // Why: SSH edits the user's remote ~/.codex/hooks.json directly, so preserve non-Alicorn top-level metadata while replacing the hooks tree.
     await writeHooksJsonRemote(sftp, remoteConfigPath, { ...config, hooks: nextHooks })
     try {
       const existingTomlRaw = await readTextFileRemote(sftp, remoteTomlPath)

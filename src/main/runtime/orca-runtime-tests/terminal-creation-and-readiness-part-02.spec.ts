@@ -389,7 +389,7 @@ describe('OrcaRuntimeService', () => {
   })
 
   // Why: `cursor` on PATH is the Cursor desktop launcher; only `cursor-agent` is
-  // the CLI Orca can host (issue #11926).
+  // the CLI Alicorn can host (issue #11926).
   it('launches the configured agent CLI for a startupAgent id, not the raw id', async () => {
     const spawn = vi.fn().mockResolvedValue({ id: 'pty-bg' })
     const runtimeStore = {

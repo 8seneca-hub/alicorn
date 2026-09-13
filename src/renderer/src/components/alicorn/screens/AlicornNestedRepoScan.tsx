@@ -5,7 +5,7 @@
  * Provenance, Context — can show anything for a task working in it. The repositories *inside* the
  * folder do have branches, and binding those is what gives a task a diff.
  *
- * The scan and the import are Orca's own (`scanNestedRepos` / `importNestedRepos`), so depth
+ * The scan and the import are Alicorn's own (`scanNestedRepos` / `importNestedRepos`), so depth
  * limits, timeouts, cancellation and the SSH path are the ones already proven rather than a second
  * implementation of the same walk.
  */

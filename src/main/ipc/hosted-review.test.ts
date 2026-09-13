@@ -175,7 +175,7 @@ describe('registerHostedReviewHandlers', () => {
     )
   })
 
-  // Why: without this the dirty preflight counts Orca's own shared symlinks as
+  // Why: without this the dirty preflight counts Alicorn's own shared symlinks as
   // user work and Create Review tells the user to commit a link they cannot
   // commit (issue #10451). Nothing else asserts the handler supplies them.
   it('passes the repo shared link paths through local review creation', async () => {

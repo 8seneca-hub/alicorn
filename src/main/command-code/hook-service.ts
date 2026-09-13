@@ -61,7 +61,7 @@ function buildInstalledConfig(
   const isManagedCommand = createManagedCommandMatcher(scriptFileName)
   const managedEvents = new Set<string>(COMMAND_CODE_EVENTS.map((event) => event.eventName))
 
-  // Why: Orca owns only command-code-hook.* entries. Sweep retired managed
+  // Why: Alicorn owns only command-code-hook.* entries. Sweep retired managed
   // events while preserving user-authored Command Code hooks.
   for (const [eventName, definitions] of Object.entries(nextHooks)) {
     if (managedEvents.has(eventName) || !Array.isArray(definitions)) {

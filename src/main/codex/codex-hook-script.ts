@@ -26,13 +26,13 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     '#!/bin/sh',
     ...buildPosixHookPayloadCapture(),
     ...buildPosixHookSpoolLines('codex'),
-    // Why: sourcing refreshes PORT/TOKEN/ENV/VERSION from the current Orca so a surviving PTY keeps reporting after a restart (see claude/hook-service.ts).
+    // Why: sourcing refreshes PORT/TOKEN/ENV/VERSION from the current Alicorn so a surviving PTY keeps reporting after a restart (see claude/hook-service.ts).
     'load_hook_endpoint() {',
     '  endpoint_path="$1"',
     '  unset ALICORN_AGENT_HOOK_TRANSPORT',
     '  case "$endpoint_path" in',
     '    *.cmd)',
-    // Why: Windows passes endpoint.cmd into WSL via WSLENV; parse only Orca's known assignments since cmd.exe `set` lines aren't shell syntax.
+    // Why: Windows passes endpoint.cmd into WSL via WSLENV; parse only Alicorn's known assignments since cmd.exe `set` lines aren't shell syntax.
     '      endpoint_cr=$(printf "\\r")',
     '      while IFS= read -r endpoint_line || [ -n "$endpoint_line" ]; do',
     '        endpoint_line=${endpoint_line%"$endpoint_cr"}',

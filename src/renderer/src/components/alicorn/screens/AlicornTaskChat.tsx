@@ -1,7 +1,7 @@
 /**
  * A task's session, in Alicorn's own chrome.
  *
- * The session is Orca's — the same structured agent session the workspace view hosts, reached by
+ * The session is Alicorn's — the same structured agent session the workspace view hosts, reached by
  * the same controller — so the transcript, the approvals, the composer and every reconnect rule
  * are the ones that already work. What is Alicorn's is the frame: the chat sits *in the ticket*,
  * under the brief, with the task's status on it, instead of being somewhere you navigate to.

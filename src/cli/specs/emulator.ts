@@ -4,7 +4,7 @@ import { GLOBAL_FLAGS } from '../args'
 export const EMULATOR_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['emulator', 'list'],
-    summary: 'List available/running emulators (Orca-managed + raw serve-sim)',
+    summary: 'List available/running emulators (Alicorn-managed + raw serve-sim)',
     usage: 'alicorn emulator list [--worktree <selector>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'worktree']
   },

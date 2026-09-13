@@ -46,9 +46,9 @@ export function installAgentIdleWorkingHandlers(session: ConnectPanePtySession):
     // owns removing agent rows when the TUI actually exits.
   }
   // Why: inject ALICORN_PANE_KEY so global Claude/Codex hooks can attribute their
-  // callbacks to the correct Orca pane without resolving worktrees from cwd.
+  // callbacks to the correct Alicorn pane without resolving worktrees from cwd.
   // The key matches the `${tabId}:${leafId}` composite used for cacheTimerByKey
-  // and agentStatusByPaneKey. Treat it as opaque outside Orca.
+  // and agentStatusByPaneKey. Treat it as opaque outside Alicorn.
   session.state = useAppStore.getState()
   session.parsedWorkspaceKey = parseWorkspaceKey(session.deps.worktreeId)
   session.folderWorkspace =

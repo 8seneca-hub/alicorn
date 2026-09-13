@@ -90,7 +90,7 @@ describe('buildRows with pinned worktrees', () => {
     expect(rows.filter((row) => row.type === 'header')).toMatchObject([
       {
         key: 'project:github:stablyai/orca',
-        label: 'Orca',
+        label: 'Alicorn',
         count: 2
       }
     ])
@@ -149,7 +149,7 @@ describe('buildRows with pinned worktrees', () => {
     )
 
     expect(rows).toMatchObject([
-      { type: 'header', key: 'project:github:stablyai/orca', label: 'Orca', count: 2 },
+      { type: 'header', key: 'project:github:stablyai/orca', label: 'Alicorn', count: 2 },
       { type: 'item', worktree: { id: worktree.id }, hostContextLabel: LOCAL_HOST_LABEL },
       { type: 'item', worktree: { id: runtimeWorktree.id }, hostContextLabel: 'dev box' }
     ])
@@ -202,7 +202,7 @@ describe('buildRows with pinned worktrees', () => {
     ])
   })
 
-  it('shows distinct Orca server names when status grouping mixes runtime hosts', () => {
+  it('shows distinct Alicorn server names when status grouping mixes runtime hosts', () => {
     const firstRepo: Repo = {
       ...repo,
       id: 'repo-runtime-a',
@@ -295,7 +295,7 @@ describe('buildRows with pinned worktrees', () => {
     )
 
     expect(rows).toMatchObject([
-      { type: 'header', key: 'project:github:stablyai/orca', label: 'Orca', count: 2 },
+      { type: 'header', key: 'project:github:stablyai/orca', label: 'Alicorn', count: 2 },
       { type: 'item', worktree: { id: worktree.id } },
       { type: 'item', worktree: { id: secondLocalWorktree.id } }
     ])

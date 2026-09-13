@@ -39,7 +39,7 @@ async function postTruncatedHook(
   await new Promise((resolve) => setTimeout(resolve, 50))
 }
 
-/** Opens a POST that announces a body and then never sends it, so Orca's own slowloris cap ends it. */
+/** Opens a POST that announces a body and then never sends it, so Alicorn's own slowloris cap ends it. */
 async function postStalledHook(port: number, token: string): Promise<void> {
   const socket = connect({ port, host: '127.0.0.1' })
   await new Promise<void>((resolve) => socket.on('connect', () => resolve()))
@@ -133,7 +133,7 @@ describe('AgentHookServer transport interference', () => {
 
     await postTruncatedHook(port, token)
     await postTruncatedHook(port, token)
-    // Why: Orca destroys this one itself at HOOK_REQUEST_SLOWLORIS_MS; counting it would make
+    // Why: Alicorn destroys this one itself at HOOK_REQUEST_SLOWLORIS_MS; counting it would make
     // every stalled agent look like an IDS block.
     await postStalledHook(port, token)
     expect(reports).toEqual([])

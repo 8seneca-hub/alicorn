@@ -27,7 +27,7 @@ export abstract class BrowserManagerGuestPolicy extends BrowserManagerGuestClean
     if (inheritedOwnerContext) {
       this.popupOwnerContextByGuestId.set(guest.id, inheritedOwnerContext)
     }
-    // Why: only the primary embedded browser converts new-tab clicks to Orca tabs; OAuth child windows keep native link behavior.
+    // Why: only the primary embedded browser converts new-tab clicks to Alicorn tabs; OAuth child windows keep native link behavior.
     const clickedLinkFrameName = inheritedOwnerContext
       ? null
       : `__orca_clicked_link_foreground_${randomUUID()}`

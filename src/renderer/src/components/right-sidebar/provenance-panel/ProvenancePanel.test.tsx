@@ -88,7 +88,16 @@ describe('ProvenancePanel', () => {
       ok: true,
       view: view({
         steps: [
-          step({ id: 'a', stageKey: 'merge', gate: { decision: 'gate', reason: 'irreversible', gateId: null, agreement: { recorded: false } } })
+          step({
+            id: 'a',
+            stageKey: 'merge',
+            gate: {
+              decision: 'gate',
+              reason: 'irreversible',
+              gateId: null,
+              agreement: { recorded: false }
+            }
+          })
         ]
       })
     })
@@ -102,7 +111,19 @@ describe('ProvenancePanel', () => {
   it('says a step carries no decision instead of implying it was automatic', async () => {
     seed({
       ok: true,
-      view: view({ steps: [step({ id: 'a', gate: { decision: 'unknown', reason: 'unknown', gateId: null, agreement: { recorded: false } } })] })
+      view: view({
+        steps: [
+          step({
+            id: 'a',
+            gate: {
+              decision: 'unknown',
+              reason: 'unknown',
+              gateId: null,
+              agreement: { recorded: false }
+            }
+          })
+        ]
+      })
     })
     render(<ProvenancePanel />)
 

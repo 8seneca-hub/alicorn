@@ -174,7 +174,7 @@ describe('deciding what to do with a presented host key', () => {
     // treats a CA-covered host presenting a plain key as first contact and connects. Refusing was
     // stricter than ssh, and because `@cert-authority *` is the normal Teleport/Vault-SSH/Smallstep
     // shape it failed EVERY target for those users — with an escape hatch that is an environment
-    // variable, unreachable when Orca is launched from the Dock.
+    // variable, unreachable when Alicorn is launched from the Dock.
     it('does not refuse a certificate-authority host', () => {
       const decision = decideHostKey(input({ knownHostsOutcome: 'ca-only' }))
       expect(decision.action).toBe('accept-and-remember')

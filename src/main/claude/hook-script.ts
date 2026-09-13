@@ -23,19 +23,19 @@ export function getManagedScript(
       'setlocal',
       // Why: Claude-compatible permission hooks fail closed on empty stdout (#14818).
       'echo {}',
-      // Why: refresh endpoint coordinates for PTYs surviving an Orca restart.
+      // Why: refresh endpoint coordinates for PTYs surviving an Alicorn restart.
       'if defined ALICORN_AGENT_HOOK_ENDPOINT if exist "%ALICORN_AGENT_HOOK_ENDPOINT%" call "%ALICORN_AGENT_HOOK_ENDPOINT%" 2>nul',
       // Why (#11549): the env guards must outrank the Devin skip — the Devin skip parks in more.com,
-      // and outside an Orca pane the caller can abandon stdin, so more.com never returns.
+      // and outside an Alicorn pane the caller can abandon stdin, so more.com never returns.
       ...buildWindowsHookEnvironmentGuardLines(),
       // Why: a backgrounded session runs in a daemon worker that inherited the dispatching
       // pane's env, so ALICORN_PANE_KEY names a pane this session does not run in (#9236).
       // Why exit, not the drain label: the drain parks in more.com and a worker is outside
-      // an Orca pane — the abandoned-stdin hang #11549 guards against.
+      // an Alicorn pane — the abandoned-stdin hang #11549 guards against.
       'if not "%CLAUDE_JOB_DIR%"=="" exit /b 0',
       ...(options.skipWhenDevinImportsClaude
         ? [
-            // Why: Devin imports .claude hooks by default; skip Orca's managed hook there so status posts stay attributed to Devin.
+            // Why: Devin imports .claude hooks by default; skip Alicorn's managed hook there so status posts stay attributed to Devin.
             `if not "%DEVIN_PROJECT_DIR%"=="" goto :${WINDOWS_HOOK_STDIN_DRAIN_LABEL}`
           ]
         : []),
@@ -55,7 +55,7 @@ export function getManagedScript(
     ...buildPosixHookSpoolLines('claude'),
     ...(options.skipWhenDevinImportsClaude
       ? [
-          // Why: Devin imports .claude hooks by default; skip Orca's managed hook there so status posts stay attributed to Devin.
+          // Why: Devin imports .claude hooks by default; skip Alicorn's managed hook there so status posts stay attributed to Devin.
           'if [ -n "$DEVIN_PROJECT_DIR" ]; then',
           '  exit 0',
           'fi'
@@ -66,7 +66,7 @@ export function getManagedScript(
     'if [ -n "$CLAUDE_JOB_DIR" ]; then',
     '  exit 0',
     'fi',
-    // Why: refresh endpoint coordinates for PTYs surviving an Orca restart.
+    // Why: refresh endpoint coordinates for PTYs surviving an Alicorn restart.
     // Why: suppress parse errors so they neither leak nor trip outer set -e.
     'if [ -n "$ALICORN_AGENT_HOOK_ENDPOINT" ] && [ -r "$ALICORN_AGENT_HOOK_ENDPOINT" ]; then',
     '  unset ALICORN_AGENT_HOOK_TRANSPORT',

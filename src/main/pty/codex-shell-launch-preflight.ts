@@ -33,13 +33,13 @@ export type CodexShellLaunchPreflightCommandOptions = {
   platform?: NodeJS.Platform
 }
 
-/** Absolute path of the Orca CLI the preflight must execute, or null to skip it.
+/** Absolute path of the Alicorn CLI the preflight must execute, or null to skip it.
  *
  *  Why absolute: the value rides in ALICORN_CODEX_LAUNCH_PREFLIGHT and is invoked
  *  from the codex() wrapper, which shell-ready emits *after* the user's profile
  *  scripts run. Those scripts routinely rewrite PATH, so an unqualified name
- *  would be resolved against a PATH Orca neither controls nor can predict —
- *  handing Orca's managed Codex environment to an unidentified program. When no
+ *  would be resolved against a PATH Alicorn neither controls nor can predict —
+ *  handing Alicorn's managed Codex environment to an unidentified program. When no
  *  path verifies, skipping the preflight is the predictable degradation. */
 export function resolveCodexShellLaunchPreflightCommand(
   options: CodexShellLaunchPreflightCommandOptions

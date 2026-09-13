@@ -24,7 +24,7 @@ export type RunCostSummary = {
 }
 
 /**
- * Sums a run's dispatches. A dispatch priced `unavailable` (a backend Orca does not price) or
+ * Sums a run's dispatches. A dispatch priced `unavailable` (a backend Alicorn does not price) or
  * `pending` (not scanned yet) makes the total a floor rather than a figure — CLAUDE.md's token
  * efficiency pillar wants the meter visible, and its cost-attribution rule wants a dash over a
  * guess. Both hold at once by showing what is known and admitting it is incomplete.

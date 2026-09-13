@@ -9,7 +9,7 @@ import {
 import { clearRuntimeCompatibilityCacheForTests } from '../../runtime/runtime-rpc-client'
 
 // Mirrors the real report: one project name ("orca") set up on the local Mac and on a
-// remote Orca server, where only the local repo row carries the user's chosen color.
+// remote Alicorn server, where only the local repo row carries the user's chosen color.
 const SHARED_PROJECT_ID = 'github:stablyai/orca'
 const LOCAL_GREEN = '#22c55e'
 const REMOTE_NEUTRAL = '#737373'

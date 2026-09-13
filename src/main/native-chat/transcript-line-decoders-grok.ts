@@ -215,7 +215,7 @@ function normalizeGrokUserQueryBlock(block: NativeChatBlock): NativeChatBlock[] 
 
 function splitGrokPastedImageQuery(text: string): { path: string; query: string } | null {
   // Why: Grok 0.2.93 persists clipboard images as an absolute temp path directly
-  // concatenated with the prompt; recover Orca's attachment without exposing it.
+  // concatenated with the prompt; recover Alicorn's attachment without exposing it.
   const match = text.match(
     /^((?:[a-z]:[\\/]|\/|[\\/]{2}[^\\/\r\n]+[\\/][^\\/\r\n]+[\\/])(?:.*?[\\/])?orca-paste-[^\\/\r\n]+?\.png)([\s\S]*)$/i
   )

@@ -24,14 +24,14 @@ const AUTOMATION_STATE_FLAGS = [
 export const AUTOMATION_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['automations', 'list'],
-    summary: 'List scheduled Orca automations',
+    summary: 'List scheduled Alicorn automations',
     usage: 'alicorn automations list [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
     examples: ['alicorn automations list', 'alicorn automations list --json']
   },
   {
     path: ['automations', 'show'],
-    summary: 'Show one Orca automation',
+    summary: 'Show one Alicorn automation',
     usage: 'alicorn automations show <id> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'id'],
     positionalArgs: ['id'],
@@ -39,7 +39,7 @@ export const AUTOMATION_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['automations', 'create'],
-    summary: 'Create a scheduled Orca automation',
+    summary: 'Create a scheduled Alicorn automation',
     usage:
       'alicorn automations create --name <name> --trigger <preset|cron|rrule> --prompt <text> --provider <agent> [--precheck <command>] [--repo <selector>|--workspace <selector>|--project <id> [--host <id>]|--project-host-setup <id>] [--json]',
     allowedFlags: [
@@ -54,9 +54,9 @@ export const AUTOMATION_COMMAND_SPECS: CommandSpec[] = [
     ],
     notes: [
       'Trigger accepts hourly, daily, weekdays, weekly, a 5-field cron expression, or an RRULE string.',
-      'When --repo is omitted, the CLI uses the enclosing Orca worktree when one can be resolved from cwd.',
+      'When --repo is omitted, the CLI uses the enclosing Alicorn worktree when one can be resolved from cwd.',
       'Use --project with --host, or --project-host-setup, to run on a specific project host setup.',
-      '--host runtime:<environment-id> targets that paired Orca server; use the id from `alicorn environment list`, not the environment name.',
+      '--host runtime:<environment-id> targets that paired Alicorn server; use the id from `alicorn environment list`, not the environment name.',
       'Use --source-context with a JSON TaskSourceContext when task/provider data should come from a specific host/account; pass null on edit to clear it.',
       'Use --workspace to run in an existing worktree; otherwise the automation creates a new worktree per run.',
       'Use --precheck to run a bounded command before scheduled runs; exit code 0 continues, anything else records a skipped run.',
@@ -70,7 +70,7 @@ export const AUTOMATION_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['automations', 'edit'],
-    summary: 'Edit an Orca automation',
+    summary: 'Edit an Alicorn automation',
     usage: 'alicorn automations edit <id> [--name <name>] [--trigger <preset|cron|rrule>] [--json]',
     allowedFlags: [
       ...GLOBAL_FLAGS,
@@ -92,7 +92,7 @@ export const AUTOMATION_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['automations', 'remove'],
     destructive: true,
-    summary: 'Remove an Orca automation and its run history',
+    summary: 'Remove an Alicorn automation and its run history',
     usage: 'alicorn automations remove <id> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'id'],
     positionalArgs: ['id'],
@@ -103,7 +103,7 @@ export const AUTOMATION_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['automations', 'run'],
-    summary: 'Run an Orca automation now',
+    summary: 'Run an Alicorn automation now',
     usage: 'alicorn automations run <id> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'id'],
     positionalArgs: ['id'],

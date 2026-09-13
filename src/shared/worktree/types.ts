@@ -119,12 +119,12 @@ export type Worktree = {
   /** User-authored sidebar ordering. Higher values render earlier in Manual sort. */
   manualOrder?: number
   lastActivityAt: number
-  /** Set once when Orca creates the worktree. Absent for worktrees discovered
+  /** Set once when Alicorn creates the worktree. Absent for worktrees discovered
    *  on disk or persisted before this field existed. Used by the sidebar to
    *  grant newly-created worktrees a short grace window at the top of Recent,
    *  immune to ambient PTY-bump reordering in other worktrees. */
   createdAt?: number
-  /** Agent selected when Orca originally created the worktree. Used only to
+  /** Agent selected when Alicorn originally created the worktree. Used only to
    *  seed a replacement terminal if the user later reopens the worktree after
    *  closing every visible surface. */
   createdWithAgent?: TuiAgent
@@ -142,7 +142,7 @@ export type Worktree = {
   sparsePresetId?: string
   /** Intended create base for stale-base probes. Persisted metadata, not UI drift state. */
   baseRef?: string
-  /** Remote/branch Orca should publish review commits to when it created this worktree. */
+  /** Remote/branch Alicorn should publish review commits to when it created this worktree. */
   pushTarget?: GitPushTarget
   /** Path-derived worktree ids this worktree had before folder renames. */
   priorWorktreeIds?: string[]
@@ -159,7 +159,7 @@ export type Worktree = {
 export type CliWorkspaceProvenance = {
   kind: 'created-by-cli'
   createdAt: number
-  /** Orca terminal the CLI ran inside, when the caller had one — distinguishes
+  /** Alicorn terminal the CLI ran inside, when the caller had one — distinguishes
    *  an agent-issued create from one hand-typed in an external shell. */
   callerTerminalHandle?: string
   /** Agent requested via `--agent`, when one was passed. */
@@ -195,7 +195,7 @@ export type GitPushTarget = {
   remoteName: string
   branchName: string
   remoteUrl?: string
-  /** True when Orca added this remote while preparing a fork-PR worktree. */
+  /** True when Alicorn added this remote while preparing a fork-PR worktree. */
   remoteCreated?: boolean
 }
 

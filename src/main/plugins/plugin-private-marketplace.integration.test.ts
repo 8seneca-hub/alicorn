@@ -39,7 +39,7 @@ async function createGitRepository(
   await runGit(repository, ['add', '--all'])
   await runGit(repository, [
     '-c',
-    'user.name=Orca Test',
+    'user.name=Alicorn Test',
     '-c',
     'user.email=orca-test@example.invalid',
     'commit',

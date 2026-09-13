@@ -6,7 +6,7 @@ import type { MemberBackend } from '../../../shared/alicorn/members'
  * the whole point of the layer is that implementation detail never enters its context
  * (CLAUDE.md, *Foreman is an add-on*). Enforced at launch, not asked for in a prompt.
  *
- * `--disallowedTools` alone is not the enforcement: Orca launches Claude with
+ * `--disallowedTools` alone is not the enforcement: Alicorn launches Claude with
  * `--dangerously-skip-permissions`, which skips the permission checks that flag is one of. The
  * `PreToolUse` deny hook in `lead-tool-policy.ts` runs whatever the permission mode, and is what
  * actually holds — see that file for the read half, which no launch flag can express.

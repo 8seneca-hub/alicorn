@@ -445,41 +445,45 @@ const DIRECT_SINGLE_SOURCE_SURFACES: readonly {
 ]
 
 describe('pane agent identity inventory ratchet', () => {
-  it('classifies every legacy helper definition, import, and callsite in src and mobile/src', async () => {
-    const files = await glob(['src/**/*.{ts,tsx}', 'mobile/src/**/*.{ts,tsx}'], {
-      ignore: ['**/*.test.*', '**/*.spec.*']
-    })
-    const actual: { helper: Helper; path: string; occurrences: number }[] = []
-    for (const path of files) {
-      if (isTestFile(path) || TEST_SUPPORT_PATHS.has(path)) {
-        continue
-      }
-      const rawSource = readFileSync(join(process.cwd(), path), 'utf8')
-      if (!HELPERS.some((helper) => rawSource.includes(helper))) {
-        continue
-      }
-      const decommentedSource = stripComments(rawSource)
-      if (blankStringContentsDesynced(decommentedSource)) {
-        throw new Error(`String scanner desynchronized while inventorying ${path}`)
-      }
-      const source = blankStringContents(decommentedSource)
-      for (const helper of HELPERS) {
-        const occurrences = source.match(new RegExp(`\\b${helper}\\b`, 'g'))?.length ?? 0
-        if (occurrences > 0) {
-          actual.push({ helper, path, occurrences })
+  it(
+    'classifies every legacy helper definition, import, and callsite in src and mobile/src',
+    async () => {
+      const files = await glob(['src/**/*.{ts,tsx}', 'mobile/src/**/*.{ts,tsx}'], {
+        ignore: ['**/*.test.*', '**/*.spec.*']
+      })
+      const actual: { helper: Helper; path: string; occurrences: number }[] = []
+      for (const path of files) {
+        if (isTestFile(path) || TEST_SUPPORT_PATHS.has(path)) {
+          continue
+        }
+        const rawSource = readFileSync(join(process.cwd(), path), 'utf8')
+        if (!HELPERS.some((helper) => rawSource.includes(helper))) {
+          continue
+        }
+        const decommentedSource = stripComments(rawSource)
+        if (blankStringContentsDesynced(decommentedSource)) {
+          throw new Error(`String scanner desynchronized while inventorying ${path}`)
+        }
+        const source = blankStringContents(decommentedSource)
+        for (const helper of HELPERS) {
+          const occurrences = source.match(new RegExp(`\\b${helper}\\b`, 'g'))?.length ?? 0
+          if (occurrences > 0) {
+            actual.push({ helper, path, occurrences })
+          }
         }
       }
-    }
-    const expected = INVENTORY.flatMap(({ helper, paths }) =>
-      paths.map((site) => {
-        const [path, occurrences] = typeof site === 'string' ? [site, 1] : site
-        return { helper, path, occurrences }
-      })
-    )
-    const byHelperAndPath = (left: (typeof actual)[number], right: (typeof actual)[number]) =>
-      left.helper.localeCompare(right.helper) || left.path.localeCompare(right.path)
-    expect(actual.sort(byHelperAndPath)).toEqual(expected.sort(byHelperAndPath))
-  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
+      const expected = INVENTORY.flatMap(({ helper, paths }) =>
+        paths.map((site) => {
+          const [path, occurrences] = typeof site === 'string' ? [site, 1] : site
+          return { helper, path, occurrences }
+        })
+      )
+      const byHelperAndPath = (left: (typeof actual)[number], right: (typeof actual)[number]) =>
+        left.helper.localeCompare(right.helper) || left.path.localeCompare(right.path)
+      expect(actual.sort(byHelperAndPath)).toEqual(expected.sort(byHelperAndPath))
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 
   it('pins direct single-source identity and action branches outside named helpers', () => {
     for (const site of DIRECT_SINGLE_SOURCE_SURFACES) {

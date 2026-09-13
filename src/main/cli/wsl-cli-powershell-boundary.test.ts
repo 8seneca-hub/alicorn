@@ -33,7 +33,7 @@ const FORWARDED_ARGS = [
 
 describe('WSL CLI PowerShell boundary', () => {
   it('keeps forwarded argv outside PowerShell parsing', () => {
-    const launcher = buildWslLauncher('C:\\Program Files\\Orca\\orca.exe')
+    const launcher = buildWslLauncher('C:\\Program Files\\Alicorn\\orca.exe')
     const bridge = buildWslBridgeScript()
 
     expect(launcher).toContain('"$ALICORN_WIN_LAUNCHER" -WslCwd "$ALICORN_WSL_CWD_WIN" "$@"')

@@ -26,7 +26,7 @@ export function resolveChecksPanelHostedReviewHttpOpenOptions(
 export type ChecksPanelHostedReviewModifierDestination = 'system-browser' | 'orca' | null
 
 // Why: mirrors openHttpLink's routing inputs — with inverting on and Link Routing off the
-// modifier now reaches Orca here, so gating the hint on openLinksInApp alone hides a live gesture.
+// modifier now reaches Alicorn here, so gating the hint on openLinksInApp alone hides a live gesture.
 export function resolveChecksPanelHostedReviewModifierDestination(
   settings:
     | {
@@ -39,7 +39,7 @@ export function resolveChecksPanelHostedReviewModifierDestination(
   hasWorktree: boolean
 ): ChecksPanelHostedReviewModifierDestination {
   // Why: trim to match openHttpLink — an untrimmed check hides the hint on a blank
-  // runtime id while the click still routes to Orca.
+  // runtime id while the click still routes to Alicorn.
   if (!hasWorktree || settings?.activeRuntimeEnvironmentId?.trim()) {
     return null
   }

@@ -80,7 +80,7 @@ export function handlePtyExit(id: string, exitSequence: number): void {
   state.codexSessionMigration?.finishLaunch(id, exitSequence)
 }
 
-/** A PTY that dies while Orca is down never runs the teardown that clears pane
+/** A PTY that dies while Alicorn is down never runs the teardown that clears pane
  *  state, so hydrate can rebuild a Claude subagent roster that no later hook can
  *  retire — pinning the pane 'working' and locking its agent out of hibernation
  *  for good. Once provider and hook hydration settle, targeted PTY liveness can
@@ -190,7 +190,7 @@ export function startTerminalRuntimeStartupServices(): WindowsDesktopStartupServ
       track('daemon_start_failed', classifyError(error))
     },
     onAgentHookServerError: (error) => {
-      // Why: hook callbacks are sidebar enrichment only; Orca must still boot if the loopback receiver fails.
+      // Why: hook callbacks are sidebar enrichment only; Alicorn must still boot if the loopback receiver fails.
       console.error('[agent-hooks] Failed to start local hook server:', error)
     }
   })

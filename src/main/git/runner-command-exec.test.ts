@@ -687,7 +687,7 @@ describe('runner execFile timeout handling', () => {
         'wsl.exe',
         ['-d', 'Ubuntu', '--exec', 'sh', '-lc', expect.any(String)],
         // Why a concrete directory (#16463): `undefined` makes CreateProcessW inherit
-        // Orca's own cwd, a deletable WSL UNC path when it was launched from a
+        // Alicorn's own cwd, a deletable WSL UNC path when it was launched from a
         // worktree. The Linux directory still rides inside the command (/mnt/c/repo,
         // asserted below).
         expect.objectContaining({ cwd: expect.any(String) }),
@@ -724,7 +724,7 @@ describe('runner execFile timeout handling', () => {
         'wsl.exe',
         ['-d', 'Ubuntu', '--exec', 'bash', '-c', expect.any(String)],
         // Why a concrete directory (#16463): `undefined` makes CreateProcessW inherit
-        // Orca's own cwd, a deletable WSL UNC path when it was launched from a
+        // Alicorn's own cwd, a deletable WSL UNC path when it was launched from a
         // worktree. The Linux directory still rides inside the command (/mnt/c/repo,
         // asserted below).
         expect.objectContaining({ cwd: expect.any(String) }),

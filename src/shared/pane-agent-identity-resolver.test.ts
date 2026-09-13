@@ -41,8 +41,8 @@ describe('resolvePaneAgentIdentity', () => {
     })
 
     it('outranks the launch record with nothing weaker than the launch record', () => {
-      // The tab ladder currently puts the parsed title ABOVE activeLaunchAgent, so a string Orca
-      // parsed beats a fact Orca owns. That inversion cannot be expressed here.
+      // The tab ladder currently puts the parsed title ABOVE activeLaunchAgent, so a string Alicorn
+      // parsed beats a fact Alicorn owns. That inversion cannot be expressed here.
       const result = resolve([
         { source: 'launch', agent: 'claude' },
         { source: 'title', agent: 'gemini' }

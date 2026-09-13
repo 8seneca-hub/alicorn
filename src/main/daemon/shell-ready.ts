@@ -141,7 +141,7 @@ export function getShellLaunchConfig(
     }
     if (!ensureShellReadyWrappers()) {
       // Why plain login zsh: ZDOTDIR pointed at an incomplete wrapper dir makes
-      // zsh skip the user's whole config. Losing Orca's features is recoverable.
+      // zsh skip the user's whole config. Losing Alicorn's features is recoverable.
       return { args: ['-l'], env: {}, supportsReadyMarker: false }
     }
     return {

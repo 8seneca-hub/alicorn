@@ -111,7 +111,7 @@ function detachedLease() {
 
 /**
  * STA-3376: every reattach failure walks away from a remote PTY that may still be running a user's
- * work. Orca's rule is that unprovable liveness never authorizes destroying a session, so these
+ * work. Alicorn's rule is that unprovable liveness never authorizes destroying a session, so these
  * assert the opposite of a leak test: the shell must survive, and the lease must stay in a state
  * the user-facing terminate action can still reach.
  */

@@ -4,7 +4,7 @@ import { stderrIndicatesMissingAppServer } from './codex-app-server-capability-s
 import { withCliRuntimeOnPath } from '../../shared/node-cli-command-resolution'
 import { admitProcessTreeKill } from '../../shared/child-process/process-tree-kill-gate'
 
-// Why: `codex app-server` is Orca's sanctioned RPC surface into Codex-owned
+// Why: `codex app-server` is Alicorn's sanctioned RPC surface into Codex-owned
 // state (hook trust hashes, the sqlite thread index). This module owns the
 // stdio JSONL transport — spawn, handshake, framing, deadline, reap — so every
 // RPC consumer (trust grant, session index heal) shares one hardened lifecycle.
@@ -328,7 +328,7 @@ export async function runCodexAppServerSession<T>(
   try {
     const session = async (): Promise<T> => {
       await requestRpc('initialize', {
-        clientInfo: { name: 'orca_desktop', title: 'Orca', version: '0.0.0' }
+        clientInfo: { name: 'orca_desktop', title: 'Alicorn', version: '0.0.0' }
       })
       notify('initialized')
       return body({ request: requestRpc, notify })

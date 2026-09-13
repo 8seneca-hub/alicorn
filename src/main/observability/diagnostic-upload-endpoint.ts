@@ -22,7 +22,7 @@ export function resolveDiagnosticBuildIdentity(): 'stable' | 'rc' | null {
 export function resolveDiagnosticTokenEndpoint(): string | null {
   const buildEndpoint = resolveDiagnosticBuildTokenEndpoint()
   // Official builds must stay pinned to the CI-substituted endpoint; user env
-  // cannot redirect uploads that the UI labels as going to Orca support.
+  // cannot redirect uploads that the UI labels as going to Alicorn support.
   if (resolveDiagnosticBuildIdentity()) {
     return buildEndpoint
   }

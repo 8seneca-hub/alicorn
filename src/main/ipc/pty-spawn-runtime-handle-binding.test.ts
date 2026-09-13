@@ -152,7 +152,7 @@ describe('registerPtyHandlers', () => {
         TMUX: '/tmp/orca-claude-agent-teams/team-stale,0,1',
         ALICORN_AGENT_TEAMS_TEAM_ID: 'team-stale',
         ALICORN_AGENT_TEAMS_TOKEN: 'stale-token',
-        TERM_PROGRAM: 'Orca'
+        TERM_PROGRAM: 'Alicorn'
       },
       launchConfig: {
         agentCommand: 'claude --teammate-mode auto',

@@ -10,7 +10,7 @@ export type QaLaunchUnsupported = { unsupported: true; reason: string }
  * and tests written against it, and the run would look blindfolded while being nothing of the sort.
  *
  * No `disallowedTools` here, unlike a lead: QA writes tests, and the flag would be skipped anyway —
- * Orca launches Claude with `--dangerously-skip-permissions`. The hook is the whole enforcement.
+ * Alicorn launches Claude with `--dangerously-skip-permissions`. The hook is the whole enforcement.
  */
 export function qaLaunchOptions(backend: MemberBackend): QaLaunchOptions | QaLaunchUnsupported {
   switch (backend) {

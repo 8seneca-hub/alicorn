@@ -3,7 +3,7 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
 export type LandingStarState = 'loading' | 'starred' | 'not-starred' | 'web-fallback' | 'hidden'
 
 /**
- * Resolve the viewer's Orca star state once per Landing mount.
+ * Resolve the viewer's Alicorn star state once per Landing mount.
  *
  * Why it lives here and not in the star button: the button renders inside a
  * footer that is conditionally mounted on whether `repos` currently carries a

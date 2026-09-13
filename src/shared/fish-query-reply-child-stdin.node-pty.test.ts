@@ -1,5 +1,5 @@
 /**
- * Real-fish regression for #13892: a terminal query reply Orca held back is overtaken
+ * Real-fish regression for #13892: a terminal query reply Alicorn held back is overtaken
  * by the DA1 answer written later in the same turn, so fish's read sentinel hands the
  * tty to the child while the OSC 11 reply is still queued — and the CHILD READS IT.
  *
@@ -40,7 +40,7 @@ const QUERY_GRAMMARS = [
   { re: /^\x1b\[\?996n/, reply: () => '\x1b[?997;1n' },
   { re: /^\x1b\[>0?c/, reply: () => '\x1b[>0;276;0c' },
   { re: /^\x1b\[0?c/, reply: () => '\x1b[?1;2c' },
-  { re: /^\x1b\[>0?q/, reply: () => '\x1bP>|Orca\x1b\\' },
+  { re: /^\x1b\[>0?q/, reply: () => '\x1bP>|Alicorn\x1b\\' },
   { re: /^\x1b\[\?u/, reply: () => '\x1b[?0u' }
 ] as const
 /** Still accumulating: no CSI final byte and no OSC/DCS terminator yet. */

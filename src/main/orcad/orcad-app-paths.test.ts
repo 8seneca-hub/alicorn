@@ -32,7 +32,7 @@ describe('resolveUserDataPath', () => {
     expect(resolveUserDataPath()).toBe(join(sep, 'srv', 'orca-state'))
 
     vi.stubEnv('ALICORN_USER_DATA', '')
-    expect(resolveUserDataPath()).toBe(join(sep, 'xdg', 'Orca'))
+    expect(resolveUserDataPath()).toBe(join(sep, 'xdg', 'Alicorn'))
 
     vi.stubEnv('XDG_DATA_HOME', '')
     expect(resolveUserDataPath()).toBe(join(homedir(), '.orca'))

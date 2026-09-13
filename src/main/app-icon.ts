@@ -8,10 +8,10 @@ import { app, BrowserWindow, nativeImage } from 'electron'
 import { is } from '@electron-toolkit/utils'
 import classicIcon from '../../resources/icon.png?asset'
 import classicDevIcon from '../../resources/icon-dev.png?asset'
-import watercolorIcon from '../../resources/app-icons/orca-watercolor.png?asset'
-import watercolorMacDockIcon from '../../resources/app-icons/orca-watercolor.png?asset&asarUnpack'
-import blueIcon from '../../resources/app-icons/orca-blue.png?asset'
-import blueMacDockIcon from '../../resources/app-icons/orca-blue.png?asset&asarUnpack'
+import watercolorIcon from '../../resources/app-icons/alicorn-watercolor.png?asset'
+import watercolorMacDockIcon from '../../resources/app-icons/alicorn-watercolor.png?asset&asarUnpack'
+import blueIcon from '../../resources/app-icons/alicorn-blue.png?asset'
+import blueMacDockIcon from '../../resources/app-icons/alicorn-blue.png?asset&asarUnpack'
 import { normalizeAppIconId, type AppIconId } from '../shared/app-icon'
 
 const APP_ICON_PATHS = {
@@ -47,9 +47,9 @@ const MAC_DOCK_ICON_SCRIPT = [
   'set appPath to system attribute "ALICORN_APP_BUNDLE_PATH"',
   'set iconPath to system attribute "ALICORN_APP_ICON_PATH"',
   "set image to current application's NSImage's alloc()'s initWithContentsOfFile:iconPath",
-  'if image is missing value then error "Orca app icon image could not be loaded"',
+  'if image is missing value then error "Alicorn app icon image could not be loaded"',
   "set ok to current application's NSWorkspace's sharedWorkspace()'s setIcon:image forFile:appPath options:0",
-  'if ok is false then error "Orca app icon could not be persisted"'
+  'if ok is false then error "Alicorn app icon could not be persisted"'
 ]
 
 const MAC_DOCK_ICON_CLEAR_SCRIPT = [
@@ -57,7 +57,7 @@ const MAC_DOCK_ICON_CLEAR_SCRIPT = [
   'use scripting additions',
   'set appPath to system attribute "ALICORN_APP_BUNDLE_PATH"',
   "set ok to current application's NSWorkspace's sharedWorkspace()'s setIcon:(missing value) forFile:appPath options:0",
-  'if ok is false then error "Orca app icon could not be cleared"'
+  'if ok is false then error "Alicorn app icon could not be cleared"'
 ]
 
 const MAC_DOCK_ICON_COMMAND_TIMEOUT_MS = 10_000

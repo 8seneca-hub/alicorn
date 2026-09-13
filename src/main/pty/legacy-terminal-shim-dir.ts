@@ -170,7 +170,7 @@ function pathEntrySpellings(dir: string, windows: boolean): string[] {
 // pass-through tombstone, and the tombstone excludes its own directory by -ef, so the lookup still
 // reaches the real git.
 export function isLegacyTerminalShimPathEntry(entry: string): boolean {
-  // Why `windows` unconditionally here: this classifier only ever matches Orca's own
+  // Why `windows` unconditionally here: this classifier only ever matches Alicorn's own
   // `orca-terminal-attribution/{posix,win32}` layout, and a Windows PATH can reach it through the
   // remote env, so both slash styles must be understood regardless of the local platform.
   const normalized = stripTrailingSeparators(entry.replaceAll('\\', '/'), true).toLowerCase()

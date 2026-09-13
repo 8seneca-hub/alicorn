@@ -96,7 +96,7 @@ afterEach(() => {
 
 // Why: model codex's own config/batchWrite — exactly one
 // `[hooks.state."<key>"]` table per reported key, keyed verbatim, blank-line
-// separated (the shape the real 0.144.x binary writes). Orca's
+// separated (the shape the real 0.144.x binary writes). Alicorn's
 // upsertHookTrustEntries writes BOTH separator variants for a Windows key (a
 // fallback-lane compat shim real codex never does), which would fabricate
 // duplicate tables on win32 that the RPC path never produces.

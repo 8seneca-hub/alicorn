@@ -261,8 +261,8 @@ export default function AiVaultSessionDropLayer({
             // must fail loudly rather than silently resume under it.
             throw new Error(
               result.substituteCodexHome
-                ? 'This session was dragged from an older Orca window, so Orca cannot retarget it to the selected Codex account. Resume it from the Session History panel instead.'
-                : 'Orca could not prepare this legacy Codex session. Retry resume.'
+                ? 'This session was dragged from an older Alicorn window, so Alicorn cannot retarget it to the selected Codex account. Resume it from the Session History panel instead.'
+                : 'Alicorn could not prepare this legacy Codex session. Retry resume.'
             )
           }
           const providerSession = getAiVaultAgentProviderSession({

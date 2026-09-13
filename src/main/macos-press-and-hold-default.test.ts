@@ -140,10 +140,10 @@ describe('ensureMacPressAndHoldDefault', () => {
       expect(writes).toEqual([])
     })
 
-    it('accepts Orca and its channel-scoped bundles, and nothing else', () => {
+    it('accepts Alicorn and its channel-scoped bundles, and nothing else', () => {
       expect(isAppPreferencesDomain('com.8seneca.alicorn')).toBe(true)
       expect(isAppPreferencesDomain('com.8seneca.alicorn.dev')).toBe(true)
-      // An upgrading user's preference is still written under the Orca domain.
+      // An upgrading user's preference is still written under the Alicorn domain.
       expect(isAppPreferencesDomain('com.stablyai.orca')).toBe(true)
       expect(isAppPreferencesDomain('com.stablyai.orca.dev')).toBe(true)
       expect(isAppPreferencesDomain('com.github.Electron')).toBe(false)
@@ -241,14 +241,14 @@ describe('readBundleIdentifierFromExecutablePath', () => {
   function bundleWithPlist(body: string): string {
     const root = mkdtempSync(join(tmpdir(), 'orca-press-hold-'))
     roots.push(root)
-    mkdirSync(join(root, 'Orca.app', 'Contents', 'MacOS'), { recursive: true })
-    writeFileSync(join(root, 'Orca.app', 'Contents', 'Info.plist'), body)
-    return join(root, 'Orca.app', 'Contents', 'MacOS', 'Orca')
+    mkdirSync(join(root, 'Alicorn.app', 'Contents', 'MacOS'), { recursive: true })
+    writeFileSync(join(root, 'Alicorn.app', 'Contents', 'Info.plist'), body)
+    return join(root, 'Alicorn.app', 'Contents', 'MacOS', 'Alicorn')
   }
 
   it('reads CFBundleIdentifier from the plist beside the executable', () => {
     const exe = bundleWithPlist(
-      '<plist><dict>\n<key>CFBundleName</key>\n<string>Orca</string>\n' +
+      '<plist><dict>\n<key>CFBundleName</key>\n<string>Alicorn</string>\n' +
         '<key>CFBundleIdentifier</key>\n\t<string>com.stablyai.orca</string>\n</dict></plist>'
     )
 

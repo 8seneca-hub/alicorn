@@ -32,7 +32,7 @@ export type WorkerMemberLaunch = {
   restrictedLaunch: RestrictedPaneLaunch | null
 }
 
-// Every member backend is a TUI agent Orca can launch; the mapping is identity
+// Every member backend is a TUI agent Alicorn can launch; the mapping is identity
 // today and exists so a rename on either side is caught here rather than at spawn.
 export function memberBackendToTuiAgent(backend: MemberBackend): TuiAgent {
   return backend

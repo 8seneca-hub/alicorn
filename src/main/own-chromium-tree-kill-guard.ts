@@ -38,7 +38,7 @@ export function admitSelfInitiatedTreeKill(target: {
   // Why: no PTY root, codex root or git child is ever one of our own Chromium
   // processes, so a pid that is means the caller is about to kill a renderer,
   // the GPU or the browser itself (#10680). Only the pid-addressed scope can
-  // land there: a POSIX group holds only what Orca put in it, so that arm is
+  // land there: a POSIX group holds only what Alicorn put in it, so that arm is
   // recorded and admitted like every other group kill in main, and a stale
   // `getAppMetrics()` entry cannot orphan a macOS/Linux tree.
   const isOwnChromiumPid =

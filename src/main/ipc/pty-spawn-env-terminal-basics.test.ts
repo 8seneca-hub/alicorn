@@ -58,7 +58,7 @@ describe('registerPtyHandlers', () => {
   const { handlers, mainWindow, spawnAndGetEnv, withBundledCli } = setupPtyIpcSuite()
 
   describe('spawn environment', () => {
-    it('routes headless browser launches through the owning Orca workspace', () => {
+    it('routes headless browser launches through the owning Alicorn workspace', () => {
       const inheritedBrowser = process.env.BROWSER
       delete process.env.BROWSER
       try {
@@ -189,7 +189,7 @@ describe('registerPtyHandlers', () => {
           shellOverride: 'wsl.exe',
           terminalWindowsWslDistro: 'Ubuntu',
           env: {
-            PATH: 'C:\\Orca\\bin;C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps',
+            PATH: 'C:\\Alicorn\\bin;C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps',
             WSLENV: 'ALICORN_TERMINAL_HANDLE/u'
           }
         })
@@ -197,7 +197,7 @@ describe('registerPtyHandlers', () => {
 
         expect(file).toBe('wsl.exe')
         expect(options.env.PATH).toBe(
-          'C:\\Orca\\bin;C:\\Windows\\System32;C:\\Python314;C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps'
+          'C:\\Alicorn\\bin;C:\\Windows\\System32;C:\\Python314;C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps'
         )
         const forwardedKeys = options.env.WSLENV.split(':').map((entry) =>
           entry.split('/')[0]!.toLowerCase()
@@ -296,7 +296,7 @@ describe('registerPtyHandlers', () => {
       const env = await spawnAndGetEnv()
       expect(env.TERM).toBe('xterm-256color')
       expect(env.COLORTERM).toBe('truecolor')
-      expect(env.TERM_PROGRAM).toBe('Orca')
+      expect(env.TERM_PROGRAM).toBe('Alicorn')
     })
     it('keeps indexed Git prompt guards in a local agent terminal env', async () => {
       const env = await spawnAndGetEnv(undefined, undefined, undefined, undefined, 'claude')
@@ -318,7 +318,7 @@ describe('registerPtyHandlers', () => {
       expect(env.GCM_INTERACTIVE).toBe('never')
     })
     it('advertises OSC 8 hyperlink support via FORCE_HYPERLINK', async () => {
-      // Why: supports-hyperlinks allowlists TERM_PROGRAM and reports false for Orca, so FORCE_HYPERLINK=1 forces detection on (xterm.js handles OSC 8 natively).
+      // Why: supports-hyperlinks allowlists TERM_PROGRAM and reports false for Alicorn, so FORCE_HYPERLINK=1 forces detection on (xterm.js handles OSC 8 natively).
       const env = await spawnAndGetEnv()
       expect(env.FORCE_HYPERLINK).toBe('1')
     })
@@ -330,7 +330,7 @@ describe('registerPtyHandlers', () => {
       const env = await spawnAndGetEnv(undefined, { ALICORN_APP_VERSION: undefined })
       expect(env.TERM_PROGRAM_VERSION).toBe('0.0.0-dev')
     })
-    it('injects the selected Codex home into Orca terminal PTYs', async () => {
+    it('injects the selected Codex home into Alicorn terminal PTYs', async () => {
       const env = await withBundledCli(() =>
         spawnAndGetEnv(undefined, undefined, () => TEST_CODEX_HOME)
       )

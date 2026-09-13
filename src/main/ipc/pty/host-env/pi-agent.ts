@@ -43,7 +43,7 @@ export function resolvePiAgentSourceDir(
   const publicDir = readEnvWithProcessFallback(baseEnv, primaryKey)
   const ownOverlayDir = readEnvWithProcessFallback(baseEnv, overlayKey)
   const otherOverlayDir = readEnvWithProcessFallback(baseEnv, otherOverlayKey)
-  // Why: if PI_CODING_AGENT_DIR is a restored Orca overlay with no source shadow, remirroring leaks another agent's overlay tree; fall through to defaults.
+  // Why: if PI_CODING_AGENT_DIR is a restored Alicorn overlay with no source shadow, remirroring leaks another agent's overlay tree; fall through to defaults.
   if (publicDir && publicDir !== ownOverlayDir && publicDir !== otherOverlayDir) {
     return publicDir
   }

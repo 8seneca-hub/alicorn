@@ -42,7 +42,7 @@ import { runExclusivelyForCodexTrustConfig } from './codex-trust-config-mutation
  * - 'unavailable': the grant lane could not trust the entry (old binary,
  *   unsupported RPC, verify failure). The entry is rolled back and the host
  *   stays on the managed-home lane.
- * - 'removed': hooks are opted out; Orca entries are swept from the real home.
+ * - 'removed': hooks are opted out; Alicorn entries are swept from the real home.
  */
 export type RealHomeCodexHookLane = 'pending' | 'installed' | 'unavailable' | 'removed'
 
@@ -65,7 +65,7 @@ export function isRealHomeCodexHookLaneUsable(): boolean {
 
 /**
  * Ensures the real-home hook state matches the settings: installs and trusts
- * the Orca status hook when enabled, sweeps it when opted out. Idempotent;
+ * the Alicorn status hook when enabled, sweeps it when opted out. Idempotent;
  * repeat calls are cheap — an unchanged hooks.json write no-ops and a valid
  * grant ledger skips the RPC session entirely.
  * Never throws: any failure logs and leaves the host on the managed lane.
@@ -155,7 +155,7 @@ async function installRealHomeCodexHook(userDataPath: string): Promise<RealHomeC
       timeoutSec: MANAGED_HOOK_TIMEOUT_SECONDS
     })
   }
-  // Why: sweep stale Orca entries out of events the managed lane no longer
+  // Why: sweep stale Alicorn entries out of events the managed lane no longer
   // subscribes to, mirroring the managed installer's upgrade behavior.
   for (const [eventName, definitions] of Object.entries(nextHooks)) {
     if ((material.events as readonly string[]).includes(eventName) || !Array.isArray(definitions)) {
@@ -201,7 +201,7 @@ async function installRealHomeCodexHook(userDataPath: string): Promise<RealHomeC
     return 'installed'
   }
 
-  // Why: never leave an untrusted Orca entry in the user's real home — it
+  // Why: never leave an untrusted Alicorn entry in the user's real home — it
   // would surface as "Hooks need review". Roll the file back to its prior
   // bytes and keep this host on the managed-home lane; the grant client
   // already logged the fallback reason.
@@ -286,7 +286,7 @@ async function sweepRealHomeCodexHook(): Promise<RealHomeCodexHookLane> {
     // Why: dead [hooks.state] blocks for a removed hook are Orca-owned records;
     // dropping them keeps the user's config.toml from accumulating orphans.
     // Verify ownership by the expected hash or grant ledger: stale/mixed hook
-    // groups must never make Orca delete a user's trust record at the same key.
+    // groups must never make Alicorn delete a user's trust record at the same key.
     try {
       removeCodexManagedHookTrustEntries({
         tomlPath: getRealHomeConfigTomlPath(),
@@ -297,7 +297,7 @@ async function sweepRealHomeCodexHook(): Promise<RealHomeCodexHookLane> {
         timeoutSec: MANAGED_HOOK_TIMEOUT_SECONDS
       })
     } catch (error) {
-      console.warn('[codex-real-home-hooks] failed to drop Orca trust entries:', error)
+      console.warn('[codex-real-home-hooks] failed to drop Alicorn trust entries:', error)
     }
   }
   return 'removed'

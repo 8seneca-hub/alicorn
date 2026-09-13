@@ -107,7 +107,7 @@ describe('getStatus shared symlink exclusion', () => {
     expect(status.entries).toEqual([expect.objectContaining({ path: 'notes', area: 'untracked' })])
   })
 
-  // Why: only *untracked* entries are Orca's artifacts. A symlink Git tracks is
+  // Why: only *untracked* entries are Alicorn's artifacts. A symlink Git tracks is
   // versioned content, so an edit to it is the user's work even when the path is
   // declared shared — dropping it would hide a committable change.
   it('keeps a modified tracked symlink at a declared shared path', async () => {

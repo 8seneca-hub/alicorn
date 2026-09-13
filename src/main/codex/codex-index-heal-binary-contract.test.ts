@@ -9,15 +9,15 @@ import { runCodexAppServerSession, type CodexAppServerRpc } from './codex-app-se
 import { findNewestCodexStateDbPath } from './codex-state-db'
 
 // Why this file exists: every other index-heal test drives a stub app-server and
-// asserts "healed" as "the `thread/read` call did not error". That pins Orca's half
-// of the contract and nothing about Codex's. The behavior Orca actually depends on
+// asserts "healed" as "the `thread/read` call did not error". That pins Alicorn's half
+// of the contract and nothing about Codex's. The behavior Alicorn actually depends on
 // lives in the Codex binary — a read of an unindexed rollout performs a read-repair
 // that inserts the `threads` row. If Codex ever dropped that repair, the stub-driven
 // tests would all stay green while the subsystem went silently inert. This is the
 // real-binary backstop, built to the same shape as the Git binary compatibility
 // contract in src/shared/git-binary-compatibility.test.ts.
 //
-// Keep it narrow. It pins the four arms that ablation established Orca relies on,
+// Keep it narrow. It pins the four arms that ablation established Alicorn relies on,
 // and deliberately asserts nothing else about the app-server, so an unrelated Codex
 // release does not redden it into being disabled.
 
@@ -72,7 +72,7 @@ describeCodexContract(
     })
 
     /**
-     * Builds a disposable CODEX_HOME in the state Orca actually heals from: Codex's
+     * Builds a disposable CODEX_HOME in the state Alicorn actually heals from: Codex's
      * own one-shot sqlite backfill has already run and stamped itself `complete`, so
      * rollouts that appear afterwards are exactly the ones it will never index on its
      * own. Never points at the user's real ~/.codex.

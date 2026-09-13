@@ -1,12 +1,12 @@
 /**
- * The single env variable Orca uses to tell a launched shell which startup
+ * The single env variable Alicorn uses to tell a launched shell which startup
  * features its wrapper should turn on, plus the pure selection that fills it.
  *
  * Why a positive allowlist the wrapper destroys before anything else runs:
  * every earlier switch was a negative, exported one (`ALICORN_SHELL_READY_MARKER=0`,
  * `ALICORN_SHELL_COMMAND_MARKERS=0`). Those live in the pane's PTY env, so every
  * child inherits them — a pane launched with a feature suppressed suppressed it
- * for an Orca started from that pane too. With an allowlist, an inherited or
+ * for an Alicorn started from that pane too. With an allowlist, an inherited or
  * stale value can only ever mean *fewer* features, never more, and the wrapper
  * unsets it before the user's own config (or anything it spawns) can see it.
  */
@@ -24,7 +24,7 @@ export const SHELL_STARTUP_FEATURES = [
 
 export type ShellStartupFeature = (typeof SHELL_STARTUP_FEATURES)[number]
 
-/** Spawn-env keys that mean this pane carries an Orca overlay the wrapper must re-apply. */
+/** Spawn-env keys that mean this pane carries an Alicorn overlay the wrapper must re-apply. */
 const OVERLAY_ENV_KEYS = [
   'ALICORN_OPENCODE_CONFIG_DIR',
   'ALICORN_MIMOCODE_HOME',
@@ -39,11 +39,11 @@ export type ShellStartupFeatureInput = {
   shellPath: string
   /** The env this spawn will hand the shell — never `process.env`. */
   env: Record<string, string | undefined>
-  /** True when Orca will deliver a startup command into this pane. */
+  /** True when Alicorn will deliver a startup command into this pane. */
   hasStartupCommand: boolean
   /** True when that delivery waits for the wrapper's OSC 777 readiness marker. */
   waitsForShellReady: boolean
-  /** True when Orca needs the shell to announce its PID at startup. */
+  /** True when Alicorn needs the shell to announce its PID at startup. */
   emitsStartupIdentity: boolean
 }
 
@@ -54,19 +54,19 @@ function shellName(shellPath: string): string {
 /**
  * Pure function of spawn env + launch intent. Nothing here reads
  * `ALICORN_SHELL_FEATURES`, so a value inherited from a parent shell cannot
- * enable or disable anything for the shell Orca is about to launch.
+ * enable or disable anything for the shell Alicorn is about to launch.
  */
 export function selectShellStartupFeatures(input: ShellStartupFeatureInput): ShellStartupFeature[] {
   const overlay = OVERLAY_ENV_KEYS.some((key) => Boolean(input.env[key]))
-  // Exactly the panes Orca wrapped before history widened wrapping.
+  // Exactly the panes Alicorn wrapped before history widened wrapping.
   const wrappedBefore = overlay || input.hasStartupCommand
   const ready = input.waitsForShellReady
   // Why zsh only: the unguarded HISTFILE assignment lives in the *system zshrc*.
   // bash has no equivalent, and wrapping bash for history alone would swap its
-  // login startup-file chain for Orca's approximation of one.
-  // Why also when Orca injected nothing: any wrapped pane has Orca's ZDOTDIR in
+  // login startup-file chain for Alicorn's approximation of one.
+  // Why also when Alicorn injected nothing: any wrapped pane has Alicorn's ZDOTDIR in
   // place while the system zshrc runs, so the clobbered value it derives lands
-  // inside Orca's wrapper dir and has to be repaired the same way.
+  // inside Alicorn's wrapper dir and has to be repaired the same way.
   const history =
     shellName(input.shellPath) === 'zsh' && (Boolean(input.env.ALICORN_HISTFILE) || wrappedBefore)
 

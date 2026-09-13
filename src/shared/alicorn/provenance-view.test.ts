@@ -56,7 +56,9 @@ describe('buildProvenanceView', () => {
       }),
       { policyEnforced: true }
     )
-    expect(view.steps.map((step) => ({ decision: step.gate.decision, reason: step.gate.reason }))).toEqual([
+    expect(
+      view.steps.map((step) => ({ decision: step.gate.decision, reason: step.gate.reason }))
+    ).toEqual([
       { decision: 'gate', reason: 'irreversible' },
       { decision: 'auto', reason: 'auto' }
     ])

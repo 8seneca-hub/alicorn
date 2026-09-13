@@ -44,7 +44,7 @@ function desktopSsh(targetId: string, targetGeneration: number): AutomationOwner
   return { authority: { kind: 'desktop' }, selector: { kind: 'ssh', targetId, targetGeneration } }
 }
 
-/** Stands in for the Orca automation store: readable, but never markable unavailable from here. */
+/** Stands in for the Alicorn automation store: readable, but never markable unavailable from here. */
 function orcaStoreHealth() {
   return { read: vi.fn<() => void>(), markUnavailable: vi.fn<() => void>() }
 }
@@ -217,7 +217,7 @@ describe('scoped external automations', () => {
     expect(getActiveMultiplexer).not.toHaveBeenCalled()
   })
 
-  it('confines a manager failure to its own scope and never to Orca store health', async () => {
+  it('confines a manager failure to its own scope and never to Alicorn store health', async () => {
     const health = orcaStoreHealth()
     vi.mocked(getActiveMultiplexer).mockReturnValue(
       undefined as unknown as ReturnType<typeof getActiveMultiplexer>

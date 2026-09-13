@@ -86,7 +86,7 @@ describe('ghExecFileAsync WSL fallback', () => {
         "cd '/home/jinwoo/stably/noqa' && 'gh' 'issue' 'list' '--repo' 'stablyhq/noqa' '--json' 'number,title'"
       ],
       // Why a concrete directory (#16463): `undefined` makes CreateProcessW inherit
-      // Orca's own cwd, a deletable WSL UNC path when it was launched from a
+      // Alicorn's own cwd, a deletable WSL UNC path when it was launched from a
       // worktree. The Linux directory still rides inside the command.
       expect.objectContaining({ cwd: expect.any(String) })
     )
@@ -279,7 +279,7 @@ describe('ghExecFileAsync WSL fallback', () => {
       'wsl.exe',
       ['-d', 'Ubuntu', '--exec', 'bash', '-c', "'gh' 'api' 'rate_limit'"],
       // Why a concrete directory (#16463): `undefined` makes CreateProcessW inherit
-      // Orca's own cwd, a deletable WSL UNC path when it was launched from a
+      // Alicorn's own cwd, a deletable WSL UNC path when it was launched from a
       // worktree. This global call has no repo directory at all, so nothing about
       // where it runs changes.
       expect.objectContaining({ cwd: expect.any(String) })
@@ -366,7 +366,7 @@ describe('ghExecFileAsync WSL fallback', () => {
       'wsl.exe',
       ['-d', 'Ubuntu', '--exec', 'bash', '-c', "'glab' 'api' 'projects'"],
       // Why a concrete directory (#16463): `undefined` makes CreateProcessW inherit
-      // Orca's own cwd, a deletable WSL UNC path when it was launched from a
+      // Alicorn's own cwd, a deletable WSL UNC path when it was launched from a
       // worktree. This global call has no repo directory at all, so nothing about
       // where it runs changes.
       expect.objectContaining({ cwd: expect.any(String) })

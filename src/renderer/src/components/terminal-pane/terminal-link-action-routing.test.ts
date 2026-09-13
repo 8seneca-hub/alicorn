@@ -114,7 +114,7 @@ describe('terminal link action routing', () => {
     expect(context.request).not.toHaveBeenCalled()
   })
 
-  it('offers system browser first and Orca second when system browser is the default', () => {
+  it('offers system browser first and Alicorn second when system browser is the default', () => {
     const request = vi.fn()
     const event = plainEvent()
 
@@ -137,7 +137,7 @@ describe('terminal link action routing', () => {
     )
     expect(request.mock.calls[0][0].primary.label).toBe('System Browser')
     expect(request.mock.calls[0][0].primary.external).toBe(true)
-    expect(request.mock.calls[0][0].alternate.label).toBe('Orca Browser')
+    expect(request.mock.calls[0][0].alternate.label).toBe('Alicorn Browser')
     expect(request.mock.calls[0][0].alternate.external).toBe(false)
 
     request.mock.calls[0][0].primary.run()
@@ -149,7 +149,7 @@ describe('terminal link action routing', () => {
     })
   })
 
-  it('offers Orca first and system browser second when Orca is the default', () => {
+  it('offers Alicorn first and system browser second when Alicorn is the default', () => {
     const request = vi.fn()
 
     handleTerminalHttpLink('https://example.com/path', plainEvent(), {
@@ -158,7 +158,7 @@ describe('terminal link action routing', () => {
       actionDestinations: { primary: 'orca', alternate: 'system' }
     })
 
-    expect(request.mock.calls[0][0].primary.label).toBe('Orca Browser')
+    expect(request.mock.calls[0][0].primary.label).toBe('Alicorn Browser')
     expect(request.mock.calls[0][0].primary.external).toBe(false)
     expect(request.mock.calls[0][0].alternate.label).toBe('System Browser')
     expect(request.mock.calls[0][0].alternate.external).toBe(true)
@@ -187,7 +187,7 @@ describe('terminal link action routing', () => {
     expect(request.mock.calls[0][0].alternate).toBeUndefined()
   })
 
-  it('routes an explicit Orca Browser action to the owning runtime', () => {
+  it('routes an explicit Alicorn Browser action to the owning runtime', () => {
     const request = vi.fn()
 
     handleTerminalHttpLink('https://example.com/path', plainEvent(), {
@@ -209,7 +209,7 @@ describe('terminal link action routing', () => {
     expect(createBrowserTab).not.toHaveBeenCalled()
   })
 
-  it('routes an explicit Orca Browser action through the owning SSH workspace', () => {
+  it('routes an explicit Alicorn Browser action through the owning SSH workspace', () => {
     const request = vi.fn()
     const url = 'http://0.0.0.0:8000/'
 

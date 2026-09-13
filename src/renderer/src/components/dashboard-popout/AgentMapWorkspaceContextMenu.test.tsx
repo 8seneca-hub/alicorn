@@ -19,7 +19,7 @@ const initialState = useAppStore.getState()
 const repo = {
   id: 'repo-1',
   path: '/repo',
-  displayName: 'Orca',
+  displayName: 'Alicorn',
   badgeColor: '#000000',
   addedAt: NOW,
   kind: 'git',
@@ -314,7 +314,7 @@ describe('Agent Map workspace context menu', () => {
       clientX: 100,
       clientY: 110
     })
-    fireEvent.click(await screen.findByText('Create new worktree for Orca', {}, { timeout: 5_000 }))
+    fireEvent.click(await screen.findByText('Create new worktree for Alicorn', {}, { timeout: 5_000 }))
 
     expect(useAppStore.getState().activeModal).toBe('new-workspace-composer')
     expect(useAppStore.getState().modalData).toEqual({
@@ -367,11 +367,11 @@ describe('Agent Map workspace context menu', () => {
 
     fireEvent.contextMenu(container.querySelector('[data-agent-map-project]')!)
     await act(async () => new Promise((resolve) => window.setTimeout(resolve, 0)))
-    expect(screen.queryByText('Create new worktree for Orca')).not.toBeInTheDocument()
+    expect(screen.queryByText('Create new worktree for Alicorn')).not.toBeInTheDocument()
 
     act(() => {
       useAppStore.setState({ repos: [repo] })
     })
-    expect(screen.queryByText('Create new worktree for Orca')).not.toBeInTheDocument()
+    expect(screen.queryByText('Create new worktree for Alicorn')).not.toBeInTheDocument()
   })
 })

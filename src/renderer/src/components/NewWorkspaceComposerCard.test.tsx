@@ -149,7 +149,7 @@ const localReadyHostOption: ProjectHostSetupOption = {
   hostId: 'local',
   repoId: 'repo-a',
   label: 'Local Mac',
-  detail: 'Orca',
+  detail: 'Alicorn',
   path: '/Users/alice/orca'
 }
 
@@ -198,7 +198,7 @@ const vmRecipeHostOptions: ProjectHostSetupOption[] = [
     hostId: 'ssh:builder',
     repoId: 'repo-a',
     label: 'Builder',
-    detail: 'Orca',
+    detail: 'Alicorn',
     path: '/workspace/orca'
   }
 ]
@@ -796,10 +796,10 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
     })
 
     expect(findRunTargetItem('Add SSH host')).toBeTruthy()
-    expect(findRunTargetItem('Add Remote Orca Server')).toBeTruthy()
+    expect(findRunTargetItem('Add Remote Alicorn Server')).toBeTruthy()
   })
 
-  it('opens the remote Orca server add dialog over the composer without leaving for Settings', () => {
+  it('opens the remote Alicorn server add dialog over the composer without leaving for Settings', () => {
     current = renderCard({
       projectHostSetupOptions: [localReadyHostOption, devboxNeedsSetupHostOption],
       selectedProjectHostSetupId: 'setup-local'
@@ -807,7 +807,7 @@ describe('NewWorkspaceComposerCard folder task source mode', () => {
 
     openRunTargetPicker(current.container)
     act(() => findRunTargetItem('Add host')?.click())
-    act(() => findRunTargetItem('Add Remote Orca Server')?.click())
+    act(() => findRunTargetItem('Add Remote Alicorn Server')?.click())
 
     const dialog = document.body.querySelector('[data-testid="add-remote-host-dialog"]')
     expect(dialog?.getAttribute('data-mode')).toBe('server')

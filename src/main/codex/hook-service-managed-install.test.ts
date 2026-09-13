@@ -50,7 +50,7 @@ function localManagedCodexEvents(): string[] {
 }
 
 describe('CodexHookService', () => {
-  // Why (#16441): install promotes in-Orca approvals into ~/.codex/config.toml
+  // Why (#16441): install promotes in-Alicorn approvals into ~/.codex/config.toml
   // and mirrors that file into the managed home, so holding only the runtime
   // lane still lets it land inside a real-home grant's capture->restore window.
   it('waits for an in-flight mutation of the system config.toml', async () => {
@@ -101,7 +101,7 @@ describe('CodexHookService', () => {
     expect(existsSync(managedHooksJsonPath)).toBe(true)
   })
 
-  it('installs PermissionRequest with trust so Codex approval prompts reach Orca', async () => {
+  it('installs PermissionRequest with trust so Codex approval prompts reach Alicorn', async () => {
     const systemCodexHome = join(homes.tmpHome, '.codex')
     mkdirSync(systemCodexHome, { recursive: true })
     writeFileSync(
@@ -316,7 +316,7 @@ describe('CodexHookService', () => {
         // Why: this suite may run inside an Orca-launched terminal whose env
         // already carries ALICORN_AGENT_HOOK_ENDPOINT/PORT/TOKEN. The managed
         // script sources that endpoint file, so leave it out or the hook posts
-        // to the live Orca instead of this test's listener.
+        // to the live Alicorn instead of this test's listener.
         const cleanEnv = { ...process.env }
         for (const key of Object.keys(cleanEnv)) {
           if (isAlicornOwnedEnvName(key)) {
@@ -350,7 +350,7 @@ describe('CodexHookService', () => {
     }
   )
 
-  it('keeps hooks isolated by Orca userData instead of mutating system ~/.codex', async () => {
+  it('keeps hooks isolated by Alicorn userData instead of mutating system ~/.codex', async () => {
     const systemCodexHome = join(homes.tmpHome, '.codex')
     const systemHooksPath = join(systemCodexHome, 'hooks.json')
     const existingSystemHooks = '{"hooks":{"Stop":[{"hooks":[{"command":"user-hook"}]}]}}\n'

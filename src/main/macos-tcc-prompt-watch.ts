@@ -7,10 +7,10 @@ import type { Readable } from 'node:stream'
 export type LogStreamChild = ChildProcessByStdio<null, Readable, Readable>
 
 /**
- * Counts the macOS TCC consent dialogs that name Orca as the responsible
+ * Counts the macOS TCC consent dialogs that name Alicorn as the responsible
  * process (#9756). Terminal children — agent CLIs and anything else the user
  * runs — perform the access, but TCC walks the responsibility chain back to
- * Orca and puts Orca's name on the dialog, so users read it as Orca snooping.
+ * Alicorn and puts Alicorn's name on the dialog, so users read it as Alicorn snooping.
  *
  * tccd emits one `AUTHREQ_PROMPTING` line per dialog it actually displays,
  * carrying the service and both identities, so this never has to correlate
@@ -74,7 +74,7 @@ export function parseTccPromptEvent(line: string): TccPromptEvent | null {
   }
 }
 
-/** True when this dialog is one macOS raised in Orca's name for a watched file-access service. */
+/** True when this dialog is one macOS raised in Alicorn's name for a watched file-access service. */
 export function isOrcaAttributedPrompt(event: TccPromptEvent): boolean {
   return (
     APP_RESPONSIBLE_IDENTIFIERS.has(event.responsibleIdentifier) &&

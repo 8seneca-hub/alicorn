@@ -7,7 +7,7 @@ const BACKENDS = new Set<string>(MEMBER_BACKENDS)
  * the reviewer-backend rule and the ledger step-outcome builder so both classify
  * a run the same way.
  *
- * `other` covers agents Orca launches but Alicorn does not price or police.
+ * `other` covers agents Alicorn launches but Alicorn does not price or police.
  */
 export function backendFromWorkerStartOptions(
   startOptions: string | null | undefined

@@ -7,7 +7,7 @@ import {
 import { getOrcaProfileIndexPath, readProfileIndex } from '../orca-profiles/profile-index-store'
 
 /**
- * Worktree ids owned by Orca profiles OTHER than the running one.
+ * Worktree ids owned by Alicorn profiles OTHER than the running one.
  *
  * Why the history GC needs these: terminal history is keyed by worktree id
  * under `userData/terminal-history`, which has no profile segment, and fish

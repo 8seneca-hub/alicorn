@@ -260,7 +260,7 @@ function mergeSystemCodexConfigIntoRuntime(runtimeConfig: string, systemConfig: 
       .map((section) => getTomlSectionHeaderKey(section.header))
   )
   // Why: ordinary Codex settings should mirror ~/.codex exactly; runtime hook
-  // trust and project trust are written under Orca's managed CODEX_HOME and
+  // trust and project trust are written under Alicorn's managed CODEX_HOME and
   // must survive the copy unless the user explicitly revoked project trust in
   // the system config.
   return joinTomlBlocks([

@@ -5,7 +5,7 @@ import { runProcessSync, type ProcessResult } from '../shared/child-process/run-
 import { writeFileAtomically } from './codex-accounts/fs-utils'
 
 /**
- * Turns off the macOS accent picker for Orca's own preferences domain (#14746).
+ * Turns off the macOS accent picker for Alicorn's own preferences domain (#14746).
  *
  * macOS routes press-and-hold to the accent popup unless an app opts out via
  * `ApplePressAndHoldEnabled`, so holding `j` in vim inserts one character instead of repeating.
@@ -48,7 +48,7 @@ export type PressAndHoldDecision =
   | 'not-macos'
   /** A previous launch already decided; the domain is never touched again. */
   | 'already-decided'
-  /** The running bundle is not Orca's (e.g. a bare `Electron.app`), whose domain we do not own. */
+  /** The running bundle is not Alicorn's (e.g. a bare `Electron.app`), whose domain we do not own. */
   | 'foreign-bundle'
   /** `defaults read` could not answer, so we cannot tell an unset key from a user's choice. */
   | 'probe-failed'
@@ -79,11 +79,11 @@ export type PressAndHoldHost = {
   now: () => string
 }
 
-/** Only Orca's own bundle: an unpackaged run is `com.github.Electron`, shared with every other
+/** Only Alicorn's own bundle: an unpackaged run is `com.github.Electron`, shared with every other
  *  unpackaged Electron app on the machine. */
 /**
  * Why the legacy id is still matched: `defaults` domains are keyed by bundle id,
- * so a user upgrading from an Orca build still has this preference written under
+ * so a user upgrading from an Alicorn build still has this preference written under
  * `com.stablyai.orca`. Refusing to recognise it would re-apply the default over
  * a choice they already made.
  */
@@ -176,7 +176,7 @@ function parseRecord(raw: string): PressAndHoldRecord | null {
 }
 
 /**
- * Apply Orca's press-and-hold default at most once, leaving any explicit user value alone.
+ * Apply Alicorn's press-and-hold default at most once, leaving any explicit user value alone.
  *
  * Returns the decision so startup can log it; the same value is persisted for support triage.
  */

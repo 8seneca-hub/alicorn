@@ -8,7 +8,7 @@ import {
 
 /**
  * Renderer-side estimate of how many workspaces the cleanup scan would list. It
- * sees only Orca's persisted activity record, so it disagrees with the scan by
+ * sees only Alicorn's persisted activity record, so it disagrees with the scan by
  * design — the scan additionally reads each worktree's git history and cannot
  * inspect disconnected remotes.
  */

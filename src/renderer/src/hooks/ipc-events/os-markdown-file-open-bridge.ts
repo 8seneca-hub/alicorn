@@ -7,7 +7,7 @@ import { translate } from '@/i18n/i18n'
 import { useAppStore } from '../../store'
 
 /**
- * Opens markdown files the OS shell handed to Orca ("Open With" / double-click) in the
+ * Opens markdown files the OS shell handed to Alicorn ("Open With" / double-click) in the
  * floating workspace, which is the one editor surface that needs no project.
  */
 async function openOsRequestedMarkdownFiles(documents: MarkdownDocument[]): Promise<void> {
@@ -34,7 +34,7 @@ async function openOsRequestedMarkdownFiles(documents: MarkdownDocument[]): Prom
   }
   // Why enabled here: the user asked the OS for this file, and the tabs above are already in a
   // surface a disabled floating workspace never renders. Same enable-then-reveal as the
-  // Settings "Edit keybindings in Orca" action.
+  // Settings "Edit keybindings in Alicorn" action.
   if (store.settings?.floatingTerminalEnabled !== true) {
     await store.updateSettings({ floatingTerminalEnabled: true })
   }

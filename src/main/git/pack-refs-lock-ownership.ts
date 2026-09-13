@@ -16,7 +16,7 @@ const PID_REUSE_HORIZON_MS = 24 * 60 * 60_000
 const REF_LOCK_SCAN_CEILING = 4096
 
 /**
- * Makes a `packed-refs.lock` Orca left behind attributable, and only that one.
+ * Makes a `packed-refs.lock` Alicorn left behind attributable, and only that one.
  *
  * Git registers signal handlers that clean the lock up, but SIGKILL and power
  * loss bypass them, and Git never removes a stale `packed-refs.lock` on its own

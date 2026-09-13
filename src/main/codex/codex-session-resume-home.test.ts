@@ -494,8 +494,8 @@ describe('findTrustedCodexSessionResume legacy-rescan home ranking', () => {
   it('ranks Windows homes case-insensitively and keeps the caller path spelling', async () => {
     const windowsRoot = 'C:\\Users\\Example'
     const windowsSystemHome = `${windowsRoot}\\.codex`
-    const windowsAccountAHome = `${windowsRoot}\\AppData\\Roaming\\Orca\\codex-accounts\\a\\home`
-    const windowsAccountBHome = `${windowsRoot}\\AppData\\Roaming\\Orca\\codex-accounts\\b\\home`
+    const windowsAccountAHome = `${windowsRoot}\\AppData\\Roaming\\Alicorn\\codex-accounts\\a\\home`
+    const windowsAccountBHome = `${windowsRoot}\\AppData\\Roaming\\Alicorn\\codex-accounts\\b\\home`
     const windowsRolloutIn = (homePath: string): string =>
       `${join(homePath, 'sessions')}\\2026\\07\\20\\rollout-2026-07-20T15-50-19-${sessionId}.jsonl`
     const listSessionFiles = async function* (sessionsRoot: string): AsyncIterable<string> {
@@ -574,7 +574,7 @@ describe('claimsCodexRolloutLayout', () => {
     ).toBe(true)
   })
 
-  it('is true for a rollout under a home Orca no longer trusts, so resume cannot silently fall through to the selected account', () => {
+  it('is true for a rollout under a home Alicorn no longer trusts, so resume cannot silently fall through to the selected account', () => {
     expect(
       claimsCodexRolloutLayout('/removed/account/home/sessions/2026/07/20/rollout-a.jsonl')
     ).toBe(true)
@@ -623,7 +623,7 @@ describe('resolveCodexSessionResumeProvenance', () => {
     return { homePath, rolloutPath }
   }
 
-  it('starts fresh for a rollout file that really exists under a home Orca no longer trusts', async () => {
+  it('starts fresh for a rollout file that really exists under a home Alicorn no longer trusts', async () => {
     // Why: the discriminating case — the file is present, so only the trust check can
     // reject it. Resuming here would run the session under the selected account.
     const sessionId = '019f81b9-19a9-7651-a8d1-352d9420bd11'

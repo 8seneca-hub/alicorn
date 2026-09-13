@@ -2,7 +2,7 @@ import type { Repo } from './repo-types'
 import { getRepoSshConnectionId } from './execution-host'
 
 /**
- * Why: a repo reached over SSH runs the Orca CLI through the relay shim, which is always deployed
+ * Why: a repo reached over SSH runs the Alicorn CLI through the relay shim, which is always deployed
  * as plain `orca` (Unix) / `orca.cmd` (Windows). The Linux-only `orca-ide` rename — which exists
  * solely to avoid shadowing the GNOME Orca screen reader on a local desktop — must not be applied
  * to those remotes, or `orca-ide claude-teams` lands on a PATH where it does not exist.
@@ -17,7 +17,7 @@ import { getRepoSshConnectionId } from './execution-host'
  *     loses the rename it needs on a Linux desktop.
  *
  * `runtime:<env>` keeps its nested SSH target (that machine reaches the files through its own relay
- * shim), while a runtime host with no nested target is a full Orca install and stays false — as do
+ * shim), while a runtime host with no nested target is a full Alicorn install and stays false — as do
  * WSL and local. Callers routing a client-local PTY want `getSshTargetIdForExecutionHost` instead;
  * callers that already hold a resolved launch connection should read that, not re-derive here.
  */

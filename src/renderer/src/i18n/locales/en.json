@@ -1190,7 +1190,8 @@
             "create": {
               "test": {
                 "harness": {
-                  "94ec7b52f7": "The workspace is not connected to a remote Orca host."
+                  "94ec7b52f7": "The workspace is not connected to a remote Orca host.",
+                  "8cb0ed2e32": "The workspace is not connected to a remote Alicorn host."
                 }
               }
             }

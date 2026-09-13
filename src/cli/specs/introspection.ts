@@ -8,7 +8,7 @@ export const INTROSPECTION_COMMAND_SPECS: CommandSpec[] = [
     usage: 'alicorn agent-context [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [
-      'Pure local read of the command registry — works without a running Orca app, so it is safe over SSH and in headless contexts.'
+      'Pure local read of the command registry — works without a running Alicorn app, so it is safe over SSH and in headless contexts.'
     ],
     examples: ['alicorn agent-context --json']
   }

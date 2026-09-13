@@ -3,7 +3,7 @@ import { GLOBAL_FLAGS, type CommandSpec } from '../args'
 export const ORCHESTRATION_WORKER_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['orchestration', 'worker-start'],
-    summary: 'Start one supervised worker on the Run home or a connected Orca server',
+    summary: 'Start one supervised worker on the Run home or a connected Alicorn server',
     usage:
       'alicorn orchestration worker-start --task <task_id> [--on <saved-environment>] [--worktree <current|selector|new-child|new-top-level>] (--agent <agent> | --terminal <handle>) [--model <id>] [--effort <level>] [--name <name>] [--repo <selector>] [--base-branch <ref>] [--display-name <text>] [--comment <text>] [--setup <run|skip|inherit>] [--retry-of <dispatch_id>] [--timeout-ms <n>] [--run <run_id>] [--from <handle>] [--member <id>] [--allow-same-backend-review] [--retry-request <id>] [--json]',
     allowedFlags: [
@@ -35,7 +35,7 @@ export const ORCHESTRATION_WORKER_COMMAND_SPECS: CommandSpec[] = [
       '--model supports Claude, Codex, and Cursor opaque provider model ids; --effort requires --model. Neither can combine with --terminal.',
       'New worktrees use agent-first creation and default --setup to run. Repository start-immediately runs setup beside the agent; wait-for-setup gates agent readiness and task input.',
       'Creation flags (--name, --repo, --base-branch, --display-name, --comment, --setup) are rejected for current/existing worktrees. Use exact --repo on the selected server; project/host convenience routing remains on worktree create.',
-      '--on selects only the worker server; the Run and this command remain on the current Orca server.',
+      '--on selects only the worker server; the Run and this command remain on the current Alicorn server.',
       'Remote current and new-child are invalid; discover an exact remote selector or use new-top-level.',
       '--retry-of links the replacement attempt but does not inherit placement; repeat the intended --on/worktree and --agent/terminal choices.',
       'The call exits 0 only for ready. Failed or outcome_unknown exits 1 and JSON includes stage/failedStage, setup, effects, residualResources, and recovery commands when needed.'
@@ -48,7 +48,7 @@ export const ORCHESTRATION_WORKER_COMMAND_SPECS: CommandSpec[] = [
     allowedFlags: [...GLOBAL_FLAGS, 'dispatch'],
     notes: [
       'A Dispatch created by orchestration dispatch is shown as unsupervised and reports the exact adopted terminal when its identity is still provable.',
-      'observation.agentWait names a worker parked on a prompt only a human can answer, with the evidence that proved it (hook, prompt-text, or title). Null means Orca looked and found no wait. An absent field means it never looked — an older host, an unverifiable worker identity, an unreadable pane, or an agent probe that did not answer in time — and never means the worker is not waiting. A waiting worker is healthy, not failed.'
+      'observation.agentWait names a worker parked on a prompt only a human can answer, with the evidence that proved it (hook, prompt-text, or title). Null means Alicorn looked and found no wait. An absent field means it never looked — an older host, an unverifiable worker identity, an unreadable pane, or an agent probe that did not answer in time — and never means the worker is not waiting. A waiting worker is healthy, not failed.'
     ]
   },
   {
@@ -60,7 +60,7 @@ export const ORCHESTRATION_WORKER_COMMAND_SPECS: CommandSpec[] = [
     notes: [
       'The default auto source uses an exact hook-reported transcript when available and otherwise returns labeled terminal output.',
       'A Dispatch created by orchestration dispatch reads from its adopted terminal with worker status unsupervised.',
-      'A returned cursor is pinned to the exact source; start a fresh read if Orca reports source_changed.'
+      'A returned cursor is pinned to the exact source; start a fresh read if Alicorn reports source_changed.'
     ]
   },
   {

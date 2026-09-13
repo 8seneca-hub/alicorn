@@ -123,7 +123,7 @@ describe('RuntimeGitCommands', () => {
 
   // Why: a directory-only ignore rule (`node_modules/`) never matches the shared
   // symlink, so Git reports it untracked forever. Runtime/CLI status has to tell
-  // getStatus which untracked entries are Orca's own (issue #10451); nothing else
+  // getStatus which untracked entries are Alicorn's own (issue #10451); nothing else
   // asserts this call site supplies them.
   it('passes the repo shared link paths through local runtime status', async () => {
     mocks.getStatus.mockResolvedValue({ entries: [], conflictOperation: 'none' })

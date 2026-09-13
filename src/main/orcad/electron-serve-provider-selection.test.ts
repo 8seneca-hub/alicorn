@@ -18,7 +18,7 @@ vi.mock('../../shared/child-process/run-process', async (importOriginal) => ({
 import { resolveOrcadBrowserProvider, type OrcadBrowserProvider } from './orcad-browser-provider'
 
 const FAKE_SIDECAR = join(import.meta.dirname, '__fixtures__', 'fake-orcad-electron-sidecar.cjs')
-const INSTALLED_EXECUTABLE = join('/Applications', 'Orca.app', 'Contents', 'MacOS', 'Orca')
+const INSTALLED_EXECUTABLE = join('/Applications', 'Alicorn.app', 'Contents', 'MacOS', 'Alicorn')
 
 let harnessRoot: string
 let controlPath: string

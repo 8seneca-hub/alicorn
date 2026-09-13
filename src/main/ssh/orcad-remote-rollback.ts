@@ -4,7 +4,7 @@
  * Rollback is a state operation, not a binary swap. The version dirs are immutable and both
  * are still on disk, so pointing at the old one is trivial; what is not trivial is that both
  * versions share ONE data root, outside either dir. A newer orcad migrates that root on load
- * — and Orca's persisted state carries no schema version to migrate against, so the older
+ * — and Alicorn's persisted state carries no schema version to migrate against, so the older
  * build cannot be shown to read the result. Rollback therefore restores the pre-activation
  * snapshot, and refuses when restoring it would orphan work (`assessOrcadRollback`).
  *

@@ -42,7 +42,7 @@ export class CodexManagedHomeLifecycle {
 
     const managedHomePath = join(this.paths.getRoot(), accountId, 'home')
     mkdirSync(managedHomePath, { recursive: true })
-    // Why: marker lets future cleanup prove the path belongs to Orca before deleting anything.
+    // Why: marker lets future cleanup prove the path belongs to Alicorn before deleting anything.
     writeFileSync(join(managedHomePath, '.orca-managed-home'), `${accountId}\n`, 'utf-8')
     return {
       managedHomePath: this.paths.assert(managedHomePath, accountId),

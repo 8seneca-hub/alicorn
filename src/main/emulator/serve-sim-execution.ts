@@ -62,7 +62,7 @@ function getServeSimEnv(executable: ServeSimExecutable): NodeJS.ProcessEnv {
     : { ...process.env }
   const openShimDir = ensureMacOpenShim()
   if (openShimDir) {
-    // Why: serve-sim needs Simulator.app attached for display/rotation, but Orca embeds the stream.
+    // Why: serve-sim needs Simulator.app attached for display/rotation, but Alicorn embeds the stream.
     env.PATH = `${openShimDir}${delimiter}${env.PATH ?? ''}`
   }
   return env

@@ -5,7 +5,7 @@ import {
   unwrapPowerShellScript
 } from './tui-agent-startup-script.test-fixture'
 
-// Hermes is the only agent whose launch Orca rewrites token by token — it owns the startup query,
+// Hermes is the only agent whose launch Alicorn rewrites token by token — it owns the startup query,
 // the TUI mode, and where an override's flags may sit relative to the chat subcommand. Its cases
 // outgrew the general startup-plan file.
 
@@ -72,7 +72,7 @@ describe('hermes startup plans', () => {
     expect(unwrapPosixShellScript(plan?.launchCommand)).toContain("'--profile' 'chat'")
   })
 
-  it('keeps Orca ownership of the Hermes startup query and TUI mode', () => {
+  it('keeps Alicorn ownership of the Hermes startup query and TUI mode', () => {
     const plan = buildAgentStartupPlan({
       agent: 'hermes',
       prompt: 'automation prompt',

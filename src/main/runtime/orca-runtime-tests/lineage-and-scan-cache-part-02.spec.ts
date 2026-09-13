@@ -10,7 +10,7 @@ import {
 } from '../orca-runtime-test-fixtures.spec'
 
 describe('OrcaRuntimeService', () => {
-  it('strips Orca provenance fields from runtime metadata updates', async () => {
+  it('strips Alicorn provenance fields from runtime metadata updates', async () => {
     const metaById: Record<string, WorktreeMeta> = {
       [TEST_WORKTREE_ID]: makeWorktreeMeta({ instanceId: 'child-instance' })
     }

@@ -85,7 +85,7 @@ describe('project catalog ingest with non-string row fields', () => {
     expect(row?.path).toBe('')
   })
 
-  // Why: a remote host on a different Orca version is a first-class source of these rows, and
+  // Why: a remote host on a different Alicorn version is a first-class source of these rows, and
   // decoders hand them over verbatim — the client cannot assume the host already repaired them.
   it('coerces on the remote adoption boundary too', () => {
     const adopted = setupWithFetchedOwner(badSetups()[1]!, {

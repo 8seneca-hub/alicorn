@@ -1,9 +1,9 @@
 /**
- * #15192, activation-order hypothesis: "the Orca unicode provider is not reached
+ * #15192, activation-order hypothesis: "the Alicorn unicode provider is not reached
  * in production, so Hangul lays out at the wrong width."
  *
  * These pin the measurements that close it. Every precomposed Hangul syllable is
- * two cells under xterm's Unicode 6 tables, its Unicode 11 tables, and Orca's
+ * two cells under xterm's Unicode 6 tables, its Unicode 11 tables, and Alicorn's
  * provider alike, so no activation order — provider, v11 fallback, or the
  * untouched v6 default — can change how a syllable is budgeted. Whatever moves
  * Korean text off its cells is not the unicode version.
@@ -96,14 +96,14 @@ function summarize(entries: { codepoint: number; detail: string }[]): string[] {
 }
 
 describe('Hangul cell width agreement (#15192)', () => {
-  it('reaches the Orca provider, not the v11 fallback, on a live terminal', () => {
+  it('reaches the Alicorn provider, not the v11 fallback, on a live terminal', () => {
     const { terminal, unicode } = openWithUnicode11AddonLoaded()
     expect(unicode.versions).toContain(ALICORN_UNICODE_VERSION)
     expect(unicode.activeVersion).toBe(ALICORN_UNICODE_VERSION)
     terminal.dispose()
   })
 
-  it('budgets every precomposed syllable at two cells under v6, v11 and Orca', () => {
+  it('budgets every precomposed syllable at two cells under v6, v11 and Alicorn', () => {
     const { terminal, unicode } = openWithUnicode11AddonLoaded()
     const disagreeing: { codepoint: number; detail: string }[] = []
     for (const version of ['6', '11', ALICORN_UNICODE_VERSION]) {

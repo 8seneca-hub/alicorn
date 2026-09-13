@@ -218,7 +218,7 @@ describe('STA-4737 the config mirror must not overwrite a runtime config it coul
 describe('STA-4737 promotion must not rebuild a system config it could not read', () => {
   function seedPromotableRuntimeChange(): void {
     realFs.writeFileSync(systemConfigPath(), 'model = "old-model"\n', 'utf-8')
-    // The baseline records what Orca last mirrored; the later edit then reads as
+    // The baseline records what Alicorn last mirrored; the later edit then reads as
     // an in-Codex change that must be promoted back to ~/.codex.
     realFs.writeFileSync(runtimeConfigPath(), 'model = "old-model"\n', 'utf-8')
     snapshotCodexRuntimeSettingsBaseline(runtimeHome())
@@ -239,7 +239,7 @@ describe('STA-4737 promotion must not rebuild a system config it could not read'
     ).toBeNull()
 
     // Before the fix, the unreadable config counted as absent and was replaced
-    // by a reconstruction built from Orca's runtime copy.
+    // by a reconstruction built from Alicorn's runtime copy.
     expect(realFs.readFileSync(systemConfigPath(), 'utf-8')).toBe(before)
   })
 
@@ -260,14 +260,14 @@ describe('STA-4737 promotion must not rebuild a system config it could not read'
 
 describe('STA-4737 the resource sync must not delete a mirror whose source it could not read', () => {
   const AGENTS_ENTRY = 'AGENTS.md'
-  const MIRRORED = '# instructions Orca copied for the distro\n'
+  const MIRRORED = '# instructions Alicorn copied for the distro\n'
 
   function seedOwnedMirrorCopy(): { sourcePath: string; targetPath: string } {
     const sourcePath = join(systemHome(), AGENTS_ENTRY)
     const targetPath = join(runtimeHome(), AGENTS_ENTRY)
     realFs.writeFileSync(sourcePath, MIRRORED, 'utf-8')
     realFs.writeFileSync(targetPath, MIRRORED, 'utf-8')
-    // Orca owns this copy, which is what entitles the sync to remove it.
+    // Alicorn owns this copy, which is what entitles the sync to remove it.
     markCopiedResource(runtimeHome(), AGENTS_ENTRY, sourcePath)
     return { sourcePath, targetPath }
   }
@@ -323,7 +323,7 @@ describe('STA-4737 the resource sync must not delete a mirror whose source it co
       managedHomePath: runtimeHome()
     })
 
-    // Why: removing Orca's own copy of a resource the user deleted is the
+    // Why: removing Alicorn's own copy of a resource the user deleted is the
     // point of this path. Refusing here would strand stale instructions.
     expect(realFs.existsSync(targetPath)).toBe(false)
   })

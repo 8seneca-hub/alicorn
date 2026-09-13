@@ -45,7 +45,7 @@ function deleteRequestedDaemonEnvKeys(
   env: Record<string, string>,
   keys: readonly string[] | undefined
 ): void {
-  // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Orca overlay owns it.
+  // Why: persistent daemon state can differ from Electron; delete CODEX_HOME only when its Alicorn overlay owns it.
   const deleteOrcaOwnedCodexHome =
     keys?.includes('ALICORN_CODEX_HOME') === true &&
     env.ALICORN_CODEX_HOME !== undefined &&
@@ -139,7 +139,7 @@ export function createDaemonPtyEnvironment(opts: PtySubprocessOptions): Record<s
     ...mergeGitConfigEnvProtocol(stripInheritedBuildModeEnv(process.env), opts.env),
     TERM: 'xterm-256color',
     COLORTERM: 'truecolor',
-    TERM_PROGRAM: 'Orca',
+    TERM_PROGRAM: 'Alicorn',
     TERM_PROGRAM_VERSION: process.env.ALICORN_APP_VERSION ?? '0.0.0-dev',
     FORCE_HYPERLINK: '1'
   } as Record<string, string>

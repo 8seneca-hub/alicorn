@@ -191,7 +191,7 @@ describe('relay launch with a long remote $HOME', () => {
     expect(sockPath.startsWith(`${SHORT_RELAY_SOCKET_DIR_PREFIX}1000/`)).toBe(true)
     expect(result.sockPath).toBe(sockPath)
     // The hashed socket name survives intact, so two targets cannot collide -- and the
-    // build's version segment sits above it, so the next Orca release binds a path of
+    // build's version segment sits above it, so the next Alicorn release binds a path of
     // its own instead of the one this relay is still holding.
     expect(sockPath).toBe(
       `${SHORT_RELAY_SOCKET_DIR_PREFIX}1000/${shortRelayVersionSegment(RELAY_VERSION_DIR_NAME)}/${relaySocketNameForInstanceId('ssh-target-1')}`

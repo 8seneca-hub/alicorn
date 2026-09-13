@@ -29,7 +29,7 @@ describe.skipIf(process.platform === 'win32')('AppImage CLI removal', () => {
     async (removeCommandFirst) => {
       const root = await mkdtemp(join(tmpdir(), 'orca-appimage-cli-remove-'))
       created.push(root)
-      const appImagePath = join(root, 'Orca.AppImage')
+      const appImagePath = join(root, 'Alicorn.AppImage')
       const cacheRootPath = join(root, 'cache')
       const commandPath = join(root, 'home', '.local', 'bin', 'alicorn-ide')
       const resourcesPath = join(root, 'mount', 'resources')
@@ -93,8 +93,8 @@ describe.skipIf(process.platform === 'win32')('AppImage CLI removal', () => {
     const cacheRootPath = join(root, 'cache')
     const commandPath = join(root, 'home', '.local', 'bin', 'alicorn-ide')
     const resourcesPath = join(root, 'mount', 'resources')
-    const firstAppImagePath = join(root, 'Orca-stable.AppImage')
-    const secondAppImagePath = join(root, 'Orca-nightly.AppImage')
+    const firstAppImagePath = join(root, 'Alicorn-stable.AppImage')
+    const secondAppImagePath = join(root, 'Alicorn-nightly.AppImage')
     await mkdir(join(resourcesPath, 'bin'), { recursive: true })
     await Promise.all([
       writeFile(firstAppImagePath, '#!/usr/bin/env bash\n', { mode: 0o755 }),

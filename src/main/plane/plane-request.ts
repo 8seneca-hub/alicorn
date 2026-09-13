@@ -5,7 +5,7 @@ import { withSpan } from '../observability/tracer'
 // Plane authenticates REST calls with a workspace API key in this header;
 // there is no Authorization/Bearer form for API keys.
 const PLANE_API_KEY_HEADER = 'X-API-Key'
-const PLANE_API_USER_AGENT = 'Orca'
+const PLANE_API_USER_AGENT = 'Alicorn'
 const PLANE_API_VERSION_PATH = '/api/v1'
 
 export type PlaneClient = {

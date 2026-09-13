@@ -282,7 +282,7 @@ describe('mapGhosttyToOrca — palette', () => {
 
 describe('mapGhosttyToOrca — window & padding', () => {
   // Why: window-padding-color and window-padding-balance are not imported —
-  // the CSS vars Orca sets for them have no consuming rules today, so the
+  // the CSS vars Alicorn sets for them have no consuming rules today, so the
   // mapper must treat the keys as unsupported rather than silently dropping.
   it('marks window-padding-color as unsupported', () => {
     const result = mapGhosttyToOrca({ 'window-padding-color': '#202020' })

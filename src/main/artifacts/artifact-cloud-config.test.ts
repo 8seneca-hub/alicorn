@@ -6,7 +6,9 @@ import {
 
 describe('resolveArtifactCloudApiUrl', () => {
   it('uses the first-party production origin by default', () => {
-    expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe('https://share.alicorn.8seneca.com')
+    expect(resolveArtifactCloudApiUrl(undefined, {}, true)).toBe(
+      'https://share.alicorn.8seneca.com'
+    )
   })
 
   it('allows loopback HTTP only in development', () => {
@@ -20,13 +22,13 @@ describe('resolveArtifactCloudApiUrl', () => {
     expect(() => resolveArtifactCloudApiUrl('http://127.0.0.1:45961', {}, true)).toThrow(/HTTPS/)
   })
 
-  it('rejects origins that could receive an Orca access token', () => {
+  it('rejects origins that could receive an Alicorn access token', () => {
     expect(() => resolveArtifactCloudApiUrl('https://example.com', {}, false)).toThrow(
       /alicorn\.8seneca\.com/
     )
-    expect(() => resolveArtifactCloudApiUrl('https://share.alicorn.8seneca.com/path', {}, false)).toThrow(
-      /origin/
-    )
+    expect(() =>
+      resolveArtifactCloudApiUrl('https://share.alicorn.8seneca.com/path', {}, false)
+    ).toThrow(/origin/)
   })
 
   it('allows auth token overrides only in non-production development builds', () => {

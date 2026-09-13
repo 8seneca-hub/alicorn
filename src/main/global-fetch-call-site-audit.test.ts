@@ -91,23 +91,27 @@ function globalFetchLineCounts(srcRoot: string): Map<string, number> {
 }
 
 describe('global fetch call-site audit (main, cli, relay)', () => {
-  it('keeps every global-fetch line audited with its expected count', () => {
-    const found = globalFetchLineCounts(join(__dirname, '..'))
+  it(
+    'keeps every global-fetch line audited with its expected count',
+    () => {
+      const found = globalFetchLineCounts(join(__dirname, '..'))
 
-    const drifted = [...found]
-      .filter(([file, count]) => AUDITED_GLOBAL_FETCH_LINES.get(file) !== count)
-      .map(([file, count]) => `${file}: found ${count} line(s)`)
-      .sort()
-    expect(
-      drifted,
-      'Global fetch (bare, globalThis.fetch, or global.fetch) uses undici, ' +
-        'where an unread response body can crash the whole process (orca#8695). ' +
-        'New or moved call sites must either use Electron net.fetch or consume/' +
-        'cancel the response body on ALL paths (cancelUnreadResponseBody in ' +
-        'main/lib/unread-response-body.ts), then update AUDITED_GLOBAL_FETCH_LINES.'
-    ).toEqual([])
+      const drifted = [...found]
+        .filter(([file, count]) => AUDITED_GLOBAL_FETCH_LINES.get(file) !== count)
+        .map(([file, count]) => `${file}: found ${count} line(s)`)
+        .sort()
+      expect(
+        drifted,
+        'Global fetch (bare, globalThis.fetch, or global.fetch) uses undici, ' +
+          'where an unread response body can crash the whole process (orca#8695). ' +
+          'New or moved call sites must either use Electron net.fetch or consume/' +
+          'cancel the response body on ALL paths (cancelUnreadResponseBody in ' +
+          'main/lib/unread-response-body.ts), then update AUDITED_GLOBAL_FETCH_LINES.'
+      ).toEqual([])
 
-    const stale = [...AUDITED_GLOBAL_FETCH_LINES.keys()].filter((file) => !found.has(file)).sort()
-    expect(stale, 'Remove audited entries whose global-fetch lines are gone.').toEqual([])
-  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
+      const stale = [...AUDITED_GLOBAL_FETCH_LINES.keys()].filter((file) => !found.has(file)).sort()
+      expect(stale, 'Remove audited entries whose global-fetch lines are gone.').toEqual([])
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 })

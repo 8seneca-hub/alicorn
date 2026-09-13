@@ -23,12 +23,12 @@ export function getBrowserLinkRoutingDescription(
   if (modifierInverts) {
     return translate(
       'auto.components.settings.BrowserLinkRoutingSetting.descriptionBase',
-      "Open http(s) links in Orca's built-in browser — from the terminal, markdown, and the editor."
+      "Open http(s) links in Alicorn's built-in browser — from the terminal, markdown, and the editor."
     )
   }
   return translate(
     'auto.components.settings.BrowserLinkRoutingSetting.description',
-    "Open http(s) links in Orca's built-in browser — from the terminal, markdown, and the editor. {{shortcut}} always uses your system browser.",
+    "Open http(s) links in Alicorn's built-in browser — from the terminal, markdown, and the editor. {{shortcut}} always uses your system browser.",
     { shortcut: getBrowserLinkRoutingShortcutLabel(platform) }
   )
 }
@@ -47,12 +47,12 @@ export function getLinkRoutingModifierTitle(openLinksInApp: boolean): string {
       )
     : translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.titleOrca',
-        'Hold Shift to open in Orca'
+        'Hold Shift to open in Alicorn'
       )
 }
 
-// Why: the Orca branch is enabled-state copy — with the toggle off the chord
-// still lands on the system browser, so it must not promise Orca in present tense.
+// Why: the Alicorn branch is enabled-state copy — with the toggle off the chord
+// still lands on the system browser, so it must not promise Alicorn in present tense.
 export function getLinkRoutingModifierDescription({
   openLinksInApp,
   isMac
@@ -64,12 +64,12 @@ export function getLinkRoutingModifierDescription({
   return openLinksInApp
     ? translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.descriptionSystem',
-        'Links open in Orca, so {{chord}}+click sends one to your system browser instead.',
+        'Links open in Alicorn, so {{chord}}+click sends one to your system browser instead.',
         { chord }
       )
     : translate(
         'auto.components.settings.BrowserLinkRoutingModifierSetting.descriptionOrca',
-        "Links open in your system browser. When enabled, {{chord}}+click opens one in Orca's built-in browser instead.",
+        "Links open in your system browser. When enabled, {{chord}}+click opens one in Alicorn's built-in browser instead.",
         { chord }
       )
 }

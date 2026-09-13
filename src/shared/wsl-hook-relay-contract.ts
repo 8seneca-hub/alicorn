@@ -12,7 +12,7 @@ export const WSL_HOOK_RELAY_VERSION_FILE = '.version'
 
 /** Host-expected bundle version, crossed into the guest launch script via
  *  WSLENV so a stale guest install is detected by the guest itself. Also
- *  namespaces the guest install dir, so concurrent Orca instances with
+ *  namespaces the guest install dir, so concurrent Alicorn instances with
  *  different bundle versions (dev + prod) never reinstall over each other. */
 export const WSL_HOOK_RELAY_VERSION_ENV = 'ALICORN_WSL_HOOK_RELAY_VERSION'
 
@@ -20,7 +20,7 @@ export const WSL_HOOK_RELAY_VERSION_ENV = 'ALICORN_WSL_HOOK_RELAY_VERSION'
  *  WSLENV. Derived from the Windows endpoint file path (userData +
  *  namespace), NOT the hook port: the port changes every app launch, and a
  *  port-keyed dir would leave daemon-surviving agents sourcing a stale file
- *  after an Orca restart — the exact re-coordination this exists to serve. */
+ *  after an Alicorn restart — the exact re-coordination this exists to serve. */
 export const WSL_HOOK_RELAY_INSTANCE_ENV = 'ALICORN_WSL_HOOK_INSTANCE'
 
 /** Launch-script exit codes. 42 mirrors the SSH relay's handshake-mismatch

@@ -77,7 +77,7 @@ export function buildSummary(
     topProject,
     // Why: the empty-state UX is scope/range specific. Using global persisted
     // data here makes the Orca-only view render empty charts instead of the
-    // intended "no usage for this scope" message when only off-Orca logs exist.
+    // intended "no usage for this scope" message when only off-Alicorn logs exist.
     hasAnyClaudeData: filteredSessions.length > 0 || filteredDaily.length > 0
   }
 }

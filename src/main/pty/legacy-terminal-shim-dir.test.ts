@@ -76,7 +76,7 @@ describe('legacy terminal shim neutralization', () => {
       join(win32Dir, 'gh.cmd')
     ]) {
       expect(existsSync(path)).toBe(true)
-      expect(readFileSync(path, 'utf8')).not.toContain('Co-authored-by: Orca')
+      expect(readFileSync(path, 'utf8')).not.toContain('Co-authored-by: Alicorn')
       if (process.platform !== 'win32') {
         expect(statSync(path).mode & 0o111).not.toBe(0)
       }
@@ -324,7 +324,7 @@ describe('legacy terminal shim neutralization', () => {
 
       const git = readFileSync(join(posixDir, 'git'), 'utf8')
       expect(git.split('\n')[0]).toBe('#!/bin/bash')
-      expect(git).toContain('Orca compatibility wrapper could not locate')
+      expect(git).toContain('Alicorn compatibility wrapper could not locate')
       expect(existsSync(join(posixDir, 'gh'))).toBe(false)
     } finally {
       vi.doUnmock('./legacy-terminal-posix-tombstone')
@@ -699,7 +699,7 @@ describe('legacy terminal shim neutralization', () => {
         ...process.env,
         PATH: `${shimDir}//::${realBin}:${process.env.PATH ?? ''}`,
         ORCA_ENABLE_GIT_ATTRIBUTION: '1',
-        ORCA_GIT_COMMIT_TRAILER: 'Co-authored-by: Orca <help@stably.ai>',
+        ORCA_GIT_COMMIT_TRAILER: 'Co-authored-by: Alicorn <help@stably.ai>',
         ORCA_ATTRIBUTION_SHIM_DIR: ''
       },
       stdio: ['pipe', 'pipe', 'pipe']
@@ -733,7 +733,7 @@ describe('legacy terminal shim neutralization', () => {
       child.kill('SIGKILL')
     }
     expect(stdout).toContain('arg=<commit>\narg=<-m>\narg=<subject with spaces>\nstdin payload\n')
-    expect(stdout).not.toContain('Co-authored-by: Orca')
+    expect(stdout).not.toContain('Co-authored-by: Alicorn')
     expect(stderr).toBe('fixture stderr\n')
   })
 
@@ -741,7 +741,7 @@ describe('legacy terminal shim neutralization', () => {
     const env: Record<string, string> = {
       PATH: `/home/u/.orca/orca-terminal-attribution/posix:/usr/local/bin:/usr/bin`,
       ORCA_ENABLE_GIT_ATTRIBUTION: '1',
-      ORCA_GIT_COMMIT_TRAILER: 'Co-authored-by: Orca <help@stably.ai>',
+      ORCA_GIT_COMMIT_TRAILER: 'Co-authored-by: Alicorn <help@stably.ai>',
       ORCA_GH_PR_FOOTER: 'footer',
       ORCA_GH_ISSUE_FOOTER: 'footer',
       ORCA_ATTRIBUTION_SHIM_DIR: '/home/u/.orca/orca-terminal-attribution/posix',
@@ -802,8 +802,8 @@ describe('legacy terminal shim neutralization', () => {
 
   it('strips legacy entries from every Windows PATH spelling', () => {
     const env: Record<string, string> = {
-      PATH: 'C:\\Orca\\orca-terminal-attribution\\win32',
-      Path: 'C:\\Orca\\orca-terminal-attribution\\win32;C:\\Windows\\System32'
+      PATH: 'C:\\Alicorn\\orca-terminal-attribution\\win32',
+      Path: 'C:\\Alicorn\\orca-terminal-attribution\\win32;C:\\Windows\\System32'
     }
 
     stripLegacyTerminalShimEnv(env, 'win32')
@@ -814,7 +814,7 @@ describe('legacy terminal shim neutralization', () => {
 
   it('matches a re-cased Windows shim path', () => {
     const env: Record<string, string> = {
-      Path: 'C:\\Orca\\Orca-Terminal-Attribution\\Win32;C:\\Windows\\System32'
+      Path: 'C:\\Alicorn\\Alicorn-Terminal-Attribution\\Win32;C:\\Windows\\System32'
     }
 
     stripLegacyTerminalShimEnv(env, 'win32')
@@ -834,7 +834,7 @@ describe('legacy terminal shim neutralization', () => {
   })
 
   it('strips legacy shim entries that carry a trailing separator', () => {
-    // Why: without normalizing the trailing separator the entry does not match, so Orca's own
+    // Why: without normalizing the trailing separator the entry does not match, so Alicorn's own
     // scrub leaves the legacy shim directory on the spawned PATH and the wrapper stays reachable.
     const posix: Record<string, string> = {
       PATH: '/home/u/.orca/orca-terminal-attribution/posix/:/usr/bin'

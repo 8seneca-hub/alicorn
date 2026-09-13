@@ -3,7 +3,7 @@ import { canonicalWorktreePath } from './worktree-path-comparison'
 import { detectSparseCheckout } from './worktree-sparse-state'
 
 // Why: `git worktree list` only emits a `sparse` porcelain line on newer Git (annotateSparseCheckoutStatus
-// already skips rows where that's set), but Orca's compatibility baseline is Git 2.25, which predates it —
+// already skips rows where that's set), but Alicorn's compatibility baseline is Git 2.25, which predates it —
 // so every listing still paid a per-worktree fs.stat + config read on the fallback path, measured at ~9x
 // the cost of the `git worktree list` call it decorates on a 1000-worktree repo. Cache the result, scoped
 // per repo so churn in one repo can't evict another's warm entries.
@@ -128,7 +128,7 @@ async function revalidateInBackground(
   }
 }
 
-/** Drop one worktree's cached state; call when Orca itself removes or moves a worktree path. */
+/** Drop one worktree's cached state; call when Alicorn itself removes or moves a worktree path. */
 export function invalidateSparseCheckoutState(repoPath: string, worktreePath: string): void {
   deleteKeysWithPrefix(worktreeKeyPrefix(repoPath, worktreePath))
 }

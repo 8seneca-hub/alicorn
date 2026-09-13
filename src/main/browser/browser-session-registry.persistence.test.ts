@@ -35,7 +35,7 @@ function installModuleMocks(
   const sessionFromPartitionMock = vi.fn((partition: string) => ({
     partition,
     setUserAgent: vi.fn(),
-    getUserAgent: vi.fn(() => 'Mozilla/5.0 Electron/31 Orca'),
+    getUserAgent: vi.fn(() => 'Mozilla/5.0 Electron/31 Alicorn'),
     webRequest: { onBeforeSendHeaders: vi.fn() },
     setPermissionRequestHandler: vi.fn(),
     setPermissionCheckHandler: vi.fn(),
@@ -208,7 +208,7 @@ describe('BrowserSessionRegistry persistence', () => {
     expect(fsState.present.has(legacyPath)).toBe(false)
   })
 
-  it('persists new browser session profiles under the active Orca profile directory', async () => {
+  it('persists new browser session profiles under the active Alicorn profile directory', async () => {
     const fsState = createFsState()
     const profileMetaPath = '/user-data/profiles/local-work/browser-session-meta.json'
 
@@ -601,7 +601,7 @@ describe('BrowserSessionRegistry persistence', () => {
       })
     )
 
-    // Opaque frame URLs have no site Orca can name accurately.
+    // Opaque frame URLs have no site Alicorn can name accurately.
     browserManagerNotifyPermissionDeniedMock.mockClear()
     requestHandler(guestWc, 'geolocation', permissionCallback, {
       requestingUrl: 'about:blank',
@@ -633,7 +633,7 @@ describe('BrowserSessionRegistry persistence', () => {
     expect(checkHandler(null, 'storage-access', '')).toBe(true)
 
     // Why: requestStorageAccessFor() is a different platform decision — Chromium consults Related
-    // Website Sets and has no third-party-cookie auto-grant, and Orca has no such data source. This
+    // Website Sets and has no third-party-cookie auto-grant, and Alicorn has no such data source. This
     // pins the deliberate denial so a future blanket widening of the allow-set fails loudly.
     requestHandler(guestWc, 'top-level-storage-access', permissionCallback)
     expect(permissionCallback).toHaveBeenLastCalledWith(false)

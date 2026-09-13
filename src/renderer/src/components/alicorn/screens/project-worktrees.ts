@@ -1,5 +1,5 @@
 /**
- * A project's work, which is Orca's worktrees under the repositories the project owns.
+ * A project's work, which is Alicorn's worktrees under the repositories the project owns.
  *
  * No new store: the board and the task list are two readings of the same rows the workspace
  * sidebar already holds, so they stay correct whenever it does. A project that owns no repository

@@ -147,7 +147,7 @@ describe('AlicornShell', () => {
     )
   })
 
-  // A task is a ticket, not a workspace: New task must not open Orca's workspace composer.
+  // A task is a ticket, not a workspace: New task must not open Alicorn's workspace composer.
   it('opens the task composer, and never the workspace composer', async () => {
     seed([project()])
     render(<AlicornShell />)

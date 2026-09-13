@@ -1,14 +1,14 @@
 /**
  * Opening a session for one Alicorn subject — a task, or a project's chat.
  *
- * Why this exists rather than calling `startStructuredAgentLaunch` directly: Orca dedupes pending
+ * Why this exists rather than calling `startStructuredAgentLaunch` directly: Alicorn dedupes pending
  * launches by `(worktree, agent)`, which is right for its own callers — two places asking for "a
  * Claude chat on this worktree" should get one. Alicorn's subjects want the opposite. Every
  * subject is its own conversation, and they nearly always share a worktree (a project usually has
  * one repository), so two subjects opening at once would otherwise join the same session and
  * appear to be synced.
  *
- * Serialising is the whole fix: a launch is removed from Orca's pending map once it settles, so
+ * Serialising is the whole fix: a launch is removed from Alicorn's pending map once it settles, so
  * waiting for the previous one guarantees the next gets its own session.
  */
 import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'

@@ -127,7 +127,7 @@ describe('projectRemoteAppStatus', () => {
     })
   })
 
-  // Why: the SSH host-passthrough answers for the Orca host the caller reached, and used to
+  // Why: the SSH host-passthrough answers for the Alicorn host the caller reached, and used to
   // claim running:true unconditionally. Both transports now share this projection.
   it('does not claim a desktop app for a headless serve on any transport', () => {
     expect(projectRemoteAppStatus(remoteStatus({ desktopWindowStatus: 'openable' }))).toEqual({

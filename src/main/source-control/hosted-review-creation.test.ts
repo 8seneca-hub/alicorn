@@ -424,7 +424,7 @@ describe('createHostedReview', () => {
         branch: 'feature',
         localGitExecOptions: { wslDistro: 'Ubuntu' },
         // Why: a stale no-review answer here would leave Create enabled after a
-        // review was opened outside Orca, so eligibility takes the fast tier.
+        // review was opened outside Alicorn, so eligibility takes the fast tier.
         active: true
       })
     )

@@ -1243,7 +1243,7 @@ export async function cleanupUnusedWorktreePushTargetRemote(
     console.warn(`[worktrees] Failed to clean up fork PR remote for ${removedWorktreeId}`, error)
   }
   // Why: also catches remotes this specific removal couldn't reclaim (legacy metadata,
-  // a preserved branch since deleted, a worktree removed outside Orca) -- see
+  // a preserved branch since deleted, a worktree removed outside Alicorn) -- see
   // worktree-push-target-reconciliation.ts. Rate-limited internally; safe to call every removal.
   // Not awaited: a repo with a large backlog (the scenario this exists for) can have dozens of
   // candidate remotes, each probed with a couple of git subprocesses -- that must never add
@@ -1309,7 +1309,7 @@ export async function prepareWorktreePushTargetSsh(
         // Why: relays predating fork-remote support reject this exec by policy; name the fix instead of surfacing their rule.
         if (error instanceof Error && error.message.includes('Destructive git remote operations')) {
           throw new Error(
-            'This SSH host is running an older Orca relay that cannot add a fork remote for a PR workspace. Reconnect to deploy the latest relay, then try again.'
+            'This SSH host is running an older Alicorn relay that cannot add a fork remote for a PR workspace. Reconnect to deploy the latest relay, then try again.'
           )
         }
         throw error

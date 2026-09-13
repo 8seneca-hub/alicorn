@@ -32,9 +32,9 @@ function buildManifest(tag: string): string {
   return [
     `version: ${version}`,
     'files:',
-    `  - url: Orca-${version}-arm64-mac.zip`,
+    `  - url: Alicorn-${version}-arm64-mac.zip`,
     '    sha512: test',
-    `path: Orca-${version}-arm64-mac.zip`
+    `path: Alicorn-${version}-arm64-mac.zip`
   ].join('\n')
 }
 
@@ -165,7 +165,7 @@ describe('fetchNewerReleaseTag', () => {
         `${releaseDownloadBaseUrl(PRIMARY_RELEASE_FEED_REPOSITORY)}/v1.4.1/${manifestName}`
       ])
       expect(assetUrls).toEqual([
-        `${releaseDownloadBaseUrl(PRIMARY_RELEASE_FEED_REPOSITORY)}/v1.4.1/Orca-1.4.1-arm64-mac.zip`
+        `${releaseDownloadBaseUrl(PRIMARY_RELEASE_FEED_REPOSITORY)}/v1.4.1/Alicorn-1.4.1-arm64-mac.zip`
       ])
       expect(netRequestMock).toHaveBeenCalledTimes(platform === 'win32' ? 1 : 0)
     }

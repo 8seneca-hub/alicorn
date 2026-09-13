@@ -61,7 +61,7 @@ export class RuntimeRemoteFetchController {
   }
 
   /**
-   * Orca strips git's auto-maintenance off these fetches, so every one of them
+   * Alicorn strips git's auto-maintenance off these fetches, so every one of them
    * adds to a loose-ref backlog nothing else will ever pack. Arm the idle sweep
    * that pays it back; each fetch pushes the attempt a further quiet period out.
    */

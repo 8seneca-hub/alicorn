@@ -54,7 +54,7 @@ export function registerWorktreeHookCheckHandler(context: WorktreeIpcContext): v
 
       const has = hasHooksFile(repo.path)
       const hooks = has ? loadHooks(repo.path) : null
-      // Why: unrecognised top-level keys mean the file is well-formed but from a newer Orca; suggest updating rather than "could not be parsed".
+      // Why: unrecognised top-level keys mean the file is well-formed but from a newer Alicorn; suggest updating rather than "could not be parsed".
       const mayNeedUpdate = has && !hooks && hasUnrecognizedOrcaYamlKeys(repo.path)
       return {
         status: 'ok',

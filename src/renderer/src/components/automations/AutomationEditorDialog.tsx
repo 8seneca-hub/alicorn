@@ -71,9 +71,9 @@ type AutomationEditorDialogProps = {
   worktrees: Worktree[]
   settings: GlobalSettings | null
   draft: AutomationDraft
-  /** Present only while creating an Orca automation. */
+  /** Present only while creating an Alicorn automation. */
   createDestination?: AutomationCreateDestinationControl
-  /** Present only while editing an Orca automation; selecting another host moves the record. */
+  /** Present only while editing an Alicorn automation; selecting another host moves the record. */
   editDestination?: AutomationCreateDestinationControl
   /** Why a save was refused. Belongs here rather than on the page: this dialog covers it. */
   notice?: AutomationActionNotice | null

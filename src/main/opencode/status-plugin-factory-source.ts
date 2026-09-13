@@ -189,7 +189,7 @@ export function getStatusPluginFactorySource(options: { emitSessionStart: boolea
     '          );',
     '        } else {',
     '          // Why: Instance disposal can happen while the PTY stays alive;',
-    '          // publish a final idle so Orca does not retain a dead owner.',
+    '          // publish a final idle so Alicorn does not retain a dead owner.',
     '          if (!deliveredStatusKey.startsWith("idle:") || ownsDeliveredMessagePart) {',
     '            await setStatus(',
     '              "idle",',

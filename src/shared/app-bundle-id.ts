@@ -14,7 +14,7 @@ export const APP_BUNDLE_ID = 'com.8seneca.alicorn'
  * Not dead weight: macOS keys per-bundle state off the id, so an upgrading
  * user's `defaults` domain and TCC grants still live under this one. Anything
  * that READS existing state must accept it; anything that declares our identity
- * must not. It retires when we stop supporting upgrades from Orca builds.
+ * must not. It retires when we stop supporting upgrades from Alicorn builds.
  */
 export const LEGACY_APP_BUNDLE_ID = 'com.stablyai.orca'
 

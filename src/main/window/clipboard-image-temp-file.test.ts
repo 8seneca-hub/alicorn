@@ -34,7 +34,7 @@ describe('saveClipboardImageBufferAsTempFile', () => {
 
     expect(writeFileMock).toHaveBeenCalledWith(savedPath, Buffer.from([1, 2, 3]))
     // The OS temp dir is outside every allowed root, so an unauthorized path
-    // makes fs:readFile deny the preview read of Orca's own file.
+    // makes fs:readFile deny the preview read of Alicorn's own file.
     expect(authorizeExternalPathMock).toHaveBeenCalledWith(savedPath)
   })
 

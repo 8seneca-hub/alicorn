@@ -15,7 +15,10 @@ export const getAlicornWorkflowsSearchEntries = createLocalizedCatalog(() => [
         'workflow'
       ),
       ...translateSearchKeyword('auto.components.settings.alicornWorkflows.search.stage', 'stage'),
-      ...translateSearchKeyword('auto.components.settings.alicornWorkflows.search.canvas', 'canvas'),
+      ...translateSearchKeyword(
+        'auto.components.settings.alicornWorkflows.search.canvas',
+        'canvas'
+      ),
       ...translateSearchKeyword(
         'auto.components.settings.alicornWorkflows.search.correction',
         'correction edge'

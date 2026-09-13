@@ -265,21 +265,25 @@ const EXPECTED_REBIND_SITES: readonly (readonly [path: string, occurrences: numb
 ]
 
 describe('identity observation rebind audit', () => {
-  it('pins every identity-sequencer rebind call site by file and count', async () => {
-    const files = await glob(['src/**/*.{ts,tsx}', 'mobile/src/**/*.{ts,tsx}'], {
-      ignore: ['**/*.test.*', '**/*.spec.*']
-    })
-    const actual: [string, number][] = []
-    for (const path of files.sort()) {
-      if (isTestFile(path)) {
-        continue
+  it(
+    'pins every identity-sequencer rebind call site by file and count',
+    async () => {
+      const files = await glob(['src/**/*.{ts,tsx}', 'mobile/src/**/*.{ts,tsx}'], {
+        ignore: ['**/*.test.*', '**/*.spec.*']
+      })
+      const actual: [string, number][] = []
+      for (const path of files.sort()) {
+        if (isTestFile(path)) {
+          continue
+        }
+        const source = stripComments(readFileSync(join(process.cwd(), path), 'utf8'))
+        const occurrences = source.match(IDENTITY_SEQUENCER_REBIND_RE)?.length ?? 0
+        if (occurrences > 0) {
+          actual.push([path, occurrences])
+        }
       }
-      const source = stripComments(readFileSync(join(process.cwd(), path), 'utf8'))
-      const occurrences = source.match(IDENTITY_SEQUENCER_REBIND_RE)?.length ?? 0
-      if (occurrences > 0) {
-        actual.push([path, occurrences])
-      }
-    }
-    expect(actual).toEqual(EXPECTED_REBIND_SITES.map((site) => [...site]))
-  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
+      expect(actual).toEqual(EXPECTED_REBIND_SITES.map((site) => [...site]))
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 })

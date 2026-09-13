@@ -75,7 +75,7 @@ type InternalFeedbackSubmitArgs = FeedbackSubmitArgs & {
 }
 
 // Why: the Slack notification and any follow-up investigation need to know
-// which Orca build and which OS the feedback came from. The main process is
+// which Alicorn build and which OS the feedback came from. The main process is
 // the only place with trusted access to these values (app.getVersion and the
 // node os module), so we enrich the payload here rather than trusting the
 // renderer.

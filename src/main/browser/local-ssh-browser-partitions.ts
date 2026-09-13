@@ -42,7 +42,7 @@ const partitionBySession = new WeakMap<Session, string>()
 
 /**
  * Connection identity of the app's own SSH provider. Deliberately free of any
- * per-boot value: the same Orca profile reaching the same SSH target must keep
+ * per-boot value: the same Alicorn profile reaching the same SSH target must keep
  * reusing one partition, or cookies die on every restart.
  */
 export function localSshBrowserAuthorityConnectionIdentity(orcaProfileId: string): string {

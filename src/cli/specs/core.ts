@@ -7,7 +7,7 @@ import { TERMINAL_CLOSE_COMMAND_SPEC } from './terminal-close'
 export const CORE_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['open'],
-    summary: 'Launch Orca and wait for the runtime to be reachable',
+    summary: 'Launch Alicorn and wait for the runtime to be reachable',
     usage: 'alicorn open [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
     examples: ['alicorn open', 'alicorn open --json']
@@ -23,24 +23,24 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
   {
     path: ['claude-teams'],
     argumentMode: 'passthrough',
-    summary: 'Start Claude Code Agent Teams in the current Orca terminal',
+    summary: 'Start Claude Code Agent Teams in the current Alicorn terminal',
     usage: 'alicorn claude-teams [claude args...]',
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [
       'Passes all following arguments through to Claude Code after enabling Agent Teams native panes.',
-      'Must be run from inside an Orca terminal. Starts Claude Code Agent Teams in the current pane and opens teammates as native Orca splits.'
+      'Must be run from inside an Alicorn terminal. Starts Claude Code Agent Teams in the current pane and opens teammates as native Alicorn splits.'
     ],
     examples: ['alicorn claude-teams', 'alicorn claude-teams --resume <session-id>']
   },
   {
     path: ['repo', 'list'],
-    summary: 'List repos registered in Orca',
+    summary: 'List repos registered in Alicorn',
     usage: 'alicorn repo list [--json]',
     allowedFlags: [...GLOBAL_FLAGS]
   },
   {
     path: ['repo', 'add'],
-    summary: 'Add a project to Orca by filesystem path',
+    summary: 'Add a project to Alicorn by filesystem path',
     usage: 'alicorn repo add --path <path> [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'path']
   },
@@ -64,7 +64,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['worktree', 'list'],
-    summary: 'List Orca-managed worktrees',
+    summary: 'List Alicorn-managed worktrees',
     usage: 'alicorn worktree list [--repo <selector>] [--limit <n>] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'repo', 'limit'],
     notes: [...WORKTREE_LISTING_SCOPE_NOTES]
@@ -77,17 +77,17 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['worktree', 'current'],
-    summary: 'Show the Orca-managed worktree for the current directory',
+    summary: 'Show the Alicorn-managed worktree for the current directory',
     usage: 'alicorn worktree current [--json]',
     allowedFlags: [...GLOBAL_FLAGS],
     notes: [
-      'Resolves the current shell directory to a path: selector so agents can target the enclosing Orca worktree without spelling out $PWD.'
+      'Resolves the current shell directory to a path: selector so agents can target the enclosing Alicorn worktree without spelling out $PWD.'
     ],
     examples: ['alicorn worktree current', 'alicorn worktree current --json']
   },
   {
     path: ['worktree', 'create'],
-    summary: 'Create a new Orca-managed worktree',
+    summary: 'Create a new Alicorn-managed worktree',
     usage:
       'alicorn worktree create --name <name> [--repo <selector>|--project <id> [--host <host-id>]|--project-host-setup <id>] [--agent <id>] [--prompt <text>] [--setup run|skip|inherit] [--base-branch <ref>] [--issue <number>] [--linear-issue <identifier-or-url>] [--comment <text>] [--parent-worktree <selector>] [--no-parent] [--run-hooks] [--activate] [--json]',
     allowedFlags: [
@@ -111,14 +111,14 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
     ],
     notes: [
       'This creates a new checkout. For a fresh agent in an existing worktree, use `alicorn terminal create --worktree active --command "codex"` instead.',
-      'By default, Orca records the new worktree as a child of the caller context when it can infer one from the Orca terminal or current directory.',
-      'If --repo is omitted, Orca infers the repo from the current Orca-managed worktree.',
+      'By default, Alicorn records the new worktree as a child of the caller context when it can infer one from the Alicorn terminal or current directory.',
+      'If --repo is omitted, Alicorn infers the repo from the current Alicorn-managed worktree.',
       'Use --project with --host to create on a ready project host setup without spelling the backing repo id.',
-      '--host runtime:<environment-id> creates on that paired Orca server; use the id from `alicorn environment list`, not the environment name.',
+      '--host runtime:<environment-id> creates on that paired Alicorn server; use the id from `alicorn environment list`, not the environment name.',
       'For related work, use the inferred parent or pass --parent-worktree active, folder:<id>, or worktree:<worktreeId> to make the relationship explicit. Worktree ids are the full <repo-id>::<path> values returned by `alicorn worktree list --json`.',
       'Use --no-parent when the new worktree should be independent of the current context.',
-      '--no-parent only affects Orca lineage; omit --base-branch to use the repo default base, or pass the default base ref explicitly for independent top-level work.',
-      'By default this creates the worktree and its first terminal without switching the active Orca view.',
+      '--no-parent only affects Alicorn lineage; omit --base-branch to use the repo default base, or pass the default base ref explicitly for independent top-level work.',
+      'By default this creates the worktree and its first terminal without switching the active Alicorn view.',
       'Pass --agent to launch an agent in the first terminal; --prompt sends initial work to that agent.',
       'With --agent --json, read the new agent handle from result.agentTerminalHandle; older runtimes return only result.startupTerminal.handle, and may return neither for folder-based repos.',
       'Repo-defined setup hooks follow the repository setup policy; pass --setup run to force them.',
@@ -138,7 +138,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['worktree', 'set'],
-    summary: 'Update Orca metadata for a worktree',
+    summary: 'Update Alicorn metadata for a worktree',
     usage:
       'alicorn worktree set --worktree <selector> [--display-name <name>] [--issue <number|null>] [--linear-issue <identifier-or-url|null>] [--comment <text>] [--workspace-status <id>] [--parent-worktree <selector>|--no-parent] [--json]',
     allowedFlags: [
@@ -170,12 +170,12 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
       ['worktree', 'delete']
     ],
     destructive: true,
-    summary: 'Remove a worktree from Orca and git',
+    summary: 'Remove a worktree from Alicorn and git',
     usage: 'alicorn worktree rm --worktree <selector> [--force] [--run-hooks] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'worktree', 'force', 'run-hooks'],
     notes: [
       'Repo-defined orca.yaml archive hooks are skipped unless --run-hooks is passed.',
-      'For Git worktrees, removal also attempts to delete the checked-out local branch, with or without --force. Orca retains branches it knows predated the worktree and any branch whose changes it cannot prove are already merged.'
+      'For Git worktrees, removal also attempts to delete the checked-out local branch, with or without --force. Alicorn retains branches it knows predated the worktree and any branch whose changes it cannot prove are already merged.'
     ]
   },
   {
@@ -187,7 +187,7 @@ export const CORE_COMMAND_SPECS: CommandSpec[] = [
   },
   {
     path: ['terminal', 'list'],
-    summary: 'List live Orca-managed terminals',
+    summary: 'List live Alicorn-managed terminals',
     usage:
       'alicorn terminal list [--worktree <selector>] [--limit <n>] [--include-visual-layouts] [--json]',
     allowedFlags: [...GLOBAL_FLAGS, 'worktree', 'limit', 'include-visual-layouts'],

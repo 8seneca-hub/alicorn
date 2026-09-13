@@ -35,7 +35,9 @@ function folderWorkspace(overrides: Partial<FolderWorkspace> & Pick<FolderWorksp
   } as FolderWorkspace
 }
 
-function state(overrides: Partial<FeatureWorkspaceResolutionState>): FeatureWorkspaceResolutionState {
+function state(
+  overrides: Partial<FeatureWorkspaceResolutionState>
+): FeatureWorkspaceResolutionState {
   return {
     repos: [],
     projectGroups: [] as readonly ProjectGroup[],
@@ -133,9 +135,7 @@ describe('resolveTaskWorktreeTuples', () => {
 
   it('resolves a folder workspace, which has no repo row and no branch', () => {
     const { resolved, unresolved } = resolveTaskWorktreeTuples(
-      normalizeTaskWorktreeTuples([
-        { repoId: 'folder-workspace:grp_1', worktreeId: 'folder:f1' }
-      ]),
+      normalizeTaskWorktreeTuples([{ repoId: 'folder-workspace:grp_1', worktreeId: 'folder:f1' }]),
       state({ folderWorkspaces: [folderWorkspace({ id: 'f1' })] })
     )
     expect(unresolved).toEqual([])
@@ -154,9 +154,7 @@ describe('resolveTaskWorktreeTuples', () => {
 
   it('routes a folder workspace pinned to an SSH host to that host', () => {
     const { resolved } = resolveTaskWorktreeTuples(
-      normalizeTaskWorktreeTuples([
-        { repoId: 'folder-workspace:grp_1', worktreeId: 'folder:f1' }
-      ]),
+      normalizeTaskWorktreeTuples([{ repoId: 'folder-workspace:grp_1', worktreeId: 'folder:f1' }]),
       state({
         folderWorkspaces: [folderWorkspace({ id: 'f1', executionHostId: 'ssh:build-box' })]
       })

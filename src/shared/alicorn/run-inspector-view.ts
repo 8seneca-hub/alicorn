@@ -103,7 +103,9 @@ export function previewPrompt(prompt: string): { text: string; hiddenChars: numb
   }
 }
 
-function capturedPrompt(capture: ContextCaptureList['captures'][number] | undefined): CapturedPrompt {
+function capturedPrompt(
+  capture: ContextCaptureList['captures'][number] | undefined
+): CapturedPrompt {
   if (!capture) {
     return { kind: 'none' }
   }

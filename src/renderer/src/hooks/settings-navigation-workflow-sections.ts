@@ -190,7 +190,7 @@ export function buildWorkflowSettingsSections(
             ),
             description: translate(
               'auto.hooks.useSettingsNavigationMetadata.3d65d3f1b9',
-              'Configure mobile emulator support for Orca and coding agents.'
+              'Configure mobile emulator support for Alicorn and coding agents.'
             ),
             icon: TabletSmartphone,
             searchEntries: getMobileEmulatorSearchEntries(),

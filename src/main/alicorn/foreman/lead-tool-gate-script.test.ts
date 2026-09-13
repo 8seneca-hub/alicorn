@@ -38,13 +38,13 @@ describe('getLeadToolGateScript (POSIX)', () => {
     expect(script).toContain(`if [ -z "\${${ALICORN_ROLE_ENV_VAR}:-}" ]`)
   })
 
-  // Why: a stale port after an Orca restart would fail open and leave the lead unrestricted.
+  // Why: a stale port after an Alicorn restart would fail open and leave the lead unrestricted.
   it('refreshes the endpoint coordinates first', () => {
     expect(script.indexOf('ALICORN_AGENT_HOOK_ENDPOINT')).toBeLessThan(script.indexOf('curl'))
   })
 
   it('sends the cwd, which is the worktree the lead must not read', () => {
-    expect(script).toContain('-H "X-Alicorn-Cwd: ${PWD:-}"')
+    expect(script).toContain('-H "X-Orca-Cwd: ${PWD:-}"')
   })
 
   // Why (#8110): the shared capture idiom, before anything that can exit — a hook that exits
@@ -81,9 +81,9 @@ describe('getLeadToolGateScript (Windows)', () => {
     })
   })
 
-  // Why (#11549): outside an Orca pane the caller may abandon stdin, so the env guards must come
+  // Why (#11549): outside an Alicorn pane the caller may abandon stdin, so the env guards must come
   // before anything that reads it.
-  it('checks the Orca env before it owns stdin', () => {
+  it('checks the Alicorn env before it owns stdin', () => {
     withPlatform('win32', () => {
       const script = getLeadToolGateScript('local')
 

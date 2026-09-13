@@ -296,7 +296,7 @@ export class RelayEndpointHeldError extends Error {
   constructor(readonly incumbent: RelayEndpointIncumbent) {
     super(
       `A live relay still owns ${incumbent.sockPath} and refused this connection ` +
-        `(${describeRelayEndpointIncumbent(incumbent)}). Orca will not replace it, because ` +
+        `(${describeRelayEndpointIncumbent(incumbent)}). Alicorn will not replace it, because ` +
         'unlinking its socket would strand its terminals. Use Reset Relay for this host to ' +
         'stop it, then reconnect.'
     )

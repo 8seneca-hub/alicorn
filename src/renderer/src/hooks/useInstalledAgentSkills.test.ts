@@ -69,7 +69,7 @@ describe('hasInstalledAgentSkill', () => {
       hasInstalledAgentSkill(
         [
           skill({
-            name: 'Orca CLI',
+            name: 'Alicorn CLI',
             directoryPath: 'C:\\Users\\test\\.agents\\skills\\orca-cli'
           })
         ],

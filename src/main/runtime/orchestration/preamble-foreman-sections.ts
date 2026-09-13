@@ -76,12 +76,12 @@ context is a cache of it. Keep it current as you go — not at the end:
   #   a brief; never paste a subagent's transcript.
   # Not done — anything you decided to skip, so it is not mistaken for finished.
 
-Orca writes the plan table's Status and Dispatch columns for you as nodes dispatch and settle.
-Title, Owner, Depends on, Model and Files are yours: fill them when you plan a node, and Orca will
+Alicorn writes the plan table's Status and Dispatch columns for you as nodes dispatch and settle.
+Title, Owner, Depends on, Model and Files are yours: fill them when you plan a node, and Alicorn will
 not overwrite them.
 
 === CONTRACT REGISTRY ===
-Orca fills the registry's tables for you: extracted from the repo's OpenAPI documents and shared
+Alicorn fills the registry's tables for you: extracted from the repo's OpenAPI documents and shared
 contract types at run start, then one row per \`interface_delta\` as each node settles. Paste a row
 into a brief instead of telling a subagent an interface in prose — one row is about 200 tokens and
 it does not drift.
@@ -90,13 +90,13 @@ Read the **Provenance** column before you trust a row. \`extracted\` came out of
 \`⚠ agent-declared\` is a subagent's word for it and is only as good as that subagent. An extracted
 row is never overwritten by a declared one.
 
-A repo under **Schema generation required** has no schema Orca could read. That is not a repo with
+A repo under **Schema generation required** has no schema Alicorn could read. That is not a repo with
 no interfaces — it is a repo where every contract is somebody's assertion. If the run depends on one
 of its interfaces, dispatch a node to generate what that row asks for before you build against it.
 
 === WAVES ===
 Declare each node's **Files** — the paths you intend it to touch. Two nodes with no edge between
-them look parallel, but if they declare the same file they never were: Orca serialises them into
+them look parallel, but if they declare the same file they never were: Alicorn serialises them into
 successive waves, journals the overlap in the Waves section, and holds the later node until the
 earlier one settles. An undeclared overlap is found at the merge instead.
 

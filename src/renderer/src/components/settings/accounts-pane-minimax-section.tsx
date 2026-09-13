@@ -53,7 +53,7 @@ function MiniMaxCookieHelpPopover(): React.JSX.Element {
         <p className="text-muted-foreground">
           {translate(
             'auto.components.settings.AccountsPane.4e32e030b2',
-            'Stored locally. Orca sends it only to platform.minimax.io for usage refreshes.'
+            'Stored locally. Alicorn sends it only to platform.minimax.io for usage refreshes.'
           )}
         </p>
       </div>

@@ -1,6 +1,6 @@
 /**
  * Proves the central claim of the POSIX startup dialect against real shells:
- * ONE emitted string is correct in sh, bash, zsh, dash and fish alike, so Orca
+ * ONE emitted string is correct in sh, bash, zsh, dash and fish alike, so Alicorn
  * never has to detect which shell will parse a queued command line.
  *
  * The shells are the oracle. Each case is handed to a real shell, which echoes
@@ -25,7 +25,7 @@ const FISH = resolveFishBinary(4)
 
 type LiveShell = { name: string; path: string }
 
-/** Every Unix shell on this machine a queued Orca command line could land in. */
+/** Every Unix shell on this machine a queued Alicorn command line could land in. */
 function discoverShells(): LiveShell[] {
   const shells: LiveShell[] = []
   for (const path of [
@@ -58,7 +58,7 @@ function basename(path: string): string {
 // dir to hold universal variables, and warns loudly on every launch without it.
 const SANDBOX_HOME = mkdtempSync(path.join(tmpdir(), 'orca-shell-portability-'))
 
-/** Env with no user shell config reachable, so only Orca's own text is exercised. */
+/** Env with no user shell config reachable, so only Alicorn's own text is exercised. */
 function sandboxEnv(): NodeJS.ProcessEnv {
   return {
     PATH: '/usr/bin:/bin:/usr/sbin:/sbin',
@@ -200,7 +200,7 @@ describe.skipIf(process.platform === 'win32')(
       })
 
       // Why INTERACTIVE (-i, script on stdin): aliases are only expanded by an
-      // interactive shell, which is the mode Orca types into — a `-c` run cannot
+      // interactive shell, which is the mode Alicorn types into — a `-c` run cannot
       // see this class of bug at all. A user with `alias test=…` would otherwise
       // silently skip both branches and keep the prefill exported.
       it.runIf(['bash', 'zsh'].includes(shell.name))(
@@ -232,7 +232,7 @@ describe.skipIf(process.platform === 'win32')(
       // interactive shell does not meaningfully use).
       // Scoped to bash/zsh because `set` is a POSIX special builtin: in sh, dash
       // and ksh a misfire aborts a NON-interactive shell before anything can be
-      // observed. Interactively — the mode Orca types into — they survive without
+      // observed. Interactively — the mode Alicorn types into — they survive without
       // errexit too, but that is not scriptable here. bash and zsh report `$-`
       // either way, and both DID silently enable errexit under the old `set -e`.
       // Why `-g` is not optional: without it, a name that exists ONLY as a

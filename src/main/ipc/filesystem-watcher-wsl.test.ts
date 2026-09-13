@@ -97,7 +97,7 @@ describe('createWslWatcher', () => {
         stdio: ['pipe', 'pipe', 'pipe'],
         windowsHide: true,
         // Why a concrete directory (#16463): the watched path rides in argv, so
-        // an omitted cwd only means CreateProcessW inherits Orca's -- a worktree
+        // an omitted cwd only means CreateProcessW inherits Alicorn's -- a worktree
         // that can be deleted, after which every watcher start is ENOENT.
         cwd: expect.any(String)
       })

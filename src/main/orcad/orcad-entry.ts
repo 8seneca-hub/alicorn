@@ -1,5 +1,5 @@
 /**
- * `orcad` — the Orca runtime served from plain Node, with no Electron.
+ * `orcad` — the Alicorn runtime served from plain Node, with no Electron.
  *
  * Installs the Node host adapters, constructs the same `OrcaRuntimeService` the
  * desktop uses, installs a PTY controller via `registerHeadlessPtyRuntime`, and

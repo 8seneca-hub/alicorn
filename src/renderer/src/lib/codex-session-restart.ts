@@ -39,7 +39,7 @@ export type CodexPaneScanResult = {
   eligible: boolean
   /** Inspection failed or the handle was stale, so a later read may answer differently. */
   inconclusive: boolean
-  /** Orca launched Codex in this tab, so a shell foreground can still be reattach settle. */
+  /** Alicorn launched Codex in this tab, so a shell foreground can still be reattach settle. */
   launchedCodex: boolean
   /** A restart notice was raised for this pane by this scan. */
   notified: boolean
@@ -276,7 +276,7 @@ export async function markLiveCodexSessionsForRestart(args: {
  *
  * Why: restart notices are renderer state, but the shells they describe live in
  * the PTY daemon and survive a full app restart with the old account still
- * baked into their environment. Without this, quitting Orca before restarting a
+ * baked into their environment. Without this, quitting Alicorn before restarting a
  * stale pane silently strands it on the previous account forever.
  *
  * Returns one result per inspected pane so the bind-driven sweep can tell an

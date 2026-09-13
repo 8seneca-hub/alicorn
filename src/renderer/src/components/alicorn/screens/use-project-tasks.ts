@@ -1,7 +1,7 @@
 /**
  * A project's tasks, read from the control plane.
  *
- * The board and the task list are two readings of these rows — not of Orca's worktrees. A worktree
+ * The board and the task list are two readings of these rows — not of Alicorn's worktrees. A worktree
  * is one thing a task might need (PRODUCT-ARCHITECTURE §2); binding the board to worktrees showed
  * a repository where a ticket belongs and could never show a task that had not been started.
  */

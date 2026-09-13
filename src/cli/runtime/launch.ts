@@ -61,7 +61,7 @@ export function launchOrcaApp(): void {
 
   throw new RuntimeClientError(
     'runtime_open_failed',
-    'Could not determine how to launch Orca. Start Orca manually and try again.'
+    'Could not determine how to launch Alicorn. Start Alicorn manually and try again.'
   )
 }
 
@@ -242,8 +242,8 @@ function waitForRecipeJson(child: ReturnType<typeof spawnProcess>): Promise<numb
         new RuntimeClientError(
           'runtime_serve_failed',
           typeof code === 'number'
-            ? `Orca serve exited before printing valid recipe JSON with code ${code}.`
-            : `Orca serve exited before printing valid recipe JSON via ${signal}.`
+            ? `Alicorn serve exited before printing valid recipe JSON with code ${code}.`
+            : `Alicorn serve exited before printing valid recipe JSON via ${signal}.`
         )
       )
     }
@@ -306,7 +306,7 @@ function resolveForegroundOrcaExecutable(): string {
   }
   throw new RuntimeClientError(
     'runtime_serve_failed',
-    'Could not determine how to start Orca server. Set ALICORN_APP_EXECUTABLE to the Orca executable.'
+    'Could not determine how to start Alicorn server. Set ALICORN_APP_EXECUTABLE to the Alicorn executable.'
   )
 }
 

@@ -9,7 +9,7 @@ export type ClientEnvironmentInfo = {
 }
 
 const FOOTER_MARKER = '---'
-const ALICORN_LINE_PREFIX = 'Orca:'
+const ALICORN_LINE_PREFIX = 'Alicorn:'
 
 // Why: match the whole prefilled block (optional Shell line included) so strip
 // keeps authored text both above and below — users who click past the footer

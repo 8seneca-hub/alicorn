@@ -5,7 +5,7 @@
  * says *where you are* while the column beside it says *what is there*. Splitting those two is
  * what stops a screen showing a project's name while editing something no project owns.
  *
- * Orca's machinery is untouched underneath — terminals, SSH hosts and worktrees all still run the
+ * Alicorn's machinery is untouched underneath — terminals, SSH hosts and worktrees all still run the
  * way they did. What changed is the frame around them.
  */
 import React from 'react'

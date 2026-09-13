@@ -17,7 +17,7 @@ const MAX_MANIFEST_PROBE_CANDIDATES = 6
 // single flat list. Each entry has a /releases/tag/<tag> URL we can mine
 // without any channel filtering.
 //
-// Why both owners: a build installed before the rebrand reads the Orca feed, and for one release
+// Why both owners: a build installed before the rebrand reads the Alicorn feed, and for one release
 // its entries are what carry that user across. `matchAll` is stateful on a global regex, so this
 // is rebuilt per call rather than shared.
 const tagHrefPattern = (): RegExp => buildReleaseTagHrefPattern()

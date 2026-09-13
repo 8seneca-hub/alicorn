@@ -95,7 +95,7 @@ type HookRun = { exitCode: number | null; stdout: string; stderr: string; timedO
 function runWrapper(
   wrapperPath: string,
   env: NodeJS.ProcessEnv,
-  // Why: `null` abandons stdin instead of closing it — the shape a caller outside an Orca
+  // Why: `null` abandons stdin instead of closing it — the shape a caller outside an Alicorn
   // pane produces, and the only way to prove the env guard exits before reading (#11549).
   stdinPayload: string | null = PAYLOAD
 ): Promise<HookRun> {
@@ -272,7 +272,7 @@ describe.skipIf(process.platform !== 'win32')('Antigravity Windows hook payload 
 
     const listener = await startHookListener()
     server = listener.server
-    // Why (#11549): outside an Orca pane the caller may abandon stdin rather than close it,
+    // Why (#11549): outside an Alicorn pane the caller may abandon stdin rather than close it,
     // so the guard must exit before the read — otherwise the console lingers indefinitely.
     const result = await runWrapper(
       join(home, '.orca', 'agent-hooks', 'antigravity-pre-tool-use.cmd'),

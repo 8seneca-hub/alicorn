@@ -51,7 +51,7 @@ async function loadRuntimeClientClass(): Promise<typeof RuntimeClient> {
   return (await import('./runtime-client.js')).RuntimeClient
 }
 
-// Why: the SSH relay bridge executes this CLI on the Orca host while the
+// Why: the SSH relay bridge executes this CLI on the Alicorn host while the
 // caller's shell cwd lives on the remote machine (which cannot be chdir'd
 // into). ALICORN_CLI_CWD carries that remote cwd so cwd-based selectors like
 // `--worktree active` resolve against the caller's directory.
@@ -68,7 +68,7 @@ export async function main(
   if (argv.length === 1 && (argv[0] === '--version' || argv[0] === '-v')) {
     const version = readOrcaCliVersion()
     if (!version) {
-      process.stderr.write('Could not determine the Orca version for this build.\n')
+      process.stderr.write('Could not determine the Alicorn version for this build.\n')
       process.exitCode = 1
       return
     }
@@ -104,7 +104,7 @@ export async function main(
 
   try {
     // Why: CLI syntax and flag errors should be reported before any runtime
-    // lookup so users do not get misleading "Orca is not running" failures for
+    // lookup so users do not get misleading "Alicorn is not running" failures for
     // simple command typos or unsupported flags.
     validateCommandAndFlags(COMMAND_SPECS, parsed)
     const RuntimeClientClass = await loadRuntimeClientClass()
@@ -184,7 +184,7 @@ export async function main(
 async function runClaudeTeams(argv: string[], cwd: string): Promise<void> {
   try {
     // Why: everything after `alicorn claude-teams` belongs to Claude Code, not
-    // Orca's own flag parser, so new Claude flags work without Orca changes.
+    // Alicorn's own flag parser, so new Claude flags work without Alicorn changes.
     const client = new (await loadRuntimeClientClass())(undefined, undefined, null, null)
     await dispatch(['claude-teams'], {
       flags: new Map(),

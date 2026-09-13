@@ -197,7 +197,14 @@ describe('buildRunInspectorView', () => {
     )
     expect(view.dispatches.map((d) => d.dispatchId)).toEqual(['d1'])
     expect(view.dispatches[0]?.checks).toEqual([
-      { dispatchId: 'd1', kind: 'diff_coverage', name: 'diff coverage', required: true, status: 'passed', ratio: 0.9 }
+      {
+        dispatchId: 'd1',
+        kind: 'diff_coverage',
+        name: 'diff coverage',
+        required: true,
+        status: 'passed',
+        ratio: 0.9
+      }
     ])
   })
 })

@@ -15,7 +15,7 @@ describe('browser client host id argument', () => {
   // id out of the middle of someone else's flag.
   it('reads back the id it formatted, from the middle of a real argv', () => {
     const argv = [
-      '/Applications/Orca.app/Contents/MacOS/Orca',
+      '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
       '--type=renderer',
       `--wrapped-flag=${formatBrowserClientHostIdArgument('decoy')}`,
       '--enable-sandbox',

@@ -1,5 +1,5 @@
 /**
- * The two things Orca installs into `~/.orca-remote/`, and the rules that keep them from
+ * The two things Alicorn installs into `~/.orca-remote/`, and the rules that keep them from
  * touching each other.
  *
  * `docs/design/shipping-orcad.html` §06 settles that on-disk coexistence is permanent: the

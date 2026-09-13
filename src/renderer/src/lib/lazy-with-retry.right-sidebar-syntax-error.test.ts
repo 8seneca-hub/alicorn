@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { isLazyChunkLoadError, loadLazyWithRetry } from './lazy-with-retry'
 
-// Regression guard for crash report e08749bb-777c-446e-b407-5d1f154b6173 (Orca 1.4.104).
+// Regression guard for crash report e08749bb-777c-446e-b407-5d1f154b6173 (Alicorn 1.4.104).
 // boundary_id=right-sidebar, surface=right-sidebar, error_name=SyntaxError,
 // error_message="Unexpected token ')'". component_stack: Lazy -> Suspense ->
 // RightSidebarPanelContent -> ... -> RecoverableRenderErrorBoundary.

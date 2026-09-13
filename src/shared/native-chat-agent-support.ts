@@ -43,7 +43,7 @@ export function resolveNativeChatTranscriptAgent(
   agent: string | null | undefined
 ): NativeChatTranscriptAgent | null {
   // Why: OpenClaude writes the Claude transcript format and layout even though
-  // Orca preserves its distinct agent identity for launch and UI behavior.
+  // Alicorn preserves its distinct agent identity for launch and UI behavior.
   if (agent === 'claude' || agent === 'openclaude') {
     return 'claude'
   }

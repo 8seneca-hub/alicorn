@@ -2,7 +2,7 @@
  * The GitHub repositories a released build may be published to and updated from.
  *
  * Two for two releases, and the order is the policy: an Alicorn build looks in the Alicorn
- * repository first, and falls back to the Orca one so a user who installed a pre-rebrand build
+ * repository first, and falls back to the Alicorn one so a user who installed a pre-rebrand build
  * still receives the release that moves them across. Dropping the old owner immediately would
  * strand exactly the users the rebrand is trying to carry forward.
  *
@@ -25,7 +25,10 @@ export const PRIMARY_RELEASE_FEED_REPOSITORY: ReleaseFeedRepository = RELEASE_FE
  */
 export function buildReleaseTagHrefPattern(): RegExp {
   const owners = RELEASE_FEED_REPOSITORIES.map((repo) => repo.replaceAll('/', '\\/')).join('|')
-  return new RegExp(`href="https:\\/\\/github\\.com\\/(?:${owners})\\/releases\\/tag\\/([^"]+)"`, 'g')
+  return new RegExp(
+    `href="https:\\/\\/github\\.com\\/(?:${owners})\\/releases\\/tag\\/([^"]+)"`,
+    'g'
+  )
 }
 
 export function releaseAtomFeedUrl(repository: ReleaseFeedRepository): string {

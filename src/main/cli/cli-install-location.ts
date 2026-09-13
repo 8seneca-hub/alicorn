@@ -182,7 +182,7 @@ export abstract class CliInstallLocation {
       const status = await this.inspectSymlink(commandPath, launcherPath)
       if (status.state !== 'not_installed') {
         if (reachedDefaultCommandPath && !isDefaultCommandPath && status.state === 'conflict') {
-          // Why: a non-Orca command after an empty default slot can be shadowed by installing there; no user file replaced.
+          // Why: a non-Alicorn command after an empty default slot can be shadowed by installing there; no user file replaced.
           continue
         }
         // Why: PATH lookup is first-match-wins; return the command the shell will actually run, preserving shadowing conflicts.
@@ -214,7 +214,7 @@ export abstract class CliInstallLocation {
         return join(this.homePath, '.local', 'bin', DEV_COMMAND_NAME)
       }
       if (this.platform === 'win32') {
-        return join(this.localAppDataPath, 'Programs', 'Orca Dev', 'bin', `${DEV_COMMAND_NAME}.cmd`)
+        return join(this.localAppDataPath, 'Programs', 'Alicorn Dev', 'bin', `${DEV_COMMAND_NAME}.cmd`)
       }
     }
 

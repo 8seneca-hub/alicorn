@@ -75,7 +75,7 @@ function createFishSandbox(prefix: string): { bin: string; preflight: string; ma
   return { bin, preflight, marker }
 }
 
-// Reports Orca's own wrapper (not a user-defined codex function) and any capture leak.
+// Reports Alicorn's own wrapper (not a user-defined codex function) and any capture leak.
 const FISH_STATE_PROBE = `if functions -q codex; and functions codex | string match -q '*prepare-codex*'
   echo -n wrapper=YES
 else
@@ -137,7 +137,7 @@ function runAliasLaunch(
   ).trim()
 }
 
-/** Launches a startup file that aliases the very name Orca wraps, then asserts the
+/** Launches a startup file that aliases the very name Alicorn wraps, then asserts the
  *  wrapper installed, the preflight ran, and the user's alias still applies. */
 function expectNamedAliasSurvives(shell: string, enableAliases: string): void {
   const root = mkdtempSync(join(tmpdir(), 'orca-codex-named-alias-'))
@@ -228,7 +228,7 @@ describe.skipIf(process.platform === 'win32')('Codex shell launch preflight', ()
     )
   })
 
-  it('does not trigger a preflight outside an Orca terminal', () => {
+  it('does not trigger a preflight outside an Alicorn terminal', () => {
     const root = mkdtempSync(join(tmpdir(), 'orca-codex-plain-shell-'))
     roots.push(root)
     const bin = join(root, 'bin')
@@ -580,7 +580,7 @@ describe('Codex shell launch preflight command', () => {
 // Program Files (Windows) both put spaces in it.
 describe.skipIf(process.platform === 'win32')('Codex preflight paths containing spaces', () => {
   function writeSpacedPreflight(root: string): { preflightPath: string; markerPath: string } {
-    const dir = join(root, 'Orca Dev.app', 'Contents', 'Resources', 'bin')
+    const dir = join(root, 'Alicorn Dev.app', 'Contents', 'Resources', 'bin')
     mkdirSync(dir, { recursive: true })
     const markerPath = join(root, 'preflight-ran')
     const preflightPath = join(dir, 'orca')

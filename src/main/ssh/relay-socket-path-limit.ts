@@ -45,7 +45,7 @@ export function shortRelaySocketDirForUid(uid: string): string {
  * Why it has to exist: `relaySocketNameForInstanceId` hashes the *target*, not the
  * build, so the filename alone is version-independent. Under `$HOME` the enclosing
  * `relay-<fullVersion>` directory supplies that dimension; without it here, the next
- * Orca build would bind the exact path the previous build's relay still holds. The
+ * Alicorn build would bind the exact path the previous build's relay still holds. The
  * daemon handshake compares build hashes exactly, so that meeting is a version
  * mismatch — and if the incumbent holds live work, `resolveRelayEndpointBeforeRelaunch`
  * raises `RelayEndpointHeldError` and the user cannot connect at all until the old

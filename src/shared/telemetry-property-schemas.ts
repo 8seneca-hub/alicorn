@@ -49,8 +49,8 @@ export const AGENT_KIND_VALUES = [
 export const agentKindSchema = z.enum(AGENT_KIND_VALUES)
 export type AgentKind = z.infer<typeof agentKindSchema>
 
-// Small set: only failures Orca's PTY-typed-command launch can observe (`binary_not_found` = shell ENOENT, `paste_readiness_timeout`, `unknown`).
-// Provider-side errors (auth/rate-limit/network) happen inside the agent CLI subprocess and are invisible to Orca. See telemetry-plan.md §Defer per-incident error fields.
+// Small set: only failures Alicorn's PTY-typed-command launch can observe (`binary_not_found` = shell ENOENT, `paste_readiness_timeout`, `unknown`).
+// Provider-side errors (auth/rate-limit/network) happen inside the agent CLI subprocess and are invisible to Alicorn. See telemetry-plan.md §Defer per-incident error fields.
 export const errorClassSchema = z.enum(['binary_not_found', 'paste_readiness_timeout', 'unknown'])
 export type ErrorClass = z.infer<typeof errorClassSchema>
 

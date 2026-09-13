@@ -124,8 +124,12 @@ function findNonLazyUseRefs(file: string): string[] {
 }
 
 describe('renderer useRef initializers', () => {
-  it('never does work in the useRef argument', () => {
-    const findings = collectSourceFiles(RENDERER_ROOT).flatMap(findNonLazyUseRefs)
-    expect(findings).toEqual([])
-  }, SOURCE_TREE_RATCHET_TIMEOUT_MS)
+  it(
+    'never does work in the useRef argument',
+    () => {
+      const findings = collectSourceFiles(RENDERER_ROOT).flatMap(findNonLazyUseRefs)
+      expect(findings).toEqual([])
+    },
+    SOURCE_TREE_RATCHET_TIMEOUT_MS
+  )
 })

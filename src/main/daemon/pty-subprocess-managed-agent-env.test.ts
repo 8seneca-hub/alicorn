@@ -404,13 +404,13 @@ describe('createPtySubprocess', () => {
     expect(env.ALICORN_CODEX_HOME).toBeUndefined()
   })
 
-  it('strips an inherited per-account self-contained CODEX_HOME overlay in a nested Orca (#5370)', async () => {
+  it('strips an inherited per-account self-contained CODEX_HOME overlay in a nested Alicorn (#5370)', async () => {
     const proc = mockPtyProcess()
     spawnMock.mockReturnValue(proc)
     const previousCodexHome = process.env.CODEX_HOME
     const previousOrcaCodexHome = process.env.ALICORN_CODEX_HOME
     // A per-account home is injected as CODEX_HOME === ALICORN_CODEX_HOME, so the
-    // nested-Orca strip must clear it exactly as it does the shared mirror.
+    // nested-Alicorn strip must clear it exactly as it does the shared mirror.
     const perAccountHome = '/daemon/managed/codex-accounts/019f0000-aaaa/home'
     process.env.CODEX_HOME = perAccountHome
     process.env.ALICORN_CODEX_HOME = perAccountHome

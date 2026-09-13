@@ -101,7 +101,7 @@ describe('registerPtyHandlers', () => {
       expect(env.ALICORN_OMP_SOURCE_AGENT_DIR).toBeUndefined()
       expect(env.ALICORN_OMP_STATUS_EXTENSION).toBeUndefined()
     })
-    it('restores user Pi config when agent status hooks are disabled in a nested Orca shell', async () => {
+    it('restores user Pi config when agent status hooks are disabled in a nested Alicorn shell', async () => {
       const env = await spawnAndGetEnv(
         {
           PI_CODING_AGENT_DIR: '/tmp/parent-orca-pi-overlay',
@@ -156,7 +156,7 @@ describe('registerPtyHandlers', () => {
         expect(env.ALICORN_PI_SOURCE_AGENT_DIR).toBe('/home/tester/.config/pi-agent')
       }
     )
-    it('injects the agent hook receiver env into Orca terminal PTYs', async () => {
+    it('injects the agent hook receiver env into Alicorn terminal PTYs', async () => {
       const env = await spawnAndGetEnv()
       // Why: buildAgentHookEnv must run exactly once per local spawn (inside shared buildPtyHostEnv); the old ad-hoc double-call is gone.
       expect(buildAgentHookEnvMock).toHaveBeenCalledTimes(1)
@@ -201,7 +201,7 @@ describe('registerPtyHandlers', () => {
       expect(env.ALICORN_AGENT_HOOK_ENDPOINT).toBeUndefined()
       expect(env.ALICORN_CLAUDE_AGENT_STATUS_SETTINGS).toBeUndefined()
     })
-    it('overrides ambient CODEX_HOME with the Orca-managed home for system default', async () => {
+    it('overrides ambient CODEX_HOME with the Alicorn-managed home for system default', async () => {
       const env = await spawnAndGetEnv(
         undefined,
         { CODEX_HOME: '/tmp/system-codex-home' },
@@ -348,7 +348,7 @@ describe('registerPtyHandlers', () => {
       )
       expect(env.CODEX_HOME).toBe('/tmp/system-codex-home')
     })
-    it('strips a nested-Orca override for system default when the real-home flag is ON', async () => {
+    it('strips a nested-Alicorn override for system default when the real-home flag is ON', async () => {
       const env = await spawnAndGetEnv(
         { CODEX_HOME: '/managed/home', ALICORN_CODEX_HOME: '/managed/home' },
         undefined,

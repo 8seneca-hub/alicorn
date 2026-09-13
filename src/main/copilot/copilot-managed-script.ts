@@ -17,7 +17,7 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
     return [
       "Write-Output '{}'",
       // Why: endpoint.cmd is cmd syntax, not PowerShell. Parse its `set KEY=...`
-      // lines so surviving PTYs can refresh to the current Orca server.
+      // lines so surviving PTYs can refresh to the current Alicorn server.
       'if ($env:ALICORN_AGENT_HOOK_ENDPOINT -and (Test-Path -LiteralPath $env:ALICORN_AGENT_HOOK_ENDPOINT)) {',
       '  try {',
       '    Get-Content -LiteralPath $env:ALICORN_AGENT_HOOK_ENDPOINT | ForEach-Object {',
@@ -27,8 +27,8 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       '    }',
       '  } catch {}',
       '}',
-      // Why (#11549 class): missing Orca context means a user-wide hook fired outside an
-      // Orca pane. ReadToEnd blocks forever if that caller abandons the pipe, so the guard
+      // Why (#11549 class): missing Alicorn context means a user-wide hook fired outside an
+      // Alicorn pane. ReadToEnd blocks forever if that caller abandons the pipe, so the guard
       // must run before the hook owns stdin; the payload would be discarded anyway.
       'if (-not $env:ALICORN_AGENT_HOOK_PORT -or -not $env:ALICORN_AGENT_HOOK_TOKEN -or -not $env:ALICORN_PANE_KEY) { exit 0 }',
       '$inputData = [Console]::In.ReadToEnd()',

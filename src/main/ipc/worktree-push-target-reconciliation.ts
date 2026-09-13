@@ -1,9 +1,9 @@
-// Why: `pr-*` remotes Orca adds for fork-PR review are only ever pruned by
+// Why: `pr-*` remotes Alicorn adds for fork-PR review are only ever pruned by
 // `worktree-push-target-cleanup.ts`, and only when a *single* worktree removal
 // triggers it. Three things escape that: (1) legacy/reused metadata missing the
 // `remoteCreated` flag, (2) a "preserve branch on delete" pinning its remote via
 // `branch.*.remote` config long after the worktree is gone, and (3) a worktree
-// removed outside Orca entirely (no removal event ever fires). This sweep
+// removed outside Alicorn entirely (no removal event ever fires). This sweep
 // inverts the same safety predicates over every `pr-*` remote in the repo
 // instead of one removal, so all three eventually get reclaimed. It never adds
 // new safety logic — see `worktree-push-target-cleanup.ts` for the predicates.
@@ -21,7 +21,7 @@ import {
   type WorktreePushTargetStore
 } from './worktree-push-target-cleanup'
 
-// Orca only ever mints `pr-head` or `pr-<owner>-<repo>` (see `sanitizeRemoteName`), optionally
+// Alicorn only ever mints `pr-head` or `pr-<owner>-<repo>` (see `sanitizeRemoteName`), optionally
 // disambiguated with `-2`..`-99` (see `ensureUniqueRemoteName`). The naming convention alone is
 // not proof of provenance -- a user could name a remote `pr-foo` -- so this only narrows which
 // remotes are even considered; `hasOrcaCreatedProvenance` below is the actual safety gate.
@@ -63,7 +63,7 @@ async function shouldReclaimPrRemote(
   }
   const referencingEntries = findWorktreeMetaReferencingRemote(store, repoId, target)
   // Provenance gate: only touch a remote some worktree's persisted pushTarget explicitly
-  // recorded Orca creating. Naming and URL shape are necessary but not sufficient proof.
+  // recorded Alicorn creating. Naming and URL shape are necessary but not sufficient proof.
   if (!referencingEntries.some(({ meta }) => meta.pushTarget?.remoteCreated === true)) {
     return false
   }

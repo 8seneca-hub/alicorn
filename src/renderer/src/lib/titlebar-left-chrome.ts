@@ -11,7 +11,7 @@ export type LeftTitlebarChromeLayout = {
 /**
  * Where the window's left controls live.
  *
- * Always floating now that Alicorn has removed Orca's workspace sidebar: the controls used to sit
+ * Always floating now that Alicorn has removed Alicorn's workspace sidebar: the controls used to sit
  * in a header the width of that column, and with nothing under it there is no column to be the
  * width of. The rail is the leftmost thing on screen and pads for the traffic lights itself.
  */

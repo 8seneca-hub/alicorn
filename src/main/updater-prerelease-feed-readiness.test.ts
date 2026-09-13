@@ -20,7 +20,7 @@ vi.mock('electron', () => ({
 function buildAtomFeed(tags: string[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?><feed>${tags
     .map(
-      // Deliberately the pre-rebrand owner: an installed Orca build reads entries in exactly this
+      // Deliberately the pre-rebrand owner: an installed Alicorn build reads entries in exactly this
       // shape, and for one release they are what carry the user to the first Alicorn release.
       (tag) =>
         `<entry><link rel="alternate" type="text/html" href="https://github.com/stablyai/orca/releases/tag/${tag}"/><title>${tag}</title></entry>`
@@ -33,9 +33,9 @@ function buildManifest(tag: string): string {
   return [
     `version: ${version}`,
     'files:',
-    `  - url: Orca-${version}-arm64-mac.zip`,
+    `  - url: Alicorn-${version}-arm64-mac.zip`,
     '    sha512: test',
-    `path: Orca-${version}-arm64-mac.zip`
+    `path: Alicorn-${version}-arm64-mac.zip`
   ].join('\n')
 }
 
@@ -390,9 +390,9 @@ describe('fetchNewerReleaseTagsWithReadiness', () => {
                 'files:',
                 '  - url: orca-windows-setup.exe',
                 '    sha512: test',
-                `  - url: Orca-${version}-mac.zip`,
+                `  - url: Alicorn-${version}-mac.zip`,
                 '    sha512: test',
-                `path: Orca-${version}-mac.zip`
+                `path: Alicorn-${version}-mac.zip`
               ].join('\n')
             )
         })
@@ -400,7 +400,7 @@ describe('fetchNewerReleaseTagsWithReadiness', () => {
 
       if (init?.method === 'HEAD') {
         const latest = url.includes('/v1.4.28/')
-        const unavailable = latest && url.endsWith('/Orca-1.4.28-mac.zip')
+        const unavailable = latest && url.endsWith('/Alicorn-1.4.28-mac.zip')
         const missing = latest && url.endsWith('/orca-windows-setup.exe')
         return Promise.resolve({
           ok: !missing && !unavailable,
@@ -443,7 +443,7 @@ describe('fetchNewerReleaseTagsWithReadiness', () => {
                 'files:',
                 '  - url: orca-windows-setup.exe',
                 '    sha512: test',
-                '  - url: Orca-1.4.28-mac.zip',
+                '  - url: Alicorn-1.4.28-mac.zip',
                 '    sha512: test'
               ].join('\n')
             )
@@ -487,7 +487,7 @@ describe('fetchNewerReleaseTagsWithReadiness', () => {
               [
                 'version: 1.4.27',
                 'files:',
-                '  - url: https://downloads.example.com/Orca-1.4.27-arm64-mac.zip',
+                '  - url: https://downloads.example.com/Alicorn-1.4.27-arm64-mac.zip',
                 '    sha512: test'
               ].join('\n')
             )
@@ -505,7 +505,7 @@ describe('fetchNewerReleaseTagsWithReadiness', () => {
     const { fetchNewerReleaseTag } = await import('./updater-prerelease-feed')
 
     expect(await fetchNewerReleaseTag('1.4.26')).toBe('v1.4.27')
-    expect(assetUrls).toEqual(['https://downloads.example.com/Orca-1.4.27-arm64-mac.zip'])
+    expect(assetUrls).toEqual(['https://downloads.example.com/Alicorn-1.4.27-arm64-mac.zip'])
   })
 
   it('treats malformed updater manifests as not ready', async () => {

@@ -37,7 +37,7 @@ const WINDOWS_POWERSHELL_LAUNCHER =
 
 // Why (#14828): Windows registers the bare script path when it is cmd-safe and only falls back
 // to the encoded launcher for a profile path that is not (#6078). windows-hook-launcher-chain
-// .test.ts pins which branch applies; these cases only care that Orca's hook is present.
+// .test.ts pins which branch applies; these cases only care that Alicorn's hook is present.
 function registersManagedGrokScript(command: string): boolean {
   return command.includes(GROK_SCRIPT_FILE_NAME) || WINDOWS_POWERSHELL_LAUNCHER.test(command)
 }
@@ -129,7 +129,7 @@ describe('GrokHookService', () => {
   })
 
   // Why: #9358 / #9941 — empty GROK_HOME + parse-time %VAR:~n,m% / `"\"` broke
-  // every SessionStart/UserPromptSubmit on Windows outside Orca terminals.
+  // every SessionStart/UserPromptSubmit on Windows outside Alicorn terminals.
   it('guards Windows GROK_HOME substring checks when empty (#9358)', () => {
     const script = buildWindowsGrokHookScript()
     expect(script).toContain('set "ALICORN_GROK_HOME="')
@@ -256,7 +256,7 @@ describe('GrokHookService', () => {
       ].sort()
     )
     // Why: PreToolUse drives in-flight tool state and ask_user_question waits. The pane guard below
-    // keeps it inert outside Orca; PostToolUse cannot replace a state that has already ended.
+    // keeps it inert outside Alicorn; PostToolUse cannot replace a state that has already ended.
     expect(config.hooks.PreToolUse[0].matcher).toBe('.*')
     expect(registersManagedGrokScript(config.hooks.PreToolUse[0].hooks[0].command)).toBe(true)
     // Why: Grok matchers are real regexes; bare `*` does not match-all.
@@ -277,7 +277,7 @@ describe('GrokHookService', () => {
     if (process.platform !== 'win32') {
       const command = config.hooks.PostToolUse[0].hooks[0].command
       expect(command).toContain(join(homeDir, '.orca'))
-      // Why: with no Orca pane in the environment the guard short-circuits, so a standalone Grok
+      // Why: with no Alicorn pane in the environment the guard short-circuits, so a standalone Grok
       // session never spawns a shell for the managed script at all.
       expect(command).toMatch(/^if \[ -n "\$ALICORN_PANE_KEY" \] && /)
     }
@@ -409,7 +409,7 @@ describe('GrokHookService', () => {
     expect(service.install().state).toBe('installed')
   })
 
-  // Why: the reported workaround for #15518 was emptying this file by hand, so Orca must not
+  // Why: the reported workaround for #15518 was emptying this file by hand, so Alicorn must not
   // rewrite it on startup. But then turning the setting back on has to work, or the toggle
   // silently lies and the only way back is deleting a file in a hidden directory.
   it('leaves a user-cleared config alone on a startup install', () => {
@@ -513,7 +513,7 @@ describe('GrokHookService', () => {
     expect(service.getStatus().managedHooksPresent).toBe(true)
   })
 
-  it('preserves user-authored hook entries in the Orca Grok config file', () => {
+  it('preserves user-authored hook entries in the Alicorn Grok config file', () => {
     const configPath = join(homeDir, '.grok', 'hooks', 'orca-status.json')
     mkdirSync(dirname(configPath), { recursive: true })
     writeFileSync(

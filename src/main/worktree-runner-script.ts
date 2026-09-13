@@ -193,7 +193,7 @@ export function resolveSetupRunnerShell(
     }
   }
 
-  // Why: existing Windows setup scripts were authored for Orca's cmd runner;
+  // Why: existing Windows setup scripts were authored for Alicorn's cmd runner;
   // PowerShell, wsl.exe-as-terminal, and Windows-host projects can invoke it
   // without changing syntax, so they intentionally stay on the cmd runner.
   return { family: 'cmd' }

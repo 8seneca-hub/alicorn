@@ -35,7 +35,7 @@ afterEach(() => {
 
 /** Persist a pane whose lead has finished but whose roster still holds a working
  *  child, then restart into a fresh server — the shape a machine sleep leaves
- *  behind when the child's SubagentStop is lost while Orca is down. */
+ *  behind when the child's SubagentStop is lost while Alicorn is down. */
 async function restartWithInFlightSubagent(options?: {
   connectionId?: string
   state?: 'working' | 'waiting'

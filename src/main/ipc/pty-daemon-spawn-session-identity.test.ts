@@ -225,7 +225,7 @@ describe('registerPtyHandlers', () => {
         expect(env.ALICORN_PI_SOURCE_AGENT_DIR).toBe('/ambient/pi/agent')
       })
       it('does not mutate the caller-provided args.env on the daemon path', async () => {
-        // Why: the handler clones baseEnv so IPC-provided env stays pristine; a regression would leak Orca host env back into the renderer's reused copy.
+        // Why: the handler clones baseEnv so IPC-provided env stays pristine; a regression would leak Alicorn host env back into the renderer's reused copy.
         const daemonSpawn = setupDaemonAdapter()
         const argsEnv: Record<string, string> = { FOO: 'bar' }
         handlers.clear()

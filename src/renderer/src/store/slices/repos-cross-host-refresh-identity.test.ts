@@ -8,7 +8,7 @@ import {
 } from '../../runtime/runtime-compatibility-test-fixture'
 import { clearRuntimeCompatibilityCacheForTests } from '../../runtime/runtime-rpc-client'
 
-// One project cloned on the local Mac and on a remote Orca server under distinct repo ids —
+// One project cloned on the local Mac and on a remote Alicorn server under distinct repo ids —
 // the shape the compat merge exists to serve, and the only shape whose sourceRepoIds are
 // assembled from two hosts.
 const SHARED_PROJECT_ID = 'github:stablyai/orca'

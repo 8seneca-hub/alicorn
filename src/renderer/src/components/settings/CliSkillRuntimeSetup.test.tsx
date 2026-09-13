@@ -295,7 +295,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
     try {
       const copied = buildSkillCommandForRuntime(installCommand, windowsHost, 'win32')
       expect(copied).toBe(installCommand)
-      // Orca forces its own setup terminal to powershell.exe, where cmd.exe works.
+      // Alicorn forces its own setup terminal to powershell.exe, where cmd.exe works.
       expect(buildSkillSetupTerminalCommand(copied, 'powershell.exe', undefined, 'win32')).toBe(
         `${windowsNpxPreflightPrefix}${windowsNpxGuidance}) else (${installCommand})"`
       )
@@ -327,7 +327,7 @@ describe('CliSkillRuntimeSetup runtime helpers', () => {
     }
   })
 
-  it('adapts bare WSL setup commands to the shell that Orca created', () => {
+  it('adapts bare WSL setup commands to the shell that Alicorn created', () => {
     const runtime = { runtime: 'wsl', wslDistro: 'Ubuntu', label: 'WSL Ubuntu' } as const
     const skillCommand = 'npx skills add orchestration --global'
     const copiedCommand = buildSkillCommandForRuntime(skillCommand, runtime, 'win32')

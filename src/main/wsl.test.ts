@@ -275,7 +275,7 @@ describe('WSL distro discovery cache', () => {
 
   // Why: an empty list is a real probe result and must keep driving the
   // `wsl-distro-missing` repair prompt even once stale. Going null instead fails
-  // open and silently spawns `wsl.exe -d <distro>` for a distro Orca saw was absent.
+  // open and silently spawns `wsl.exe -d <distro>` for a distro Alicorn saw was absent.
   it('keeps reporting an empty result after it goes stale', () => {
     vi.useFakeTimers()
     execFileSyncMock.mockReturnValue('')
@@ -395,7 +395,7 @@ describe('WSL availability cache', () => {
   // Why this site matters more than the other wsl.exe spawns (#16463): ENOENT is
   // deliberately non-retryable here, so a spawn that failed only because the
   // inherited cwd had been deleted was cached as "WSL is not installed" on the
-  // 10-minute definitive TTL with exponential backoff. Git kept working and Orca
+  // 10-minute definitive TTL with exponential backoff. Git kept working and Alicorn
   // reported WSL unavailable -- a worse state than the bug being fixed. Naming
   // the directory is what keeps ENOENT meaning "wsl.exe is not on PATH".
   it('names an explicit spawn directory on both probes, so no deleted cwd can read as ENOENT', async () => {

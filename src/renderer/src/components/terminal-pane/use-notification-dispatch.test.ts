@@ -431,7 +431,7 @@ describe('dispatchTerminalNotification', () => {
     expect(mockState.markTerminalPaneUnread).toHaveBeenCalledWith(siblingPaneKey)
   })
 
-  it('marks the selected worktree unread when Orca is backgrounded', () => {
+  it('marks the selected worktree unread when Alicorn is backgrounded', () => {
     mockState.settings.experimentalTerminalAttention = false
     mockState.activeWorktreeId = 'wt-primary'
     stubDocumentFocus({ visibilityState: 'hidden', focused: false })

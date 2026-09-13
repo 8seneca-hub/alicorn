@@ -67,7 +67,7 @@ function publishRequest(archivePath: string, archiveSha256: string, compressedBy
 }
 
 describe('SkillCloudService bearer links', () => {
-  it('resolves and grants downloads without an Orca session', async () => {
+  it('resolves and grants downloads without an Alicorn session', async () => {
     const requests: RequestInit[] = []
     vi.stubGlobal(
       'fetch',
@@ -118,7 +118,9 @@ describe('SkillCloudService bearer links', () => {
     vi.stubEnv('ALICORN_CLOUD_AUTH_TOKEN', 'desktop-e2e-token')
 
     await expect(
-      new SkillCloudService(userDataPath()).listOwnedShares({ apiUrl: 'https://share.alicorn.8seneca.com' })
+      new SkillCloudService(userDataPath()).listOwnedShares({
+        apiUrl: 'https://share.alicorn.8seneca.com'
+      })
     ).rejects.toThrow('available only in development builds')
   })
 })

@@ -53,7 +53,7 @@ function captureOpenLinkHandler(): (event: { browserPageId: string; url: string 
   return handler
 }
 
-describe('link-opened Orca tabs', () => {
+describe('link-opened Alicorn tabs', () => {
   beforeEach(() => {
     createBrowserTabMock.mockReset()
   })

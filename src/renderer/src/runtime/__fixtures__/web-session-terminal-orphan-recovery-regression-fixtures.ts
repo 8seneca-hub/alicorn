@@ -4,6 +4,7 @@ import type {
 } from '../../../../shared/runtime-types'
 import { toRemoteRuntimePtyId } from '../runtime-terminal-stream'
 import type { TerminalOrphanRecoveryState } from '../web-session-terminal-orphan-recovery-surface'
+import { translate } from '@/i18n/i18n'
 
 export const ENVIRONMENT_ID = 'remote-runtime'
 
@@ -48,7 +49,7 @@ export function makeState(
           id: localTabId,
           ptyId: Object.values(ptyIdsByLeafId)[0] ?? null,
           worktreeId: worktree,
-          title: 'Terminal',
+          title: translate("auto.runtime.fixtures.web.session.terminal.orphan.recovery.regression.fixtures.f1eb7ee8e3", "Terminal"),
           customTitle: null,
           color: null,
           sortOrder: 0,

@@ -18,7 +18,7 @@ const PACKAGED_LINUX_LAUNCHER_DIRECTORIES = [
   '/opt/Alicorn',
   '/opt/alicorn-ide',
   '/opt/alicorn',
-  '/opt/Orca',
+  '/opt/Alicorn',
   '/opt/orca-ide',
   '/opt/orca'
 ]
@@ -44,7 +44,7 @@ export class CliCommandInspection extends CliInstallLocation {
               supported: true,
               state: 'stale',
               currentTarget: managedTarget,
-              detail: `${commandPath} contains an older Orca launcher.`
+              detail: `${commandPath} contains an older Alicorn launcher.`
             })
           }
         }
@@ -56,7 +56,7 @@ export class CliCommandInspection extends CliInstallLocation {
           supported: true,
           state: 'conflict',
           currentTarget: null,
-          detail: `${commandPath} exists but is not an Orca symlink.`
+          detail: `${commandPath} exists but is not an Alicorn symlink.`
         })
       }
 
@@ -78,8 +78,8 @@ export class CliCommandInspection extends CliInstallLocation {
         detail: isInstalled
           ? `Registered at ${commandPath}.`
           : isManagedStaleTarget
-            ? `${commandPath} points to an older Orca launcher.`
-            : `${commandPath} points to a non-Orca launcher.`
+            ? `${commandPath} points to an older Alicorn launcher.`
+            : `${commandPath} points to a non-Alicorn launcher.`
       })
     } catch (error) {
       if (isMissingError(error)) {
@@ -90,7 +90,7 @@ export class CliCommandInspection extends CliInstallLocation {
           supported: true,
           state: 'not_installed',
           currentTarget: null,
-          detail: `Register ${commandPath} to use Orca from the terminal.`
+          detail: `Register ${commandPath} to use Alicorn from the terminal.`
         })
       }
       throw error
@@ -113,7 +113,7 @@ export class CliCommandInspection extends CliInstallLocation {
     }
 
     if (this.platform === 'darwin') {
-      // Why: reclaim symlinks to an older Orca.app launcher, but never replace arbitrary user-owned symlinks.
+      // Why: reclaim symlinks to an older Alicorn.app launcher, but never replace arbitrary user-owned symlinks.
       return /(?:^|[/\\])[^/\\]+\.app[/\\]Contents[/\\]Resources[/\\]bin[/\\][^/\\]+$/.test(
         resolvedTarget
       )
@@ -132,7 +132,7 @@ export class CliCommandInspection extends CliInstallLocation {
     return false
   }
 
-  /** A launcher inside a packaged Linux install tree, left behind by a deb/rpm Orca. */
+  /** A launcher inside a packaged Linux install tree, left behind by a deb/rpm Alicorn. */
   protected isPackagedLinuxLauncherTarget(resolvedTarget: string, expectedName: string): boolean {
     return PACKAGED_LINUX_LAUNCHER_DIRECTORIES.some(
       (directory) => resolvedTarget === `${directory}/resources/bin/${expectedName}`
@@ -151,7 +151,7 @@ export class CliCommandInspection extends CliInstallLocation {
     const siblingDevUserDataPath = `${packagedUserDataPath}-dev`
     const siblingDevLauncherDir = resolve(siblingDevUserDataPath, ...DEV_LAUNCHER_DIR)
 
-    // Why: dev builds generate launchers under the sibling `*-dev` profile; packaged Orca must reclaim that command.
+    // Why: dev builds generate launchers under the sibling `*-dev` profile; packaged Alicorn must reclaim that command.
     return (
       basename(siblingDevUserDataPath) === `${basename(packagedUserDataPath)}-dev` &&
       isPathInsideOrEqual(siblingDevLauncherDir, resolvedTarget)
@@ -189,7 +189,7 @@ export class CliCommandInspection extends CliInstallLocation {
           supported: true,
           state: 'conflict',
           currentTarget: null,
-          detail: `${commandPath} exists but is not an Orca launcher script.`
+          detail: `${commandPath} exists but is not an Alicorn launcher script.`
         })
       }
 
@@ -228,7 +228,7 @@ export class CliCommandInspection extends CliInstallLocation {
           supported: true,
           state: 'not_installed',
           currentTarget: null,
-          detail: `Register ${commandPath} to use Orca from Command Prompt or PowerShell.`
+          detail: `Register ${commandPath} to use Alicorn from Command Prompt or PowerShell.`
         })
       }
       throw error

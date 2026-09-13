@@ -65,7 +65,7 @@ function ProjectViewTab({
           ? view.name
           : translate(
               'auto.components.github.project.ProjectViewWrapper.2edf5e7e77',
-              "{{value0}} — Orca doesn't support {{value1}} project views yet. File a feature request at {{value2}}.",
+              "{{value0}} — Alicorn doesn't support {{value1}} project views yet. File a feature request at {{value2}}.",
               { value0: view.name, value1: layoutLabel, value2: ALICORN_FEATURE_REQUEST_URL }
             )
       }
@@ -85,7 +85,7 @@ function ProjectViewTab({
   if (supported) {
     return tab
   }
-  const message = `Orca doesn't support ${layoutLabel} project views yet.`
+  const message = `Alicorn doesn't support ${layoutLabel} project views yet.`
   return (
     <HoverCard openDelay={200} closeDelay={100}>
       <HoverCardTrigger asChild>
@@ -107,7 +107,7 @@ function ProjectViewTab({
             {message}{' '}
             {translate(
               'auto.components.github.project.ProjectViewWrapper.1bf8c01c8b',
-              'Switch to a Table view to work with this project in Orca.'
+              'Switch to a Table view to work with this project in Alicorn.'
             )}
           </p>
           <Button
@@ -152,9 +152,9 @@ export function ProjectViewErrorState({
   }
   const copy =
     error.type === 'too_large'
-      ? `This view has ${totalCount ?? 'many'} items — too large to render in Orca. Narrow the view's filter on GitHub.`
+      ? `This view has ${totalCount ?? 'many'} items — too large to render in Alicorn. Narrow the view's filter on GitHub.`
       : error.type === 'unsupported_layout'
-        ? 'Orca only renders table views yet. This is a Board or Roadmap view.'
+        ? 'Alicorn only renders table views yet. This is a Board or Roadmap view.'
         : error.type === 'not_found'
           ? 'Could not find this project or view.'
           : error.type === 'schema_drift'

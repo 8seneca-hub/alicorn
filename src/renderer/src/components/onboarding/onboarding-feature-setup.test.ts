@@ -45,18 +45,18 @@ const INSTALLED_CLI_STATUS: CliInstallStatus = {
   commandPath: '/usr/local/bin/orca',
   pathDirectory: '/usr/local/bin',
   pathConfigured: true,
-  launcherPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+  launcherPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
   installMethod: 'symlink',
   supported: true,
   state: 'installed',
-  currentTarget: '/Applications/Orca.app/Contents/MacOS/Orca',
+  currentTarget: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
   unsupportedReason: null,
   detail: null
 }
 
 const GRANTED_COMPUTER_USE_STATUS: ComputerUsePermissionStatusResult = {
   platform: 'darwin',
-  helperAppPath: '/Applications/Orca Computer Use.app',
+  helperAppPath: '/Applications/Alicorn Computer Use.app',
   helperUnavailableReason: null,
   permissions: [
     { id: 'accessibility', status: 'granted' },
@@ -66,7 +66,7 @@ const GRANTED_COMPUTER_USE_STATUS: ComputerUsePermissionStatusResult = {
 
 const OPENED_COMPUTER_USE_SETUP: ComputerUsePermissionSetupResult = {
   platform: 'darwin',
-  helperAppPath: '/Applications/Orca.app',
+  helperAppPath: '/Applications/Alicorn.app',
   openedSettings: true,
   launchedHelper: true
 }
@@ -238,7 +238,7 @@ describe('onboarding feature setup runner', () => {
       getComputerUsePermissionStatus: vi.fn(
         async (): Promise<ComputerUsePermissionStatusResult> => ({
           platform: 'darwin',
-          helperAppPath: '/Applications/Orca Computer Use.app',
+          helperAppPath: '/Applications/Alicorn Computer Use.app',
           helperUnavailableReason: null,
           permissions: [
             { id: 'accessibility', status: 'not-granted' },
@@ -353,7 +353,7 @@ describe('onboarding feature setup runner', () => {
     const unavailableStatus: ComputerUsePermissionStatusResult = {
       platform: 'darwin',
       helperAppPath: null,
-      helperUnavailableReason: 'Orca Computer Use.app was not found',
+      helperUnavailableReason: 'Alicorn Computer Use.app was not found',
       permissions: [
         { id: 'accessibility', status: 'not-granted' },
         { id: 'screenshots', status: 'not-granted' }
@@ -374,7 +374,7 @@ describe('onboarding feature setup runner', () => {
     expect(openComputerUsePermissionSetup).not.toHaveBeenCalled()
     expect(result.warnings).toContainEqual({
       featureId: 'computerUse',
-      message: 'Orca Computer Use.app was not found'
+      message: 'Alicorn Computer Use.app was not found'
     })
   })
 
@@ -411,7 +411,7 @@ describe('onboarding feature setup runner', () => {
       ...INSTALLED_CLI_STATUS,
       platform: 'win32',
       pathConfigured: null,
-      detail: 'Orca could not read the Windows user PATH registry value.'
+      detail: 'Alicorn could not read the Windows user PATH registry value.'
     }
     const deps = createDeps({ getCliStatus: vi.fn(async () => unknownStatus) })
 

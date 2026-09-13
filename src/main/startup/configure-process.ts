@@ -282,7 +282,7 @@ export function installDevParentWatchdog(isDev: boolean): void {
 
     if (parentPidChanged || parentMissing) {
       clearInterval(timer)
-      // Why: the dev runner spawns Electron without IPC, so on macOS Ctrl+C leaves Orca open; watch the parent PID to couple shutdown.
+      // Why: the dev runner spawns Electron without IPC, so on macOS Ctrl+C leaves Alicorn open; watch the parent PID to couple shutdown.
       requestDevParentShutdown()
     }
   }, 1000)

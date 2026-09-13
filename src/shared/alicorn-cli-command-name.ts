@@ -34,7 +34,7 @@ export const LEGACY_ORCA_DEV_CLI_COMMAND = 'orca-dev'
  *
  * Why a list and not a constant at the call sites that probe disk or PATH: a dev profile
  * built by the previous release has only the old wrapper in `<userData>/cli/bin`, and a
- * launcher that resolves nothing there falls back to a *production* Orca — the one failure
+ * launcher that resolves nothing there falls back to a *production* Alicorn — the one failure
  * this whole dev handle exists to avoid.
  */
 export const DEV_CLI_COMMAND_NAMES = [ALICORN_DEV_CLI_COMMAND, LEGACY_ORCA_DEV_CLI_COMMAND] as const

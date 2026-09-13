@@ -4,7 +4,7 @@ import { syncSinglePty } from '../orca-runtime-test-fixtures.spec'
 import { createSideEffectRuntime } from '../orca-runtime-test-scenario-builders.spec'
 import { DECORATIVE_TITLE_FACT_HEARTBEAT_MS } from '../decorative-title-fact-emission'
 
-// Orca's own synthetic agent spinner: one frame per pane every 80ms while an agent works.
+// Alicorn's own synthetic agent spinner: one frame per pane every 80ms while an agent works.
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 const SPINNER_INTERVAL_MS = 80
 const EPOCH = 1_700_000_000_000
@@ -31,7 +31,7 @@ describe('decorative title fact throttle', () => {
     const { runtime, batches } = createSideEffectRuntime()
     syncSinglePty(runtime)
 
-    const ticks = 125 // 10s of Orca's 80ms synthetic spinner timer
+    const ticks = 125 // 10s of Alicorn's 80ms synthetic spinner timer
     for (let tick = 0; tick < ticks; tick += 1) {
       vi.setSystemTime(new Date(EPOCH + tick * SPINNER_INTERVAL_MS))
       runtime.ingestSyntheticTitleFrame(

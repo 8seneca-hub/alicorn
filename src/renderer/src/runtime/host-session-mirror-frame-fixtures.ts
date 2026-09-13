@@ -2,6 +2,7 @@ import { vi, type Mock } from 'vitest'
 import type { RuntimeMobileSessionTabsResult } from '../../../shared/runtime-types'
 import { toWebTerminalSurfaceTabId } from '../../../shared/terminal-surface-id'
 import type { AppState } from '@/store'
+import { translate } from '@/i18n/i18n'
 
 /** Shared with the frame-ordering suites through their `vi.mock` factories, so
  *  this module must stay free of runtime imports that would form a cycle. */
@@ -87,7 +88,7 @@ export function makeHostSnapshot(
       {
         type: 'terminal',
         id: hostSurfaceId,
-        title: 'Codex',
+        title: translate("auto.runtime.host.session.mirror.frame.fixtures.17e758e12c", "Codex"),
         parentTabId,
         leafId: LEAF_ID,
         isActive: true,
@@ -131,5 +132,5 @@ export function makePtylessHostSnapshot(
 }
 
 export function mirrorTabRow(tabId: string, worktreeId: string): unknown {
-  return { id: tabId, title: 'Codex', ptyId: null, worktreeId }
+  return { id: tabId, title: translate("auto.runtime.host.session.mirror.frame.fixtures.17e758e12c", "Codex"), ptyId: null, worktreeId }
 }

@@ -188,7 +188,7 @@ type ReferenceAttribution =
 /**
  * Which cache entry a symlink target names.
  *
- * A relative target is `unattributable` on purpose. Every link Orca writes is absolute, so a
+ * A relative target is `unattributable` on purpose. Every link Alicorn writes is absolute, so a
  * relative one is a tree with a history this pass cannot reconstruct, and guessing which entry it
  * resolves to is exactly the inference that deletes a live relay's modules.
  */

@@ -339,7 +339,7 @@ describe('buildAgentDraftLaunchPlan', () => {
 
   it('uses ALICORN_PI_PREFILL env var for pi (no CLI flag exists)', () => {
     // Why: pi has no `--prefill` flag, and bracketed-paste-after-ready races
-    // against pi's lengthy startup output. The Orca overlay installs an
+    // against pi's lengthy startup output. The Alicorn overlay installs an
     // `orca-prefill` extension that reads ALICORN_PI_PREFILL on session_start
     // and seeds the editor. Plan plumbs the env var without polluting the
     // shell command (no `FOO='...' pi` prefix typed into the terminal).

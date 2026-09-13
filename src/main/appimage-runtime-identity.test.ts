@@ -27,7 +27,7 @@ function appImageHeader(machine: number): Buffer {
 
 function createFixture(appDirName = '.mount_Orca123', machine = 0x3e) {
   const root = mkdtempSync(join(tmpdir(), 'orca-appimage-identity-'))
-  const appImagePath = join(root, 'Applications', 'Orca.AppImage')
+  const appImagePath = join(root, 'Applications', 'Alicorn.AppImage')
   const appDirPath = join(root, appDirName)
   const execPath = join(appDirPath, 'orca-ide')
   const resourcesPath = join(appDirPath, 'resources')
@@ -79,7 +79,7 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
 
   it('accepts an AppImage moved independently of its runtime directory', () => {
     const fixture = createFixture()
-    const movedPath = join(fixture.root, 'Moved Apps', 'Orca current.AppImage')
+    const movedPath = join(fixture.root, 'Moved Apps', 'Alicorn current.AppImage')
     mkdirSync(dirname(movedPath), { recursive: true })
     renameSync(fixture.appImagePath, movedPath)
     fixture.identity.environment.APPIMAGE = movedPath
@@ -95,10 +95,10 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
 
   it.each([
     ['APPIMAGE', undefined],
-    ['APPIMAGE', 'relative/Orca.AppImage'],
+    ['APPIMAGE', 'relative/Alicorn.AppImage'],
     ['APPDIR', undefined],
     ['APPDIR', 'relative/mount'],
-    ['APPIMAGE', '/tmp/Orca\0.AppImage']
+    ['APPIMAGE', '/tmp/Alicorn\0.AppImage']
   ] as const)('rejects an unusable %s value', (key, value) => {
     const fixture = createFixture()
     expect(
@@ -152,7 +152,7 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
         chmodSync(join(fixture.appDirPath, 'AppRun'), 0o644)
     ],
     [
-      'the Orca package marker',
+      'the Alicorn package marker',
       (fixture: ReturnType<typeof createFixture>) => rmSync(fixture.packageMarkerPath)
     ]
   ])('rejects a runtime missing %s', (_case, mutate) => {
@@ -176,7 +176,7 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
     expect(resolveAppImageRuntimeIdentity(fixture.identity)).toBeNull()
   })
 
-  it('rejects an inexact package-type marker without the Orca fallback', () => {
+  it('rejects an inexact package-type marker without the Alicorn fallback', () => {
     const fixture = createFixture()
     rmSync(fixture.packageMarkerPath)
     writeFileSync(fixture.packageTypePath, 'appimage')
@@ -209,8 +209,8 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
     expect(
       resolveAppImageRuntimeIdentity({
         ...fixture.identity,
-        execPath: join(fixture.root, 'opt', 'Orca', 'orca-ide'),
-        resourcesPath: join(fixture.root, 'opt', 'Orca', 'resources')
+        execPath: join(fixture.root, 'opt', 'Alicorn', 'orca-ide'),
+        resourcesPath: join(fixture.root, 'opt', 'Alicorn', 'resources')
       })
     ).toBeNull()
   })
@@ -233,7 +233,7 @@ describe.skipIf(process.platform === 'win32')('resolveAppImageRuntimeIdentity', 
 
 describe('hasAppImagePathEnvironment', () => {
   it('requires the AppImage file path before treating the runtime as verifiable', () => {
-    expect(hasAppImagePathEnvironment({ APPIMAGE: '/tmp/Orca.AppImage' })).toBe(true)
+    expect(hasAppImagePathEnvironment({ APPIMAGE: '/tmp/Alicorn.AppImage' })).toBe(true)
     expect(hasAppImagePathEnvironment({ APPDIR: '/tmp/.mount_Orca123' })).toBe(false)
     expect(hasAppImagePathEnvironment({ APPIMAGE: '', APPDIR: '/tmp/.mount_Orca123' })).toBe(false)
   })

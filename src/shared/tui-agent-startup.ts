@@ -135,7 +135,7 @@ export function buildAgentStartupPlan(args: {
     }
     return {
       agent,
-      // Why: Hermes owns readiness and submission for `chat --query`; Orca
+      // Why: Hermes owns readiness and submission for `chat --query`; Alicorn
       // only bounds and quotes the native invocation before starting the TUI.
       launchCommand: queryPlan.command,
       expectedProcess: config.expectedProcess,

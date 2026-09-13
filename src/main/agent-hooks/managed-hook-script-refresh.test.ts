@@ -1,5 +1,5 @@
 // Why (#11549 aftermath): a CLI that falls off PATH keeps its user-wide config invoking
-// Orca's script while the presence gate skips install() forever. These tests pin the
+// Alicorn's script while the presence gate skips install() forever. These tests pin the
 // repair — existing scripts come current, missing ones are never created.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -118,7 +118,7 @@ describe('managed hook script refresh', () => {
     homedirMock.mockReturnValue(home)
     try {
       // Why: the bug population has a script (from a past install) but no reachable
-      // CLI — and possibly no config dir Orca may create. Seed only the script.
+      // CLI — and possibly no config dir Alicorn may create. Seed only the script.
       const hooksDir = join(home, '.orca', 'agent-hooks')
       mkdirSync(hooksDir, { recursive: true })
       writeFileSync(join(hooksDir, 'claude-hook.cmd'), STALE_WINDOWS_HOOK)

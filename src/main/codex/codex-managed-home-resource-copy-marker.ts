@@ -6,7 +6,7 @@ import { dirname, join } from 'node:path'
  *
  * Why: symlinking is the normal path, but Windows rejects file symlinks outside
  * developer mode and WSL cannot follow a host-side link. The marker records
- * which source a copy came from, so a later sync can refresh or remove Orca's
+ * which source a copy came from, so a later sync can refresh or remove Alicorn's
  * own copy without ever touching a resource the user created in that home.
  */
 

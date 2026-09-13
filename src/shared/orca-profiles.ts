@@ -240,7 +240,7 @@ export type RefreshCurrentOrcaProfileAuthResult =
 export type OrcaOrgRole = 'owner' | 'admin' | 'member'
 
 export type OrcaOrgMember = {
-  // Why: null for teammates provisioned server-side who never signed into Orca;
+  // Why: null for teammates provisioned server-side who never signed into Alicorn;
   // mutation actions are disabled for them since the API keys on a real userId.
   userId: string | null
   email: string

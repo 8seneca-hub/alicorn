@@ -196,7 +196,7 @@ describePosix('local PTY shell-ready launch config', () => {
   })
 
   it('falls back to HOME for ALICORN_ORIG_ZDOTDIR when inherited ZDOTDIR points at a wrapper dir', async () => {
-    // Why: mirrors the daemon path — guards the same zsh recursion loop for renderer/local PTYs spawned inside an Orca terminal.
+    // Why: mirrors the daemon path — guards the same zsh recursion loop for renderer/local PTYs spawned inside an Alicorn terminal.
     const previousZdotdir = process.env.ZDOTDIR
     const previousHome = process.env.HOME
     process.env.ZDOTDIR = '/some/other/orca/shell-ready/zsh'
@@ -219,7 +219,7 @@ describePosix('local PTY shell-ready launch config', () => {
     }
   })
 
-  it('uses inherited ALICORN_ORIG_ZDOTDIR when ZDOTDIR is an Orca wrapper dir', async () => {
+  it('uses inherited ALICORN_ORIG_ZDOTDIR when ZDOTDIR is an Alicorn wrapper dir', async () => {
     const previousZdotdir = process.env.ZDOTDIR
     const previousOrigZdotdir = process.env.ALICORN_ORIG_ZDOTDIR
     const previousHome = process.env.HOME
@@ -288,7 +288,7 @@ describePosix('local PTY shell-ready launch config', () => {
     const zshenv = readFileSync(join(getShellReadyWrapperRoot(), 'zsh', '.zshenv'), 'utf8')
     expect(zshenv).toContain('builtin export ZDOTDIR="$ALICORN_ORIG_ZDOTDIR"')
     expect(zshenv).toContain('printf "\\033]777;orca-shell-start:%s\\007" "$$"')
-    // The handback is what makes a nested Orca unable to inherit this dir, and
+    // The handback is what makes a nested Alicorn unable to inherit this dir, and
     // what stops /etc/zshrc deriving HISTFILE from it.
     expect(zshenv).toContain('builtin unset ALICORN_ORIG_ZDOTDIR ALICORN_ZSHENV_SOURCE_DIR')
     expect(zshenv.indexOf('builtin export ZDOTDIR=')).toBeLessThan(

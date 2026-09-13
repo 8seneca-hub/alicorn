@@ -148,7 +148,9 @@ describe('ArtifactPublishButton', () => {
     render(<ArtifactPublishButton sourceKey="/repo/report.md" createRequest={createRequest} />)
 
     await user.click(screen.getByRole('button', { name: 'Share as artifact' }))
-    expect(await screen.findByText('https://share.alicorn.8seneca.com/a/artifact-a')).toBeInTheDocument()
+    expect(
+      await screen.findByText('https://share.alicorn.8seneca.com/a/artifact-a')
+    ).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Copy link' }))
     expect(mocks.copyLink).toHaveBeenCalledWith('https://share.alicorn.8seneca.com/a/artifact-a', {
       showSuccessToast: false

@@ -22,14 +22,14 @@ const QUARANTINE_DIR = '.recovery-quarantine'
 
 function orcaAppSupportCandidates(): string[] {
   if (process.platform === 'darwin') {
-    return [join(homedir(), 'Library', 'Application Support', 'Orca')]
+    return [join(homedir(), 'Library', 'Application Support', 'Alicorn')]
   }
   if (process.platform === 'win32') {
-    return [join(process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'), 'Orca')]
+    return [join(process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'), 'Alicorn')]
   }
   return [
-    join(process.env.XDG_CONFIG_HOME ?? join(homedir(), '.config'), 'Orca'),
-    join(process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share'), 'Orca')
+    join(process.env.XDG_CONFIG_HOME ?? join(homedir(), '.config'), 'Alicorn'),
+    join(process.env.XDG_DATA_HOME ?? join(homedir(), '.local', 'share'), 'Alicorn')
   ]
 }
 

@@ -40,7 +40,7 @@ export function getManagedScript(target: 'local' | 'posix' = 'local'): string {
       'setlocal',
       // Why: Cursor permission hooks fail closed on empty/invalid stdout (#15462).
       `if defined ${CURSOR_HOOK_RESPONSE_ENV} (echo %${CURSOR_HOOK_RESPONSE_ENV}%) else (echo {})`,
-      // Why: source current endpoint coordinates for PTYs surviving an Orca restart.
+      // Why: source current endpoint coordinates for PTYs surviving an Alicorn restart.
       'if defined ALICORN_AGENT_HOOK_ENDPOINT if exist "%ALICORN_AGENT_HOOK_ENDPOINT%" call "%ALICORN_AGENT_HOOK_ENDPOINT%" 2>nul',
       ...buildWindowsHookEnvironmentGuardLines(),
       buildWindowsAgentHookPostCommand('cursor'),

@@ -90,7 +90,7 @@ export abstract class AgentBrowserBridgeExecution extends AgentBrowserBridgeTabs
       commandArgs[0] === 'network' && (commandArgs[1] === 'route' || commandArgs[1] === 'unroute')
 
     const needsInit = !session.initialized
-    // Why: a restarted named daemon auto-launches Chrome unless every invocation reasserts Orca's CDP owner.
+    // Why: a restarted named daemon auto-launches Chrome unless every invocation reasserts Alicorn's CDP owner.
     args.push('--cdp', String(session.proxy.getPort()))
 
     // Why: exec passthrough can produce a large argv; spreading into push risks V8 argument limits.
@@ -205,7 +205,7 @@ export abstract class AgentBrowserBridgeExecution extends AgentBrowserBridgeTabs
         child = execFile(
           this.agentBrowserBin,
           ['--session', sessionName, 'close'],
-          // Why windowsHide: agent-browser is console-subsystem and Orca's main
+          // Why windowsHide: agent-browser is console-subsystem and Alicorn's main
           // process owns no console, so each spawn gets a fresh visible conhost
           // that takes foreground -- keystrokes typed into a terminal at that
           // moment land in the black box (#14543).

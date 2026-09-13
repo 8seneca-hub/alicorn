@@ -35,7 +35,7 @@ describe('OpenCode status plugin module contract', () => {
   }
 
   // Why: the plugin resolves hook coords from the endpoint file first and only then from
-  // env. Pin every input here so the run does not depend on the developer's Orca session
+  // env. Pin every input here so the run does not depend on the developer's Alicorn session
   // (an inherited ALICORN_AGENT_HOOK_ENDPOINT would otherwise redirect the post to a live app).
   const ENV_KEYS = [
     'ALICORN_PANE_KEY',

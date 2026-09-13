@@ -48,7 +48,7 @@ export function spawnSystemSshPortForward(
     args.splice(destinationIndex, 0, ...forwardArgs)
   }
 
-  // Why: port-forward ssh processes are not wired to Orca credential prompts;
+  // Why: port-forward ssh processes are not wired to Alicorn credential prompts;
   // system SSH forwards must authenticate via OpenSSH config, agent, or control socket.
   return spawn(sshPath, args, {
     stdio: ['ignore', 'ignore', 'pipe'],

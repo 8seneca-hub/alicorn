@@ -21,7 +21,7 @@ export type PtyProcessInfo = {
   /** Age measured on the OWNING host's clock. Absent means the host did not measure it, which is
    *  not the same as "new" or "old" — a reader that needs an age must defer instead of assuming. */
   hostAgeMs?: number
-  /** True when the host spawned this PTY for an Orca pane, false for a bare host shell. Absent from
+  /** True when the host spawned this PTY for an Alicorn pane, false for a bare host shell. Absent from
    *  a host that never published it; absence is neither value. */
   paneBound?: boolean
   /** The client identity the OWNING host recorded as having asked it to create this PTY. Absent

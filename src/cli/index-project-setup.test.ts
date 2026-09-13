@@ -82,7 +82,7 @@ describe('orca cli worktree awareness', () => {
         projects: [
           {
             id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             providerIdentity: {
               provider: 'github',
@@ -115,7 +115,7 @@ describe('orca cli worktree awareness', () => {
             hostId: 'local',
             repoId: 'repo-local',
             path: '/tmp/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -127,7 +127,7 @@ describe('orca cli worktree awareness', () => {
             hostId: 'runtime:gpu',
             repoId: 'repo-remote',
             path: '/srv/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -161,7 +161,7 @@ describe('orca cli worktree awareness', () => {
             hostId: 'local',
             repoId: 'repo-on-box',
             path: '/srv/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -173,7 +173,7 @@ describe('orca cli worktree awareness', () => {
             hostId: 'runtime:prod',
             repoId: 'repo-by-client',
             path: '/srv/orca-2',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -192,7 +192,7 @@ describe('orca cli worktree awareness', () => {
   })
 
   // Why: --host runtime:<id> routes to a paired server, so an older one is reachable without the
-  // caller meaning to. A raw method_not_found reads as an Orca bug rather than a version gap.
+  // caller meaning to. A raw method_not_found reads as an Alicorn bug rather than a version gap.
   it('names the version gap when the server predates project host setup', async () => {
     pairRuntimeEnvironment(listEnvironmentsMock, 'old-server')
     const { RuntimeClientError } = await import('./runtime/types.js')
@@ -223,7 +223,7 @@ describe('orca cli worktree awareness', () => {
     // The command itself never reached a runtime; only the suggestion lookup did.
     expect(callMock).not.toHaveBeenCalledWith('projectHostSetup.list')
     const printed = [...logSpy.mock.calls, ...errSpy.mock.calls].flat().join('\n')
-    expect(printed).toContain('no paired Orca server is named or has id not-a-real-env')
+    expect(printed).toContain('no paired Alicorn server is named or has id not-a-real-env')
     // An agent reads the code and the retry candidates, not the prose.
     expect(JSON.parse(printed).error.code).toBe('invalid_argument')
     expect(JSON.parse(printed).error.data.knownEnvironments).toEqual([])
@@ -280,7 +280,7 @@ describe('orca cli worktree awareness', () => {
             hostId: 'ssh:ssh-123-abc',
             repoId: 'repo-openclaw',
             path: '/home/me/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             setupState: 'ready',
             setupMethod: 'legacy-repo',
             createdAt: 1,
@@ -307,7 +307,7 @@ describe('orca cli worktree awareness', () => {
         result: {
           project: {
             id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,
@@ -393,7 +393,7 @@ describe('orca cli worktree awareness', () => {
         result: {
           project: {
             id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             sourceRepoIds: ['repo-1'],
             createdAt: 1,
@@ -405,7 +405,7 @@ describe('orca cli worktree awareness', () => {
             hostId: 'local',
             repoId: 'repo-1',
             path: path.resolve('/tmp/orca'),
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             setupState: 'ready',
             setupMethod: 'imported-existing-folder',
             createdAt: 1,
@@ -414,7 +414,7 @@ describe('orca cli worktree awareness', () => {
           repo: {
             id: 'repo-1',
             path: path.resolve('/tmp/orca'),
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             addedAt: 1
           }
@@ -436,7 +436,7 @@ describe('orca cli worktree awareness', () => {
         '--kind',
         'git',
         '--display-name',
-        'Orca',
+        'Alicorn',
         '--json'
       ],
       '/tmp/orca/worktrees/feature'
@@ -447,7 +447,7 @@ describe('orca cli worktree awareness', () => {
       hostId: 'local',
       path: path.resolve('/tmp/orca/worktrees'),
       kind: 'git',
-      displayName: 'Orca'
+      displayName: 'Alicorn'
     })
   })
 
@@ -591,7 +591,7 @@ describe('orca cli worktree awareness', () => {
         result: {
           project: {
             id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,
@@ -603,7 +603,7 @@ describe('orca cli worktree awareness', () => {
             hostId: 'local',
             repoId: 'repo-awin',
             path: 'C:\\orca-probe\\orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             setupState: 'ready',
             setupMethod: 'cloned',
             createdAt: 1,
@@ -612,7 +612,7 @@ describe('orca cli worktree awareness', () => {
           repo: {
             id: 'repo-awin',
             path: 'C:\\orca-probe\\orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             addedAt: 1
           }
@@ -652,7 +652,7 @@ describe('orca cli worktree awareness', () => {
         result: {
           project: {
             id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,
@@ -718,7 +718,7 @@ describe('orca cli worktree awareness', () => {
         result: {
           project: {
             id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,
@@ -783,7 +783,7 @@ describe('orca cli worktree awareness', () => {
         result: {
           project: {
             id: 'github:stablyai/orca',
-            displayName: 'Orca',
+            displayName: 'Alicorn',
             badgeColor: '#7c3aed',
             sourceRepoIds: [],
             createdAt: 1,

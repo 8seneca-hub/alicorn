@@ -13,7 +13,7 @@ export type AgentTrustPreset = 'cursor' | 'copilot' | 'codex'
  * Codex so the agent's "Do you trust this folder?" menu does not fire on
  * first launch.
  *
- * Why: Orca's "drop URL into agent input as a draft" flow injects the URL
+ * Why: Alicorn's "drop URL into agent input as a draft" flow injects the URL
  * via bracketed-paste once the TUI is up. If the trust menu intercepts the
  * keystrokes (each menu reads a single character or numbered option), the
  * paste either selects an arbitrary option or quits the session. Pre-writing

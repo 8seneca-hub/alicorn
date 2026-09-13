@@ -434,7 +434,7 @@ describe('launchAgentBackgroundSession', () => {
         state: 'working',
         prompt: 'check the status spinner',
         agentType: 'command-code',
-        // Why: Orca launched this hidden session, so the seed predates any provider signal (STA-4293).
+        // Why: Alicorn launched this hidden session, so the seed predates any provider signal (STA-4293).
         observation: expect.objectContaining({ origin: 'launch', kind: 'transition' })
       },
       undefined,

@@ -64,7 +64,7 @@ describe('CliInstaller', () => {
         platform: 'darwin',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         processPathEnv: join(fixture.root, 'bin')
@@ -99,7 +99,7 @@ describe('CliInstaller', () => {
         platform: 'linux',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/opt/Orca/orca-ide',
+        execPath: '/opt/Alicorn/orca-ide',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         processPathEnv: '/usr/bin'
@@ -132,7 +132,7 @@ describe('CliInstaller', () => {
         platform: 'linux',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/opt/Orca/orca-ide',
+        execPath: '/opt/Alicorn/orca-ide',
         appPath: fixture.appPath,
         homePath,
         processPathEnv: commandDir
@@ -160,7 +160,7 @@ describe('CliInstaller', () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, '.local', 'bin')
       const installPath = join(commandDir, 'alicorn-ide')
-      const appImagePath = join(fixture.root, 'Orca.AppImage')
+      const appImagePath = join(fixture.root, 'Alicorn.AppImage')
       const cacheRootPath = join(fixture.root, 'cache')
       await writeFile(appImagePath, '#!/usr/bin/env bash\n', {
         encoding: 'utf8',
@@ -218,7 +218,7 @@ describe('CliInstaller', () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, '.local', 'bin')
       const installPath = join(commandDir, 'alicorn-ide')
-      const appImagePath = join(fixture.root, 'Orca.AppImage')
+      const appImagePath = join(fixture.root, 'Alicorn.AppImage')
       const cacheRootPath = join(fixture.root, 'cache')
       await writeFile(appImagePath, '#!/usr/bin/env bash\n', {
         encoding: 'utf8',
@@ -264,7 +264,7 @@ describe('CliInstaller', () => {
       const fixture = await makeFixture()
       const commandDir = join(fixture.root, '.local', 'bin')
       const installPath = join(commandDir, 'alicorn-ide')
-      const appImagePath = join(fixture.root, "Orca's AppImage.AppImage")
+      const appImagePath = join(fixture.root, "Alicorn's AppImage.AppImage")
       const cacheRootPath = join(fixture.root, 'cache')
       await mkdir(commandDir, { recursive: true })
       await writeFile(appImagePath, '#!/usr/bin/env bash\n', { encoding: 'utf8', mode: 0o755 })
@@ -302,7 +302,7 @@ describe('CliInstaller', () => {
   )
 
   // Why: Linux renamed the public command to avoid shadowing GNOME Orca, so
-  // upgrading must clean up only the old symlink owned by prior Orca installs.
+  // upgrading must clean up only the old symlink owned by prior Alicorn installs.
   it.skipIf(process.platform === 'win32')(
     'removes the old managed linux orca symlink when installing alicorn-ide',
     async () => {
@@ -342,7 +342,7 @@ describe('CliInstaller', () => {
       const homePath = join(fixture.root, 'home')
       const commandDir = join(homePath, '.local', 'bin')
       const legacyCommandPath = join(commandDir, 'orca')
-      const appImagePath = join(fixture.root, 'Orca.AppImage')
+      const appImagePath = join(fixture.root, 'Alicorn.AppImage')
       const cacheRootPath = join(fixture.root, 'cache')
       await mkdir(commandDir, { recursive: true })
       await writeFile(appImagePath, '#!/usr/bin/env bash\n', {
@@ -377,7 +377,7 @@ describe('CliInstaller', () => {
       const homePath = join(fixture.root, 'home')
       const commandDir = join(homePath, '.local', 'bin')
       const legacyCommandPath = join(commandDir, 'orca')
-      const appImagePath = join(fixture.root, 'Orca.AppImage')
+      const appImagePath = join(fixture.root, 'Alicorn.AppImage')
       const foreignAppImagePath = join(fixture.root, 'Other.AppImage')
       const cacheRootPath = join(fixture.root, 'cache')
       await mkdir(commandDir, { recursive: true })
@@ -436,7 +436,7 @@ describe('CliInstaller', () => {
         platform: 'darwin',
         isPackaged: false,
         userDataPath: fixture.userDataPath,
-        execPath: '/Applications/Orca.app/Contents/MacOS/Orca',
+        execPath: '/Applications/Alicorn.app/Contents/MacOS/Alicorn',
         appPath: fixture.appPath,
         commandPathOverride: installPath,
         privilegedRunner: async (command: string) => {

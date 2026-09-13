@@ -506,7 +506,7 @@ describe.skipIf(process.platform === 'win32')('Codex backfill supervisor owner l
     ).resolves.toBe('recovered')
   })
 
-  it('does not interfere with a live supervisor from another Orca instance', async () => {
+  it('does not interfere with a live supervisor from another Alicorn instance', async () => {
     const userData = await createTemporaryRoot()
     vi.stubEnv('ALICORN_USER_DATA_PATH', userData)
     const home = join(userData, 'managed-home')

@@ -1,5 +1,5 @@
 /**
- * Real-zsh proof that a wrapper dir holding files from two Orca builds still
+ * Real-zsh proof that a wrapper dir holding files from two Alicorn builds still
  * loads the user's own zsh config.
  *
  * A shared dir used to mean a shell could read one build's `.zshenv` and
@@ -10,7 +10,7 @@
  *
  * The relay is the one writer left on a fixed path — `~/.orca-relay/shell-ready`
  * — so this is where the scenario is still reachable, and it is now much smaller:
- * Orca writes one file, and that file hands ZDOTDIR back before anything else
+ * Alicorn writes one file, and that file hands ZDOTDIR back before anything else
  * runs. Both halves are pinned here:
  *
  * 1. Files an older build left beside the hook are inert — zsh reads .zprofile,

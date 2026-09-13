@@ -122,7 +122,7 @@ export function replaceDaemonProvider(newAdapter: DaemonProvider): void {
 }
 
 // Disconnect without killing: the daemon survives app quit so sessions stay warm for reattach.
-// Leave history sessions marked "unclean" so a daemon crash while Orca is closed stays recoverable.
+// Leave history sessions marked "unclean" so a daemon crash while Alicorn is closed stays recoverable.
 export async function disconnectDaemon(): Promise<void> {
   await adapter?.disconnectOnly()
   adapter = null

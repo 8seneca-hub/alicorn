@@ -81,10 +81,10 @@ export function finalizeLocalPtySpawnEnvironment(args: {
     // an inherited ALICORN_HISTFILE would still reach the wrapper. Credit: #11146.
     delete env.ALICORN_HISTFILE
     // Same for an exported `fish_history` from the fish pane that launched this
-    // Orca: history off means fish's own default, not another worktree's file.
+    // Alicorn: history off means fish's own default, not another worktree's file.
     dropInheritedOrcaFishHistory(env)
     // And for an exported HISTFILE: history off means the shell's own default,
-    // not the history file of the worktree this Orca was launched from.
+    // not the history file of the worktree this Alicorn was launched from.
     dropInheritedOrcaHistFile(env)
   }
 

@@ -87,7 +87,7 @@ async function readKeycloakBearer(
  * `alicornFetch` is its only request-path caller, so no other module can attach a credential.
  *
  * The token never leaves the main process: in `local` mode it is main's own environment, and in
- * `keycloak` mode it is the Orca Cloud session on disk, which a worker terminal has no reader
+ * `keycloak` mode it is the Alicorn Cloud session on disk, which a worker terminal has no reader
  * for. Nothing here writes either into a launch environment.
  */
 export async function readAlicornBearer(

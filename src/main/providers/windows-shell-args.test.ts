@@ -8,7 +8,7 @@ import { resolveWindowsShellLaunchArgs } from './windows-shell-args'
 // Why resolved rather than hardcoded: the wrapper tree is content-addressed.
 import { getShellReadyWrapperRoot } from './local-pty-shell-ready-wrapper-root'
 
-const CODEX_LAUNCH_PREFLIGHT = 'C:\\Program Files\\Orca\\orca.exe'
+const CODEX_LAUNCH_PREFLIGHT = 'C:\\Program Files\\Alicorn\\orca.exe'
 const CMD_CODEX_LAUNCH_PREFLIGHT =
   'if defined ALICORN_CODEX_LAUNCH_PREFLIGHT call %ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE%%ALICORN_CODEX_LAUNCH_PREFLIGHT%%ALICORN_CODEX_LAUNCH_PREFLIGHT_CMD_QUOTE% agent hooks prepare-codex > nul 2>&1'
 
@@ -205,7 +205,7 @@ describe('resolveWindowsShellLaunchArgs', () => {
 
   it('preserves complex PowerShell startup command text through EncodedCommand', () => {
     const startupCommand =
-      '& "C:\\Program Files\\Orca CLI\\orca.exe" "--label" "quoted value"; $env:ALICORN_VALUE = "nested"'
+      '& "C:\\Program Files\\Alicorn CLI\\orca.exe" "--label" "quoted value"; $env:ALICORN_VALUE = "nested"'
     const result = resolveWindowsShellLaunchArgs(
       'powershell.exe',
       'C:\\Users\\alice',
@@ -384,7 +384,7 @@ describe('resolveWindowsShellLaunchArgs', () => {
     expect(existsSync(join(getShellReadyWrapperRoot(), 'zsh', '.zshenv'))).toBe(true)
 
     // Why: typed OMP keeps its existing shell integration, while typed Prime
-    // commands must reach the user's binary without Orca rewriting argv.
+    // commands must reach the user's binary without Alicorn rewriting argv.
     const bashRcfile = readFileSync(join(getShellReadyWrapperRoot(), 'bash', 'rcfile'), 'utf8')
     // Why .zshenv: the omp wrapper is part of the epilogue defined there.
     const zshEnv = readFileSync(join(getShellReadyWrapperRoot(), 'zsh', '.zshenv'), 'utf8')
