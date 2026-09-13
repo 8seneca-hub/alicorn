@@ -66,9 +66,17 @@ export async function handleMcpRequest(
       capabilities: { tools: { listChanged: false } },
       serverInfo: { name: 'alicorn', version: '1' },
       instructions:
-        'Alicorn’s control plane. Create and move tasks, and add members to the org library. ' +
-        'Every change returns a receipt saying what changed and how to undo it — quote it back to the developer. ' +
-        'Required checks, autonomy levels and stage reversibility are deliberately not exposed: a member may not author the criteria that judge it.'
+        'Alicorn’s control plane — the projects, tasks, members, board, stages and workflows of the ' +
+        'agent development environment this session is running inside. ' +
+        'When the developer says project, task, member, board, stage or workflow they mean one of ' +
+        'these, not a Jira, Linear, Plane, Atlassian or GitHub object — reach for another tracker ' +
+        'only when they name it. ' +
+        'A task with a workflow advances only through alicorn_advance_stage, one stage at a time, ' +
+        'and it refuses where the workflow gates. A refusal is final: ask the developer rather than ' +
+        'moving the board yourself or marking the stage unnecessary. ' +
+        'Every change returns a receipt saying what changed and how to undo it — quote it back. ' +
+        'Autonomy levels and stage reversibility are deliberately not exposed: a member may not ' +
+        'author the criteria that judge it.'
     })
   }
 

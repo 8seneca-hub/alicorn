@@ -28,9 +28,11 @@ import { AlicornProjectAutonomy } from './AlicornProjectAutonomy'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectTasks } from './use-project-tasks'
+import { useAlicornMembers } from '../shell/use-alicorn-members'
+import { useProjectWorkflow } from './use-project-workflow'
 import { AlicornTaskScreen } from './AlicornTaskScreen'
 import { AlicornProjectBoard, AlicornProjectTasks } from './AlicornProjectWork'
-import { AlicornProjectChecks, AlicornProjectMembers } from './AlicornProjectLibrary'
+import { AlicornProjectMembers } from './AlicornProjectLibrary'
 import { AlicornProjectWorkflow } from './AlicornProjectWorkflowScreen'
 import type { AlicornRoute, ProjectSection } from '../shell/alicorn-shell-route'
 
@@ -43,7 +45,6 @@ const TITLES: Record<ProjectSection, string> = {
   integrations: 'Integrations',
   members: 'Members',
   workflow: 'Workflow',
-  checks: 'Required Checks',
   mcp: 'MCP Servers',
   settings: 'Settings'
 }
@@ -74,6 +75,23 @@ export function AlicornProjectScreen({
   // Tasks are read here rather than per screen: the board and the list are two readings of one set
   // of rows, and two fetches would let them disagree after a drag.
   const tasks = useProjectTasks(route.projectId)
+  // Read here rather than inside the Context screen: ALICORN.md describes the org library and the
+  // project's pipeline, and both are already this screen's to know.
+  const { members: orgMembers } = useAlicornMembers()
+  const { workflow: defaultWorkflow } = useProjectWorkflow(route.projectId)
+  const contextMembers = React.useMemo(
+    () =>
+      (orgMembers ?? []).map((member) => ({
+        name: member.name,
+        role: member.role,
+        backend: member.backend
+      })),
+    [orgMembers]
+  )
+  const contextStageNames = React.useMemo(
+    () => (defaultWorkflow?.stages ?? []).map((stage) => stage.name),
+    [defaultWorkflow?.stages]
+  )
   const repos = useAppStore((state) => state.repos)
   const setActiveView = useAppStore((state) => state.setActiveView)
   const setActiveWorktree = useAppStore((state) => state.setActiveWorktree)
@@ -181,6 +199,8 @@ export function AlicornProjectScreen({
         crumbs={crumbs}
         project={project}
         repoPath={projectRepos[0]?.path ?? null}
+        members={contextMembers}
+        stageNames={contextStageNames}
         onSaved={() => onProjectsChanged()}
       />
     )
@@ -208,16 +228,6 @@ export function AlicornProjectScreen({
   if (route.section === 'workflow') {
     return (
       <AlicornProjectWorkflow
-        projectName={projectName}
-        projectId={route.projectId}
-        onAllProjects={allProjects}
-      />
-    )
-  }
-
-  if (route.section === 'checks') {
-    return (
-      <AlicornProjectChecks
         projectName={projectName}
         projectId={route.projectId}
         onAllProjects={allProjects}

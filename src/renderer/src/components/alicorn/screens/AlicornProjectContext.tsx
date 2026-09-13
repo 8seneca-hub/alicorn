@@ -22,6 +22,7 @@ import { translate } from '@/i18n/i18n'
 import CommentMarkdown from '../../sidebar/CommentMarkdown'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import { CLAUDE_MD, useProjectClaudeMd, writeProjectClaudeMd } from './use-project-claude-md'
+import { AlicornTeachClaudeCard } from './AlicornTeachClaudeCard'
 import { setAlicornAssistantOpen } from '../assistant/alicorn-assistant-store'
 import {
   AlicornEmptyState,
@@ -34,12 +35,18 @@ export function AlicornProjectContext({
   crumbs,
   project,
   repoPath,
+  members,
+  stageNames,
   onSaved
 }: {
   crumbs: AlicornCrumb[]
   project: Project
   /** The project's primary repository on this machine, when one resolves. */
   repoPath: string | null
+  /** What ALICORN.md will say the org library holds. */
+  members: readonly { name: string; role: string; backend: string }[]
+  /** The default workflow's stages, in order, for the pipeline ALICORN.md describes. */
+  stageNames: readonly string[]
   onSaved: () => void
 }): React.JSX.Element {
   const claudeMd = useProjectClaudeMd({ repoPath, fallback: project.context })
@@ -124,6 +131,13 @@ export function AlicornProjectContext({
         }
       />
       <AlicornScreenBody>
+        {editing ? null : (
+          <AlicornTeachClaudeCard
+            repoPath={repoPath}
+            facts={{ projectName: project.name, members, stageNames }}
+            onWritten={() => claudeMd.reload()}
+          />
+        )}
         <p className="mb-4 text-[11px] text-muted-foreground">
           {claudeMd.path
             ? claudeMd.fromFile

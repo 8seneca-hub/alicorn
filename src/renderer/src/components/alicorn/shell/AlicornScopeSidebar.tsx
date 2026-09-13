@@ -17,7 +17,6 @@ import {
   Plus,
   Search,
   Server,
-  ShieldCheck,
   SquareKanban,
   Users,
   Workflow
@@ -46,7 +45,6 @@ const PROJECT_SECTION_LABELS: Record<ProjectSection, string> = {
   integrations: 'Integrations',
   members: 'Members',
   workflow: 'Workflow',
-  checks: 'Required Checks',
   mcp: 'MCP Servers',
   settings: 'Settings'
 }
@@ -60,7 +58,6 @@ const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
   integrations: Plug,
   members: Users,
   workflow: Workflow,
-  checks: ShieldCheck,
   mcp: Server,
   settings: Settings2
 }

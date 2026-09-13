@@ -15,7 +15,6 @@ export const PROJECT_SECTIONS = [
   'integrations',
   'members',
   'workflow',
-  'checks',
   'mcp',
   'settings'
 ] as const

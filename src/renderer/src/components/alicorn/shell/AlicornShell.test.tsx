@@ -140,7 +140,6 @@ describe('AlicornShell', () => {
       'Inbox',
       'Members',
       'Workflow',
-      'Required Checks',
       'MCP Servers',
       'Settings'
       // Chat is deliberately absent: it is one session for the whole org, not one per project.

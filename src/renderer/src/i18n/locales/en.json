@@ -17807,6 +17807,15 @@
           "git": "git",
           "credentialNote": "A provider is connected once for the device, not per project — a credential in two places is how one of them goes stale.",
           "manage": "Connected accounts"
+        },
+        "teach": {
+          "title": "Teach Claude about Alicorn here",
+          "done": "in this repository",
+          "update": "Update it",
+          "write": "Write the files",
+          "detail": "Writes {{file}} and adds one import line to {{claude}}, so every session — including ones Alicorn did not start — knows what a project, a stage and a gate mean here. Your own lines are left alone; only Alicorn’s block is replaced.",
+          "hide": "Hide what it writes",
+          "preview": "See exactly what it writes"
         }
       },
       "composerTaskPlan": {
