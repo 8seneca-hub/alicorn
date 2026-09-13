@@ -8,6 +8,7 @@
 import React from 'react'
 import type { PlaneIssue } from '../../../../../shared/plane-types'
 import type { ProjectSource } from '../../../../../shared/alicorn/projects'
+import { canListBoardIssues } from './pm-import-providers'
 
 export type ProjectBoardIssues = {
   issues: PlaneIssue[]
@@ -22,7 +23,7 @@ export function useProjectBoardIssues(
   const [issues, setIssues] = React.useState<PlaneIssue[]>([])
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
-  const boardId = source?.provider === 'plane' ? source.boardId : null
+  const boardId = canListBoardIssues(source) ? (source?.boardId ?? null) : null
   // Without it Plane's client falls back to the bare sequence number, so an issue reads `113`
   // rather than `ALC-113` — and `ALC-113` is what a person types and what a task's source is
   // supposed to carry.
@@ -30,6 +31,12 @@ export function useProjectBoardIssues(
 
   React.useEffect(() => {
     if (!enabled || !boardId) {
+      // A provider whose client has no per-board query says so, rather than listing a whole
+      // workspace and calling it this board's — that looks like it worked and hands back the
+      // wrong ticket.
+      if (enabled && source && !canListBoardIssues(source)) {
+        setError('issues_not_scoped_for_provider')
+      }
       return
     }
     let cancelled = false
@@ -62,7 +69,7 @@ export function useProjectBoardIssues(
     return () => {
       cancelled = true
     }
-  }, [boardId, enabled, identifier])
+  }, [boardId, enabled, identifier, source])
 
   return { issues, loading, error }
 }

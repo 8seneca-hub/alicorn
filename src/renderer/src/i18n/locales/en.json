@@ -17641,7 +17641,8 @@
           "counting": "Reading the board…",
           "preview": "Creates {{name}} ({{key}}) with {{count}} tasks.",
           "importing": "Importing {{done}} of {{total}}…",
-          "import": "Import project"
+          "import": "Import project",
+          "boardsLoading": "Reading boards…"
         },
         "deleteProject": {
           "title": "Delete {{name}}?",
@@ -17670,6 +17671,13 @@
           "AlicornRequiredCheckComposer": {
             "26f5de7a59": "pnpm e2e",
             "f04e67b071": "pnpm test --coverage"
+          },
+          "pm": {
+            "import": {
+              "providers": {
+                "7b5bf5c7dc": "plane_unavailable"
+              }
+            }
           }
         },
         "taskChat": {

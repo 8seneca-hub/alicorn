@@ -28,7 +28,8 @@ import { useAppStore } from '@/store'
 import { htmlToPlainText, planeProjectKey } from '../../../../../shared/alicorn/pm-import'
 import type { Project, ProjectInput } from '../../../../../shared/alicorn/projects'
 import { AlicornRepoPicker } from './AlicornRepoPicker'
-import { usePlaneImportSource } from './use-plane-import-source'
+import { usePmImportSource } from './use-pm-import-source'
+import { PM_PROVIDER_LABELS, type PmProvider } from './pm-import-providers'
 
 /** Mirrors ProjectKeySchema: 2-10 uppercase letters or digits, starting with a letter. */
 const KEY_PATTERN = /^[A-Z][A-Z0-9]{1,9}$/
@@ -52,7 +53,8 @@ export function AlicornImportProjectDialog(props: Props): React.JSX.Element {
 
 function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.JSX.Element {
   const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
-  const source = usePlaneImportSource(true)
+  const [provider, setProvider] = React.useState<PmProvider | null>(null)
+  const source = usePmImportSource(provider)
   const [boardId, setBoardId] = React.useState<string | null>(null)
   const [name, setName] = React.useState('')
   const [key, setKey] = React.useState('')
@@ -60,22 +62,29 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
   const [importing, setImporting] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
 
-  const chosen = source.projects.find((project) => project.id === boardId)
+  const chosen = source.boards.find((board) => board.id === boardId)
   const keyValid = KEY_PATTERN.test(key)
   const canImport =
     Boolean(chosen) && name.trim() !== '' && keyValid && repoIds.length > 0 && !importing
 
   // Picking a board fills the fields it can answer; a later edit stands, because re-deriving over
   // someone's typing is worse than never helping.
-  const pickBoard = (projectId: string): void => {
-    const picked = source.projects.find((project) => project.id === projectId)
-    setBoardId(projectId)
+  const pickBoard = (nextBoardId: string): void => {
+    const picked = source.boards.find((board) => board.id === nextBoardId)
+    setBoardId(nextBoardId)
     setFailure(null)
     if (picked) {
       setName(picked.name)
       setKey(planeProjectKey(picked.identifier, picked.name))
     }
   }
+
+  // One connected provider is not a choice, so it is made rather than asked.
+  React.useEffect(() => {
+    if (provider === null && source.connected?.length === 1) {
+      setProvider(source.connected[0]!)
+    }
+  }, [provider, source.connected])
 
   const runImport = async (): Promise<void> => {
     setFailure(null)
@@ -85,17 +94,17 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
       key,
       // The board's own description is what the project is *for*; every brief carries it, so a
       // member reads the domain before it reads the ticket.
-      context: chosen?.description ? htmlToPlainText(chosen.description) : '',
+      context: chosen?.description
+        ? chosen.descriptionIsHtml
+          ? htmlToPlainText(chosen.description)
+          : chosen.description
+        : '',
       repoIds,
       // The link, not the issues: a task reaches one issue on demand, where it is still current.
-      source: chosen
-        ? {
-            provider: 'plane' as const,
-            boardId: chosen.id,
-            identifier: chosen.identifier,
-            url: null
-          }
-        : null
+      source:
+        chosen && provider
+          ? { provider, boardId: chosen.id, identifier: chosen.identifier, url: null }
+          : null
     })
     setImporting(false)
     if (!created.ok) {
@@ -131,7 +140,7 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
         <p className="py-6 text-center text-[12.5px] text-muted-foreground">
           {translate('auto.components.alicorn.import.checking', 'Looking for a connected PM tool…')}
         </p>
-      ) : source.connected === false ? (
+      ) : source.connected.length === 0 ? (
         <div className="space-y-3 py-4 text-center">
           <PackageOpen className="mx-auto size-5 text-muted-foreground" />
           <p className="text-[13px] font-semibold">
@@ -140,7 +149,7 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
           <p className="mx-auto max-w-sm text-[12.5px] text-muted-foreground">
             {translate(
               'auto.components.alicorn.import.noProviderDetail',
-              'Connect Plane in Settings and its boards appear here. An agent with its own PM server can import through Alicorn’s MCP tools meanwhile.'
+              'Connect Plane, Linear or Jira in Settings and its boards appear here. An agent with its own PM server can import through Alicorn’s MCP tools meanwhile.'
             )}
           </p>
           <Button
@@ -155,28 +164,58 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
         </div>
       ) : (
         <div className="space-y-3">
+          {source.connected.length > 1 ? (
+            <div className="flex gap-1 rounded-md border border-border p-1">
+              {source.connected.map((candidate) => (
+                <button
+                  key={candidate}
+                  type="button"
+                  onClick={() => {
+                    setProvider(candidate)
+                    setBoardId(null)
+                  }}
+                  className={cn(
+                    'flex-1 rounded px-2 py-1 text-[12px] transition',
+                    provider === candidate
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent'
+                  )}
+                >
+                  {PM_PROVIDER_LABELS[candidate]}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           <div className="space-y-1">
             <span className="text-xs font-medium">
               {translate('auto.components.alicorn.import.board', 'Board')}
             </span>
             <div className="scrollbar-sleek max-h-36 overflow-y-auto rounded-md border border-border">
-              {source.projects.map((project) => (
-                <button
-                  key={project.id}
-                  type="button"
-                  onClick={() => pickBoard(project.id)}
-                  className={cn(
-                    'flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-xs',
-                    project.id === boardId ? 'bg-accent font-semibold' : 'hover:bg-accent'
-                  )}
-                >
-                  <span className="min-w-0 flex-1 truncate">{project.name}</span>
-                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                    {project.identifier}
-                  </span>
-                </button>
-              ))}
+              {source.loading ? (
+                <p className="px-2.5 py-2 text-[11px] text-muted-foreground">
+                  {translate('auto.components.alicorn.import.boardsLoading', 'Reading boards…')}
+                </p>
+              ) : (
+                source.boards.map((board) => (
+                  <button
+                    key={board.id}
+                    type="button"
+                    onClick={() => pickBoard(board.id)}
+                    className={cn(
+                      'flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-xs',
+                      board.id === boardId ? 'bg-accent font-semibold' : 'hover:bg-accent'
+                    )}
+                  >
+                    <span className="min-w-0 flex-1 truncate">{board.name}</span>
+                    <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                      {board.identifier}
+                    </span>
+                  </button>
+                ))
+              )}
             </div>
+            {source.error ? <p className="text-[11px] text-destructive">{source.error}</p> : null}
           </div>
 
           {chosen ? (
