@@ -71,10 +71,14 @@ export function AlicornIssuePicker({
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
         <Command
-          // The reference and the title are one haystack: you remember one or the other.
-          filter={(value, search) =>
-            value.toLowerCase().includes(search.toLowerCase().trim()) ? 1 : 0
-          }
+          // Every word, in any order — `outbox dedupe` has to find "ledger-outbox-drainer dedupe
+          // key…", and it does not if the terms have to be adjacent. The reference and the title
+          // are one haystack because you remember one or the other, rarely both.
+          filter={(value, search) => {
+            const haystack = value.toLowerCase()
+            const terms = search.toLowerCase().split(/\s+/).filter(Boolean)
+            return terms.every((term) => haystack.includes(term)) ? 1 : 0
+          }}
         >
           <CommandInput
             placeholder={translate(

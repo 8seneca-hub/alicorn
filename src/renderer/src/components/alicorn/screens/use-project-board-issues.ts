@@ -23,6 +23,10 @@ export function useProjectBoardIssues(
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const boardId = source?.provider === 'plane' ? source.boardId : null
+  // Without it Plane's client falls back to the bare sequence number, so an issue reads `113`
+  // rather than `ALC-113` — and `ALC-113` is what a person types and what a task's source is
+  // supposed to carry.
+  const identifier = source?.identifier ?? ''
 
   React.useEffect(() => {
     if (!enabled || !boardId) {
@@ -33,7 +37,10 @@ export function useProjectBoardIssues(
     setError(null)
     void (async () => {
       try {
-        const listed = await window.api?.plane?.listIssues({ projectId: boardId })
+        const listed = await window.api?.plane?.listIssues({
+          projectId: boardId,
+          ...(identifier ? { projectIdentifier: identifier } : {})
+        })
         if (cancelled || !listed) {
           return
         }
@@ -55,7 +62,7 @@ export function useProjectBoardIssues(
     return () => {
       cancelled = true
     }
-  }, [boardId, enabled])
+  }, [boardId, enabled, identifier])
 
   return { issues, loading, error }
 }
