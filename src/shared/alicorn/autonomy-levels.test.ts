@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   AUTONOMY_LEVELS,
   levelOfPolicy,
-  ORG_DEFAULT_LEVEL,
-  policyForLevel
+  policyForLevel,
+  SHIPPED_DEFAULT_LEVEL
 } from './autonomy-levels'
 import { gateReasonFor } from './workflow-gate'
 import type { AutonomyPolicy } from './gate-policy'
@@ -20,8 +20,15 @@ describe('autonomy levels', () => {
     }
   })
 
-  it('reads an unauthored stage as the shipped default', () => {
-    expect(levelOfPolicy(null)).toBe(ORG_DEFAULT_LEVEL)
+  it('reads an unauthored stage as what it inherits', () => {
+    expect(levelOfPolicy(null)).toBe(SHIPPED_DEFAULT_LEVEL)
+    expect(levelOfPolicy(null, 'L0')).toBe('L0')
+  })
+
+  // An authored stage is the project's own answer; the org's floor does not reach it.
+  it('leaves an authored stage alone whatever the org default is', () => {
+    const authored = asPolicy(policyForLevel({ level: 'L1', stageKey: 'build' }))
+    expect(levelOfPolicy(authored, 'L0')).toBe('L1')
   })
 
   // L1 and L2 differ only by whether a track record has to be earned first.

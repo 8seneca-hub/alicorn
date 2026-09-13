@@ -1,163 +1,140 @@
 /**
- * Autonomy, a project at a time.
+ * The org's autonomy floor: what every project's stage starts from.
  *
- * A policy is authored per project *and per stage* — there is no org-wide level, and inventing one
- * would be a third place for the rule to live. What "org default" means on a level here is the
- * contract's own shipped default, which is what a stage gets when nobody has authored anything. So
- * inheritance is real without a second store to keep in sync.
+ * One level, not a table. A stage belongs to a workflow and a workflow belongs to a project, so
+ * there is nothing org-wide to say about `build` specifically — what an org can say is how much it
+ * trusts an unauthored stage by default. Per-stage levels live in the project that owns the stage.
  *
- * **Nothing an agent does can loosen any of this.** The Control API takes the author from the
- * authenticated actor rather than the body, and the MCP surface has no autonomy tool at all — the
- * boundary is enforced by absence, not by a flag a caller could set.
+ * **This does not reach a project that has authored its own.** Moving the floor changes what an
+ * inherited stage reads as; an overridden one is the project's answer and stays put. That is what
+ * keeps "a member cannot loosen its own criteria" true even with a dial here: an org admin moves
+ * the floor, a project moves its stages, and neither is the member being judged.
  */
 import React from 'react'
 import { Lock } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import type { AutonomyPolicy } from '../../../../../shared/alicorn/gate-policy'
-import { autonomyStarterSet } from '../../../../../shared/alicorn/autonomy-starter-set'
+import {
+  AUTONOMY_LEVELS,
+  AUTONOMY_LEVEL_COPY,
+  SHIPPED_DEFAULT_LEVEL,
+  type AutonomyLevel
+} from '../../../../../shared/alicorn/autonomy-levels'
 import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
+import type { OrgPolicy } from '../../../../../shared/alicorn/members'
 import type { Project } from '../../../../../shared/alicorn/projects'
-import { AlicornEmptyState } from './AlicornScreenChrome'
-import { AlicornStageAutonomy } from './AlicornStageAutonomy'
-import { useProjectWorkflow } from './use-project-workflow'
-
-function useAutonomyPolicies(projectId: string | null): {
-  policies: AutonomyPolicy[]
-  loading: boolean
-  reload: () => void
-} {
-  const [policies, setPolicies] = React.useState<AutonomyPolicy[]>([])
-  const [loading, setLoading] = React.useState(false)
-  const [reloads, setReloads] = React.useState(0)
-
-  React.useEffect(() => {
-    if (!projectId) {
-      setPolicies([])
-      return
-    }
-    let cancelled = false
-    setLoading(true)
-    void (async () => {
-      const result = await window.api?.alicorn?.listAutonomyPolicies?.(projectId)
-      if (!cancelled) {
-        setPolicies(result?.ok ? result.policies : [])
-        setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [projectId, reloads])
-
-  return { policies, loading, reload: () => setReloads((count) => count + 1) }
-}
 
 export function AlicornOrgAutonomy({
   projects
 }: {
   projects: readonly Project[]
 }): React.JSX.Element {
-  const [projectId, setProjectId] = React.useState<string | null>(projects[0]?.id ?? null)
-  const active = projects.find((project) => project.id === projectId) ?? projects[0] ?? null
-  const { workflow, loading: workflowLoading } = useProjectWorkflow(active?.id ?? '')
-  const { policies, reload } = useAutonomyPolicies(active?.id ?? null)
+  const [policy, setPolicy] = React.useState<OrgPolicy | null>(null)
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
-  const stages = workflow?.stages ?? []
 
-  const authorAll = async (): Promise<void> => {
-    const write = window.api?.alicorn?.setAutonomyPolicy
-    if (!write || !active) {
+  React.useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const result = await window.api?.alicorn?.getOrgPolicy?.()
+      if (!cancelled && result?.ok) {
+        setPolicy(result.policy)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const level = policy?.defaultAutonomyLevel ?? SHIPPED_DEFAULT_LEVEL
+
+  const choose = async (next: AutonomyLevel): Promise<void> => {
+    const write = window.api?.alicorn?.setOrgPolicy
+    if (!write || !policy) {
+      setFailure(
+        translate(
+          'auto.components.alicorn.org.needsRestart',
+          'This build of the app has no autonomy bridge yet — restart Alicorn to pick it up.'
+        )
+      )
       return
     }
     setBusy(true)
     setFailure(null)
-    for (const { stageName: _stageName, ...policy } of autonomyStarterSet(stages)) {
-      const result = await write(active.id, policy)
-      if (!result.ok) {
-        setBusy(false)
-        setFailure(describeFailure(result))
-        return
-      }
-    }
+    const result = await write({ ...policy, defaultAutonomyLevel: next })
     setBusy(false)
-    reload()
+    if (!result.ok) {
+      setFailure(describeFailure(result))
+      return
+    }
+    setPolicy(result.policy)
   }
 
   return (
     <>
-      <p className="mb-4 max-w-[680px] text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mb-5 max-w-[680px] text-[12.5px] leading-relaxed text-muted-foreground">
         {translate(
           'auto.components.alicorn.org.autonomyIntro',
-          'Everything on a stage is inherited from the org library until you change it here. Nothing an agent does can loosen it — a merge, a deploy or anything irreversible gates regardless of level.'
+          'What every project’s stage starts from. A project inherits this until it authors its own level for a stage, and a stage it has already authored is its answer — moving this floor does not move it.'
         )}
       </p>
 
-      {projects.length > 1 ? (
-        <div className="mb-5 flex flex-wrap gap-1.5">
-          {projects.map((project) => (
+      <div
+        role="radiogroup"
+        aria-label={translate(
+          'auto.components.alicorn.screens.AlicornOrgAutonomy.65f46a5d0f',
+          'Default autonomy'
+        )}
+        className="max-w-[680px] space-y-1.5"
+      >
+        {AUTONOMY_LEVELS.map((candidate) => {
+          const active = candidate === level
+          const copy = AUTONOMY_LEVEL_COPY[candidate]
+          return (
             <button
-              key={project.id}
+              key={candidate}
               type="button"
-              onClick={() => setProjectId(project.id)}
+              role="radio"
+              aria-checked={active}
+              disabled={busy}
+              onClick={() => void choose(candidate)}
               className={cn(
-                'h-7 rounded-full border px-3 text-[12px] transition',
-                project.id === active?.id
-                  ? 'border-primary bg-accent font-medium'
-                  : 'border-border text-muted-foreground hover:bg-accent'
+                'flex w-full items-start gap-3 rounded-lg border px-3.5 py-3 text-left transition',
+                active ? 'border-foreground bg-accent' : 'border-border hover:bg-accent'
               )}
             >
-              {project.name}
-            </button>
-          ))}
-        </div>
-      ) : null}
-
-      {workflowLoading ? (
-        <p className="text-sm text-muted-foreground">
-          {translate('auto.components.alicorn.project.workflowLoading', 'Reading workflows…')}
-        </p>
-      ) : stages.length === 0 ? (
-        <AlicornEmptyState
-          title={translate('auto.components.alicorn.org.noStagesTitle', 'No stages to govern')}
-          detail={translate(
-            'auto.components.alicorn.org.noStagesDetail',
-            'Autonomy is authored per stage, so a project needs a workflow before it has anything to author. A task with no workflow runs as a raw session and gates nothing.'
-          )}
-        />
-      ) : (
-        <>
-          {policies.length === 0 ? (
-            <div className="mb-5 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3.5 py-3">
-              <p className="min-w-0 flex-1 text-[12.5px] text-muted-foreground">
-                {translate(
-                  'auto.components.alicorn.org.everyStageInherits',
-                  'Every stage is inherited. Authoring the set writes each one explicitly, so a later change to the default cannot move this project underneath you.'
+              <span
+                className={cn(
+                  'mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border',
+                  active ? 'border-foreground' : 'border-muted-foreground/50'
                 )}
-              </p>
-              <Button size="sm" variant="outline" disabled={busy} onClick={() => void authorAll()}>
-                {translate('auto.components.alicorn.org.authorSet', 'Author all {{count}} stages', {
-                  count: stages.length
-                })}
-              </Button>
-            </div>
-          ) : null}
-          {failure ? <p className="mb-3 text-[11px] text-destructive">{failure}</p> : null}
-          {active
-            ? stages.map((stage) => (
-                <AlicornStageAutonomy
-                  key={stage.key}
-                  projectId={active.id}
-                  stage={stage}
-                  policies={policies}
-                  onChanged={reload}
-                />
-              ))
-            : null}
-        </>
-      )}
+              >
+                {active ? <span className="size-2 rounded-full bg-foreground" /> : null}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="text-[13px] font-semibold">{copy.title}</span>
+                <span className="mt-0.5 block text-[12px] text-muted-foreground">
+                  {copy.detail}
+                </span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+      {failure ? <p className="mt-2 text-[11px] text-destructive">{failure}</p> : null}
+
+      <p className="mt-5 max-w-[680px] text-[12px] text-muted-foreground">
+        {projects.length === 1
+          ? translate(
+              'auto.components.alicorn.org.oneProjectInherits',
+              'One project inherits this. Set a stage’s own level in that project’s Autonomy.'
+            )
+          : translate(
+              'auto.components.alicorn.org.projectsInherit',
+              '{{count}} projects inherit this. Set a stage’s own level in that project’s Autonomy.',
+              { count: projects.length }
+            )}
+      </p>
 
       <p className="mt-5 flex max-w-[640px] items-start gap-2 text-[11px] text-muted-foreground">
         <Lock className="mt-0.5 size-3 shrink-0" />

@@ -17,7 +17,6 @@ import {
   AUTONOMY_LEVELS,
   AUTONOMY_LEVEL_COPY,
   levelOfPolicy,
-  ORG_DEFAULT_LEVEL,
   policyForLevel,
   type AutonomyLevel
 } from '../../../../../shared/alicorn/autonomy-levels'
@@ -75,15 +74,18 @@ export function AlicornStageAutonomy({
   projectId,
   stage,
   policies,
+  inherited,
   onChanged
 }: {
   projectId: string
   stage: WorkflowStage
   policies: readonly AutonomyPolicy[]
+  /** The org's default, which an unauthored stage takes. */
+  inherited: AutonomyLevel
   onChanged: () => void
 }): React.JSX.Element {
   const authored = policies.find((policy) => policy.stageKey === stage.key) ?? null
-  const level = levelOfPolicy(authored)
+  const level = levelOfPolicy(authored, inherited)
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
   // A hard stop reads whatever is authored and gates anyway, so the screen says so rather than
@@ -127,7 +129,7 @@ export function AlicornStageAutonomy({
               variant="ghost"
               className="gap-1"
               disabled={busy}
-              onClick={() => void choose(ORG_DEFAULT_LEVEL)}
+              onClick={() => void choose(inherited)}
             >
               <RotateCcw className="size-3" />
               {translate('auto.components.alicorn.autonomy.reset', 'reset to org')}
@@ -153,7 +155,7 @@ export function AlicornStageAutonomy({
             key={candidate}
             level={candidate}
             active={candidate === level}
-            isOrgDefault={candidate === ORG_DEFAULT_LEVEL}
+            isOrgDefault={candidate === inherited}
             onSelect={() => void choose(candidate)}
           />
         ))}

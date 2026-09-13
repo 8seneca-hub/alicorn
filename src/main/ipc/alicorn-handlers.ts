@@ -10,9 +10,10 @@ import { registerAlicornTaskHandlers } from './alicorn-task-handlers'
 import { registerAlicornLibraryHandlers } from './alicorn-library-handlers'
 import { seedDefaultMembers } from '../alicorn/seed-default-members'
 import { registerAlicornWorkflowHandlers } from './alicorn-workflow-handlers'
+import { registerAlicornOrgPolicyHandlers } from './alicorn-org-policy-handlers'
 import type { OrchestrationDb } from '../runtime/orchestration/db/orchestration-db'
 import type { ExecutionStrategy } from '../../shared/alicorn/ledger'
-import type { Member, MemberInput, OrgPolicy } from '../../shared/alicorn/members'
+import type { Member, MemberInput } from '../../shared/alicorn/members'
 import type { Project, ProjectInput } from '../../shared/alicorn/projects'
 import type { ForemanRunViewResult } from '../../shared/alicorn/foreman-run'
 import { readForemanRunView } from '../alicorn/foreman/run-view-source'
@@ -51,6 +52,7 @@ function asProjectInput(value: unknown): ProjectInput | null {
 
 /** Registers every `alicorn:*` IPC handler on the main process. */
 export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
+  registerAlicornOrgPolicyHandlers(deps)
   ipcMain.handle(
     ALICORN_IPC.projectsList,
     async (): Promise<{ ok: true; projects: Project[] } | AlicornFailure> =>
@@ -159,15 +161,6 @@ export function registerAlicornHandlers(deps: AlicornHandlerDeps): void {
         return { ok: true as const }
       })
     }
-  )
-
-  ipcMain.handle(
-    ALICORN_IPC.orgPolicyGet,
-    async (): Promise<{ ok: true; policy: OrgPolicy } | AlicornFailure> =>
-      attempt(deps.client, async (client) => ({
-        ok: true as const,
-        policy: await client.getOrgPolicy()
-      }))
   )
 
   ipcMain.handle(

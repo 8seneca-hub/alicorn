@@ -17,7 +17,10 @@ const DEFAULT_TTL_MS = 60_000
 // Why fail closed: if the org policy cannot be read we cannot show that a
 // reviewer is on a different backend, and the expensive mistake is letting a
 // model review its own work (PROJECT-BRIEF §11.4).
-const FAIL_CLOSED_POLICY: OrgPolicy = { enforceDistinctReviewerBackend: true }
+const FAIL_CLOSED_POLICY: OrgPolicy = {
+  enforceDistinctReviewerBackend: true,
+  defaultAutonomyLevel: 'L2'
+}
 
 export type MemberDirectory = {
   getMember: (id: string) => Promise<Member | null>

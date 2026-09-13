@@ -49,6 +49,7 @@ export type ControlPlaneClient = ControlPlaneCheckMethods & {
   updateMember: (id: string, input: MemberInput) => Promise<Member>
   deleteMember: (id: string) => Promise<void>
   getOrgPolicy: () => Promise<OrgPolicy>
+  putOrgPolicy: (policy: OrgPolicy) => Promise<OrgPolicy>
   /** OP3. `me` is resolved from the bearer, so the desktop never needs its own internal user id. */
   getSeatConnectors: () => Promise<SeatConnectorsResponse>
   /** BR1's authored reach surface is here too — empty means the project protects nothing. */
@@ -174,6 +175,11 @@ export function createControlPlaneClient(deps?: {
     },
 
     getOrgPolicy: () => readJson<OrgPolicy>('control', '/v1/policy/review-backend'),
+    putOrgPolicy: (policy) =>
+      readJson<OrgPolicy>('control', '/v1/policy/review-backend', {
+        method: 'PUT',
+        body: JSON.stringify(policy)
+      }),
 
     getSeatConnectors: () =>
       readJson<SeatConnectorsResponse>('control', '/v1/org/seats/me/connectors'),

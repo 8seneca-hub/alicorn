@@ -24,6 +24,7 @@ import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
 import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
 import { AlicornProjectContext } from './AlicornProjectContext'
 import { AlicornProjectIntegrations } from './AlicornProjectIntegrations'
+import { AlicornProjectAutonomy } from './AlicornProjectAutonomy'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectTasks } from './use-project-tasks'
@@ -38,6 +39,7 @@ const TITLES: Record<ProjectSection, string> = {
   board: 'Board',
   context: 'Context',
   inbox: 'Inbox',
+  autonomy: 'Autonomy',
   integrations: 'Integrations',
   members: 'Members',
   workflow: 'Workflow',
@@ -182,6 +184,10 @@ export function AlicornProjectScreen({
         onSaved={() => onProjectsChanged()}
       />
     )
+  }
+
+  if (route.section === 'autonomy') {
+    return <AlicornProjectAutonomy crumbs={crumbs} projectId={route.projectId} />
   }
 
   if (route.section === 'integrations' && project) {

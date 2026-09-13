@@ -19,8 +19,8 @@ function member(id: string, role: MemberRole, backend: MemberBackend, name = id)
   }
 }
 
-const ENFORCED: OrgPolicy = { enforceDistinctReviewerBackend: true }
-const RELAXED: OrgPolicy = { enforceDistinctReviewerBackend: false }
+const ENFORCED: OrgPolicy = { enforceDistinctReviewerBackend: true, defaultAutonomyLevel: 'L2' }
+const RELAXED: OrgPolicy = { enforceDistinctReviewerBackend: false, defaultAutonomyLevel: 'L2' }
 
 const DEV = member('dev', 'developer', 'claude', 'Dev')
 const REVIEWER_GROK = member('qa', 'reviewer', 'grok', 'QA')

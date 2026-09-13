@@ -11,6 +11,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { Member, OrgPolicy } from '../../../shared/alicorn/members'
+import { SHIPPED_DEFAULT_LEVEL } from '../../../shared/alicorn/autonomy-levels'
 import {
   planTaskComposition,
   type ComposerRepoOption,
@@ -88,7 +89,10 @@ export function useComposerTaskPlan(options: Options): ComposerTaskPlanState {
       repos,
       openRepoId,
       // No policy read means we cannot claim the org enforces the rule, so we do not flag it.
-      orgPolicy: orgPolicy ?? { enforceDistinctReviewerBackend: false }
+      orgPolicy: orgPolicy ?? {
+        enforceDistinctReviewerBackend: false,
+        defaultAutonomyLevel: SHIPPED_DEFAULT_LEVEL
+      }
     })
   }, [loaded, members, title, brief, repos, openRepoId, orgPolicy])
 

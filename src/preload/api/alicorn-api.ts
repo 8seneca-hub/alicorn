@@ -90,6 +90,8 @@ export type AlicornApi = {
   ) => Promise<{ ok: true; member: Member } | AlicornFailure>
   deleteMember: (id: string) => Promise<{ ok: true } | AlicornFailure>
   getOrgPolicy: () => Promise<{ ok: true; policy: OrgPolicy } | AlicornFailure>
+  /** Org-wide defaults. Never the per-stage level — that is a project's, and a member's judge. */
+  setOrgPolicy: (policy: OrgPolicy) => Promise<{ ok: true; policy: OrgPolicy } | AlicornFailure>
   /** Admin-authored per project, and read-only here: a member cannot loosen what judges it. */
   getRequiredChecks: (
     projectId: string

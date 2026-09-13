@@ -17444,7 +17444,9 @@
           "authorSet": "Author {{count}} stages for {{project}}",
           "noStagesTitle": "No stages to govern",
           "noStagesDetail": "Autonomy is authored per stage, so a project needs a workflow before it has anything to author. A task with no workflow runs as a raw session and gates nothing.",
-          "everyStageInherits": "Every stage is inherited. Authoring the set writes each one explicitly, so a later change to the default cannot move this project underneath you."
+          "everyStageInherits": "Every stage is inherited. Authoring the set writes each one explicitly, so a later change to the default cannot move this project underneath you.",
+          "oneProjectInherits": "One project inherits this. Set a stage’s own level in that project’s Autonomy.",
+          "projectsInherit": "{{count}} projects inherit this. Set a stage’s own level in that project’s Autonomy."
         },
         "project": {
           "membersErrorTitle": "Members could not be read",
@@ -17536,7 +17538,9 @@
           "contextAsk": "Ask the assistant",
           "contextFromFile": "Reading {{file}} in this project’s repository — the same file the agent reads.",
           "contextWillCreate": "This repository has no {{file}} yet. Saving writes one, seeded with what is below.",
-          "contextNoRepo": "No repository resolved on this machine, so this is kept in the control plane instead of a file."
+          "contextNoRepo": "No repository resolved on this machine, so this is kept in the control plane instead of a file.",
+          "autonomy": "Autonomy",
+          "autonomyLede": "Everything on a stage is inherited from the org library until you change it here. Nothing an agent does can loosen it — a merge, a deploy or anything irreversible gates regardless of level."
         },
         "projects": {
           "repos": "Repositories",
@@ -17690,6 +17694,9 @@
                 "7b5bf5c7dc": "plane_unavailable"
               }
             }
+          },
+          "AlicornOrgAutonomy": {
+            "65f46a5d0f": "Default autonomy"
           }
         },
         "taskChat": {

@@ -29,6 +29,7 @@ export const alicornApi: AlicornApi = {
   updateMember: (id, input) => ipcRenderer.invoke(ALICORN_IPC.membersUpdate, { id, input }),
   deleteMember: (id) => ipcRenderer.invoke(ALICORN_IPC.membersDelete, { id }),
   getOrgPolicy: () => ipcRenderer.invoke(ALICORN_IPC.orgPolicyGet),
+  setOrgPolicy: (policy) => ipcRenderer.invoke(ALICORN_IPC.orgPolicySet, { policy }),
   getRequiredChecks: (projectId) =>
     ipcRenderer.invoke(ALICORN_IPC.requiredChecksGet, { projectId }),
   setRequiredChecks: (projectId, checks) =>

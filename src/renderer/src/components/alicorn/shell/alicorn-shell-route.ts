@@ -11,6 +11,7 @@ export const PROJECT_SECTIONS = [
   'board',
   'context',
   'inbox',
+  'autonomy',
   'integrations',
   'members',
   'workflow',

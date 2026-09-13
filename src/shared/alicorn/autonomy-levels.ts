@@ -45,17 +45,22 @@ export const AUTONOMY_LEVEL_COPY: Record<AutonomyLevel, { title: string; detail:
   }
 }
 
-/** What a stage gets when nobody has authored anything — the contract's own shipped default. */
-export const ORG_DEFAULT_LEVEL: AutonomyLevel = 'L2'
+/**
+ * The floor when the org has not set one either. The org policy's `defaultAutonomyLevel` is the
+ * real answer; this is what a tenant that never saved a policy behaves as, and the two agree.
+ */
+export const SHIPPED_DEFAULT_LEVEL: AutonomyLevel = 'L2'
 
 /** How long an L3 exception stands before it lapses. §9: a standing exception always expires. */
 const NEVER_GATE_DAYS = 30
 
 export function levelOfPolicy(
-  policy: Pick<AutonomyPolicy, 'mode' | 'minRuns'> | null
+  policy: Pick<AutonomyPolicy, 'mode' | 'minRuns'> | null,
+  /** What an unauthored stage inherits — the org's default, when one has been read. */
+  inherited: AutonomyLevel = SHIPPED_DEFAULT_LEVEL
 ): AutonomyLevel {
   if (!policy) {
-    return ORG_DEFAULT_LEVEL
+    return inherited
   }
   if (policy.mode === 'always_gate') {
     return 'L0'

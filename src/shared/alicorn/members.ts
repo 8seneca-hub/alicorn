@@ -40,10 +40,18 @@ export type Member = MemberInput & {
   updatedAt: string
 }
 
+import type { AutonomyLevel } from './autonomy-levels'
+
 // Why a boolean and not a mode: decision §11.4 — enforced by default, explicit
 // opt-out, bypass recorded on the run.
 export type OrgPolicy = {
   enforceDistinctReviewerBackend: boolean
+  /**
+   * What every project's stage starts from. A level here is the value an unauthored stage takes,
+   * not a switch that reaches into a project — an org admin moves the floor, a project moves its
+   * own stages, and neither is the member being judged.
+   */
+  defaultAutonomyLevel: AutonomyLevel
 }
 
 export type DiffCoverageCheck = {

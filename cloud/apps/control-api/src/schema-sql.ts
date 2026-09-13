@@ -66,6 +66,8 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
   // Additive: a task that predates workflows reads as having none, which is what it had.
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_id TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS model TEXT`,
+  // Additive: a tenant that predates the column inherits L2, which is what it already behaved as.
+  `ALTER TABLE org_policies ADD COLUMN IF NOT EXISTS default_autonomy_level TEXT NOT NULL DEFAULT 'L2'`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_provider TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_ref TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_url TEXT`,
