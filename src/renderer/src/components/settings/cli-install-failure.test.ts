@@ -79,7 +79,7 @@ describe('readCliInstallRejection', () => {
       )
     ).toEqual({
       reason:
-        'Refusing to replace non-Orca command at /usr/local/bin/orca. ' +
+        'Refusing to replace non-Alicorn command at /usr/local/bin/orca. ' +
         'Remove it and register again if it is no longer needed.',
       conflictCommandPath: null
     })

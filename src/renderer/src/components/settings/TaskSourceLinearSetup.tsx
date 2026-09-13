@@ -105,7 +105,7 @@ export function TaskSourceLinearSetup({
           )}
           description={translate(
             'auto.components.settings.TaskSourceLinearSetup.skillDescription',
-            'Gives agents /orca-linear to read tickets, post updates, move states, and attach pull or merge requests.'
+            'Gives agents /alicorn-linear to read tickets, post updates, move states, and attach pull or merge requests.'
           )}
           className={skillInstallBlocked ? 'opacity-60' : undefined}
         >

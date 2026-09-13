@@ -146,7 +146,7 @@ export function LinearAgentSkillGuide({
               <p className="text-xs text-muted-foreground">
                 {translate(
                   'auto.components.settings.LinearAgentSkillGuide.setupSkillBody',
-                  'Gives coding agents /orca-linear for reading, updates, triage, and attaching pull or merge requests.'
+                  'Gives coding agents /alicorn-linear for reading, updates, triage, and attaching pull or merge requests.'
                 )}
               </p>
             </div>

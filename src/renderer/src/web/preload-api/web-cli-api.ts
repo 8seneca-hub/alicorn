@@ -1,10 +1,11 @@
 import type { PreloadApi } from '../../../../preload/api-types'
 import { getBrowserPlatform } from './web-storage'
+import { getAlicornCliCommandNameForPlatform } from '../../../../shared/alicorn-cli-command-name'
 
 export function createCliApi(): NonNullable<Partial<PreloadApi>['cli']> {
   const status = {
     platform: getBrowserPlatform(),
-    commandName: getBrowserPlatform() === 'linux' ? 'orca-ide' : 'orca',
+    commandName: getAlicornCliCommandNameForPlatform(getBrowserPlatform()),
     commandPath: null,
     pathDirectory: null,
     pathConfigured: false,

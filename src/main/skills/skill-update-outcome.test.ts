@@ -179,15 +179,15 @@ describe('skillUpdateFailedNames over a real inventory', () => {
   })
 
   async function postCutFixture(): Promise<{ homeDir: string; installedTreeSha: string }> {
-    const root = await mkdtemp(join(tmpdir(), 'orca-skill-outcome-'))
+    const root = await mkdtemp(join(tmpdir(), 'alicorn-skill-outcome-'))
     temporaryDirectories.push(root)
     const homeDir = join(root, 'home')
-    const skillDir = join(homeDir, '.agents', 'skills', 'orca-cli')
+    const skillDir = join(homeDir, '.agents', 'skills', 'alicorn-cli')
     await mkdir(skillDir, { recursive: true })
     // Current bytes plus one upstream edit: content no snapshot in this build's
     // registry has ever seen, exactly what `skills update` installs after the
     // source repo moves past the release cut.
-    const current = await readFile(join(repoRoot, 'skills', 'orca-cli', 'SKILL.md'))
+    const current = await readFile(join(repoRoot, 'skills', 'alicorn-cli', 'SKILL.md'))
     await writeFile(
       join(skillDir, 'SKILL.md'),
       Buffer.concat([current, Buffer.from('\nUpstream edit published after this build.\n')])
@@ -201,9 +201,9 @@ describe('skillUpdateFailedNames over a real inventory', () => {
       JSON.stringify({
         version: 3,
         skills: {
-          'orca-cli': {
+          'alicorn-cli': {
             skillFolderHash,
-            skillPath: 'skills/orca-cli',
+            skillPath: 'skills/alicorn-cli',
             source: 'github.com/stablyai/orca'
           }
         }
@@ -227,13 +227,13 @@ describe('skillUpdateFailedNames over a real inventory', () => {
     // come from the lock — the scan now reclassifies that match to 'newer-known'
     // (the #11220 scan half), and the verdict accepts it either way.
     const canonical = inventory.installations.filter(
-      (entry) => entry.name === 'orca-cli' && entry.topology === 'canonical-copy'
+      (entry) => entry.name === 'alicorn-cli' && entry.topology === 'canonical-copy'
     )
     expect(canonical).toHaveLength(1)
     expect(canonical[0].status).toBe('newer-known')
     expect(canonical[0].installedReleaseRevision).toBeNull()
 
-    expect(skillUpdateFailedNames(['orca-cli'], inventory.installations, locks)).toEqual([])
+    expect(skillUpdateFailedNames(['alicorn-cli'], inventory.installations, locks)).toEqual([])
   })
 
   it('keeps failing the same content when the lock names different bytes', async () => {
@@ -248,8 +248,8 @@ describe('skillUpdateFailedNames over a real inventory', () => {
     })
     const locks = await readGloballyUpdatableSkillLocks({ homeDir })
 
-    expect(skillUpdateFailedNames(['orca-cli'], inventory.installations, locks)).toEqual([
-      'orca-cli'
+    expect(skillUpdateFailedNames(['alicorn-cli'], inventory.installations, locks)).toEqual([
+      'alicorn-cli'
     ])
   })
 })

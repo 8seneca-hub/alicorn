@@ -100,7 +100,7 @@ describe('CliSection install failure surfacing', () => {
     const alert = screen.getByRole('alert')
     expect(alert.textContent).toContain('Failed to register `orca` in PATH.')
     expect(alert.textContent).toContain(
-      'Refusing to replace non-Orca command at /usr/local/bin/orca.'
+      'Refusing to replace non-Alicorn command at /usr/local/bin/orca.'
     )
     expect(alert.textContent).toContain('Remove it and register again if it is no longer needed.')
     // The Electron transport wrapper must not leak into the panel.

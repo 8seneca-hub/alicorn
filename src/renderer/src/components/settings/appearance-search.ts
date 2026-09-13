@@ -106,7 +106,7 @@ export const getTypographyEntries = createLocalizedCatalog((): SettingsSearchEnt
         'typography'
       ),
       ...translateSearchKeyword('auto.components.settings.appearance.search.fab91464dd', 'ide'),
-      ...translateSearchKeyword('auto.components.settings.appearance.search.1f2880a9d5', 'orca'),
+      ...translateSearchKeyword('auto.components.settings.appearance.search.1f2880a9d5', 'alicorn'),
       ...translateSearchKeyword(
         'auto.components.settings.appearance.search.5095258df2',
         'interface'
@@ -156,7 +156,7 @@ export const getTitlebarEntries = createLocalizedCatalog((): SettingsSearchEntry
         'auto.components.settings.appearance.search.bed343b03e',
         'titlebar'
       ),
-      ...translateSearchKeyword('auto.components.settings.appearance.search.1f2880a9d5', 'orca'),
+      ...translateSearchKeyword('auto.components.settings.appearance.search.1f2880a9d5', 'alicorn'),
       ...translateSearchKeyword('auto.components.settings.appearance.search.36e006efc1', 'app'),
       ...translateSearchKeyword('auto.components.settings.appearance.search.51f957ce39', 'name'),
       ...translateSearchKeyword('auto.components.settings.appearance.search.a895d0f938', 'brand')
@@ -187,7 +187,7 @@ export const getAppIconEntries = createLocalizedCatalog((): SettingsSearchEntry[
         'auto.components.settings.appearance.search.2cfb3420c0',
         'app icon'
       ),
-      ...translateSearchKeyword('auto.components.settings.appearance.search.1f2880a9d5', 'orca'),
+      ...translateSearchKeyword('auto.components.settings.appearance.search.1f2880a9d5', 'alicorn'),
       ...translateSearchKeyword('auto.components.settings.appearance.search.d18b54ca90', 'dock'),
       ...translateSearchKeyword('auto.components.settings.appearance.search.e5bc35d59e', 'window'),
       ...translateSearchKeyword(

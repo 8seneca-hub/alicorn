@@ -160,7 +160,7 @@ export function PluginInstallDialog({
                 onChange={(event) => setGitUrl(event.target.value)}
                 placeholder={translate(
                   'auto.components.settings.PluginInstallDialog.gitPlaceholder',
-                  'https://git.example/acme/orca-notes#v0.1.0'
+                  'https://git.example/acme/alicorn-notes#v0.1.0'
                 )}
                 spellCheck={false}
                 aria-invalid={kind === 'git' && Boolean(error)}

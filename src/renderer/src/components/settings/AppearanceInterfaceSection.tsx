@@ -204,7 +204,7 @@ export function AppearanceInterfaceSection({
                 'Titlebar App Name'
               )}
               description={titlebarEntry?.description}
-              keywords={titlebarEntry?.keywords ?? ['titlebar', 'orca', 'app', 'name']}
+              keywords={titlebarEntry?.keywords ?? ['titlebar', 'alicorn', 'app', 'name']}
             >
               <SettingsSwitchRow
                 label={translate(
