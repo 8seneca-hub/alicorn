@@ -176,6 +176,7 @@ export function AlicornProjectScreen({
       <AlicornProjectContext
         crumbs={crumbs}
         project={project}
+        repoPath={projectRepos[0]?.path ?? null}
         onSaved={() => onProjectsChanged()}
       />
     )

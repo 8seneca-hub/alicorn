@@ -17527,7 +17527,10 @@
           "noContextTitle": "Nothing written yet",
           "noContextDetail": "The domain, the users, the constraints that hold across every ticket — the part a repository cannot teach. Every brief carries it, so a member reads it before it reads the ticket.",
           "contextWrite": "Write it",
-          "contextAsk": "Ask the assistant"
+          "contextAsk": "Ask the assistant",
+          "contextFromFile": "Reading {{file}} in this project’s repository — the same file the agent reads.",
+          "contextWillCreate": "This repository has no {{file}} yet. Saving writes one, seeded with what is below.",
+          "contextNoRepo": "No repository resolved on this machine, so this is kept in the control plane instead of a file."
         },
         "projects": {
           "repos": "Repositories",

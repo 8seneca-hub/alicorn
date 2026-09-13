@@ -1,14 +1,18 @@
 /**
- * What the project is for, written once and read by every member that works it.
+ * The project's CLAUDE.md, rendered.
  *
- * This is the project's CLAUDE.md, and it is a *screen* rather than a file in a repository for one
- * reason: a project may span several repositories, and a fact about the domain is not a fact about
- * any one of them. It also has to be readable by a person, which a prompt fragment in a settings
- * field is not — so it is markdown, rendered.
+ * **The file is the artifact.** Claude reads `CLAUDE.md` out of the working directory by itself, so
+ * a context kept only in the control plane is a second description of the project that the agent
+ * never sees — and the two drift the moment anyone edits either. Where the file exists, this screen
+ * shows it and writes it.
  *
- * The assistant writes here too, through `alicorn_set_project_context`. That is the point of it
- * being one field rather than prose scattered across tickets: ask for the domain to be written
- * down, and every brief afterwards carries it.
+ * The control-plane `context` is the seed and the fallback. An imported project has its board's
+ * description before it has a repository worth reading, so the first save turns that description
+ * into the repository's first CLAUDE.md. A project with no repository resolved here keeps the
+ * control-plane copy, which is better than nothing to show.
+ *
+ * The assistant writes the control-plane copy through `alicorn_set_project_context`; asking it to
+ * write the file is a thing it can do directly, because it has the working directory.
  */
 import React from 'react'
 import { Pencil, Sparkles } from 'lucide-react'
@@ -16,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import CommentMarkdown from '../../sidebar/CommentMarkdown'
 import type { Project } from '../../../../../shared/alicorn/projects'
+import { CLAUDE_MD, useProjectClaudeMd, writeProjectClaudeMd } from './use-project-claude-md'
 import { setAlicornAssistantOpen } from '../assistant/alicorn-assistant-store'
 import {
   AlicornEmptyState,
@@ -27,19 +32,24 @@ import {
 export function AlicornProjectContext({
   crumbs,
   project,
+  repoPath,
   onSaved
 }: {
   crumbs: AlicornCrumb[]
   project: Project
+  /** The project's primary repository on this machine, when one resolves. */
+  repoPath: string | null
   onSaved: () => void
 }): React.JSX.Element {
-  const context = project.context
+  const claudeMd = useProjectClaudeMd({ repoPath, fallback: project.context })
+  const context = claudeMd.text
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(context)
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
 
-  // Reset during render when the saved value changes underneath — the assistant may have written it.
+  // Reset during render when the saved value changes underneath — the file may have been rewritten
+  // by an agent working in this very repository, which is the normal case here.
   const [seen, setSeen] = React.useState(context)
   if (seen !== context && !editing) {
     setSeen(context)
@@ -49,23 +59,32 @@ export function AlicornProjectContext({
   const save = async (): Promise<void> => {
     setBusy(true)
     setFailure(null)
-    const update = window.api?.alicorn?.updateProject
-    // A whole project, because the Control API's PUT takes one — sending a partial would blank
-    // every field this screen does not edit.
-    const result = await update?.(project.id, {
-      name: project.name,
-      key: project.key,
-      context: draft,
-      repoIds: project.repoIds,
-      source: project.source
-    })
-    setBusy(false)
-    if (!result?.ok) {
-      setFailure(result?.error ?? 'control_plane_unreachable')
-      return
+    try {
+      if (claudeMd.path) {
+        // The file, because that is what the agent reads. Writing the control-plane copy as well
+        // would be a second answer nothing keeps in sync.
+        await writeProjectClaudeMd(claudeMd.path, draft)
+        claudeMd.reload()
+      } else {
+        // No repository here, so there is nowhere to put a file. The control plane holds it.
+        const result = await window.api?.alicorn?.updateProject?.(project.id, {
+          name: project.name,
+          key: project.key,
+          context: draft,
+          repoIds: project.repoIds,
+          source: project.source
+        })
+        if (!result?.ok) {
+          throw new Error(result?.error ?? 'control_plane_unreachable')
+        }
+        onSaved()
+      }
+      setEditing(false)
+    } catch (cause) {
+      setFailure(cause instanceof Error ? cause.message : String(cause))
+    } finally {
+      setBusy(false)
     }
-    setEditing(false)
-    onSaved()
   }
 
   return (
@@ -104,6 +123,24 @@ export function AlicornProjectContext({
         }
       />
       <AlicornScreenBody>
+        <p className="mb-4 text-[11px] text-muted-foreground">
+          {claudeMd.path
+            ? claudeMd.fromFile
+              ? translate(
+                  'auto.components.alicorn.project.contextFromFile',
+                  'Reading {{file}} in this project’s repository — the same file the agent reads.',
+                  { file: CLAUDE_MD }
+                )
+              : translate(
+                  'auto.components.alicorn.project.contextWillCreate',
+                  'This repository has no {{file}} yet. Saving writes one, seeded with what is below.',
+                  { file: CLAUDE_MD }
+                )
+            : translate(
+                'auto.components.alicorn.project.contextNoRepo',
+                'No repository resolved on this machine, so this is kept in the control plane instead of a file.'
+              )}
+        </p>
         {editing ? (
           <>
             <textarea
