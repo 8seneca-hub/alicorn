@@ -31,6 +31,8 @@ export type TaskInput = {
   /** A board column id — one of Alicorn's workspace statuses. */
   column: string
   executionStrategy: ExecutionStrategy
+  /** Which of the project's workflows this runs under. Null is a raw session with no stages. */
+  workflowId: string | null
   stageKey: string | null
   memberIds: string[]
   /** Null for a task typed here; set for one imported from a PM tool. */

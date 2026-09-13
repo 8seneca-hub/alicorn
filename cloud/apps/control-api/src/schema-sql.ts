@@ -63,6 +63,8 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
   `CREATE INDEX IF NOT EXISTS tasks_project_column ON tasks(tenant_id, project_id, column_id)`,
   // Tables created before PM import gain the columns here; `CREATE TABLE IF NOT EXISTS` above only
   // ever builds a fresh one.
+  // Additive: a task that predates workflows reads as having none, which is what it had.
+  `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_id TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_provider TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_ref TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_url TEXT`,

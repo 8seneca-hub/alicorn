@@ -21,7 +21,7 @@
  * a mirror that went stale the moment someone edited it upstream.
  */
 import React from 'react'
-import { ChevronDown, ChevronRight, Workflow } from 'lucide-react'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ import { useComposerTaskPlan } from '@/hooks/use-composer-task-plan'
 import { useProjectWorkflow } from './use-project-workflow'
 import { useProjectBoardIssues } from './use-project-board-issues'
 import { useContextFileDrop } from './use-context-file-drop'
+import { AlicornIssuePicker } from './AlicornIssuePicker'
 import { planeIssueToTask } from '../../../../../shared/alicorn/pm-import'
 import { EXECUTION_STRATEGIES } from '../../../../../shared/alicorn/ledger'
 import type { ExecutionStrategy } from '../../../../../shared/alicorn/ledger'
@@ -53,6 +54,9 @@ import type { ProjectSource } from '../../../../../shared/alicorn/projects'
 import type { TaskInput } from '../../../../../shared/alicorn/tasks'
 import type { TaskSource } from '../../../../../shared/alicorn/tasks'
 import type { TaskResult } from './use-project-tasks'
+
+/** The select's own value for "none"; an empty string is not a legal SelectItem value. */
+const NO_WORKFLOW = 'none'
 
 function FieldLabel({
   children,
@@ -111,9 +115,9 @@ function NewTaskDialogBody({
   const [advanced, setAdvanced] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
-  // Null while the workflow is still being read, so the first stage can be the default without an
-  // effect that would overwrite a choice made before the read settled.
-  const [stageKey, setStageKey] = React.useState<string | null>(null)
+  // Undefined means "not chosen yet", which is different from null — null is a deliberate "no
+  // workflow". Resolving it at read time keeps an effect from overwriting a choice made early.
+  const [workflowId, setWorkflowId] = React.useState<string | null | undefined>(undefined)
   const [source, setSource] = React.useState<TaskSource | null>(null)
   const board = useProjectBoardIssues(projectSource, true)
   const drop = useContextFileDrop({
@@ -121,9 +125,10 @@ function NewTaskDialogBody({
     onPaths: (text) =>
       setBrief((current) => (current.trim() ? `${current.trimEnd()}\n${text}` : text))
   })
-  const { workflow, loading: workflowLoading } = useProjectWorkflow(projectId)
-  const stages = workflow?.stages ?? []
-  const startStage = stageKey ?? stages[0]?.key ?? null
+  const { workflows, loading: workflowLoading } = useProjectWorkflow(projectId)
+  // The project's first workflow is the default because it is the one a project is created with;
+  // choosing None is how you get a raw session, and it has to be as easy to say.
+  const chosenWorkflowId = workflowId === undefined ? (workflows[0]?.id ?? null) : workflowId
 
   const repoOptions = React.useMemo(
     () => projectRepos.map((repo) => ({ id: repo.id, name: repo.displayName })),
@@ -146,7 +151,10 @@ function NewTaskDialogBody({
       context: brief,
       column: 'todo',
       executionStrategy: strategy,
-      stageKey: startStage,
+      workflowId: chosenWorkflowId,
+      // The stage is the workflow's to decide, not the composer's: a task enters at the start and
+      // the board moves it on. Null here means "not started", which is what a new ticket is.
+      stageKey: null,
       source,
       memberIds: [...new Set(memberIds)]
     })
@@ -184,10 +192,17 @@ function NewTaskDialogBody({
             {board.error ? (
               <Trail>{board.error}</Trail>
             ) : (
-              <Select
-                value={source?.ref ?? ''}
-                onValueChange={(ref) => {
-                  const issue = board.issues.find((candidate) => candidate.readableId === ref)
+              <AlicornIssuePicker
+                issues={board.issues.map((issue) => ({
+                  id: issue.id,
+                  ref: issue.readableId,
+                  title: issue.name
+                }))}
+                loading={board.loading}
+                selectedRef={source?.ref ?? null}
+                boardLabel={projectSource.identifier || projectSource.boardId}
+                onSelect={(option) => {
+                  const issue = board.issues.find((candidate) => candidate.id === option.id)
                   if (!issue) {
                     return
                   }
@@ -198,38 +213,7 @@ function NewTaskDialogBody({
                   setBrief(mapped.context)
                   setSource(mapped.source)
                 }}
-              >
-                <SelectTrigger
-                  id="alicorn-task-issue"
-                  className="h-8 w-full text-xs"
-                  aria-label={translate(
-                    'auto.components.alicorn.newTask.fromIssue',
-                    'From an issue'
-                  )}
-                >
-                  <SelectValue
-                    placeholder={
-                      board.loading
-                        ? translate(
-                            'auto.components.alicorn.newTask.issuesLoading',
-                            'Reading the board…'
-                          )
-                        : translate(
-                            'auto.components.alicorn.newTask.issuePlaceholder',
-                            'Start from an issue on {{board}}, or just type below',
-                            { board: projectSource.identifier || projectSource.boardId }
-                          )
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {board.issues.map((issue) => (
-                    <SelectItem key={issue.id} value={issue.readableId} className="text-xs">
-                      {issue.readableId} · {issue.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             )}
             {source ? (
               <Trail>
@@ -286,49 +270,47 @@ function NewTaskDialogBody({
         </div>
 
         <div className="space-y-1.5">
-          <FieldLabel htmlFor="alicorn-task-stage">
+          <FieldLabel htmlFor="alicorn-task-workflow">
             {translate('auto.components.alicorn.newTask.workflow', 'Workflow')}
           </FieldLabel>
           {workflowLoading ? (
             <Trail>
               {translate('auto.components.alicorn.project.workflowLoading', 'Reading workflows…')}
             </Trail>
-          ) : stages.length === 0 ? (
-            <Trail>
-              {translate(
-                'auto.components.alicorn.newTask.noWorkflow',
-                'This project has no workflow, so the task starts at no stage. That is still a perfectly ordinary task — it just has nowhere to hand off at.'
-              )}
-            </Trail>
           ) : (
             <>
-              <div className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5">
-                <Workflow className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">
-                  {workflow?.name}
-                </span>
-                <Select value={startStage ?? ''} onValueChange={setStageKey}>
-                  <SelectTrigger
-                    id="alicorn-task-stage"
-                    className="h-7 w-[190px] shrink-0 text-xs"
-                    aria-label={translate('auto.components.alicorn.newTask.startsAt', 'Starts at')}
-                  >
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stages.map((stage) => (
-                      <SelectItem key={stage.key} value={stage.key} className="text-xs">
-                        {stage.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select
+                value={chosenWorkflowId ?? NO_WORKFLOW}
+                onValueChange={(value) => setWorkflowId(value === NO_WORKFLOW ? null : value)}
+              >
+                <SelectTrigger
+                  id="alicorn-task-workflow"
+                  className="h-8 w-full text-xs"
+                  aria-label={translate('auto.components.alicorn.newTask.workflow', 'Workflow')}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {workflows.map((summary) => (
+                    <SelectItem key={summary.id} value={summary.id} className="text-xs">
+                      {summary.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={NO_WORKFLOW} className="text-xs">
+                    {translate('auto.components.alicorn.newTask.noWorkflowOption', 'No workflow')}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               <Trail>
-                {translate(
-                  'auto.components.alicorn.newTask.workflowTrail',
-                  'The stage it starts at. Required checks, reversibility and inherited cost come from the stage, never from whoever is working it.'
-                )}
+                {chosenWorkflowId
+                  ? translate(
+                      'auto.components.alicorn.newTask.workflowTrail',
+                      'Its stages, its gates and its required checks. All authored on the workflow, never by whoever is working the task.'
+                    )
+                  : translate(
+                      'auto.components.alicorn.newTask.noWorkflowTrail',
+                      'A raw session on the brief — no stages, no hand-off, nothing to gate at. This is what most work wants.'
+                    )}
               </Trail>
             </>
           )}

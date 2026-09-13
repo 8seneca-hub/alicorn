@@ -52,6 +52,7 @@ const TaskCreateParams = z.object({
   context: OptionalString,
   column: OptionalString,
   executionStrategy: z.enum(['single', 'orchestrated']).optional(),
+  workflowId: OptionalString,
   stageKey: OptionalString,
   memberIds: z.array(z.string().min(1)).optional()
 })
@@ -62,6 +63,7 @@ const TaskUpdateParams = z.object({
   context: OptionalString,
   column: OptionalString,
   executionStrategy: z.enum(['single', 'orchestrated']).optional(),
+  workflowId: OptionalString,
   stageKey: OptionalString,
   memberIds: z.array(z.string().min(1)).optional()
 })
@@ -150,6 +152,7 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
           context: params.context ?? '',
           column: params.column ?? 'todo',
           executionStrategy: params.executionStrategy ?? 'single',
+          workflowId: params.workflowId ?? null,
           stageKey: params.stageKey ?? null,
           memberIds: params.memberIds ?? [],
           source: params.source ? { ...params.source, url: params.source.url ?? null } : null
@@ -179,6 +182,9 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
       }
       if (params.stageKey !== undefined) {
         patch.stageKey = params.stageKey
+      }
+      if (params.workflowId !== undefined) {
+        patch.workflowId = params.workflowId
       }
       if (params.memberIds !== undefined) {
         patch.memberIds = params.memberIds

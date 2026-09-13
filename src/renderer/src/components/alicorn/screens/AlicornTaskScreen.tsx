@@ -44,7 +44,10 @@ export function AlicornTaskScreen({
   onBack: () => void
   onOpenWorkspace: (worktreeId: string) => void
 }): React.JSX.Element {
-  const { workflow } = useProjectWorkflow(projectId)
+  // The task's own workflow. A task with none has no rail at all, which is the honest drawing of
+  // a raw session: there are no stages to be at.
+  const { workflow } = useProjectWorkflow(projectId, task.workflowId)
+  const taskWorkflow = task.workflowId === null ? null : workflow
   const { members } = useAlicornMembers()
   const projectRepoIds = React.useMemo(() => projectRepos.map((repo) => repo.id), [projectRepos])
   const workspace = useTaskWorkspace(task, projectKey, projectRepoIds, projectContext)
@@ -60,7 +63,7 @@ export function AlicornTaskScreen({
         task={task}
         projectKey={projectKey}
         crumbs={crumbs}
-        stages={workflow?.stages ?? []}
+        stages={taskWorkflow?.stages ?? []}
         members={bound}
         activity={workspace.session ? activity : 'offline'}
         // Null, never a guessed zero: cost attribution covers the backends Alicorn prices, and a

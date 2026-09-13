@@ -64,7 +64,15 @@ export const TaskInputSchema = z.object({
    * anything that makes `orchestrated` the default path is wrong (CLAUDE.md).
    */
   executionStrategy: ExecutionStrategySchema.default('single'),
-  /** A stage of the project's workflow, or null when no workflow is attached. */
+  /**
+   * Which workflow this task runs under, of the several a project may hold — an investigation is
+   * not a feature delivery, and pretending one shape fits both is what made the rail noise.
+   *
+   * **Null is a real answer**, not an omission: no workflow, no stages, no hand-off — a raw session
+   * on a brief. That is the majority of work and it stays the cheapest thing to ask for.
+   */
+  workflowId: z.string().trim().min(1).max(200).nullable().default(null),
+  /** A stage of that workflow. Null when there is no workflow, or before it has started. */
   stageKey: z.string().trim().min(1).max(120).nullable().default(null),
   /** Org members bound to this task. Order is not meaningful; the set is. */
   memberIds: z.array(z.string().trim().min(1).max(200)).max(20).default([]),
@@ -92,6 +100,7 @@ export type Task = {
   context: string
   column: string
   executionStrategy: ExecutionStrategy
+  workflowId: string | null
   stageKey: string | null
   memberIds: string[]
   source: TaskSource | null

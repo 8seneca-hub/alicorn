@@ -17572,7 +17572,11 @@
           "fromIssue": "From an issue",
           "issuesLoading": "Reading the board…",
           "issuePlaceholder": "Start from an issue on {{board}}, or just type below",
-          "issueLinked": "Linked to {{ref}}. The issue stays in the PM tool; this task points back at it."
+          "issueLinked": "Linked to {{ref}}. The issue stays in the PM tool; this task points back at it.",
+          "issueSearch": "ALC-113, or “outbox dedupe”",
+          "noIssue": "No issue matches that.",
+          "noWorkflowOption": "No workflow",
+          "noWorkflowTrail": "A raw session on the brief — no stages, no hand-off, nothing to gate at. This is what most work wants."
         },
         "task": {
           "errorTitle": "Tasks could not be read",

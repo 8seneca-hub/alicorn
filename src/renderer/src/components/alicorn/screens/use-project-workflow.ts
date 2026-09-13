@@ -23,7 +23,11 @@ export type ProjectWorkflowState = {
   reload: () => void
 }
 
-export function useProjectWorkflow(projectId: string): ProjectWorkflowState {
+export function useProjectWorkflow(
+  projectId: string,
+  /** Open this one rather than the first — a task names the workflow it runs under. */
+  preferredId?: string | null
+): ProjectWorkflowState {
   const [workflows, setWorkflows] = React.useState<WorkflowSummary[]>([])
   const [workflow, setWorkflow] = React.useState<Workflow | null>(null)
   const [selectedId, setSelectedId] = React.useState<string | null>(null)
@@ -65,10 +69,12 @@ export function useProjectWorkflow(projectId: string): ProjectWorkflowState {
         return
       }
       setWorkflows(listed.workflows)
-      // A selection that survived a reload wins; otherwise the first, which is what a caller that
-      // never selects anything gets.
+      // A selection that survived a reload wins, then the caller's preference, then the first —
+      // which is what a caller that names neither gets.
       const open =
-        listed.workflows.find((candidate) => candidate.id === selectedId) ?? listed.workflows[0]
+        listed.workflows.find((candidate) => candidate.id === selectedId) ??
+        listed.workflows.find((candidate) => candidate.id === preferredId) ??
+        listed.workflows[0]
       if (!open) {
         setWorkflow(null)
         setLoading(false)
@@ -88,7 +94,7 @@ export function useProjectWorkflow(projectId: string): ProjectWorkflowState {
     return () => {
       cancelled = true
     }
-  }, [projectId, selectedId, reloads])
+  }, [preferredId, projectId, selectedId, reloads])
 
   return {
     workflows,

@@ -70,6 +70,7 @@ export function planeIssueToTask(
     context: htmlToPlainText(issue.descriptionHtml ?? ''),
     column: 'todo',
     executionStrategy: 'single',
+    workflowId: null,
     stageKey: null,
     memberIds: [],
     source: {
