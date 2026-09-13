@@ -21,6 +21,10 @@ import { useAppStore } from '@/store'
 import type { TaskWorktreeTuple } from '../../../../../shared/alicorn/feature-workspace-tuples'
 import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'
 import { launchAlicornSession } from './launch-alicorn-session'
+import {
+  DEFAULT_TASK_BRIEF_TEMPLATE,
+  renderTaskBrief
+} from '../../../../../shared/alicorn/task-brief'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 
 /**
@@ -29,18 +33,6 @@ import type { Task } from '../../../../../shared/alicorn/tasks'
  * This is the whole point of capturing context on the task — an agent that has to rediscover the
  * constraint is the underinformed member the ledger cannot tell from a wrong one.
  */
-export function taskOpeningPrompt(ref: string, task: Pick<Task, 'title' | 'context'>): string {
-  const brief = task.context.trim()
-  const head = brief ? `${ref} — ${task.title}\n\n${brief}` : `${ref} — ${task.title}`
-  return [
-    head,
-    '',
-    'You are working this task inside Alicorn. Use the alicorn_* MCP tools to move it on the board,',
-    'record what you did and pull in whoever else it needs. Decide for yourself whether this needs',
-    'its own branch or worktree — nothing has been created for you.'
-  ].join('\n')
-}
-
 export type TaskWorkspaceState = {
   tuples: TaskWorktreeTuple[]
   /** The conversation this task is being worked in; null until someone starts it. */
@@ -58,7 +50,9 @@ export function useTaskWorkspace(
   task: Task,
   projectKey: string,
   /** The repositories this project resolved on this machine; one of them will host the session. */
-  projectRepoIds: readonly string[]
+  projectRepoIds: readonly string[],
+  /** What the project is for. Rides in every brief so a member reads the domain first. */
+  projectContext = ''
 ): TaskWorkspaceState {
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
   const [tuples, setTuples] = React.useState<TaskWorktreeTuple[]>([])
@@ -117,7 +111,12 @@ export function useTaskWorkspace(
         }
         const binding = await launchAlicornSession({
           worktreeId: workspace.id,
-          prompt: taskOpeningPrompt(`${projectKey}-${task.number}`, task)
+          prompt: renderTaskBrief(DEFAULT_TASK_BRIEF_TEMPLATE, {
+            ref: `${projectKey}-${task.number}`,
+            title: task.title,
+            context: task.context,
+            project_context: projectContext
+          })
         })
         await api.bindSubjectSession(task.id, binding)
         setSession(binding)
@@ -127,7 +126,7 @@ export function useTaskWorkspace(
         setStarting(false)
       }
     },
-    [projectKey, task, worktreesByRepo]
+    [projectContext, projectKey, task, worktreesByRepo]
   )
 
   // Where the session goes: the repository this task is already bound to, else the project's only

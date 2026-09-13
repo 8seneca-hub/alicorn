@@ -15,6 +15,13 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      created_by TEXT NOT NULL,
      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
+  // Additive, like tasks' source columns: a project that predates them reads as un-imported with
+  // no context, which is exactly what it was.
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS context TEXT NOT NULL DEFAULT ''`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS source_provider TEXT`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS source_board_id TEXT`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS source_identifier TEXT`,
+  `ALTER TABLE projects ADD COLUMN IF NOT EXISTS source_url TEXT`,
   `CREATE UNIQUE INDEX IF NOT EXISTS projects_tenant_name ON projects(tenant_id, name)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS projects_tenant_key ON projects(tenant_id, key)`,
   tenantRlsPolicySql('projects'),

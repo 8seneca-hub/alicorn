@@ -17415,7 +17415,10 @@
           "reposEmptyHint": "Pick the folder the project lives in. A project can own several.",
           "cancel": "Cancel",
           "create": "Create project",
-          "requiresRepo": "A project needs at least one repository."
+          "requiresRepo": "A project needs at least one repository.",
+          "context": "What this project is for",
+          "contextPlaceholder": "The domain, the users, the constraints that hold across every ticket. Optional, and editable later.",
+          "contextHint": "Carried into every brief, so a member reads the domain before it reads the ticket."
         },
         "org": {
           "checksNote": "Required checks are authored per project by an org admin, so they live in a project rather than here. A member cannot loosen the criteria that judge it, which is why this pane does not edit them.",

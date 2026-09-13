@@ -60,6 +60,7 @@ function AlicornNewProjectForm({
   const [name, setName] = React.useState('')
   const [key, setKey] = React.useState('')
   const [keyTouched, setKeyTouched] = React.useState(false)
+  const [context, setContext] = React.useState('')
   const [repoIds, setRepoIds] = React.useState<string[]>([])
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
@@ -76,7 +77,9 @@ function AlicornNewProjectForm({
     const result = await onCreate({
       name: name.trim(),
       key: effectiveKey,
-      repoIds
+      context: context.trim(),
+      repoIds,
+      source: null
     })
     setBusy(false)
     if (!result.ok) {
@@ -163,6 +166,28 @@ function AlicornNewProjectForm({
                   'Prefixes every task id — {{key}}-142.',
                   { key: effectiveKey || 'PAY' }
                 )}
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium" htmlFor="alicorn-project-context">
+            {translate('auto.components.alicorn.newProject.context', 'What this project is for')}
+          </label>
+          <textarea
+            id="alicorn-project-context"
+            value={context}
+            onChange={(event) => setContext(event.target.value)}
+            placeholder={translate(
+              'auto.components.alicorn.newProject.contextPlaceholder',
+              'The domain, the users, the constraints that hold across every ticket. Optional, and editable later.'
+            )}
+            className="min-h-[84px] w-full rounded-md border border-border bg-background px-3 py-2 text-xs outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          />
+          <p className="text-[11px] text-muted-foreground">
+            {translate(
+              'auto.components.alicorn.newProject.contextHint',
+              'Carried into every brief, so a member reads the domain before it reads the ticket.'
+            )}
           </p>
         </div>
 

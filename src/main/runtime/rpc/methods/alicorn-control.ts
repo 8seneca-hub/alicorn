@@ -30,10 +30,19 @@ const TaskSourceParams = z.object({
   url: OptionalString
 })
 
+const ProjectSourceParams = z.object({
+  provider: z.enum(['plane', 'linear', 'jira']),
+  boardId: z.string().min(1),
+  identifier: z.string().default(''),
+  url: z.string().nullable().default(null)
+})
+
 const ProjectCreateParams = z.object({
   name: z.string().min(1),
   key: z.string().min(1),
-  repoIds: z.array(z.string().min(1))
+  context: z.string().default(''),
+  repoIds: z.array(z.string().min(1)),
+  source: ProjectSourceParams.nullable().default(null)
 })
 
 const TaskCreateParams = z.object({
@@ -84,7 +93,9 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
         body: JSON.stringify({
           name: params.name,
           key: params.key,
-          repoIds: params.repoIds
+          context: params.context,
+          repoIds: params.repoIds,
+          source: params.source
         } satisfies ProjectInput)
       })
       return { project: body.project }

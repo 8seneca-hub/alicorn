@@ -1,23 +1,46 @@
 import type pg from 'pg'
 import { withTenant } from '@alicorn-cloud/control-plane-postgres'
-import type { Project, ProjectInput } from '@alicorn-cloud/control-plane-contract'
+import type {
+  Project,
+  ProjectInput,
+  ProjectSource
+} from '@alicorn-cloud/control-plane-contract'
 
 type ProjectRow = {
   id: string
   tenant_id: string
   name: string
   key: string
+  context: string | null
   created_by: string
   created_at: Date | string
   updated_at: Date | string
   repo_ids: string[] | null
+  source_provider: string | null
+  source_board_id: string | null
+  source_identifier: string | null
+  source_url: string | null
 }
 
 const SELECT_PROJECTS = `
-  SELECT p.id, p.tenant_id, p.name, p.key, p.created_by, p.created_at, p.updated_at,
+  SELECT p.id, p.tenant_id, p.name, p.key, p.context, p.created_by, p.created_at, p.updated_at,
+         p.source_provider, p.source_board_id, p.source_identifier, p.source_url,
          COALESCE(array_agg(r.repo_id ORDER BY r.repo_id) FILTER (WHERE r.repo_id IS NOT NULL), '{}') AS repo_ids
   FROM projects p
   LEFT JOIN project_repos r ON r.project_id = p.id`
+
+/** Both halves or neither: a provider with no board id names nothing the API could call. */
+function toSource(row: ProjectRow): ProjectSource | null {
+  if (!row.source_provider || !row.source_board_id) {
+    return null
+  }
+  return {
+    provider: row.source_provider as ProjectSource['provider'],
+    boardId: row.source_board_id,
+    identifier: row.source_identifier ?? '',
+    url: row.source_url
+  }
+}
 
 function toProject(row: ProjectRow): Project {
   return {
@@ -25,7 +48,9 @@ function toProject(row: ProjectRow): Project {
     tenantId: row.tenant_id,
     name: row.name,
     key: row.key,
+    context: row.context ?? '',
     repoIds: row.repo_ids ?? [],
+    source: toSource(row),
     createdBy: row.created_by,
     createdAt: new Date(row.created_at).toISOString(),
     updatedAt: new Date(row.updated_at).toISOString()
@@ -89,9 +114,20 @@ export function createProject(
 ): Promise<Project> {
   return withTenant(pool, tenantId, async (client) => {
     const { rows } = await client.query<{ id: string }>(
-      `INSERT INTO projects (tenant_id, name, key, created_by)
-       VALUES ($1, $2, $3, $4) RETURNING id`,
-      [tenantId, input.name, input.key, createdBy]
+      `INSERT INTO projects (tenant_id, name, key, context, created_by,
+                             source_provider, source_board_id, source_identifier, source_url)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+      [
+        tenantId,
+        input.name,
+        input.key,
+        input.context,
+        createdBy,
+        input.source?.provider ?? null,
+        input.source?.boardId ?? null,
+        input.source?.identifier ?? null,
+        input.source?.url ?? null
+      ]
     )
     const id = rows[0]!.id
     await setRepos(client, tenantId, id, input.repoIds)
@@ -111,8 +147,20 @@ export function updateProject(
 ): Promise<Project | null> {
   return withTenant(pool, tenantId, async (client) => {
     const { rowCount } = await client.query(
-      `UPDATE projects SET name = $2, key = $3, updated_at = now() WHERE id = $1`,
-      [projectId, input.name, input.key]
+      `UPDATE projects
+          SET name = $2, key = $3, context = $4, updated_at = now(),
+              source_provider = $5, source_board_id = $6, source_identifier = $7, source_url = $8
+        WHERE id = $1`,
+      [
+        projectId,
+        input.name,
+        input.key,
+        input.context,
+        input.source?.provider ?? null,
+        input.source?.boardId ?? null,
+        input.source?.identifier ?? null,
+        input.source?.url ?? null
+      ]
     )
     if (rowCount === 0) return null
     await setRepos(client, tenantId, projectId, input.repoIds)

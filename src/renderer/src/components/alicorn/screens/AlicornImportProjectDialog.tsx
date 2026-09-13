@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
-import { planeProjectKey } from '../../../../../shared/alicorn/pm-import'
+import { htmlToPlainText, planeProjectKey } from '../../../../../shared/alicorn/pm-import'
 import type { Project, ProjectInput } from '../../../../../shared/alicorn/projects'
 import { AlicornRepoPicker } from './AlicornRepoPicker'
 import { usePlaneImportSource } from './use-plane-import-source'
@@ -80,7 +80,23 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
   const runImport = async (): Promise<void> => {
     setFailure(null)
     setImporting(true)
-    const created = await onCreate({ name: name.trim(), key, repoIds })
+    const created = await onCreate({
+      name: name.trim(),
+      key,
+      // The board's own description is what the project is *for*; every brief carries it, so a
+      // member reads the domain before it reads the ticket.
+      context: chosen?.description ? htmlToPlainText(chosen.description) : '',
+      repoIds,
+      // The link, not the issues: a task reaches one issue on demand, where it is still current.
+      source: chosen
+        ? {
+            provider: 'plane' as const,
+            boardId: chosen.id,
+            identifier: chosen.identifier,
+            url: null
+          }
+        : null
+    })
     setImporting(false)
     if (!created.ok) {
       setFailure(

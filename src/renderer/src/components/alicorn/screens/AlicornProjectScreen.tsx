@@ -144,6 +144,7 @@ export function AlicornProjectScreen({
           task={openTaskRow}
           projectId={route.projectId}
           projectKey={project?.key ?? ''}
+          projectContext={project?.context ?? ''}
           projectRepos={projectRepos}
           tasks={tasks}
           crumbs={crumbs}

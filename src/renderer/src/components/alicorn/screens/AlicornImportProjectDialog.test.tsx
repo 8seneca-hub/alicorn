@@ -19,6 +19,8 @@ function project(): Project {
     tenantId: 'local',
     name: 'Payments Platform',
     key: 'ALC',
+    context: '',
+    source: null,
     repoIds: ['repo-a'],
     createdBy: 'huy',
     createdAt: '2026-09-11T00:00:00.000Z',
