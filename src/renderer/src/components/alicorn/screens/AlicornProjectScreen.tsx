@@ -128,6 +128,7 @@ export function AlicornProjectScreen({
       onOpenChange={onComposingChange}
       projectId={route.projectId}
       projectName={projectName}
+      projectSource={project?.source ?? null}
       projectRepos={projectRepos}
       onCreate={tasks.create}
       onCreated={openTask}

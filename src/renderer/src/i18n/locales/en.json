@@ -17568,7 +17568,11 @@
           "workflow": "Workflow",
           "noWorkflow": "This project has no workflow, so the task starts at no stage. That is still a perfectly ordinary task — it just has nowhere to hand off at.",
           "startsAt": "Starts at",
-          "workflowTrail": "The stage it starts at. Required checks, reversibility and inherited cost come from the stage, never from whoever is working it."
+          "workflowTrail": "The stage it starts at. Required checks, reversibility and inherited cost come from the stage, never from whoever is working it.",
+          "fromIssue": "From an issue",
+          "issuesLoading": "Reading the board…",
+          "issuePlaceholder": "Start from an issue on {{board}}, or just type below",
+          "issueLinked": "Linked to {{ref}}. The issue stays in the PM tool; this task points back at it."
         },
         "task": {
           "errorTitle": "Tasks could not be read",

@@ -6,6 +6,7 @@ import {
   installNativeFileDropHandlers
 } from './preload-runtime-support'
 import { appApi } from './api/app-bridge'
+import { droppedFileApi } from './api/dropped-file-bridge'
 import { orcaProfilesApi } from './api/orca-profiles-bridge'
 import { alicornApi } from './api/alicorn-bridge'
 import { alicornRunCostApi } from './api/alicorn-run-cost-bridge'
@@ -104,6 +105,7 @@ const telemetryGetConsentStateApi: PreloadApi['telemetryGetConsentState'] = () =
 
 const api = {
   app: appApi,
+  droppedFile: droppedFileApi,
   orcaProfiles: orcaProfilesApi,
   alicorn: alicornApi,
   alicornRunCost: alicornRunCostApi,

@@ -14,6 +14,11 @@
  * branch picker and a "start now" switch; none of those have anywhere to be written yet — no task
  * field, and no renderer bridge to `alicorn_task_worktrees` — so they are absent rather than drawn
  * dead.
+ *
+ * **From an issue, one at a time.** A project imported from a PM tool can pull one of its issues in
+ * here: title, body and the reference back. That is the counterpart to an import that copies no
+ * issues at all — you reach for the one you are about to work, and it is read live rather than from
+ * a mirror that went stale the moment someone edited it upstream.
  */
 import React from 'react'
 import { ChevronDown, ChevronRight, Workflow } from 'lucide-react'
@@ -38,10 +43,15 @@ import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useComposerTaskPlan } from '@/hooks/use-composer-task-plan'
 import { useProjectWorkflow } from './use-project-workflow'
+import { useProjectBoardIssues } from './use-project-board-issues'
+import { useContextFileDrop } from './use-context-file-drop'
+import { planeIssueToTask } from '../../../../../shared/alicorn/pm-import'
 import { EXECUTION_STRATEGIES } from '../../../../../shared/alicorn/ledger'
 import type { ExecutionStrategy } from '../../../../../shared/alicorn/ledger'
 import type { Repo } from '../../../../../shared/repo-types'
+import type { ProjectSource } from '../../../../../shared/alicorn/projects'
 import type { TaskInput } from '../../../../../shared/alicorn/tasks'
+import type { TaskSource } from '../../../../../shared/alicorn/tasks'
 import type { TaskResult } from './use-project-tasks'
 
 function FieldLabel({
@@ -67,6 +77,8 @@ type DialogProps = {
   onOpenChange: (open: boolean) => void
   projectId: string
   projectName: string
+  /** The PM board this project came from, when it was imported. Null for one typed here. */
+  projectSource: ProjectSource | null
   projectRepos: readonly Repo[]
   onCreate: (input: Omit<TaskInput, 'projectId'>) => Promise<TaskResult>
   onCreated: (taskId: string) => void
@@ -88,6 +100,7 @@ function NewTaskDialogBody({
   onOpenChange,
   projectId,
   projectName,
+  projectSource,
   projectRepos,
   onCreate,
   onCreated
@@ -101,6 +114,13 @@ function NewTaskDialogBody({
   // Null while the workflow is still being read, so the first stage can be the default without an
   // effect that would overwrite a choice made before the read settled.
   const [stageKey, setStageKey] = React.useState<string | null>(null)
+  const [source, setSource] = React.useState<TaskSource | null>(null)
+  const board = useProjectBoardIssues(projectSource, true)
+  const drop = useContextFileDrop({
+    root: projectRepos[0]?.path ?? null,
+    onPaths: (text) =>
+      setBrief((current) => (current.trim() ? `${current.trimEnd()}\n${text}` : text))
+  })
   const { workflow, loading: workflowLoading } = useProjectWorkflow(projectId)
   const stages = workflow?.stages ?? []
   const startStage = stageKey ?? stages[0]?.key ?? null
@@ -127,8 +147,8 @@ function NewTaskDialogBody({
       column: 'todo',
       executionStrategy: strategy,
       stageKey: startStage,
-      memberIds: [...new Set(memberIds)],
-      source: null
+      source,
+      memberIds: [...new Set(memberIds)]
     })
     setBusy(false)
     if (!result.ok) {
@@ -156,6 +176,73 @@ function NewTaskDialogBody({
       </DialogHeader>
 
       <div className="space-y-4">
+        {projectSource ? (
+          <div className="space-y-1.5">
+            <FieldLabel htmlFor="alicorn-task-issue">
+              {translate('auto.components.alicorn.newTask.fromIssue', 'From an issue')}
+            </FieldLabel>
+            {board.error ? (
+              <Trail>{board.error}</Trail>
+            ) : (
+              <Select
+                value={source?.ref ?? ''}
+                onValueChange={(ref) => {
+                  const issue = board.issues.find((candidate) => candidate.readableId === ref)
+                  if (!issue) {
+                    return
+                  }
+                  // The same mapping the project import would have used, so a ticket pulled in here
+                  // and one imported in bulk cannot describe the same issue differently.
+                  const mapped = planeIssueToTask(issue)
+                  setTitle(mapped.title)
+                  setBrief(mapped.context)
+                  setSource(mapped.source)
+                }}
+              >
+                <SelectTrigger
+                  id="alicorn-task-issue"
+                  className="h-8 w-full text-xs"
+                  aria-label={translate(
+                    'auto.components.alicorn.newTask.fromIssue',
+                    'From an issue'
+                  )}
+                >
+                  <SelectValue
+                    placeholder={
+                      board.loading
+                        ? translate(
+                            'auto.components.alicorn.newTask.issuesLoading',
+                            'Reading the board…'
+                          )
+                        : translate(
+                            'auto.components.alicorn.newTask.issuePlaceholder',
+                            'Start from an issue on {{board}}, or just type below',
+                            { board: projectSource.identifier || projectSource.boardId }
+                          )
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {board.issues.map((issue) => (
+                    <SelectItem key={issue.id} value={issue.readableId} className="text-xs">
+                      {issue.readableId} · {issue.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            {source ? (
+              <Trail>
+                {translate(
+                  'auto.components.alicorn.newTask.issueLinked',
+                  'Linked to {{ref}}. The issue stays in the PM tool; this task points back at it.',
+                  { ref: source.ref }
+                )}
+              </Trail>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="space-y-1.5">
           <FieldLabel htmlFor="alicorn-task-title">
             {translate('auto.components.alicorn.newTask.whatNeedsDoing', 'What needs doing')}
@@ -180,11 +267,15 @@ function NewTaskDialogBody({
             id="alicorn-task-brief"
             value={brief}
             onChange={(event) => setBrief(event.target.value)}
+            {...drop.handlers}
             placeholder={translate(
               'auto.components.alicorn.newTask.briefPlaceholder',
-              'Anything the agent cannot read off the repo: the constraint, the edge case, the decision already made. Two sentences is usually enough.'
+              'Anything the agent cannot read off the repo: the constraint, the edge case, the decision already made. Two sentences is usually enough. Drop files in to name them.'
             )}
-            className="min-h-[130px] w-full rounded-md border border-border bg-background px-3 py-2 text-xs outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className={cn(
+              'min-h-[130px] w-full rounded-md border bg-background px-3 py-2 text-xs outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50',
+              drop.dragging ? 'border-primary border-dashed' : 'border-border'
+            )}
           />
           <Trail>
             {translate(
