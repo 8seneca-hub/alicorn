@@ -113,21 +113,19 @@ describe('importing a project from a PM tool', () => {
     expect(screen.getByLabelText('Task key')).toHaveValue('ALC')
   })
 
-  // The number is the decision at project level, so it has to be the truth.
-  it('previews only the issues still open', async () => {
+  // The preview must promise what Import does, and Import no longer touches the board.
+  it('says the board stays where it is, and never reads it', async () => {
     renderDialog()
 
     await waitFor(() => expect(screen.getByText('Alicorn Platform')).toBeInTheDocument())
     fireEvent.click(screen.getByText('Alicorn Platform'))
 
     await waitFor(() =>
-      expect(screen.getByText('Creates Alicorn Platform (ALC) with 1 tasks.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Creates Alicorn Platform (ALC). Its board stays in the PM tool.')
+      ).toBeInTheDocument()
     )
-
-    fireEvent.click(screen.getByRole('checkbox', { name: /Only issues still open/ }))
-    await waitFor(() =>
-      expect(screen.getByText('Creates Alicorn Platform (ALC) with 2 tasks.')).toBeInTheDocument()
-    )
+    expect(listIssues).not.toHaveBeenCalled()
   })
 
   it('will not import without a repository, like any other project', async () => {
@@ -140,7 +138,9 @@ describe('importing a project from a PM tool', () => {
     expect(screen.getByText('Import project').closest('button')).toBeDisabled()
   })
 
-  it('creates the project, then one task per issue carrying its reference back', async () => {
+  // Alicorn's board is a private working surface. Mirroring a tracker into it makes two places for
+  // one ticket to drift, so an import brings the project across and leaves its issues alone.
+  it('creates the project and not one task', async () => {
     const { onCreate, onImported } = renderDialog()
 
     await waitFor(() => expect(screen.getByText('Alicorn Platform')).toBeInTheDocument())
@@ -156,13 +156,6 @@ describe('importing a project from a PM tool', () => {
     expect(onCreate).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Alicorn Platform', key: 'ALC', repoIds: ['repo-a'] })
     )
-    expect(createTask).toHaveBeenCalledTimes(1)
-    expect(createTask).toHaveBeenCalledWith(
-      expect.objectContaining({
-        projectId: 'prj_1',
-        title: 'Issue ALC-1',
-        source: expect.objectContaining({ provider: 'plane', ref: 'ALC-1' })
-      })
-    )
+    expect(createTask).not.toHaveBeenCalled()
   })
 })

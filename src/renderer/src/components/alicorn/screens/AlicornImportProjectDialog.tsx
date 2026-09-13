@@ -1,13 +1,14 @@
 /**
  * Importing a board from a PM tool as an Alicorn project.
  *
- * One screen, in the order the decisions actually happen: which tool, which board, what the project
- * will be called, where its work happens, and how much is coming. The issue-by-issue table the
- * prototype draws belongs to the *task* import on the board — at project level the number is the
- * decision, and a hundred checkboxes on a first-run screen is not.
+ * **Issues are deliberately not copied.** Alicorn's board is a private working surface, not a second
+ * home for a tracker everyone already reads — mirroring a hundred issues into it produces a hundred
+ * rows nobody asked for and two places for the same ticket to drift. What comes across is the
+ * project's own identity: its name, its key, and the description that says what it is for. An agent
+ * that needs a specific issue reads it through the PM tool's own MCP server, where it is current.
  *
- * Nothing is created until Import: the preview line is computed from what was fetched, by the same
- * pure functions the import then runs, so it cannot promise a different result than it produces.
+ * One screen, in the order the decisions actually happen: which tool, which board, what the project
+ * will be called, and where its work happens. Nothing is created until Import.
  */
 import React from 'react'
 import { Loader2, PackageOpen } from 'lucide-react'
@@ -24,10 +25,10 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useAppStore } from '@/store'
-import { planeIssueToTask, planeProjectKey } from '../../../../../shared/alicorn/pm-import'
+import { planeProjectKey } from '../../../../../shared/alicorn/pm-import'
 import type { Project, ProjectInput } from '../../../../../shared/alicorn/projects'
 import { AlicornRepoPicker } from './AlicornRepoPicker'
-import { usePlaneImportBoard, usePlaneImportSource } from './use-plane-import-source'
+import { usePlaneImportSource } from './use-plane-import-source'
 
 /** Mirrors ProjectKeySchema: 2-10 uppercase letters or digits, starting with a letter. */
 const KEY_PATTERN = /^[A-Z][A-Z0-9]{1,9}$/
@@ -53,17 +54,13 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
   const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
   const source = usePlaneImportSource(true)
   const [boardId, setBoardId] = React.useState<string | null>(null)
-  const board = usePlaneImportBoard(boardId)
   const [name, setName] = React.useState('')
   const [key, setKey] = React.useState('')
   const [repoIds, setRepoIds] = React.useState<string[]>([])
-  const [openOnly, setOpenOnly] = React.useState(true)
-  const [progress, setProgress] = React.useState<{ done: number; total: number } | null>(null)
+  const [importing, setImporting] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
 
   const chosen = source.projects.find((project) => project.id === boardId)
-  const importing = progress !== null
-  const issues = openOnly ? board.openIssues : board.issues
   const keyValid = KEY_PATTERN.test(key)
   const canImport =
     Boolean(chosen) && name.trim() !== '' && keyValid && repoIds.length > 0 && !importing
@@ -82,10 +79,10 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
 
   const runImport = async (): Promise<void> => {
     setFailure(null)
-    setProgress({ done: 0, total: issues.length })
+    setImporting(true)
     const created = await onCreate({ name: name.trim(), key, repoIds })
+    setImporting(false)
     if (!created.ok) {
-      setProgress(null)
       setFailure(
         created.error === 'project_exists'
           ? translate(
@@ -95,23 +92,6 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
           : created.error
       )
       return
-    }
-    const createTask = window.api?.alicorn?.createTask
-    let done = 0
-    for (const issue of issues) {
-      if (!createTask) {
-        break
-      }
-      // One at a time and tolerant: a board where three issues fail should still import the rest,
-      // and the count below says plainly how many landed.
-      const result = await createTask({
-        ...planeIssueToTask(issue),
-        projectId: created.project.id
-      })
-      if (result.ok) {
-        done += 1
-      }
-      setProgress({ done, total: issues.length })
     }
     onOpenChange(false)
     onImported(created.project.id)
@@ -126,7 +106,7 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
         <DialogDescription>
           {translate(
             'auto.components.alicorn.import.description',
-            'Bring a board across as a project. Each issue becomes a task that keeps its reference back, so importing again picks up only what is new.'
+            'Bring a board across as a project — its name, its key and what it is for. Its issues stay where they are: an agent reads them through the PM tool, where they are current.'
           )}
         </DialogDescription>
       </DialogHeader>
@@ -220,26 +200,12 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
 
               <AlicornRepoPicker repoIds={repoIds} onChange={setRepoIds} />
 
-              <label className="flex cursor-pointer items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  className="size-3.5 accent-foreground"
-                  checked={openOnly}
-                  onChange={() => setOpenOnly((current) => !current)}
-                />
-                {translate('auto.components.alicorn.import.openOnly', 'Only issues still open')}
-              </label>
-
               <p className="text-[11px] text-muted-foreground">
-                {board.loading
-                  ? translate('auto.components.alicorn.import.counting', 'Reading the board…')
-                  : board.error
-                    ? board.error
-                    : translate(
-                        'auto.components.alicorn.import.preview',
-                        'Creates {{name}} ({{key}}) with {{count}} tasks.',
-                        { name: name.trim() || chosen.name, key: key || '—', count: issues.length }
-                      )}
+                {translate(
+                  'auto.components.alicorn.import.preview',
+                  'Creates {{name}} ({{key}}). Its board stays in the PM tool.',
+                  { name: name.trim() || chosen.name, key: key || '—' }
+                )}
               </p>
             </>
           ) : null}
@@ -259,13 +225,7 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
           className="gap-1.5"
         >
           {importing ? <Loader2 className="size-3.5 animate-spin" /> : null}
-          {importing
-            ? translate(
-                'auto.components.alicorn.import.importing',
-                'Importing {{done}} of {{total}}…',
-                { done: progress.done, total: progress.total }
-              )
-            : translate('auto.components.alicorn.import.import', 'Import project')}
+          {translate('auto.components.alicorn.import.import', 'Import project')}
         </Button>
       </DialogFooter>
     </DialogContent>
