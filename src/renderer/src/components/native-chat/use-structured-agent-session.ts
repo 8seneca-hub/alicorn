@@ -241,6 +241,13 @@ export function useStructuredAgentSession(args: {
     send: outboxController.send,
     retry: outboxController.retry,
     isWorking: turnId !== null,
+    /**
+     * Whether a send can actually leave. Every write path — `mutate` and the outbox's dispatch —
+     * gives up when the fence is null, and both do it silently, so a surface that does not ask
+     * shows a sent message, no reply and a status of Idle for as long as the session stays
+     * unreachable. Ask, and say so.
+     */
+    canSend: state.fence !== null,
     turnId,
     cancel: (turnId: string) => mutate('agentSession.cancel', 'agentSession.cancel', { turnId }),
     respond: (item: StructuredPromptItem, optionId: string) =>

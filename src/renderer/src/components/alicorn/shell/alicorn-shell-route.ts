@@ -21,7 +21,7 @@ export type ProjectSection = (typeof PROJECT_SECTIONS)[number]
 /** Opening a project lands on its work, not on a dashboard about it. */
 export const DEFAULT_PROJECT_SECTION: ProjectSection = 'tasks'
 
-export const ORG_SECTIONS = ['members', 'workflows', 'autonomy', 'checks', 'orchestration'] as const
+export const ORG_SECTIONS = ['members', 'workflows', 'autonomy'] as const
 export type OrgSection = (typeof ORG_SECTIONS)[number]
 
 export type AlicornRoute =

@@ -15,7 +15,6 @@ import {
   Plus,
   Search,
   Server,
-  Share2,
   ShieldCheck,
   SquareKanban,
   Users,
@@ -61,17 +60,13 @@ const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
 const ORG_SECTION_LABELS: Record<OrgSection, string> = {
   members: 'Members',
   workflows: 'Workflows',
-  autonomy: 'Autonomy',
-  checks: 'Required Checks',
-  orchestration: 'Orchestration'
+  autonomy: 'Autonomy'
 }
 
 const ORG_SECTION_ICONS: Record<OrgSection, IconComponent> = {
   members: Users,
   workflows: Workflow,
-  autonomy: Gauge,
-  checks: ShieldCheck,
-  orchestration: Share2
+  autonomy: Gauge
 }
 
 function SidebarHead({ name, kind }: { name: string; kind: string }): React.JSX.Element {

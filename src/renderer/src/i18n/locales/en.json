@@ -11998,7 +11998,8 @@
             "correction": "correction edge"
           },
           "sectionTitle": "Workflows",
-          "sectionDescription": "Stages, who runs them, and the edges between them — including findings going back to the author."
+          "sectionDescription": "Stages, who runs them, and the edges between them — including findings going back to the author.",
+          "new": "New workflow"
         },
         "mcpAddServer": {
           "title": "Add MCP server",
@@ -17662,7 +17663,8 @@
           "restart": "Start a new session",
           "waitingNamed": "{{member}} is waiting on you",
           "workingNamed": "{{member}} is working",
-          "idleNamed": "{{member}} is idle"
+          "idleNamed": "{{member}} is idle",
+          "unreachable": "Not accepting messages — this session is not reachable"
         },
         "mcpGlobal": {
           "title": "Every project on this machine",

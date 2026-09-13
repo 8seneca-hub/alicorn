@@ -18,7 +18,8 @@ const launchChainByWorktree = new Map<string, Promise<unknown>>()
 
 export async function launchAlicornSession(args: {
   worktreeId: string
-  prompt: string
+  /** Omit to open a session that waits. A ticket has a brief to deliver; the assistant does not. */
+  prompt?: string
 }): Promise<TaskSessionBinding> {
   const previous = launchChainByWorktree.get(args.worktreeId) ?? Promise.resolve()
   const run = previous
@@ -27,7 +28,11 @@ export async function launchAlicornSession(args: {
     .catch(() => undefined)
     .then(async () => {
       const { startStructuredAgentLaunch } = await import('@/lib/structured-agent-session-launch')
-      const launch = startStructuredAgentLaunch(args.worktreeId, 'claude', { prompt: args.prompt })
+      const launch = startStructuredAgentLaunch(
+        args.worktreeId,
+        'claude',
+        args.prompt ? { prompt: args.prompt } : {}
+      )
       // Awaited before the caller may bind it: a session id that never became a session would
       // leave the subject pointing at a conversation nobody can open.
       await launch.launchResult

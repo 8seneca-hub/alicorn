@@ -87,24 +87,6 @@ export function useWorkflowEditor(projectId: string | null) {
     setDraft(toDraft(result.workflow))
   }, [])
 
-  const startFromTemplate = useCallback(
-    async (templateKey: string) => {
-      if (!projectId) {
-        return
-      }
-      const result = await window.api.alicorn.createWorkflowFromTemplate({ projectId, templateKey })
-      if (!result.ok) {
-        setError(result.error)
-        return
-      }
-      setError(null)
-      setSaved(result.workflow)
-      setDraft(toDraft(result.workflow))
-      await load()
-    },
-    [projectId, load]
-  )
-
   const edit = useCallback((change: Edit) => {
     setDraft((current) => (current ? change(current) : current))
   }, [])
@@ -151,7 +133,6 @@ export function useWorkflowEditor(projectId: string | null) {
     saving,
     reload: load,
     open,
-    startFromTemplate,
     save,
     setName: (name: string) => edit((current) => ({ ...current, name })),
     addStage: (key: string, afterOrdinal?: number) =>

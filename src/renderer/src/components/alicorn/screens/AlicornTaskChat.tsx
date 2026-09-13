@@ -50,6 +50,12 @@ function statusLabel(activity: TaskSessionActivity, memberName: string | null): 
         })
       : translate('auto.components.alicorn.taskChat.working', 'Working')
   }
+  if (activity === 'offline') {
+    return translate(
+      'auto.components.alicorn.taskChat.unreachable',
+      'Not accepting messages — this session is not reachable'
+    )
+  }
   return memberName
     ? translate('auto.components.alicorn.taskChat.idleNamed', '{{member}} is idle', {
         member: memberName
@@ -86,11 +92,15 @@ export function AlicornTaskChat({
     isVisible: true
   })
   const prompt = controller.prompts[0] ?? null
-  const activity: TaskSessionActivity = prompt
-    ? 'waiting'
-    : controller.isWorking
-      ? 'working'
-      : 'idle'
+  // `offline` is not cosmetic: with no fence the outbox cannot dispatch, so a message typed here
+  // would sit queued with nothing said. Better to refuse the send than to swallow it.
+  const activity: TaskSessionActivity = !controller.canSend
+    ? 'offline'
+    : prompt
+      ? 'waiting'
+      : controller.isWorking
+        ? 'working'
+        : 'idle'
 
   React.useEffect(() => {
     onActivityChange?.(activity)
@@ -142,7 +152,9 @@ export function AlicornTaskChat({
               ? 'bg-status-attention'
               : activity === 'working'
                 ? 'bg-status-running'
-                : 'bg-muted-foreground/40'
+                : activity === 'offline'
+                  ? 'bg-destructive'
+                  : 'bg-muted-foreground/40'
           )}
         />
         <span className="min-w-0 flex-1 truncate">{statusLabel(activity, memberName)}</span>
@@ -151,6 +163,10 @@ export function AlicornTaskChat({
           <Button size="xs" variant="ghost" className="gap-1" onClick={stopTurn}>
             <Square className="size-3" />
             {translate('auto.components.alicorn.taskChat.stop', 'Stop')}
+          </Button>
+        ) : activity === 'offline' && onRestart ? (
+          <Button size="xs" variant="ghost" onClick={onRestart}>
+            {translate('auto.components.alicorn.taskChat.restart', 'Start a new session')}
           </Button>
         ) : null}
       </div>
@@ -210,7 +226,7 @@ export function AlicornTaskChat({
           paneKey={paneKey}
           targetPtyId={null}
           agent={agent}
-          canSend
+          canSend={controller.canSend}
           isWorking={controller.isWorking}
           onStop={stopTurn}
           structuredTransport={{

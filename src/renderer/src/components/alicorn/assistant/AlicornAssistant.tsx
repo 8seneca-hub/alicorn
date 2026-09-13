@@ -8,8 +8,14 @@
  *
  * Docked, not modal, for the same reason: the payoff of "add a member" is watching it appear.
  *
- * One session for the life of the app, not one per screen. It is an assistant, so it keeps what it
- * knows as you move; a scope change is something it is *told*, never something it is restarted for.
+ * One session per opening, and it ends when you close the panel. A session kept for the life of the
+ * app sounds better than it is: its provider child can go away underneath it, and a send against a
+ * session with no runtime fence is dropped in the outbox with nothing said — the panel reads Idle
+ * while your message sits there forever. A fresh session cannot be stale, and the assistant is a
+ * thing you summon to do something, not a conversation you resume a day later.
+ *
+ * A scope change is still something it is *told*, never something it is restarted for — that part
+ * of the original design holds within one opening.
  */
 import React from 'react'
 import { PanelRightClose, Sparkles } from 'lucide-react'
@@ -76,19 +82,28 @@ function AlicornAssistantSession({
   )
 }
 
+/**
+ * Nothing below this line exists while the panel is closed.
+ *
+ * The split is what makes "a session per opening" true rather than aspirational: `useOrgChat`
+ * starts one on mount, so the hook has to mount with the panel. Called above the `open` check it
+ * ran from app start and every opening got the same ageing session.
+ */
 export function AlicornAssistant({
   projects
 }: {
   projects: readonly Project[]
 }): React.JSX.Element | null {
-  const { open, scope } = useAlicornAssistantState()
-  const chat = useOrgChat(projects)
-
-  // Mounted only while open: the session survives in the control plane and reattaches, so there is
-  // nothing to keep alive here, and an unmounted panel is not holding a subscription open.
+  const { open } = useAlicornAssistantState()
   if (!open) {
     return null
   }
+  return <AlicornAssistantPanel projects={projects} />
+}
+
+function AlicornAssistantPanel({ projects }: { projects: readonly Project[] }): React.JSX.Element {
+  const { scope } = useAlicornAssistantState()
+  const chat = useOrgChat(projects)
 
   const scopeLabel =
     scope.taskRef ??

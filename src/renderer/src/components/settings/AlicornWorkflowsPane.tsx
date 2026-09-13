@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import type { WorkflowStage } from '../../../../shared/alicorn/workflows'
+import { AlicornNewWorkflowDialog } from '../alicorn/screens/AlicornNewWorkflowDialog'
 import { WorkflowCanvas, type CanvasSelection } from '../alicorn/workflow-canvas/WorkflowCanvas'
 import { WorkflowStageInspector } from '../alicorn/workflow-canvas/WorkflowStageInspector'
 import { WorkflowTransitionInspector } from '../alicorn/workflow-canvas/WorkflowTransitionInspector'
@@ -14,7 +16,6 @@ import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 
 const UNCONFIGURED = 'control_plane_unconfigured'
-const FEATURE_DELIVERY = 'feature-delivery'
 
 function nextStageKey(stages: readonly WorkflowStage[]): string {
   let n = stages.length + 1
@@ -34,8 +35,10 @@ export function AlicornWorkflowsPane(): React.JSX.Element {
   const repos = useAppStore((store) => store.repos)
   const [repoId, setRepoId] = useState<string | null>(null)
   const [selection, setSelection] = useState<CanvasSelection>(null)
+  const [composing, setComposing] = useState(false)
   const projectId = repoId ?? repos[0]?.id ?? null
   const editor = useWorkflowEditor(projectId)
+  const projectName = repos.find((repo) => repo.id === projectId)?.displayName ?? projectId ?? ''
 
   if (editor.error === UNCONFIGURED) {
     return (
@@ -124,15 +127,27 @@ export function AlicornWorkflowsPane(): React.JSX.Element {
         <Button
           size="sm"
           variant="outline"
+          className="gap-1.5"
           disabled={!projectId}
-          onClick={() => void editor.startFromTemplate(FEATURE_DELIVERY)}
+          onClick={() => setComposing(true)}
         >
-          {translate(
-            'auto.components.settings.alicornWorkflows.fromTemplate',
-            'New from Feature delivery'
-          )}
+          <Plus className="size-3.5" />
+          {translate('auto.components.settings.alicornWorkflows.new', 'New workflow')}
         </Button>
       </div>
+
+      {projectId ? (
+        <AlicornNewWorkflowDialog
+          open={composing}
+          onOpenChange={setComposing}
+          projectId={projectId}
+          projectName={projectName}
+          onCreated={(created) => {
+            void editor.reload()
+            void editor.open(created.id)
+          }}
+        />
+      ) : null}
 
       {editor.error && editor.error !== UNCONFIGURED ? (
         <p className="text-destructive text-xs">{issueLabel(editor.error)}</p>
@@ -148,7 +163,7 @@ export function AlicornWorkflowsPane(): React.JSX.Element {
         <p className="text-muted-foreground text-xs">
           {translate(
             'auto.components.settings.alicornWorkflows.pickOne',
-            'Pick a workflow to draw it, or start one from the Feature delivery template.'
+            'Pick a workflow to draw it, or start a new one from a template.'
           )}
         </p>
       ) : (
