@@ -6,7 +6,7 @@
  * made per task and is never applied silently, so it is a button a human presses.
  */
 import React from 'react'
-import { Check, Circle, DollarSign, Share2 } from 'lucide-react'
+import { Check, Circle, DollarSign, Minus, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { Button } from '@/components/ui/button'
@@ -39,12 +39,16 @@ export function resolveTaskStageKey(
   return matching.at(-1)?.key ?? null
 }
 
-/** Done / current / still to come, from the stage's position relative to the task's. */
+/** Done / current / still to come / not needed, from the stage's position relative to the task's. */
 function stageState(
   stages: readonly WorkflowStage[],
   stageKey: string | null,
-  stage: WorkflowStage
-): 'done' | 'current' | 'todo' {
+  stage: WorkflowStage,
+  skipped: readonly string[]
+): 'done' | 'current' | 'todo' | 'skipped' {
+  if (skipped.includes(stage.key)) {
+    return 'skipped'
+  }
   if (!stageKey) {
     return 'todo'
   }
@@ -58,30 +62,46 @@ function stageState(
 
 function StageRail({
   stages,
-  stageKey
+  stageKey,
+  skipped
 }: {
   stages: readonly WorkflowStage[]
   stageKey: string | null
+  /** Struck through: this task does not need them, so they are not a position it can be at. */
+  skipped: readonly string[]
 }): React.JSX.Element {
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-x-1 gap-y-1.5">
       {stages.map((stage, index) => {
-        const state = stageState(stages, stageKey, stage)
+        const state = stageState(stages, stageKey, stage, skipped)
         return (
           <React.Fragment key={stage.key}>
             {index > 0 ? <span className="mx-1.5 h-px w-4 shrink-0 bg-border" /> : null}
             <span
+              title={
+                state === 'skipped'
+                  ? translate(
+                      'auto.components.alicorn.task.stageSkipped',
+                      'This task does not need {{stage}}',
+                      { stage: stage.name }
+                    )
+                  : undefined
+              }
               className={cn(
                 'flex items-center gap-1.5 text-[13px]',
                 state === 'current'
                   ? 'font-semibold text-foreground'
                   : state === 'done'
                     ? 'text-muted-foreground'
-                    : 'text-muted-foreground/70'
+                    : state === 'skipped'
+                      ? 'text-muted-foreground/50 line-through decoration-muted-foreground/60'
+                      : 'text-muted-foreground/70'
               )}
             >
               {state === 'done' ? (
                 <Check className="size-3.5 shrink-0" />
+              ) : state === 'skipped' ? (
+                <Minus className="size-3.5 shrink-0" />
               ) : (
                 <Circle
                   className={cn('size-3.5 shrink-0', state === 'current' && 'stroke-[2.5]')}
@@ -119,14 +139,17 @@ function activityLabel(activity: TaskSessionActivity): string {
 /**
  * One member, and — for the one the session is running as — what it is doing right now.
  *
- * Only the author gets a live reading. A reviewer bound to the same ticket is not in this session,
- * so giving it the same dot would say two agents are working when one is.
+ * The two read differently on purpose. A reviewer bound to the same ticket is *not* in this
+ * session, and two chips that look alike said "both of these are on it", which was the question
+ * being asked. The one running is solid and carries the activity; the others are outlined and say
+ * which member they are waiting to be.
  */
 function MemberChip({
   member,
   activity
 }: {
   member: Member
+  /** Null for a member bound to the ticket but not running this session. */
   activity: TaskSessionActivity | null
 }): React.JSX.Element {
   const initials = member.name
@@ -137,15 +160,39 @@ function MemberChip({
     .toUpperCase()
   return (
     <span
+      title={
+        activity
+          ? translate(
+              'auto.components.alicorn.task.memberRunsThis',
+              '{{member}} is running this session on {{backend}}',
+              { member: member.name, backend: member.backend }
+            )
+          : translate(
+              'auto.components.alicorn.task.memberNotInSession',
+              '{{member}} is on this ticket but is not running this session',
+              { member: member.name }
+            )
+      }
       className={cn(
         'flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[12px]',
-        activity === 'working' ? 'border-status-running/50' : 'border-border'
+        activity
+          ? activity === 'working'
+            ? 'border-status-running/50 bg-accent'
+            : 'border-border bg-accent'
+          : 'border-dashed border-border text-muted-foreground'
       )}
     >
-      <span className="flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-semibold">
+      <span
+        className={cn(
+          'flex size-5 items-center justify-center rounded-full text-[10px] font-semibold',
+          activity ? 'bg-foreground text-background' : 'bg-accent'
+        )}
+      >
         {initials}
       </span>
-      <span className="truncate font-medium">{member.name}</span>
+      <span className={cn('truncate', activity ? 'font-semibold' : 'font-medium')}>
+        {member.name}
+      </span>
       {activity ? (
         <>
           <span className={cn('size-1.5 shrink-0 rounded-full', ACTIVITY_DOT[activity])} />
@@ -218,7 +265,11 @@ export function AlicornTaskHeader({
 
       {stages.length > 0 || members.length > 0 ? (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 px-9 pb-3">
-          <StageRail stages={stages} stageKey={resolveTaskStageKey(stages, task)} />
+          <StageRail
+            stages={stages}
+            stageKey={resolveTaskStageKey(stages, task)}
+            skipped={task.skippedStageKeys}
+          />
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {members.map((member) => (
               <MemberChip

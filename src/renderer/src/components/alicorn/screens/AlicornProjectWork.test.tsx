@@ -20,6 +20,7 @@ function task(overrides: Partial<Task> = {}): Task {
     workflowId: null,
     model: null,
     stageKey: null,
+    skippedStageKeys: [],
     memberIds: [],
     source: null,
     createdBy: 'huy',

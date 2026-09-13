@@ -254,6 +254,27 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
     }
   },
   {
+    name: 'alicorn_skip_stage',
+    description:
+      'Mark a stage as not needed for this task — a docs fix has nothing to deploy, a spike has nothing to merge. The rail strikes it through and advancing steps over it. Refused for any stage that gates: whether a merge is necessary is not yours to decide, and relabelling it would be walking around the gate.',
+    inputSchema: {
+      type: 'object',
+      properties: { taskId: { type: 'string' }, stageKey: { type: 'string' } },
+      required: ['taskId', 'stageKey']
+    },
+    method: 'alicorn.taskSkipStage',
+    receipt: (result) => {
+      if (result.ok !== true) {
+        return { summary: `Not skipped: ${String(result.message ?? result.reason)}`, undo: null }
+      }
+      const task = asTask(result)
+      return {
+        summary: `${String(result.stageName ?? result.stageKey)} marked not needed`,
+        undo: task ? { action: 'task.update', args: { taskId: task.id } } : null
+      }
+    }
+  },
+  {
     name: 'alicorn_update_task',
     description:
       'Change a task: retitle it, reassign it, or switch its execution strategy. Only the fields you name change. Moving `column` on a task that has a workflow is refused when it would skip a stage — use alicorn_advance_stage, which gates where it must.',

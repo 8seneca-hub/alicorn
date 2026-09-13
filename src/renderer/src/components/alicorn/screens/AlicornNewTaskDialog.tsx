@@ -162,6 +162,7 @@ function NewTaskDialogBody({
       // The stage is the workflow's to decide, not the composer's: a task enters at the start and
       // the board moves it on. Null here means "not started", which is what a new ticket is.
       stageKey: null,
+      skippedStageKeys: [],
       source,
       memberIds: [...new Set(memberIds)]
     })

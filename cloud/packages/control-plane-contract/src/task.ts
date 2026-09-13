@@ -75,6 +75,15 @@ export const TaskInputSchema = z.object({
   /** A stage of that workflow. Null when there is no workflow, or before it has started. */
   stageKey: z.string().trim().min(1).max(120).nullable().default(null),
   /**
+   * Stages this particular task does not need — a docs fix has nothing to deploy, a spike has
+   * nothing to merge. The rail strikes them and `planStageAdvance` steps over them.
+   *
+   * **A gated stage may not be skipped by an agent.** "Not needed" is a scope judgement, and if an
+   * agent could make it about a merge it would have walked around the gate by relabelling it. The
+   * tool refuses; a human may still skip anything, because a human is who the gate escalates to.
+   */
+  skippedStageKeys: z.array(z.string().trim().min(1).max(120)).max(40).default([]),
+  /**
    * Which model the session runs on — a catalog id (`opus`, `sonnet`, `gpt-5.5`), not a wire name.
    *
    * On the task rather than the member because it is the *work* that is hard or cheap, not the
@@ -110,6 +119,7 @@ export type Task = {
   executionStrategy: ExecutionStrategy
   workflowId: string | null
   stageKey: string | null
+  skippedStageKeys: string[]
   model: string | null
   memberIds: string[]
   source: TaskSource | null

@@ -12,8 +12,8 @@
  * absence rather than by a flag a caller could set.
  */
 import { z } from 'zod'
-import { describeGateReason, planStageAdvance } from '../../../../shared/alicorn/workflow-gate'
-import { readStageRules, refuseIllegalColumnMove } from './alicorn-stage-rules'
+import { alicornStageMethods } from './alicorn-stage-methods'
+import { refuseIllegalColumnMove } from './alicorn-stage-rules'
 import { defineMethod, type RpcMethod } from '../core'
 import { OptionalString } from '../schemas'
 import { alicornFetch } from '../../../alicorn/control-plane-http'
@@ -57,6 +57,7 @@ const TaskCreateParams = z.object({
   workflowId: OptionalString,
   stageKey: OptionalString,
   model: OptionalString,
+  skippedStageKeys: z.array(z.string().min(1)).optional(),
   memberIds: z.array(z.string().min(1)).optional()
 })
 
@@ -80,6 +81,7 @@ const TaskUpdateParams = z.object({
   workflowId: OptionalString,
   stageKey: OptionalString,
   model: OptionalString,
+  skippedStageKeys: z.array(z.string().min(1)).optional(),
   memberIds: z.array(z.string().min(1)).optional()
 })
 
@@ -152,57 +154,7 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
       return { project: body.project }
     }
   }),
-  defineMethod({
-    name: 'alicorn.taskAdvanceStage',
-    params: z.object({ taskId: z.string().min(1), actor: ActorParam }),
-    handler: async (params) => {
-      const { task } = await readJson<{ task: Task }>(
-        `/v1/tasks/${encodeURIComponent(params.taskId)}`
-      )
-      if (!task.workflowId) {
-        return {
-          ok: false as const,
-          reason: 'no_workflow',
-          message:
-            'This task runs with no workflow, so it has no stages to advance through. Finish it and move the board.'
-        }
-      }
-      const { stages, policies } = await readStageRules(readJson, task)
-      const plan = planStageAdvance({ stages, policies, from: task.stageKey })
-      if (plan.kind === 'finished') {
-        return { ok: false as const, reason: 'finished', message: 'This is the last stage.' }
-      }
-      if (plan.kind === 'unknown-stage') {
-        return {
-          ok: false as const,
-          reason: 'unknown_stage',
-          message: `This task sits at "${task.stageKey}", which its workflow does not have.`
-        }
-      }
-      if (plan.kind === 'gated') {
-        // The refusal is the feature. A human decides, and the agent is told which stage and why,
-        // so it can ask for the right thing rather than retrying.
-        return {
-          ok: false as const,
-          reason: 'gated',
-          stageKey: plan.to.key,
-          stageName: plan.to.name,
-          message: `${describeGateReason(plan.reason, plan.to.name)} Ask the developer to move it; do not move it yourself.`
-        }
-      }
-      const body = await readJson<{ task: Task }>(
-        `/v1/tasks/${encodeURIComponent(params.taskId)}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({
-            stageKey: plan.to.key,
-            ...(plan.to.columnId ? { column: plan.to.columnId } : {})
-          })
-        }
-      )
-      return { ok: true as const, task: body.task, stageKey: plan.to.key, stageName: plan.to.name }
-    }
-  }),
+  ...alicornStageMethods(readJson),
   defineMethod({
     name: 'alicorn.memberList',
     params: z.object({}),
@@ -255,6 +207,7 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
           workflowId: params.workflowId ?? null,
           stageKey: params.stageKey ?? null,
           model: params.model ?? null,
+          skippedStageKeys: params.skippedStageKeys ?? [],
           memberIds: params.memberIds ?? [],
           source: params.source ? { ...params.source, url: params.source.url ?? null } : null
         })
@@ -289,6 +242,9 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
       }
       if (params.model !== undefined) {
         patch.model = params.model
+      }
+      if (params.skippedStageKeys !== undefined) {
+        patch.skippedStageKeys = params.skippedStageKeys
       }
       if (params.memberIds !== undefined) {
         patch.memberIds = params.memberIds

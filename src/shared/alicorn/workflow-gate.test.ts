@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { columnAdvanceIsLegal, gateReasonFor, planStageAdvance } from './workflow-gate'
+import {
+  agentMaySkip,
+  columnAdvanceIsLegal,
+  gateReasonFor,
+  planStageAdvance
+} from './workflow-gate'
 import type { AutonomyPolicy } from './gate-policy'
 import type { WorkflowStage } from './workflows'
 
@@ -112,6 +117,42 @@ describe('advancing a stage', () => {
     expect(planStageAdvance({ stages: STAGES, policies: OPEN, from: 'ghost' })).toEqual({
       kind: 'unknown-stage'
     })
+  })
+})
+
+describe('skipping a stage', () => {
+  it('steps over a skipped stage rather than entering it', () => {
+    const result = planStageAdvance({
+      stages: STAGES,
+      policies: OPEN,
+      from: 'spec',
+      skipped: ['build']
+    })
+    // Build is not needed, so one step forward from Spec is Merge — which still gates.
+    expect(result).toEqual({ kind: 'gated', to: STAGES[2], reason: 'irreversible' })
+  })
+
+  it('still knows where it is when the current stage is the skipped one', () => {
+    const result = planStageAdvance({
+      stages: STAGES,
+      policies: OPEN,
+      from: 'build',
+      skipped: ['build']
+    })
+    expect(result).toEqual({ kind: 'gated', to: STAGES[2], reason: 'irreversible' })
+  })
+
+  /**
+   * The hazard this guards: an agent that could mark Merge "not needed" would have walked around
+   * the gate by relabelling it, and the refusal would still be there — intact and useless.
+   */
+  it('refuses to let an agent skip a stage that gates', () => {
+    expect(agentMaySkip(STAGES[2]!, OPEN)).toBe(false)
+    expect(agentMaySkip(STAGES[1]!, OPEN)).toBe(true)
+  })
+
+  it('refuses a stage with no policy, which is the unauthored case', () => {
+    expect(agentMaySkip(STAGES[1]!, [])).toBe(false)
   })
 })
 

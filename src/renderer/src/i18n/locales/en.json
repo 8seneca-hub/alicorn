@@ -17629,7 +17629,10 @@
           "memberWorking": "working",
           "memberWaiting": "waiting on you",
           "memberIdle": "idle",
-          "memberNotStarted": "not started"
+          "memberNotStarted": "not started",
+          "stageSkipped": "This task does not need {{stage}}",
+          "memberRunsThis": "{{member}} is running this session on {{backend}}",
+          "memberNotInSession": "{{member}} is on this ticket but is not running this session"
         },
         "mcpAttach": {
           "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",

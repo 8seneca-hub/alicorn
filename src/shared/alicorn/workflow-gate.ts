@@ -73,8 +73,15 @@ export function planStageAdvance(args: {
   policies: readonly AutonomyPolicy[]
   /** Null means the task has not started; the first stage is next. */
   from: string | null
+  /** Stages this task does not need — stepped over, never entered. */
+  skipped?: readonly string[]
 }): StageAdvance {
-  const stages = ordered(args.stages)
+  const skipped = new Set(args.skipped ?? [])
+  const stages = ordered(args.stages).filter(
+    // A skipped stage is not in the pipeline for this task, so it is neither advanced into nor
+    // counted when deciding what "one stage forward" means.
+    (stage) => !skipped.has(stage.key) || stage.key === args.from
+  )
   if (stages.length === 0) {
     return { kind: 'finished' }
   }
@@ -93,6 +100,17 @@ export function planStageAdvance(args: {
   }
   const reason = gateReasonFor(next, args.policies)
   return reason ? { kind: 'gated', to: next, reason } : { kind: 'advance', to: next }
+}
+
+/**
+ * May an agent mark this stage as not needed?
+ *
+ * Only where the stage does not gate. "Not needed" is a scope judgement, and an agent that could
+ * make it about a merge would have walked around the gate by relabelling it — the refusal would be
+ * intact and useless. A human may skip anything, because a human is who the gate escalates to.
+ */
+export function agentMaySkip(stage: WorkflowStage, policies: readonly AutonomyPolicy[]): boolean {
+  return gateReasonFor(stage, policies) === null
 }
 
 /**
