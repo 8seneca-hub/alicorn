@@ -9,6 +9,7 @@
 export const PROJECT_SECTIONS = [
   'tasks',
   'board',
+  'context',
   'inbox',
   'members',
   'workflow',

@@ -6,6 +6,7 @@
  */
 import React from 'react'
 import {
+  BookText,
   ChevronLeft,
   Gauge,
   Settings2,
@@ -38,6 +39,7 @@ type IconComponent = typeof Inbox
 const PROJECT_SECTION_LABELS: Record<ProjectSection, string> = {
   tasks: 'Tasks',
   board: 'Board',
+  context: 'Context',
   inbox: 'Inbox',
   members: 'Members',
   workflow: 'Workflow',
@@ -49,6 +51,7 @@ const PROJECT_SECTION_LABELS: Record<ProjectSection, string> = {
 const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
   tasks: List,
   board: SquareKanban,
+  context: BookText,
   inbox: Inbox,
   members: Users,
   workflow: Workflow,

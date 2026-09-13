@@ -17517,7 +17517,15 @@
           "stageChecks": "{{count}} checks",
           "workflowVersionNote": "Version {{version}}. Editing the graph is the workflow canvas’ job and is not wired to this screen yet.",
           "checksIntro": "What has to pass before a hand-off in this project. Authored here by an org admin and never by the member a check judges — which is why it is not editable from the task a member is working.",
-          "newWorkflow": "New workflow"
+          "newWorkflow": "New workflow",
+          "context": "Context",
+          "contextSave": "Save",
+          "contextEdit": "Edit",
+          "contextPlaceholder": "# The domain\n\nWho the users are, what the constraints are, the decisions already made. Markdown.",
+          "noContextTitle": "Nothing written yet",
+          "noContextDetail": "The domain, the users, the constraints that hold across every ticket — the part a repository cannot teach. Every brief carries it, so a member reads it before it reads the ticket.",
+          "contextWrite": "Write it",
+          "contextAsk": "Ask the assistant"
         },
         "projects": {
           "repos": "Repositories",

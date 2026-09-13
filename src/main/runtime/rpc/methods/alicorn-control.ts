@@ -68,6 +68,15 @@ const TaskUpdateParams = z.object({
   memberIds: z.array(z.string().min(1)).optional()
 })
 
+/** A patch, not a replace: the Context screen edits one field and should not have to resend a key. */
+const ProjectUpdateParams = z.object({
+  projectId: z.string().min(1),
+  name: OptionalString,
+  key: OptionalString,
+  context: OptionalString,
+  repoIds: z.array(z.string().min(1)).optional()
+})
+
 const MemberCreateParams = z.object({
   name: z.string().min(1),
   role: z.enum(['developer', 'reviewer', 'qa', 'analyst', 'other']),
@@ -100,6 +109,31 @@ export const ALICORN_CONTROL_METHODS: RpcMethod[] = [
           source: params.source
         } satisfies ProjectInput)
       })
+      return { project: body.project }
+    }
+  }),
+  defineMethod({
+    name: 'alicorn.projectUpdate',
+    params: ProjectUpdateParams,
+    handler: async (params) => {
+      // Read first: the Control API's PUT takes a whole project, and sending a partial one would
+      // blank every field the caller did not happen to know about.
+      const current = await readJson<{ project: Project }>(
+        `/v1/projects/${encodeURIComponent(params.projectId)}`
+      )
+      const body = await readJson<{ project: Project }>(
+        `/v1/projects/${encodeURIComponent(params.projectId)}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            name: params.name ?? current.project.name,
+            key: params.key ?? current.project.key,
+            context: params.context ?? current.project.context,
+            repoIds: params.repoIds ?? current.project.repoIds,
+            source: current.project.source
+          } satisfies ProjectInput)
+        }
+      )
       return { project: body.project }
     }
   }),

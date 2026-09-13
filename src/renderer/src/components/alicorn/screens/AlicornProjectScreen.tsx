@@ -22,6 +22,7 @@ import { AlicornInboxScreen } from './AlicornInboxScreen'
 import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
 import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
 import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
+import { AlicornProjectContext } from './AlicornProjectContext'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectTasks } from './use-project-tasks'
@@ -34,6 +35,7 @@ import type { AlicornRoute, ProjectSection } from '../shell/alicorn-shell-route'
 const TITLES: Record<ProjectSection, string> = {
   tasks: 'Tasks',
   board: 'Board',
+  context: 'Context',
   inbox: 'Inbox',
   members: 'Members',
   workflow: 'Workflow',
@@ -50,6 +52,7 @@ export function AlicornProjectScreen({
   onComposingChange,
   onResolvedGate,
   onDeleteProject,
+  onProjectsChanged,
   onNavigate
 }: {
   route: { scope: 'projects'; projectId: string; section: ProjectSection; taskId?: string | null }
@@ -60,6 +63,8 @@ export function AlicornProjectScreen({
   onComposingChange: (open: boolean) => void
   onResolvedGate: () => void
   onDeleteProject: (projectId: string) => Promise<{ ok: true } | { ok: false; error: string }>
+  /** Re-reads the project list after something on a screen changed one. */
+  onProjectsChanged: () => void
   onNavigate: (next: AlicornRoute) => void
 }): React.JSX.Element {
   // Tasks are read here rather than per screen: the board and the list are two readings of one set
@@ -163,6 +168,16 @@ export function AlicornProjectScreen({
         <AlicornProjectBoard {...workProps} onSwitchView={() => section('tasks')} />
         {composer}
       </>
+    )
+  }
+
+  if (route.section === 'context' && project) {
+    return (
+      <AlicornProjectContext
+        crumbs={crumbs}
+        project={project}
+        onSaved={() => onProjectsChanged()}
+      />
     )
   }
 

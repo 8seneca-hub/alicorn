@@ -69,7 +69,7 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
   {
     name: 'alicorn_create_project',
     description:
-      'Create a project. Use this to import a board from a PM tool: create the project, then create one task per issue with its `source`. A project needs at least one repository.',
+      'Create a project. A project needs at least one repository. Importing a board from a PM tool creates the project and its context — not its issues, which stay in the tracker and are pulled in one at a time as tasks.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -96,6 +96,34 @@ export const ALICORN_MCP_TOOLS: readonly McpToolDefinition[] = [
             undo: { action: 'project.delete', args: { projectId: project.id } }
           }
         : { summary: 'No project was created', undo: null }
+    }
+  },
+  {
+    name: 'alicorn_set_project_context',
+    description:
+      'Write what a project is for: the domain, the users, the constraints that hold across every ticket. Markdown. It is carried into the brief of every task in the project, so a member reads it before it reads the ticket. Replaces whatever is there — read it first with alicorn_list_projects if you mean to add to it.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        projectId: { type: 'string' },
+        context: {
+          type: 'string',
+          description: 'Markdown. The part of the job a repository cannot teach.'
+        }
+      },
+      required: ['projectId', 'context']
+    },
+    method: 'alicorn.projectUpdate',
+    receipt: (result) => {
+      const project = result.project as { id: string; name: string } | undefined
+      return project
+        ? {
+            summary: `Rewrote the context of ${project.name}`,
+            // No undo: the previous text is not returned, and an undo that silently blanks the
+            // field would be worse than none. Say so rather than offer a lie.
+            undo: null
+          }
+        : { summary: 'No project was updated', undo: null }
     }
   },
   {
