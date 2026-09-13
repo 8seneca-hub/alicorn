@@ -72,9 +72,18 @@ const ORG_SECTION_ICONS: Record<OrgSection, IconComponent> = {
   autonomy: Gauge
 }
 
-function SidebarHead({ name, kind }: { name: string; kind: string }): React.JSX.Element {
+function SidebarHead({
+  name,
+  kind,
+  tight = false
+}: {
+  name: string
+  kind: string
+  /** Set when something sits directly above it, so the two do not stack their top padding. */
+  tight?: boolean
+}): React.JSX.Element {
   return (
-    <div className="shrink-0 px-4 pb-2.5 pt-4">
+    <div className={cn('shrink-0 px-4 pb-2.5', tight ? 'pt-2' : 'pt-4')}>
       <div className="truncate text-[15px] font-semibold">{name}</div>
       <div className="mt-0.5 text-[11px] text-muted-foreground">{kind}</div>
     </div>
@@ -285,7 +294,18 @@ export function AlicornScopeSidebar({
   const open = openByProject[projectId] ?? 0
   return (
     <Aside>
+      {/* Above the project's name, not under its sections: going up is a thing you do *before*
+          reading the list, and a back link at the bottom is one you have to scroll to find. */}
+      <button
+        type="button"
+        onClick={() => onNavigate({ scope: 'projects', projectId: null })}
+        className="flex h-7 shrink-0 items-center gap-1 px-3 pt-3 text-[11.5px] text-muted-foreground transition hover:text-foreground"
+      >
+        <ChevronLeft className="size-3.5" />
+        {translate('auto.components.alicorn.shell.allProjects', 'All projects')}
+      </button>
       <SidebarHead
+        tight
         name={project?.name ?? projectId}
         kind={translate('auto.components.alicorn.shell.projectKind', 'Project · {{spend}} spent', {
           spend: formatRunCostSummary(
@@ -314,7 +334,7 @@ export function AlicornScopeSidebar({
           />
         ))}
       </div>
-      <div className="flex shrink-0 flex-col gap-1.5 border-t border-border p-2.5">
+      <div className="shrink-0 border-t border-border p-2.5">
         <button
           type="button"
           onClick={() => onNewTask(projectId)}
@@ -322,14 +342,6 @@ export function AlicornScopeSidebar({
         >
           <Plus className="size-3.5" />
           {translate('auto.components.alicorn.project.newTask', 'New task')}
-        </button>
-        <button
-          type="button"
-          onClick={() => onNavigate({ scope: 'projects', projectId: null })}
-          className="flex h-8 w-full items-center justify-center gap-1 rounded-md text-[12.5px] text-muted-foreground transition hover:bg-accent hover:text-foreground"
-        >
-          <ChevronLeft className="size-3.5" />
-          {translate('auto.components.alicorn.shell.allProjects', 'All projects')}
         </button>
       </div>
     </Aside>
