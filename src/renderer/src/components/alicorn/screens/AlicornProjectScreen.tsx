@@ -27,11 +27,8 @@ import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectTasks } from './use-project-tasks'
 import { AlicornTaskScreen } from './AlicornTaskScreen'
 import { AlicornProjectBoard, AlicornProjectTasks } from './AlicornProjectWork'
-import {
-  AlicornProjectChecks,
-  AlicornProjectMembers,
-  AlicornProjectWorkflow
-} from './AlicornProjectLibrary'
+import { AlicornProjectChecks, AlicornProjectMembers } from './AlicornProjectLibrary'
+import { AlicornProjectWorkflow } from './AlicornProjectWorkflowScreen'
 import type { AlicornRoute, ProjectSection } from '../shell/alicorn-shell-route'
 
 const TITLES: Record<ProjectSection, string> = {

@@ -17512,7 +17512,8 @@
           "stageOneCheck": "1 check",
           "stageChecks": "{{count}} checks",
           "workflowVersionNote": "Version {{version}}. Editing the graph is the workflow canvas’ job and is not wired to this screen yet.",
-          "checksIntro": "What has to pass before a hand-off in this project. Authored here by an org admin and never by the member a check judges — which is why it is not editable from the task a member is working."
+          "checksIntro": "What has to pass before a hand-off in this project. Authored here by an org admin and never by the member a check judges — which is why it is not editable from the task a member is working.",
+          "newWorkflow": "New workflow"
         },
         "projects": {
           "repos": "Repositories",
@@ -17711,6 +17712,18 @@
           "undo": "Undo",
           "one": "1 change",
           "many": "{{count}} changes"
+        },
+        "newWorkflow": {
+          "blankName": "New workflow",
+          "titleIn": "New workflow in {{project}}",
+          "description": "A workflow is optional. Attaching one gives a task stages to hand off at, and gates to stop at.",
+          "name": "Name",
+          "startsAs": "Starts as",
+          "loading": "Reading templates…",
+          "stageCount": "{{count}} stages",
+          "blank": "One stage",
+          "blankDetail": "A single Spec stage to build out on the canvas. There is no empty workflow — a graph needs at least one stage.",
+          "create": "Create workflow"
         }
       },
       "composerTaskPlan": {

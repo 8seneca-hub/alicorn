@@ -1,29 +1,48 @@
 /**
- * The project's workflow, stages included.
+ * The project's workflows, and the one currently being read.
  *
- * Two calls, deliberately: `listWorkflows` answers which workflow a project has, and only
- * `getWorkflow` carries its stages. The summary's `stageCount` is not enough for the overview,
- * which has to say what each stage requires.
+ * Two calls, deliberately: `listWorkflows` answers which workflows a project has, and only
+ * `getWorkflow` carries their stages. The summary's `stageCount` is not enough for a screen that
+ * has to say what each stage requires.
+ *
+ * `workflow` is the selected one and defaults to the first, so a caller that only ever wants "the
+ * project's workflow" — the task header's rail, the composer's stage picker — reads it and never
+ * has to know a project may hold several.
  */
 import React from 'react'
-import type { Workflow } from '../../../../../shared/alicorn/workflows'
+import type { Workflow, WorkflowSummary } from '../../../../../shared/alicorn/workflows'
 
 export type ProjectWorkflowState = {
+  /** Every workflow the project holds, newest read first. */
+  workflows: WorkflowSummary[]
   workflow: Workflow | null
   /** Null until the read settles; a string when the control plane refused. */
   error: string | null
   loading: boolean
+  select: (id: string) => void
+  reload: () => void
 }
 
 export function useProjectWorkflow(projectId: string): ProjectWorkflowState {
+  const [workflows, setWorkflows] = React.useState<WorkflowSummary[]>([])
   const [workflow, setWorkflow] = React.useState<Workflow | null>(null)
+  const [selectedId, setSelectedId] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [reloads, setReloads] = React.useState(0)
+
+  // Reset during render rather than in an effect: an effect clears after the paint, which shows the
+  // previous project's workflow for a frame.
+  const [loadedProjectId, setLoadedProjectId] = React.useState(projectId)
+  if (loadedProjectId !== projectId) {
+    setLoadedProjectId(projectId)
+    setSelectedId(null)
+    setWorkflow(null)
+  }
 
   React.useEffect(() => {
     let cancelled = false
     setLoading(true)
-    setWorkflow(null)
     setError(null)
     void (async () => {
       const list = window.api?.alicorn?.listWorkflows
@@ -41,15 +60,21 @@ export function useProjectWorkflow(projectId: string): ProjectWorkflowState {
       }
       if (!listed.ok) {
         setError(listed.error)
+        setWorkflows([])
         setLoading(false)
         return
       }
-      const first = listed.workflows[0]
-      if (!first) {
+      setWorkflows(listed.workflows)
+      // A selection that survived a reload wins; otherwise the first, which is what a caller that
+      // never selects anything gets.
+      const open =
+        listed.workflows.find((candidate) => candidate.id === selectedId) ?? listed.workflows[0]
+      if (!open) {
+        setWorkflow(null)
         setLoading(false)
         return
       }
-      const full = await get(first.id)
+      const full = await get(open.id)
       if (cancelled) {
         return
       }
@@ -63,7 +88,14 @@ export function useProjectWorkflow(projectId: string): ProjectWorkflowState {
     return () => {
       cancelled = true
     }
-  }, [projectId])
+  }, [projectId, selectedId, reloads])
 
-  return { workflow, error, loading }
+  return {
+    workflows,
+    workflow,
+    error,
+    loading,
+    select: setSelectedId,
+    reload: () => setReloads((count) => count + 1)
+  }
 }

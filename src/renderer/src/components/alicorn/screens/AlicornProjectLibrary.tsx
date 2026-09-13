@@ -1,19 +1,13 @@
 /**
- * Members, Workflow and Checks for one project.
+ * Members and Checks for one project.
  *
- * All three read the org library through the control plane, and all three are read-only here. That
- * is not a gap: required checks are authored per project by an admin precisely so the member being
- * judged cannot reach them, and the same argument covers the stage that carries them. Editing
- * lives in the Organisation scope, where the library is the subject rather than the judge.
+ * Members are read-only here and that is not a gap: per-project overrides of what the library says
+ * are not built, so a second editor would only be a second answer. Checks are authored here on
+ * purpose — per project by an admin, precisely so the member being judged cannot reach them.
  */
 import React from 'react'
 import { translate } from '@/i18n/i18n'
 import type { Member, RequiredCheck } from '../../../../../shared/alicorn/members'
-import { Lock } from 'lucide-react'
-import { useAppStore } from '@/store'
-import { DEFAULT_WORKSPACE_STATUSES } from '../../../../../shared/workspace-status-defaults'
-import { useAlicornMembers } from '../shell/use-alicorn-members'
-import { useProjectWorkflow } from './use-project-workflow'
 import { AlicornRequiredCheckComposer, RequiredCheckRow } from './AlicornRequiredCheckComposer'
 import {
   AlicornEmptyState,
@@ -111,139 +105,6 @@ export function AlicornProjectMembers({
               {translate(
                 'auto.components.alicorn.project.membersNote',
                 'Every org member is available to every project. Per-project overrides — a different backend here than the library says — are not built yet, so this list is the library’s own answer.'
-              )}
-            </Note>
-          </>
-        )}
-      </AlicornScreenBody>
-    </>
-  )
-}
-
-export function AlicornProjectWorkflow({
-  projectName,
-  projectId,
-  onAllProjects
-}: {
-  projectName: string
-  projectId: string
-  onAllProjects: () => void
-}): React.JSX.Element {
-  const { workflow, error, loading } = useProjectWorkflow(projectId)
-  const { members } = useAlicornMembers()
-  const columns = useAppStore((state) => state.workspaceStatuses ?? DEFAULT_WORKSPACE_STATUSES)
-
-  return (
-    <>
-      <AlicornScreenHeader
-        crumbs={projectCrumbs(projectName, onAllProjects)}
-        title={translate(
-          'auto.components.alicorn.screens.AlicornProjectLibrary.51cc76f872',
-          'Workflow'
-        )}
-      />
-      <AlicornScreenBody>
-        {error ? (
-          <AlicornEmptyState
-            title={translate(
-              'auto.components.alicorn.project.workflowErrorTitle',
-              'Workflows could not be read'
-            )}
-            detail={error}
-          />
-        ) : loading ? (
-          <p className="text-sm text-muted-foreground">
-            {translate('auto.components.alicorn.project.workflowLoading', 'Reading workflows…')}
-          </p>
-        ) : !workflow ? (
-          <AlicornEmptyState
-            title={translate('auto.components.alicorn.project.noWorkflowTitle', 'No workflow yet')}
-            detail={translate(
-              'auto.components.alicorn.project.noWorkflowDetail',
-              'A workflow is optional. Without one a task is still a task — it just has no stage to hand off at.'
-            )}
-          />
-        ) : (
-          <>
-            <h2 className="text-[15px] font-semibold">{workflow.name}</h2>
-            <p className="mt-1 max-w-[680px] text-[12.5px] text-muted-foreground">
-              {translate(
-                'auto.components.alicorn.project.workflowIntro',
-                'Required checks, reversibility and inherited cost are authored per stage by an org admin — never by the member a stage judges. A stage with no column is never dispatched by a board move.'
-              )}
-            </p>
-            <ul className="mt-4 divide-y divide-border overflow-hidden rounded-lg border border-border">
-              {workflow.stages.map((stage) => {
-                const member = (members ?? []).find((candidate) => candidate.id === stage.memberId)
-                const column = columns.find((candidate) => candidate.id === stage.columnId)
-                return (
-                  <li
-                    key={stage.key}
-                    className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2.5 text-[13px]"
-                  >
-                    <span className="w-6 shrink-0 tabular-nums text-[11px] text-muted-foreground">
-                      {stage.ordinal + 1}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate font-medium">{stage.name}</span>
-                    {stage.kind === 'code' ? (
-                      <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
-                        {translate('auto.components.alicorn.project.stageCode', 'code · no member')}
-                      </span>
-                    ) : (
-                      <span className="shrink-0 text-[11px] text-muted-foreground">
-                        {member
-                          ? `${member.name} · ${member.backend}`
-                          : translate(
-                              'auto.components.alicorn.project.stageUnassigned',
-                              'unassigned'
-                            )}
-                      </span>
-                    )}
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {column
-                        ? translate(
-                            'auto.components.alicorn.project.stageColumn',
-                            'from {{column}}',
-                            {
-                              column: column.label
-                            }
-                          )
-                        : translate('auto.components.alicorn.project.stageNoColumn', 'no column')}
-                    </span>
-                    {stage.reversibility === 'irreversible' ? (
-                      <span className="flex shrink-0 items-center gap-1 rounded-full border border-status-attention/40 bg-status-attention/10 px-2 py-0.5 text-[11px] text-status-attention">
-                        <Lock className="size-3" />
-                        {translate('auto.components.alicorn.project.stageHardStop', 'always gates')}
-                      </span>
-                    ) : null}
-                    {stage.inheritedCost === 'high' ? (
-                      <span className="shrink-0 rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground">
-                        {translate(
-                          'auto.components.alicorn.project.stageInherited',
-                          'inherited cost'
-                        )}
-                      </span>
-                    ) : null}
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {stage.requiredChecks.length === 1
-                        ? translate('auto.components.alicorn.project.stageOneCheck', '1 check')
-                        : translate(
-                            'auto.components.alicorn.project.stageChecks',
-                            '{{count}} checks',
-                            {
-                              count: stage.requiredChecks.length
-                            }
-                          )}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-            <Note>
-              {translate(
-                'auto.components.alicorn.project.workflowVersionNote',
-                'Version {{version}}. Editing the graph is the workflow canvas’ job and is not wired to this screen yet.',
-                { version: workflow.version }
               )}
             </Note>
           </>
