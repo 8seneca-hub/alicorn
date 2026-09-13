@@ -1,14 +1,14 @@
 /**
- * Autonomy, across every project.
+ * Autonomy, a project at a time.
  *
- * A policy is authored *per project and per stage* — there is no org-wide level, and inventing one
- * here would be a third place for the rule to live. What this screen does org-wide is show them
- * all, and start one where there is none.
+ * A policy is authored per project *and per stage* — there is no org-wide level, and inventing one
+ * would be a third place for the rule to live. What "org default" means on a level here is the
+ * contract's own shipped default, which is what a stage gets when nobody has authored anything. So
+ * inheritance is real without a second store to keep in sync.
  *
- * **Authoring here does not loosen anything.** The default is `evidence`, which still gates every
- * hand-off; what it changes is whether the recorded recommendation says anything useful, which is
- * the only way evidence ever accumulates. A member still cannot author the criteria that judge it:
- * the Control API takes the author from the authenticated actor, never from the body.
+ * **Nothing an agent does can loosen any of this.** The Control API takes the author from the
+ * authenticated actor rather than the body, and the MCP surface has no autonomy tool at all — the
+ * boundary is enforced by absence, not by a flag a caller could set.
  */
 import React from 'react'
 import { Lock } from 'lucide-react'
@@ -18,142 +18,40 @@ import { Button } from '@/components/ui/button'
 import type { AutonomyPolicy } from '../../../../../shared/alicorn/gate-policy'
 import { autonomyStarterSet } from '../../../../../shared/alicorn/autonomy-starter-set'
 import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
-import { useProjectWorkflow } from './use-project-workflow'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import { AlicornEmptyState } from './AlicornScreenChrome'
+import { AlicornStageAutonomy } from './AlicornStageAutonomy'
+import { useProjectWorkflow } from './use-project-workflow'
 
-type ProjectPolicies = { project: Project; policies: AutonomyPolicy[] }
-
-function usePoliciesByProject(projects: readonly Project[]): {
-  rows: ProjectPolicies[]
+function useAutonomyPolicies(projectId: string | null): {
+  policies: AutonomyPolicy[]
   loading: boolean
   reload: () => void
 } {
-  const [rows, setRows] = React.useState<ProjectPolicies[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const [policies, setPolicies] = React.useState<AutonomyPolicy[]>([])
+  const [loading, setLoading] = React.useState(false)
   const [reloads, setReloads] = React.useState(0)
-  const projectIds = projects.map((project) => project.id).join(',')
 
   React.useEffect(() => {
+    if (!projectId) {
+      setPolicies([])
+      return
+    }
     let cancelled = false
     setLoading(true)
     void (async () => {
-      const list = window.api?.alicorn?.listAutonomyPolicies
-      if (!list) {
-        if (!cancelled) {
-          setLoading(false)
-        }
-        return
-      }
-      const read = await Promise.all(
-        projects.map(async (project) => {
-          const result = await list(project.id)
-          return { project, policies: result.ok ? result.policies : [] }
-        })
-      )
+      const result = await window.api?.alicorn?.listAutonomyPolicies?.(projectId)
       if (!cancelled) {
-        setRows(read)
+        setPolicies(result?.ok ? result.policies : [])
         setLoading(false)
       }
     })()
     return () => {
       cancelled = true
     }
-    // Why the ids and not the array: the projects array is rebuilt on every store write.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectIds, reloads])
+  }, [projectId, reloads])
 
-  return { rows, loading, reload: () => setReloads((count) => count + 1) }
-}
-
-/**
- * Authors the whole set at once, one policy per stage of the project's workflow.
- *
- * One stage at a time was the wrong unit: a policy on `build` alone says nothing about whether
- * merge gates, and "which stages may retire" is a single decision about a pipeline. The modes come
- * from the stages' own `reversibility` and `inheritedCost`, so a renamed or added stage is covered
- * without anyone editing a list of names.
- */
-function AuthorStarterSet({
-  project,
-  onAuthored
-}: {
-  project: Project
-  onAuthored: () => void
-}): React.JSX.Element {
-  const { workflow, loading } = useProjectWorkflow(project.id)
-  const [busy, setBusy] = React.useState(false)
-  const [failure, setFailure] = React.useState<string | null>(null)
-  const policies = React.useMemo(
-    () => autonomyStarterSet(workflow?.stages ?? []),
-    [workflow?.stages]
-  )
-
-  const author = async (): Promise<void> => {
-    const write = window.api?.alicorn?.setAutonomyPolicy
-    if (!write) {
-      // Not the control plane's fault, and saying it was sent someone to check a healthy service.
-      // The bridge lives in the preload, which only a restarted app picks up.
-      setFailure(
-        translate(
-          'auto.components.alicorn.org.needsRestart',
-          'This build of the app has no autonomy bridge yet — restart Alicorn to pick it up.'
-        )
-      )
-      return
-    }
-    setBusy(true)
-    setFailure(null)
-    for (const { stageName: _stageName, ...policy } of policies) {
-      const result = await write(project.id, policy)
-      if (!result.ok) {
-        setBusy(false)
-        setFailure(describeFailure(result))
-        return
-      }
-    }
-    setBusy(false)
-    onAuthored()
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={busy || loading || policies.length === 0}
-        onClick={() => void author()}
-      >
-        {policies.length === 0
-          ? translate('auto.components.alicorn.org.noStages', '{{project}} has no workflow yet', {
-              project: project.name
-            })
-          : translate(
-              'auto.components.alicorn.org.authorSet',
-              'Author {{count}} stages for {{project}}',
-              { count: policies.length, project: project.name }
-            )}
-      </Button>
-      {failure ? <span className="text-[11px] text-destructive">{failure}</span> : null}
-    </div>
-  )
-}
-
-function ModeBadge({ mode }: { mode: AutonomyPolicy['mode'] }): React.JSX.Element {
-  return (
-    <span
-      className={cn(
-        'shrink-0 rounded-full border px-2 py-0.5 text-[11px]',
-        // `never_gate` is the only mode that can skip a human, so it is the only one worth
-        // colouring: attention means a human is required, and its absence is the exception here.
-        mode === 'never_gate'
-          ? 'border-status-attention/40 bg-status-attention/10 text-status-attention'
-          : 'border-border text-muted-foreground'
-      )}
-    >
-      {mode}
-    </span>
-  )
+  return { policies, loading, reload: () => setReloads((count) => count + 1) }
 }
 
 export function AlicornOrgAutonomy({
@@ -161,87 +59,105 @@ export function AlicornOrgAutonomy({
 }: {
   projects: readonly Project[]
 }): React.JSX.Element {
-  const { rows, loading, reload } = usePoliciesByProject(projects)
-  const withPolicies = rows.filter((row) => row.policies.length > 0)
-  const withoutPolicies = rows.filter((row) => row.policies.length === 0)
+  const [projectId, setProjectId] = React.useState<string | null>(projects[0]?.id ?? null)
+  const active = projects.find((project) => project.id === projectId) ?? projects[0] ?? null
+  const { workflow, loading: workflowLoading } = useProjectWorkflow(active?.id ?? '')
+  const { policies, reload } = useAutonomyPolicies(active?.id ?? null)
+  const [busy, setBusy] = React.useState(false)
+  const [failure, setFailure] = React.useState<string | null>(null)
+  const stages = workflow?.stages ?? []
+
+  const authorAll = async (): Promise<void> => {
+    const write = window.api?.alicorn?.setAutonomyPolicy
+    if (!write || !active) {
+      return
+    }
+    setBusy(true)
+    setFailure(null)
+    for (const { stageName: _stageName, ...policy } of autonomyStarterSet(stages)) {
+      const result = await write(active.id, policy)
+      if (!result.ok) {
+        setBusy(false)
+        setFailure(describeFailure(result))
+        return
+      }
+    }
+    setBusy(false)
+    reload()
+  }
 
   return (
     <>
-      <p className="mb-5 max-w-[640px] text-[12.5px] leading-relaxed text-muted-foreground">
+      <p className="mb-4 max-w-[680px] text-[12.5px] leading-relaxed text-muted-foreground">
         {translate(
           'auto.components.alicorn.org.autonomyIntro',
-          'Autonomy is authored per stage of a project, never org-wide, and it is unlocked by evidence the ledger accumulates rather than by a switch. This is what every project currently holds; a merge, a deploy or anything irreversible gates regardless of track record.'
+          'Everything on a stage is inherited from the org library until you change it here. Nothing an agent does can loosen it — a merge, a deploy or anything irreversible gates regardless of level.'
         )}
       </p>
 
-      {loading ? (
+      {projects.length > 1 ? (
+        <div className="mb-5 flex flex-wrap gap-1.5">
+          {projects.map((project) => (
+            <button
+              key={project.id}
+              type="button"
+              onClick={() => setProjectId(project.id)}
+              className={cn(
+                'h-7 rounded-full border px-3 text-[12px] transition',
+                project.id === active?.id
+                  ? 'border-primary bg-accent font-medium'
+                  : 'border-border text-muted-foreground hover:bg-accent'
+              )}
+            >
+              {project.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {workflowLoading ? (
         <p className="text-sm text-muted-foreground">
-          {translate('auto.components.alicorn.org.autonomyLoading', 'Reading policies…')}
+          {translate('auto.components.alicorn.project.workflowLoading', 'Reading workflows…')}
         </p>
-      ) : withPolicies.length === 0 ? (
+      ) : stages.length === 0 ? (
         <AlicornEmptyState
-          title={translate(
-            'auto.components.alicorn.org.noAutonomyTitle',
-            'Every stage still gates'
-          )}
+          title={translate('auto.components.alicorn.org.noStagesTitle', 'No stages to govern')}
           detail={translate(
-            'auto.components.alicorn.org.noAutonomyDetail',
-            'No project has authored an autonomy policy, so every hand-off asks a human. That is the right starting point: evidence only accumulates by running gated. Starting one changes what gets recorded, not what gets gated.'
+            'auto.components.alicorn.org.noStagesDetail',
+            'Autonomy is authored per stage, so a project needs a workflow before it has anything to author. A task with no workflow runs as a raw session and gates nothing.'
           )}
-          action={
-            <div className="mt-3 space-y-1.5">
-              {rows.map((row) => (
-                <AuthorStarterSet key={row.project.id} project={row.project} onAuthored={reload} />
-              ))}
-            </div>
-          }
         />
       ) : (
-        withPolicies.map((row) => (
-          <section key={row.project.id} className="mb-4">
-            <h2 className="mb-2 text-[13px] font-semibold">{row.project.name}</h2>
-            <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
-              {row.policies.map((policy) => (
-                <li
-                  key={`${policy.stageKey}-${policy.memberId ?? 'all'}`}
-                  className="flex flex-wrap items-center gap-2.5 px-3 py-2.5 text-[13px]"
-                >
-                  <span className="min-w-0 flex-1 truncate font-medium">{policy.stageKey}</span>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">
-                    {policy.memberId
-                      ? translate('auto.components.alicorn.org.oneMember', 'one member')
-                      : translate('auto.components.alicorn.org.everyMember', 'every member')}
-                  </span>
-                  <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-                    {translate(
-                      'auto.components.alicorn.org.evidenceBar',
-                      '{{runs}} runs · {{rate}}% accepted',
-                      {
-                        runs: policy.minRuns,
-                        rate: Math.round(policy.minAcceptRate * 100)
-                      }
-                    )}
-                  </span>
-                  <ModeBadge mode={policy.mode} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))
+        <>
+          {policies.length === 0 ? (
+            <div className="mb-5 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted/40 px-3.5 py-3">
+              <p className="min-w-0 flex-1 text-[12.5px] text-muted-foreground">
+                {translate(
+                  'auto.components.alicorn.org.everyStageInherits',
+                  'Every stage is inherited. Authoring the set writes each one explicitly, so a later change to the default cannot move this project underneath you.'
+                )}
+              </p>
+              <Button size="sm" variant="outline" disabled={busy} onClick={() => void authorAll()}>
+                {translate('auto.components.alicorn.org.authorSet', 'Author all {{count}} stages', {
+                  count: stages.length
+                })}
+              </Button>
+            </div>
+          ) : null}
+          {failure ? <p className="mb-3 text-[11px] text-destructive">{failure}</p> : null}
+          {active
+            ? stages.map((stage) => (
+                <AlicornStageAutonomy
+                  key={stage.key}
+                  projectId={active.id}
+                  stage={stage}
+                  policies={policies}
+                  onChanged={reload}
+                />
+              ))
+            : null}
+        </>
       )}
-
-      {!loading && withPolicies.length > 0 && withoutPolicies.length > 0 ? (
-        <section className="mb-4">
-          <h2 className="mb-2 text-[13px] font-semibold">
-            {translate('auto.components.alicorn.org.noPolicyYet', 'No policy yet')}
-          </h2>
-          <div className="space-y-1.5">
-            {withoutPolicies.map((row) => (
-              <AuthorStarterSet key={row.project.id} project={row.project} onAuthored={reload} />
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       <p className="mt-5 flex max-w-[640px] items-start gap-2 text-[11px] text-muted-foreground">
         <Lock className="mt-0.5 size-3 shrink-0" />

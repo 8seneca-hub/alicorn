@@ -23,6 +23,7 @@ import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
 import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
 import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
 import { AlicornProjectContext } from './AlicornProjectContext'
+import { AlicornProjectIntegrations } from './AlicornProjectIntegrations'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectTasks } from './use-project-tasks'
@@ -37,6 +38,7 @@ const TITLES: Record<ProjectSection, string> = {
   board: 'Board',
   context: 'Context',
   inbox: 'Inbox',
+  integrations: 'Integrations',
   members: 'Members',
   workflow: 'Workflow',
   checks: 'Required Checks',
@@ -178,6 +180,17 @@ export function AlicornProjectScreen({
         project={project}
         repoPath={projectRepos[0]?.path ?? null}
         onSaved={() => onProjectsChanged()}
+      />
+    )
+  }
+
+  if (route.section === 'integrations' && project) {
+    return (
+      <AlicornProjectIntegrations
+        crumbs={crumbs}
+        project={project}
+        repos={projectRepos}
+        onOpenTasks={() => onComposingChange(true)}
       />
     )
   }

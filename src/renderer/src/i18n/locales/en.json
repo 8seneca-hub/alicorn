@@ -17441,7 +17441,10 @@
           "noPolicyYet": "No policy yet",
           "needsRestart": "This build of the app has no autonomy bridge yet — restart Alicorn to pick it up.",
           "noStages": "{{project}} has no workflow yet",
-          "authorSet": "Author {{count}} stages for {{project}}"
+          "authorSet": "Author {{count}} stages for {{project}}",
+          "noStagesTitle": "No stages to govern",
+          "noStagesDetail": "Autonomy is authored per stage, so a project needs a workflow before it has anything to author. A task with no workflow runs as a raw session and gates nothing.",
+          "everyStageInherits": "Every stage is inherited. Authoring the set writes each one explicitly, so a later change to the default cannot move this project underneath you."
         },
         "project": {
           "membersErrorTitle": "Members could not be read",
@@ -17766,6 +17769,34 @@
         "model": {
           "label": "Model",
           "default": "Default for this backend"
+        },
+        "autonomy": {
+          "orgDefault": "org default",
+          "overridden": "overridden",
+          "reset": "reset to org",
+          "inherited": "inherited",
+          "hardStopStage": "This stage gates at every level — it is irreversible or carries inherited cost, and that is read before any policy."
+        },
+        "integrations": {
+          "connected": "connected",
+          "pmTitle": "Project management",
+          "pmLede": "Where the work is tracked before it becomes a task. Alicorn imports from one of these — it does not replace it.",
+          "board": "Board",
+          "boardDetail": "Mapped to {{project}}. One board per Alicorn project.",
+          "issues": "Issues",
+          "issuesScoped": "Read live when you write a ticket. They are never copied in, so the tracker stays the one place an issue lives.",
+          "issuesUnscoped": "This provider’s client cannot list one board’s issues yet, so the composer cannot offer them. Nothing is shown rather than the wrong board’s.",
+          "newTask": "New task",
+          "none": "Not imported",
+          "noneDetail": "This project was typed here rather than imported, so it is bound to no board. Import a project to bind one.",
+          "scmTitle": "Source control",
+          "scmLede": "Where the diff lands. A project owns the repositories one feature may span.",
+          "noRepo": "No repository",
+          "noRepoDetail": "Nothing resolved on this machine, so a task here has nowhere to run.",
+          "folder": "folder",
+          "git": "git",
+          "credentialNote": "A provider is connected once for the device, not per project — a credential in two places is how one of them goes stale.",
+          "manage": "Connected accounts"
         }
       },
       "composerTaskPlan": {
