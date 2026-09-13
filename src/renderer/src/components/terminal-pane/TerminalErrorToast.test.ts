@@ -346,7 +346,10 @@ describe('TerminalErrorToast environment footer', () => {
       })
     )
 
-    expect(view.container.textContent).toContain('Alicorn: embedded')
+    // The incoming footer is Orca-branded on purpose: it stands for one that a paired server on an
+    // older build sent. It must be recognised as a footer — and therefore kept as-is, with no
+    // second one stacked under it.
+    expect(view.container.textContent).toContain('Orca: embedded')
     expect(view.container.textContent).not.toContain('Alicorn: 1.4.178-rc.2')
   })
 

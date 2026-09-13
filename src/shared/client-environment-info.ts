@@ -14,8 +14,11 @@ const ALICORN_LINE_PREFIX = 'Alicorn:'
 // Why: match the whole prefilled block (optional Shell line included) so strip
 // keeps authored text both above and below — users who click past the footer
 // and type must still be able to send.
+// Both brands: the block this writes now says "Alicorn:", but a footer already sitting in a draft
+// — or one that arrived from a paired server on an older build — still says "Orca:", and failing
+// to recognise it is what leaves two stacked footers in the box.
 const CLIENT_ENVIRONMENT_FOOTER_BLOCK =
-  /(^|\r?\n)---\r?\nOrca:[^\r\n]*\r?\nOS:[^\r\n]*(?:\r?\nShell:[^\r\n]*)?/
+  /(^|\r?\n)---\r?\n(?:Alicorn|Orca):[^\r\n]*\r?\nOS:[^\r\n]*(?:\r?\nShell:[^\r\n]*)?/
 
 function normalizeEnvironmentValue(value: string): string {
   return value.trim().replace(/[\r\n]+/g, ' ')
