@@ -19,6 +19,7 @@ type TaskRow = {
   execution_strategy: 'single' | 'orchestrated'
   workflow_id: string | null
   stage_key: string | null
+  model: string | null
   source_provider: TaskSource['provider'] | null
   source_ref: string | null
   source_url: string | null
@@ -31,7 +32,7 @@ type TaskRow = {
 
 const SELECT_TASKS = `
   SELECT t.id, t.tenant_id, t.project_id, t.number, t.title, t.context, t.column_id,
-         t.execution_strategy, t.workflow_id, t.stage_key,
+         t.execution_strategy, t.workflow_id, t.stage_key, t.model,
          t.source_provider, t.source_ref, t.source_url,
          t.created_by, t.created_at, t.updated_at, t.closed_at,
          COALESCE(array_agg(m.member_id ORDER BY m.member_id) FILTER (WHERE m.member_id IS NOT NULL), '{}') AS member_ids
@@ -50,6 +51,7 @@ function toTask(row: TaskRow): Task {
     executionStrategy: row.execution_strategy,
     workflowId: row.workflow_id,
     stageKey: row.stage_key,
+    model: row.model,
     memberIds: row.member_ids ?? [],
     source:
       row.source_provider && row.source_ref
@@ -131,13 +133,13 @@ export function createTask(
       // closed_at is stamped here too, not only on the patch: a task filed straight into the done
       // column is finished, and two paths that disagree make "when did this close" unanswerable.
       `INSERT INTO tasks (tenant_id, project_id, number, title, context, column_id,
-                          execution_strategy, workflow_id, stage_key, created_by, closed_at,
+                          execution_strategy, workflow_id, stage_key, model, created_by, closed_at,
                           source_provider, source_ref, source_url)
        VALUES ($1, $2,
                (SELECT COALESCE(MAX(number), 0) + 1 FROM tasks WHERE project_id = $2),
-               $3, $4, $5, $6, $7, $8, $9,
-               CASE WHEN $5 = $10 THEN now() ELSE NULL END,
-               $11, $12, $13)
+               $3, $4, $5, $6, $7, $8, $9, $10,
+               CASE WHEN $5 = $11 THEN now() ELSE NULL END,
+               $12, $13, $14)
        RETURNING id`,
       [
         tenantId,
@@ -148,6 +150,7 @@ export function createTask(
         input.executionStrategy,
         input.workflowId,
         input.stageKey,
+        input.model,
         createdBy,
         TASK_DONE_COLUMN,
         input.source?.provider ?? null,
@@ -181,6 +184,7 @@ export function updateTask(
          execution_strategy = COALESCE($5, execution_strategy),
          stage_key = CASE WHEN $6::boolean THEN $7 ELSE stage_key END,
          workflow_id = CASE WHEN $9::boolean THEN $10 ELSE workflow_id END,
+         model = CASE WHEN $11::boolean THEN $12 ELSE model END,
          closed_at = CASE
            WHEN $4::text IS NULL THEN closed_at
            WHEN $4::text = $8::text THEN COALESCE(closed_at, now())
@@ -198,7 +202,9 @@ export function updateTask(
         patch.stageKey ?? null,
         TASK_DONE_COLUMN,
         Object.hasOwn(patch, 'workflowId'),
-        patch.workflowId ?? null
+        patch.workflowId ?? null,
+        Object.hasOwn(patch, 'model'),
+        patch.model ?? null
       ]
     )
     if (rowCount === 0) return null

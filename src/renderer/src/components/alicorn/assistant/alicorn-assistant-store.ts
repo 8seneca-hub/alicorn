@@ -23,9 +23,31 @@ export const EMPTY_ASSISTANT_SCOPE: AssistantScope = {
   taskRef: null
 }
 
-type AssistantState = { open: boolean; scope: AssistantScope }
+type AssistantState = { open: boolean; scope: AssistantScope; model: string | null }
 
-let state: AssistantState = { open: false, scope: EMPTY_ASSISTANT_SCOPE }
+/**
+ * The model survives the panel closing, and only that.
+ *
+ * A session per opening is the right lifetime for a *conversation* and the wrong one for a
+ * preference: nobody wants to re-pick Opus every time they summon it. `localStorage` because it is
+ * one string of presentation state, and a control-plane round trip to remember a dropdown would be
+ * a worse trade than losing it on a cleared profile.
+ */
+const MODEL_KEY = 'alicorn.assistant.model.v1'
+
+function readStoredModel(): string | null {
+  try {
+    return window.localStorage.getItem(MODEL_KEY)
+  } catch {
+    return null
+  }
+}
+
+let state: AssistantState = {
+  open: false,
+  scope: EMPTY_ASSISTANT_SCOPE,
+  model: readStoredModel()
+}
 const listeners = new Set<() => void>()
 
 function emit(next: AssistantState): void {
@@ -52,6 +74,19 @@ export function setAlicornAssistantOpen(open: boolean): void {
 
 export function toggleAlicornAssistant(): void {
   emit({ ...state, open: !state.open })
+}
+
+export function setAlicornAssistantModel(model: string | null): void {
+  try {
+    if (model) {
+      window.localStorage.setItem(MODEL_KEY, model)
+    } else {
+      window.localStorage.removeItem(MODEL_KEY)
+    }
+  } catch {
+    // A profile that refuses storage still gets the choice for this session.
+  }
+  emit({ ...state, model })
 }
 
 export function setAlicornAssistantScope(scope: AssistantScope): void {

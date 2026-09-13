@@ -23,6 +23,7 @@ function task(overrides: Partial<Task> = {}): Task {
     column: 'todo',
     executionStrategy: 'single',
     workflowId: null,
+    model: null,
     stageKey: null,
     memberIds: [],
     source: null,
@@ -82,6 +83,7 @@ describe('useProjectTasks', () => {
         column: 'todo',
         executionStrategy: 'single',
         workflowId: null,
+        model: null,
         stageKey: null,
         memberIds: [],
         source: null
@@ -140,6 +142,7 @@ describe('useProjectTasks', () => {
         column: 'todo',
         executionStrategy: 'single',
         workflowId: null,
+        model: null,
         stageKey: null,
         memberIds: [],
         source: null

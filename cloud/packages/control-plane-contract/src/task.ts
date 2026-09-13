@@ -74,6 +74,14 @@ export const TaskInputSchema = z.object({
   workflowId: z.string().trim().min(1).max(200).nullable().default(null),
   /** A stage of that workflow. Null when there is no workflow, or before it has started. */
   stageKey: z.string().trim().min(1).max(120).nullable().default(null),
+  /**
+   * Which model the session runs on — a catalog id (`opus`, `sonnet`, `gpt-5.5`), not a wire name.
+   *
+   * On the task rather than the member because it is the *work* that is hard or cheap, not the
+   * role: the same reviewer reads a one-line fix and a schema migration. Null takes the backend's
+   * own default, which is what most tickets want.
+   */
+  model: z.string().trim().min(1).max(120).nullable().default(null),
   /** Org members bound to this task. Order is not meaningful; the set is. */
   memberIds: z.array(z.string().trim().min(1).max(200)).max(20).default([]),
   /** Null for a task typed here; set for one imported from a PM tool. */
@@ -102,6 +110,7 @@ export type Task = {
   executionStrategy: ExecutionStrategy
   workflowId: string | null
   stageKey: string | null
+  model: string | null
   memberIds: string[]
   source: TaskSource | null
   createdBy: string

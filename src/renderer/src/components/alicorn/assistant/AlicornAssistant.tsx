@@ -31,8 +31,10 @@ import { collectReceipts } from './alicorn-receipt-feed'
 import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'
 import type { AgentType } from '../../../../../shared/agent-status-types'
 import type { Project } from '../../../../../shared/alicorn/projects'
+import { AlicornModelPicker } from '../screens/AlicornModelPicker'
 import {
   getAlicornAssistantState,
+  setAlicornAssistantModel,
   setAlicornAssistantOpen,
   subscribeAlicornAssistant
 } from './alicorn-assistant-store'
@@ -102,8 +104,8 @@ export function AlicornAssistant({
 }
 
 function AlicornAssistantPanel({ projects }: { projects: readonly Project[] }): React.JSX.Element {
-  const { scope } = useAlicornAssistantState()
-  const chat = useOrgChat(projects)
+  const { scope, model } = useAlicornAssistantState()
+  const chat = useOrgChat(projects, model)
 
   const scopeLabel =
     scope.taskRef ??
@@ -122,6 +124,12 @@ function AlicornAssistantPanel({ projects }: { projects: readonly Project[] }): 
         </span>
         <ScopeChip label={scopeLabel} />
         <span className="flex-1" />
+        <AlicornModelPicker
+          agent="claude"
+          value={model}
+          onChange={setAlicornAssistantModel}
+          className="h-6 w-[132px] shrink-0 border-none text-[11px] text-muted-foreground shadow-none"
+        />
         <Button
           size="xs"
           variant="ghost"

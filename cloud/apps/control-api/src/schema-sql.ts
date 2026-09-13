@@ -65,6 +65,7 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
   // ever builds a fresh one.
   // Additive: a task that predates workflows reads as having none, which is what it had.
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_id TEXT`,
+  `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS model TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_provider TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_ref TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_url TEXT`,

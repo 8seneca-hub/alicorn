@@ -18,6 +18,7 @@ function task(overrides: Partial<Task> = {}): Task {
     column: 'todo',
     executionStrategy: 'single',
     workflowId: null,
+    model: null,
     stageKey: null,
     memberIds: [],
     source: null,

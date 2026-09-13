@@ -11,7 +11,13 @@
  * a brief nobody can predict the output of, and this one is read by an agent that acts on it.
  */
 
-export const TASK_BRIEF_PARAMS = ['ref', 'title', 'context', 'project_context'] as const
+export const TASK_BRIEF_PARAMS = [
+  'ref',
+  'title',
+  'context',
+  'project_context',
+  'member_rules'
+] as const
 export type TaskBriefParam = (typeof TASK_BRIEF_PARAMS)[number]
 
 /**
@@ -24,6 +30,8 @@ export const DEFAULT_TASK_BRIEF_TEMPLATE = [
   '{{context}}',
   '',
   '{{project_context}}',
+  '',
+  '{{member_rules}}',
   '',
   'You are working this task inside Alicorn. Use the alicorn_* MCP tools to move it on the board,',
   'record what you did and pull in whoever else it needs. Decide for yourself whether this needs',

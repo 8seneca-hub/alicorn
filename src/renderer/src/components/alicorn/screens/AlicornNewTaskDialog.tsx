@@ -46,6 +46,8 @@ import { useProjectWorkflow } from './use-project-workflow'
 import { useProjectBoardIssues } from './use-project-board-issues'
 import { useContextFileDrop } from './use-context-file-drop'
 import { AlicornIssuePicker } from './AlicornIssuePicker'
+import { AlicornModelPicker } from './AlicornModelPicker'
+import type { AgentType } from '../../../../../shared/agent-status-types'
 import { planeIssueToTask } from '../../../../../shared/alicorn/pm-import'
 import { EXECUTION_STRATEGIES } from '../../../../../shared/alicorn/ledger'
 import type { ExecutionStrategy } from '../../../../../shared/alicorn/ledger'
@@ -119,6 +121,7 @@ function NewTaskDialogBody({
   // workflow". Resolving it at read time keeps an effect from overwriting a choice made early.
   const [workflowId, setWorkflowId] = React.useState<string | null | undefined>(undefined)
   const [source, setSource] = React.useState<TaskSource | null>(null)
+  const [model, setModel] = React.useState<string | null>(null)
   const board = useProjectBoardIssues(projectSource, true)
   const drop = useContextFileDrop({
     root: projectRepos[0]?.path ?? null,
@@ -140,6 +143,9 @@ function NewTaskDialogBody({
     repos: repoOptions,
     openRepoId: repoOptions[0]?.id ?? null
   })
+  // The backend the plan's author runs on decides which models are even on offer.
+  const author = plan.members.find((member) => member.id === plan.authorId) ?? null
+  const authorAgent = (author?.backend ?? 'claude') as AgentType
   const canSubmit = title.trim().length > 0 && !busy
 
   const submit = async (): Promise<void> => {
@@ -152,6 +158,7 @@ function NewTaskDialogBody({
       column: 'todo',
       executionStrategy: strategy,
       workflowId: chosenWorkflowId,
+      model,
       // The stage is the workflow's to decide, not the composer's: a task enters at the start and
       // the board moves it on. Null here means "not started", which is what a new ticket is.
       stageKey: null,
@@ -325,16 +332,34 @@ function NewTaskDialogBody({
           {advanced
             ? translate(
                 'auto.components.alicorn.newTask.hideAdvanced',
-                'Hide the execution strategy'
+                'Hide the model and strategy'
               )
             : translate(
                 'auto.components.alicorn.newTask.showAdvanced',
-                'Change the execution strategy'
+                'Change the model or strategy'
               )}
         </button>
 
         {advanced ? (
           <div className="space-y-4 border-t border-border pt-4">
+            <div className="space-y-1.5">
+              <FieldLabel htmlFor="alicorn-task-model">
+                {translate('auto.components.alicorn.model.label', 'Model')}
+              </FieldLabel>
+              <AlicornModelPicker
+                id="alicorn-task-model"
+                agent={authorAgent}
+                value={model}
+                onChange={setModel}
+              />
+              <Trail>
+                {translate(
+                  'auto.components.alicorn.newTask.modelTrail',
+                  'On the task, not the member: the same reviewer reads a one-line fix and a schema migration.'
+                )}
+              </Trail>
+            </div>
+
             <div className="space-y-1.5">
               <FieldLabel>
                 {translate(

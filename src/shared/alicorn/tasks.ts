@@ -34,6 +34,8 @@ export type TaskInput = {
   /** Which of the project's workflows this runs under. Null is a raw session with no stages. */
   workflowId: string | null
   stageKey: string | null
+  /** A catalog model id (`opus`, `sonnet`). Null takes the backend's own default. */
+  model: string | null
   memberIds: string[]
   /** Null for a task typed here; set for one imported from a PM tool. */
   source: TaskSource | null

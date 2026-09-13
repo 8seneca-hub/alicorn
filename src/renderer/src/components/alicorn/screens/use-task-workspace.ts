@@ -21,6 +21,8 @@ import { useAppStore } from '@/store'
 import type { TaskWorktreeTuple } from '../../../../../shared/alicorn/feature-workspace-tuples'
 import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'
 import { launchAlicornSession } from './launch-alicorn-session'
+import type { AgentSessionHandleProvider } from '../../../../../shared/agent-session-provider-handle'
+import type { Member } from '../../../../../shared/alicorn/members'
 import {
   DEFAULT_TASK_BRIEF_TEMPLATE,
   renderTaskBrief
@@ -52,7 +54,9 @@ export function useTaskWorkspace(
   /** The repositories this project resolved on this machine; one of them will host the session. */
   projectRepoIds: readonly string[],
   /** What the project is for. Rides in every brief so a member reads the domain first. */
-  projectContext = ''
+  projectContext = '',
+  /** The member the session runs as — its backend is the agent, its rules ride in the brief. */
+  member: Pick<Member, 'backend' | 'systemRules'> | null = null
 ): TaskWorkspaceState {
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
   const [tuples, setTuples] = React.useState<TaskWorktreeTuple[]>([])
@@ -111,11 +115,16 @@ export function useTaskWorkspace(
         }
         const binding = await launchAlicornSession({
           worktreeId: workspace.id,
+          // The member's backend, not a hard-coded Claude: a member bound to Codex that opens a
+          // Claude session is a member in name only.
+          agent: (member?.backend ?? 'claude') as AgentSessionHandleProvider,
+          model: task.model,
           prompt: renderTaskBrief(DEFAULT_TASK_BRIEF_TEMPLATE, {
             ref: `${projectKey}-${task.number}`,
             title: task.title,
             context: task.context,
-            project_context: projectContext
+            project_context: projectContext,
+            member_rules: member?.systemRules ?? ''
           })
         })
         await api.bindSubjectSession(task.id, binding)
@@ -126,7 +135,7 @@ export function useTaskWorkspace(
         setStarting(false)
       }
     },
-    [projectContext, projectKey, task, worktreesByRepo]
+    [member?.backend, member?.systemRules, projectContext, projectKey, task, worktreesByRepo]
   )
 
   // Where the session goes: the repository this task is already bound to, else the project's only

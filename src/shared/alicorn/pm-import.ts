@@ -72,6 +72,7 @@ export function planeIssueToTask(
     executionStrategy: 'single',
     workflowId: null,
     stageKey: null,
+    model: null,
     memberIds: [],
     source: {
       provider: 'plane',

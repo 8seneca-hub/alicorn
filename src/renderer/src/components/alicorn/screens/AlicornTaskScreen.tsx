@@ -50,11 +50,12 @@ export function AlicornTaskScreen({
   const taskWorkflow = task.workflowId === null ? null : workflow
   const { members } = useAlicornMembers()
   const projectRepoIds = React.useMemo(() => projectRepos.map((repo) => repo.id), [projectRepos])
-  const workspace = useTaskWorkspace(task, projectKey, projectRepoIds, projectContext)
-  const sessionRepoId = workspace.repoId
   const bound = (members ?? []).filter((member) => task.memberIds.includes(member.id))
-  // The member the session runs as is the task's first — the author the plan picked.
+  // The member the session runs as is the task's first — the author the plan picked. It has to be
+  // resolved before the workspace hook, which launches as that member.
   const working = bound.find((member) => member.id === task.memberIds[0]) ?? null
+  const workspace = useTaskWorkspace(task, projectKey, projectRepoIds, projectContext, working)
+  const sessionRepoId = workspace.repoId
   const [activity, setActivity] = React.useState<TaskSessionActivity>('offline')
 
   return (

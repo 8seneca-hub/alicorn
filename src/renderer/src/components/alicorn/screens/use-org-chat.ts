@@ -34,7 +34,11 @@ export type OrgChatState = {
   restart: () => void
 }
 
-export function useOrgChat(projects: readonly Project[]): OrgChatState {
+export function useOrgChat(
+  projects: readonly Project[],
+  /** The model the panel is set to. Applied at launch; changing it opens a new session. */
+  model: string | null = null
+): OrgChatState {
   const repos = useAppStore((state) => state.repos)
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
   const [session, setSession] = React.useState<TaskSessionBinding | null>(null)
@@ -65,7 +69,7 @@ export function useOrgChat(projects: readonly Project[]): OrgChatState {
       // alicorn_* tools do and that every change answers with a receipt, so a priming message would
       // only put the framing in the transcript as something the developer appears to have typed —
       // and then answer a question nobody asked. It waits.
-      const binding = await launchAlicornSession({ worktreeId: workspace.id })
+      const binding = await launchAlicornSession({ worktreeId: workspace.id, model })
       await api.bindSubjectSession(ORG_CHAT_SUBJECT_ID, binding)
       setSession(binding)
     } catch (cause) {
@@ -73,7 +77,7 @@ export function useOrgChat(projects: readonly Project[]): OrgChatState {
     } finally {
       setStarting(false)
     }
-  }, [repoId, worktreesByRepo])
+  }, [model, repoId, worktreesByRepo])
 
   // Once per mount, and never after a failure: the ref survives StrictMode's double-invoke, so a
   // development mount does not open two sessions, and a refused start does not retry every render.

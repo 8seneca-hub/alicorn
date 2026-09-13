@@ -17584,7 +17584,8 @@
           "issueSearch": "ALC-113, or “outbox dedupe”",
           "noIssue": "No issue matches that.",
           "noWorkflowOption": "No workflow",
-          "noWorkflowTrail": "A raw session on the brief — no stages, no hand-off, nothing to gate at. This is what most work wants."
+          "noWorkflowTrail": "A raw session on the brief — no stages, no hand-off, nothing to gate at. This is what most work wants.",
+          "modelTrail": "On the task, not the member: the same reviewer reads a one-line fix and a schema migration."
         },
         "task": {
           "errorTitle": "Tasks could not be read",
@@ -17753,6 +17754,10 @@
           "blank": "One stage",
           "blankDetail": "A single Spec stage to build out on the canvas. There is no empty workflow — a graph needs at least one stage.",
           "create": "Create workflow"
+        },
+        "model": {
+          "label": "Model",
+          "default": "Default for this backend"
         }
       },
       "composerTaskPlan": {
