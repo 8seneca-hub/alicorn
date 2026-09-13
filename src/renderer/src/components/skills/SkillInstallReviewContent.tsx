@@ -181,7 +181,10 @@ export function SkillInstallReview({
             )}
           </div>
           <p className="text-xs leading-5 text-muted-foreground">
-            {translate('auto.components.skills.SkillInstallReviewContent.2a31912f14', 'Alicorn found')}{' '}
+            {translate(
+              'auto.components.skills.SkillInstallReviewContent.2a31912f14',
+              'Alicorn found'
+            )}{' '}
             {result?.conflict?.kind ||
               destinationPreview?.currentState ||
               translate(

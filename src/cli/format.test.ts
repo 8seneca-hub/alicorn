@@ -128,7 +128,9 @@ describe('formatCliError', () => {
         data: {
           effectsApplied: false,
           nextCommandArgs: ['skills', 'get', 'orchestration', '--full'],
-          nextSteps: ['Using this same Alicorn CLI executable, run: skills get orchestration --full']
+          nextSteps: [
+            'Using this same Alicorn CLI executable, run: skills get orchestration --full'
+          ]
         }
       },
       _meta: { runtimeId: 'runtime-1' }

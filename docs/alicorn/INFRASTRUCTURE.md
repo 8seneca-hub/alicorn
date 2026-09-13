@@ -4,13 +4,13 @@
 
 Two, from one set of container images and one Helm chart. The difference is configuration, not code.
 
-| | **Customer self-hosted** | **Alicorn Cloud** |
-|---|---|---|
-| When | v1, the default | v2, once demand exists |
-| Tenancy | One organisation per deployment | Many, isolated by `tenant_id` + RLS |
-| Runs on | Customer's Kubernetes or a single VM | Managed Kubernetes, one region to start |
-| Data | Never leaves customer infrastructure | Regional, with residency options |
-| Upgrades | Customer-driven, Helm chart | Continuous |
+|          | **Customer self-hosted**             | **Alicorn Cloud**                       |
+| -------- | ------------------------------------ | --------------------------------------- |
+| When     | v1, the default                      | v2, once demand exists                  |
+| Tenancy  | One organisation per deployment      | Many, isolated by `tenant_id` + RLS     |
+| Runs on  | Customer's Kubernetes or a single VM | Managed Kubernetes, one region to start |
+| Data     | Never leaves customer infrastructure | Regional, with residency options        |
+| Upgrades | Customer-driven, Helm chart          | Continuous                              |
 
 The schema is multi-tenant from day one. In a self-hosted deployment `tenant_id` is a constant. This
 is what makes Alicorn Cloud a configuration change rather than a migration.
@@ -40,12 +40,12 @@ Namespace: alicorn
 
 ## 3. Environments
 
-| Environment | Purpose | Data |
-|---|---|---|
-| `local` | Docker Compose, one command, seeded | Synthetic |
-| `ci` | Ephemeral per pull request, torn down after | Synthetic |
-| `staging` | Mirrors production topology at one replica each | Anonymised |
-| `production` | Customer-operated, or Alicorn Cloud | Real |
+| Environment  | Purpose                                         | Data       |
+| ------------ | ----------------------------------------------- | ---------- |
+| `local`      | Docker Compose, one command, seeded             | Synthetic  |
+| `ci`         | Ephemeral per pull request, torn down after     | Synthetic  |
+| `staging`    | Mirrors production topology at one replica each | Anonymised |
+| `production` | Customer-operated, or Alicorn Cloud             | Real       |
 
 `local` must come up with `docker compose up` and a seed script. If a new engineer cannot reach a
 working inbox in fifteen minutes, that is a bug. The compose file `cloud/dev/compose/alicorn-local.yml`
@@ -92,23 +92,23 @@ k8s). OpenTelemetry export is adopted when a customer needs Tempo/Grafana federa
 `amended_within_window` is scoped to the configured tenant in local auth mode; a cross-tenant
 operator aggregate arrives with the identity plan (BYPASSRLS operator role).
 
-| Signal | Tool | What matters |
-|---|---|---|
-| Traces | OTel → Tempo | Gate evaluation latency; it sits on the hand-off path |
-| Metrics | Prometheus → Grafana | Below |
-| Logs | Loki | Structured JSON, `tenant_id` on every line |
-| Errors | Sentry (self-hostable) | Desktop crashes especially |
+| Signal  | Tool                   | What matters                                          |
+| ------- | ---------------------- | ----------------------------------------------------- |
+| Traces  | OTel → Tempo           | Gate evaluation latency; it sits on the hand-off path |
+| Metrics | Prometheus → Grafana   | Below                                                 |
+| Logs    | Loki                   | Structured JSON, `tenant_id` on every line            |
+| Errors  | Sentry (self-hostable) | Desktop crashes especially                            |
 
 ### The metrics that actually matter
 
-| Metric | Why |
-|---|---|
-| `interruptions_per_completed_task` | **The product metric.** It is the claim the whole thing rests on. |
-| `gate_decisions{decision,reason}` | Which rule is firing. A spike in `unverified` means checks are broken, not that agents got worse. |
-| `ledger_write_duplicates` | Should be non-zero and absorbed. If it is zero, idempotency is probably not being exercised. |
-| `amended_within_window` | The honesty check. Rising amendments with a flat accept rate means the corrections watcher has a gap. |
-| `relay_connections` | The only connection-bound resource. |
-| `postgres_replication_lag` | Ledger reads are latency-sensitive at gate evaluation. |
+| Metric                             | Why                                                                                                   |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `interruptions_per_completed_task` | **The product metric.** It is the claim the whole thing rests on.                                     |
+| `gate_decisions{decision,reason}`  | Which rule is firing. A spike in `unverified` means checks are broken, not that agents got worse.     |
+| `ledger_write_duplicates`          | Should be non-zero and absorbed. If it is zero, idempotency is probably not being exercised.          |
+| `amended_within_window`            | The honesty check. Rising amendments with a flat accept rate means the corrections watcher has a gap. |
+| `relay_connections`                | The only connection-bound resource.                                                                   |
+| `postgres_replication_lag`         | Ledger reads are latency-sensitive at gate evaluation.                                                |
 
 ## 7. Capacity
 
@@ -130,11 +130,11 @@ Kafka, ClickHouse or a service mesh without a measurement that demands it.
 
 ## 8. Backup and recovery
 
-| | Target |
-|---|---|
-| RPO | 5 minutes (continuous WAL archiving) |
-| RTO | 1 hour |
-| Backups | Nightly base + WAL to object storage; 30-day retention |
+|               | Target                                                  |
+| ------------- | ------------------------------------------------------- |
+| RPO           | 5 minutes (continuous WAL archiving)                    |
+| RTO           | 1 hour                                                  |
+| Backups       | Nightly base + WAL to object storage; 30-day retention  |
 | Restore drill | Quarterly, into a scratch namespace, timed and recorded |
 
 An untested backup is not a backup. The drill is a calendar item with an owner.
@@ -160,11 +160,11 @@ The ledger is append-only, which makes recovery unusually forgiving: replaying a
 Because execution is on the client, infrastructure cost is close to flat per tenant rather than
 per seat.
 
-| Deployment | Monthly, order of magnitude |
-|---|---|
-| Self-hosted, single VM, ≤25 seats | Customer's own compute; ~1 vCPU, 4 GB |
-| Self-hosted, Kubernetes, ~500 seats | 6–10 vCPU, 16 GB, ~50 GB storage |
-| Alicorn Cloud, first 50 tenants | Low four figures, dominated by managed Postgres and egress |
+| Deployment                          | Monthly, order of magnitude                                |
+| ----------------------------------- | ---------------------------------------------------------- |
+| Self-hosted, single VM, ≤25 seats   | Customer's own compute; ~1 vCPU, 4 GB                      |
+| Self-hosted, Kubernetes, ~500 seats | 6–10 vCPU, 16 GB, ~50 GB storage                           |
+| Alicorn Cloud, first 50 tenants     | Low four figures, dominated by managed Postgres and egress |
 
 This is the structural advantage: competitors hosting agent execution pay per token and per container.
 Alicorn pays for a control plane, and the marginal cost of a seat is nearly zero.

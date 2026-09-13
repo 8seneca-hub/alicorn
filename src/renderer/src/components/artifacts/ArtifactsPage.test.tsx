@@ -362,7 +362,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Alicorn again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to Alicorn again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 
@@ -402,7 +404,9 @@ describe('ArtifactsPage', () => {
     resolveRefresh()
 
     await waitFor(() =>
-      expect(screen.queryByText('Sign in to Alicorn again to load artifacts.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Sign in to Alicorn again to load artifacts.')
+      ).not.toBeInTheDocument()
     )
   })
 

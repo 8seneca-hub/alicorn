@@ -129,7 +129,7 @@ export function createTestStore() {
 export function makePR(overrides: Partial<PRInfo> = {}): PRInfo {
   return {
     number: 12,
-    title: translate("auto.store.slices.github.slice.test.harness.28fd2d1802", "Test PR"),
+    title: translate('auto.store.slices.github.slice.test.harness.28fd2d1802', 'Test PR'),
     state: 'open',
     url: 'https://example.com/pr/12',
     checksStatus: 'pending',

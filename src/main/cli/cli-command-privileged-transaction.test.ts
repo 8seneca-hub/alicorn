@@ -140,7 +140,11 @@ describe.skipIf(process.platform !== 'darwin' || process.getuid?.() === 0)(
       const oldCliPath = join(fixture.root, 'old', 'out', 'cli', 'index.js')
       await writeFile(
         fixture.commandPath,
-        buildUnixDevLauncher('/Applications/Old.app/Contents/MacOS/Alicorn', oldCliPath, 'user-data')
+        buildUnixDevLauncher(
+          '/Applications/Old.app/Contents/MacOS/Alicorn',
+          oldCliPath,
+          'user-data'
+        )
       )
       const foreignContent = 'foreign command written into the inspected inode'
       let raced = false

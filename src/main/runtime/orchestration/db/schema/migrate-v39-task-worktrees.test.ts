@@ -7,7 +7,9 @@ import { OrchestrationDb } from '../orchestration-db'
 import { SCHEMA_VERSION } from '../contract-constants'
 
 function hasTable(sqlite: Database.Database, table: string): boolean {
-  return !!sqlite.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table)
+  return !!sqlite
+    .prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")
+    .get(table)
 }
 
 describe('v39 migration: alicorn_task_worktrees', () => {

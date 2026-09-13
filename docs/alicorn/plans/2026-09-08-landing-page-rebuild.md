@@ -11,7 +11,7 @@
 would actually install is never named or described.
 
 The site sells the Alicorn control layer — Members, Workflows, gates, the decision trail — and sells it
-well. But that layer is an *addition to* a desktop IDE, and the IDE is invisible. The whole of what
+well. But that layer is an _addition to_ a desktop IDE, and the IDE is invisible. The whole of what
 `docs/site/content/docs/index.mdx` calls the product ("a desktop IDE for running multiple AI coding
 agents side by side… every task gets its own git worktree, its own agent terminal, its own browser
 tab") appears as five incidental words across two pages.
@@ -25,7 +25,7 @@ Three consequences, in order of cost:
    hosts, remote servers, mobile, terminal, notifications, cloud VMs — are the evidence that this is a
    real tool rather than a slide. Omitting them makes the gate-and-ledger story sound theoretical.
 3. **The new work reads as the whole product**, so it has to carry weight it cannot. Autonomy policy is
-   compelling *because* it sits on something that already runs agents on your machine, over SSH, in
+   compelling _because_ it sits on something that already runs agents on your machine, over SSH, in
    parallel. Without the base, it is a governance layer over nothing.
 
 **What is not wrong:** the Alicorn copy itself. "Stop babysitting", the three-gates-in-eight-steps
@@ -53,18 +53,18 @@ as a second product name in marketing copy; describe the capabilities, not the l
 
 ### `index.html` — restructured, not replaced
 
-| Order | Section | Status |
-|---|---|---|
-| 1 | Hero — "Stop babysitting" | **Keep.** Add one sub-line naming the desktop app, so the category lands in the first screen. |
-| 2 | **The IDE — parallel agents, real worktrees** | **NEW.** The missing half. Three to four capability tiles, below. |
-| 3 | "Your agents got fast. Your team got slower." | Keep. |
-| 4 | "Set it up once. Then get out of the way." | Keep — this is where the control layer enters, and it now has a foundation to sit on. |
-| 5 | Build your team / Draw the process / Approve what matters | Keep. |
-| 6 | Three gates in eight steps | Keep. |
-| 7 | Every step leaves a trail | Keep. |
-| 8 | "Everything that makes autonomy defensible" | Keep, extend with what shipped since (below). |
-| 9 | **Runs where you do** | **NEW.** Desktop, SSH, self-hosted server, cloud VM, mobile. |
-| 10 | Interruptions counter + CTA | Keep. Fix the CTA expectation — see *Start free*. |
+| Order | Section                                                   | Status                                                                                        |
+| ----- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1     | Hero — "Stop babysitting"                                 | **Keep.** Add one sub-line naming the desktop app, so the category lands in the first screen. |
+| 2     | **The IDE — parallel agents, real worktrees**             | **NEW.** The missing half. Three to four capability tiles, below.                             |
+| 3     | "Your agents got fast. Your team got slower."             | Keep.                                                                                         |
+| 4     | "Set it up once. Then get out of the way."                | Keep — this is where the control layer enters, and it now has a foundation to sit on.         |
+| 5     | Build your team / Draw the process / Approve what matters | Keep.                                                                                         |
+| 6     | Three gates in eight steps                                | Keep.                                                                                         |
+| 7     | Every step leaves a trail                                 | Keep.                                                                                         |
+| 8     | "Everything that makes autonomy defensible"               | Keep, extend with what shipped since (below).                                                 |
+| 9     | **Runs where you do**                                     | **NEW.** Desktop, SSH, self-hosted server, cloud VM, mobile.                                  |
+| 10    | Interruptions counter + CTA                               | Keep. Fix the CTA expectation — see _Start free_.                                             |
 
 ### Section 2 — the IDE tiles
 
@@ -104,7 +104,7 @@ Shipped since the copy was written and worth naming:
 
 It currently opens "Four objects. That's the whole product." That is now inaccurate in a way a careful
 reader will catch: the workspace — worktree, terminal, agent session — is a fifth object and the one
-you touch first. Add it as the *first* object, before Member.
+you touch first. Add it as the _first_ object, before Member.
 
 ### `start.html` — set the right expectation
 

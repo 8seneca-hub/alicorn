@@ -35,7 +35,7 @@ These are working constraints, not marketing. A change that harms one needs a st
 2. **Token efficiency.** A team of agents costs roughly an order of magnitude more than one agent.
    Never spend that by default; make the user opt in, and show the meter while it runs.
 3. **Quality.** Done is a set of machine-checkable gates, not an opinion. Two rules do double duty by
-   cutting cost *and* raising quality: a reviewer never runs on the author's backend, and a QA member
+   cutting cost _and_ raising quality: a reviewer never runs on the author's backend, and a QA member
    never reads the implementation it is testing.
 4. **A UI you can drive.** One tab per ticket, with status and running cost visible without opening
    anything.
@@ -46,23 +46,23 @@ An earlier draft had three exclusive modes (Direct, Team, Foreman). That was wro
 PROJECT-BRIEF §04 — and the fix is cheaper than what it replaced. Two independent axes express every
 case:
 
-| | Workflow **not** attached | Workflow attached |
-|---|---|---|
-| **`execution_strategy: single`** | Today's Orca: brief one agent in one session. ~90% of daily work. **The default.** | The Workflow feature: a column change dispatches a member; stages, gates, autonomy levels. *Not a mode.* |
-| **`execution_strategy: orchestrated`** | One big ticket decomposed by a lead (Foreman). ~10–15× tokens. | One stage decomposed, the rest run single. The case three modes could not express. |
+|                                        | Workflow **not** attached                                                          | Workflow attached                                                                                        |
+| -------------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **`execution_strategy: single`**       | Today's Orca: brief one agent in one session. ~90% of daily work. **The default.** | The Workflow feature: a column change dispatches a member; stages, gates, autonomy levels. _Not a mode._ |
+| **`execution_strategy: orchestrated`** | One big ticket decomposed by a lead (Foreman). ~10–15× tokens.                     | One stage decomposed, the rest run single. The case three modes could not express.                       |
 
 - **`execution_strategy` is a field on a task (later a stage), values `single` | `orchestrated`.**
   `single` is the default and stays genuinely the default; anything that makes `orchestrated` the
   default path is wrong.
 - **Escalation is per task and is offered, never applied silently.** When a single-agent session
   crosses the context ceiling (300k tokens; quality degrades around 300–400k, never wait for 100%)
-  or turns out to touch more than one repo, Alicorn *offers* to switch that task to `orchestrated`
+  or turns out to touch more than one repo, Alicorn _offers_ to switch that task to `orchestrated`
   and records whether the offer was accepted. Nothing about an attached workflow changes when it is.
 - **"Team mode" does not exist.** It was the Workflow feature under a second name. Do not reintroduce
   the word.
 - Multi-agent is a trade, not an upgrade — the public figure is ~90% better results for ~15× the
   tokens, measured on research tasks, not on shipping features. We have not measured it on our own
-  repos yet (see *Decisions* → success criteria).
+  repos yet (see _Decisions_ → success criteria).
 
 ## Foreman is an add-on
 
@@ -70,8 +70,8 @@ Foreman is what runs when a task or stage has `execution_strategy: orchestrated`
 layer for long-running, multi-repo work. Everything else must keep working with Foreman absent — if a
 change makes the base depend on it, that change is wrong.
 
-It is the industry's **orchestrator-subagent** pattern (LangGraph calls it *supervisor*, OpenAI calls
-it *manager*). Inherit the proven core: a fresh context window per subagent, a self-contained task
+It is the industry's **orchestrator-subagent** pattern (LangGraph calls it _supervisor_, OpenAI calls
+it _manager_). Inherit the proven core: a fresh context window per subagent, a self-contained task
 description with an explicit output format, subagents that cannot coordinate mid-task, and a lead that
 synthesizes and re-plans. Say so in docs rather than presenting it as novel.
 
@@ -98,12 +98,12 @@ subsystem, and they have opposite retention, write profile and blast radius.
 
 ## Graph vocabulary
 
-The industry's *graph engineering* framing — splitter, worker, code node, gate; a short **correction
+The industry's _graph engineering_ framing — splitter, worker, code node, gate; a short **correction
 edge** and a long **learning edge**; gate by blast radius, not confidence — maps onto Alicorn one to
 one. [GRAPH-ENGINEERING.md](docs/alicorn/GRAPH-ENGINEERING.md) has the mapping and the sources. Use
 its names where they apply: a **code stage** runs with no model and no member; the return transition
 is a **correction edge**; the Rulebook is the **learning edge**. Two deliberate differences: the gate
-is a property of every hand-off, not a node (that is what makes *hard stops never retire*
+is a property of every hand-off, not a node (that is what makes _hard stops never retire_
 enforceable), and the splitter is `execution_strategy: orchestrated`, not a stage kind. Graphs are
 still not the default path — `single` is.
 
@@ -147,6 +147,7 @@ document them where a merge conflict will send someone looking.
   `unifiedTabsByWorktree` appears in 174 non-test files, `tabsByWorktree` in 962 references — so it
   is its own ticket now, sequenced with the multi-repo feature workspace (MR1) that actually wants
   session-keyed tabs. Do not treat "a tab is a session" as blocking anything in the tab bar.
+
 - **A new tab opens an agent, not a shell.** An IDE opens an editor because you were going to type; an
   ADE opens a live agent session with the chat box focused, because you were going to brief someone.
   The terminal moves to the right sidebar, one keystroke away. Reuse the existing `native-chat`,
@@ -166,7 +167,7 @@ document them where a merge conflict will send someone looking.
   51 minutes apart shipped contradictory models of "a terminal outside the main tab area": a
   surface-owned `TerminalTab` with no unified tab, and a hidden `TabGroup` filtered out at
   `layoutSpanningGroups` and `selectHydratedActiveGroupId`. The group model lost because it needs a
-  filter at *every* layout reader — a third one would need a third filter — while an absent unified
+  filter at _every_ layout reader — a third one would need a third filter — while an absent unified
   tab needs none. One predicate decides membership everywhere: `isSurfaceOwnedTerminalTab`.
 
   **Adding a right-sidebar tab means four edits, not one** — the union
@@ -217,7 +218,7 @@ Each was a recommendation in the brief; all seven were accepted as written. Trea
    Orca with extra backend features and no visible identity of our own.
 7. **Success is measured, not assumed.** Baseline `interruptions_per_completed_task` in v0.1; at v2.0
    compare Foreman against one developer on a real ticket (time to mergeable PR, total spend), with
-   the threshold agreed *before* the run.
+   the threshold agreed _before_ the run.
 
 ## Tier 1 — the committed first slice (PROJECT-BRIEF §08)
 
@@ -226,17 +227,17 @@ Six items, all `extends`/`new`, all shipping with v1.0. Plans:
 (cloud) and [`plans/2026-09-06-tier-1-desktop.md`](docs/alicorn/plans/2026-09-06-tier-1-desktop.md)
 (desktop).
 
-| # | Item | Why first |
-|---|---|---|
-| 1 | `execution_strategy` on the task + escalation offer | Must exist before board automation makes automated dispatch the default path |
-| 2 | PR body posted from provenance data | The one item a stranger appreciates in ten seconds |
-| 3 | Context capture — exact prompt and context slice per run | The only way to tell an underinformed member from a wrong one |
-| 4 | Diff coverage as a required check | Makes "tested" mean something |
-| 5 | Reviewer backend ≠ author backend, enforced | Our sharpest quality claim; a policy check, not machinery |
-| 6 | Per-run cost attribution surfaced while working | Token efficiency has to be visible, not in a report nobody opens |
+| #   | Item                                                     | Why first                                                                    |
+| --- | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1   | `execution_strategy` on the task + escalation offer      | Must exist before board automation makes automated dispatch the default path |
+| 2   | PR body posted from provenance data                      | The one item a stranger appreciates in ten seconds                           |
+| 3   | Context capture — exact prompt and context slice per run | The only way to tell an underinformed member from a wrong one                |
+| 4   | Diff coverage as a required check                        | Makes "tested" mean something                                                |
+| 5   | Reviewer backend ≠ author backend, enforced              | Our sharpest quality claim; a policy check, not machinery                    |
+| 6   | Per-run cost attribution surfaced while working          | Token efficiency has to be visible, not in a report nobody opens             |
 
 **Dependencies pulled forward, deliberately.** Items 2, 5 and 6 need the Ledger and Members; item 4
-needs required checks. Rather than wait for all of v0.1, tier 1 builds the *minimum* product
+needs required checks. Rather than wait for all of v0.1, tier 1 builds the _minimum_ product
 substrate first — Control API, Ledger API, the Member entity — on the real control plane (next
 section). Identity (Keycloak) is explicitly deferred to follow. The rest of v0.1 (rebrand, localisation, backend cutover, distribution)
 is independent work and proceeds on its own track; do not block tier 1 on it or vice versa.
@@ -265,8 +266,8 @@ users, roles or sign-in in tier 1.
 
 What stays local, and why:
 
-- **Orca's existing orchestration SQLite** (runs, tasks, dispatches, gates, mail) is *execution
-  state on the client* and is untouched. It is not the ledger.
+- **Orca's existing orchestration SQLite** (runs, tasks, dispatches, gates, mail) is _execution
+  state on the client_ and is untouched. It is not the ledger.
 - **One transport table, `ledger_outbox`, in that same SQLite.** A settled `worker_done` enqueues a
   row in the same transaction that settles the task; a drainer posts it to the Ledger API within
   seconds and marks it sent. It exists only so that a crash between settlement and the network call
@@ -300,8 +301,8 @@ files — that constraint no longer applies.
 What still applies is that upstream ships most days (~500 merged PRs between two consecutive
 releases), and much of that is platform grunt work we would otherwise have to learn the hard way:
 Windows and WSL path handling, SSH reliability, Git version compatibility, EDR posture, the glibc
-floor, crash reporting, i18n parity. So the question is not *whether* to diverge — it is *when to stop
-taking upstream's work*.
+floor, crash reporting, i18n parity. So the question is not _whether_ to diverge — it is _when to stop
+taking upstream's work_.
 
 **Two phases, with an explicit cut point.**
 
@@ -310,7 +311,7 @@ taking upstream's work*.
    have to absorb their fixes. Take everything.
 2. **Cut.** The day the rebrand CI gate goes green, pin the upstream tag and stop merging. Record the
    tag and commit SHA in `UPSTREAM_BASE` at the repository root. After this point, upstream is a
-   source to *cherry-pick* from — security fixes and platform bugs, chosen deliberately — never a
+   source to _cherry-pick_ from — security fixes and platform bugs, chosen deliberately — never a
    branch to merge.
 
 Before the cut, the deep interface work (tab model, agent-first surface) is what spikes divergence.
@@ -350,8 +351,8 @@ and the command itself says so.
   there are load-bearing rather than aspirational.
 - The cross-agent mailbox is **v2.0**, not early. Anything that needs cross-backend hand-off today
   should ship on single-backend hand-off first.
-- Prefer extending an existing Orca subsystem over adding a parallel one — see *Reuse Before
-  Reimplementing* in `AGENTS.md`. It applies with extra force here, because a parallel subsystem is
+- Prefer extending an existing Orca subsystem over adding a parallel one — see _Reuse Before
+  Reimplementing_ in `AGENTS.md`. It applies with extra force here, because a parallel subsystem is
   also a permanent merge conflict.
 - Renderer strings are localised by tooling, not by hand: write plain English, run
   `node config/scripts/localize-renderer-strings.mjs`, then `pnpm run sync:localization-catalog`.

@@ -48,7 +48,7 @@ git cherry-pick -x <sha>            # -x records the origin commit in the messag
 `-x` is not optional. It is the only thing that makes "where did this come from" answerable a year
 from now.
 
-**Compare against the sha, not the tag.** `UPSTREAM_BASE`'s tag is the first release *containing*
+**Compare against the sha, not the tag.** `UPSTREAM_BASE`'s tag is the first release _containing_
 the cut commit, so the cut sits mid-release: a fix shipped in that release may or may not already
 be in this fork. `git merge-base --is-ancestor <sha> HEAD` is the question worth asking.
 

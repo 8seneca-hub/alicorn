@@ -49,7 +49,10 @@ export function makeState(
           id: localTabId,
           ptyId: Object.values(ptyIdsByLeafId)[0] ?? null,
           worktreeId: worktree,
-          title: translate("auto.runtime.fixtures.web.session.terminal.orphan.recovery.regression.fixtures.f1eb7ee8e3", "Terminal"),
+          title: translate(
+            'auto.runtime.fixtures.web.session.terminal.orphan.recovery.regression.fixtures.f1eb7ee8e3',
+            'Terminal'
+          ),
           customTitle: null,
           color: null,
           sortOrder: 0,

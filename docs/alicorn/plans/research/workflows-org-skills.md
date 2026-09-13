@@ -6,13 +6,14 @@ loaded"); all findings below are from direct grep/Read. Every path is relative t
 ## 1. Existing code map
 
 **Control plane (cloud/, tier-1 substrate already built):**
+
 - `cloud/apps/control-api/src/schema-sql.ts` — `CONTROL_SCHEMA_STATEMENTS`: `members`,
   `member_skills(tenant_id, member_id, skill_id)` (no version column), `org_policies`,
   `project_required_checks(tenant_id, project_id, checks jsonb, ...)`. **No `workflows`, `stages`,
   `transitions` tables exist yet** — WF1 is greenfield at the DB layer.
 - `cloud/apps/ledger-api/src/schema-sql.ts` — `step_outcomes` (has `stage_key TEXT NOT NULL DEFAULT
-  'build'`), `step_verifications`, `context_captures`, `member_stage_stats(tenant_id, member_id,
-  stage_key, project_id, runs, accepted, accept_rate, last_amended_at, level, updated_at)`.
+'build'`), `step_verifications`, `context_captures`, `member_stage_stats(tenant_id, member_id,
+stage_key, project_id, runs, accepted, accept_rate, last_amended_at, level, updated_at)`.
 - CRUD route template to copy for WF1: `cloud/apps/control-api/src/members-routes.ts` (GET list,
   POST create w/ 201 + duplicate-name 409 via pg error code `23505`, GET one w/ 404, PUT update,
   DELETE w/ 204) backed by `members-repository.ts` (`withTenant(pool, tenantId, fn)` wrapper per
@@ -31,9 +32,10 @@ loaded"); all findings below are from direct grep/Read. Every path is relative t
   `step-outcomes-repository.ts:insertStepOutcome` (only when `input.memberId` is set), inside the
   same transaction as the `step_outcomes` insert. **No read route for `member_stage_stats` exists
   in `ledger-routes.ts`** (only `POST step-outcomes/step-verifications/context-captures`, `PATCH
-  spend`, `GET provenance`, `GET runs/:runId/cost`) — a gate evaluator (GP1) has nothing to query yet.
+spend`, `GET provenance`, `GET runs/:runId/cost`) — a gate evaluator (GP1) has nothing to query yet.
 
 **Desktop orchestration (SQLite, client-side):**
+
 - `src/main/runtime/orchestration/db/schema/create-alicorn-tables-sql.ts:3-13` — `ledger_outbox`
   table (kinds: `step_outcome|context_capture|spend_attribution|step_verification`) already exists,
   plus `alicorn_task_strategy` (execution_strategy, tier-1 item 1) and `alicorn_dispatch_members`
@@ -46,53 +48,55 @@ loaded"); all findings below are from direct grep/Read. Every path is relative t
   will depend on.
 - **No `stageKey`/`stage_key` identifier exists anywhere in `src/main`, `src/shared`, or `src/cli`.**
   The only per-task "stage-like" concept today is the free-text `--phase` flag on `orca orchestration
-  send --type heartbeat`, documented in the dispatch preamble
+send --type heartbeat`, documented in the dispatch preamble
   (`src/main/runtime/orchestration/preamble.ts:106`: `--phase "<short:
-  investigating|implementing|reviewing|waiting>"`) and threaded through
+investigating|implementing|reviewing|waiting>"`) and threaded through
   `src/cli/handlers/orchestration/message-payload.ts:13,56-58` into the heartbeat payload as
   `payload.phase`. This is a **human-readable progress narration for the coordinator**, unrelated to
   workflow stages — it is not `worker_done`'s outcome and is never persisted to the ledger today.
   `src/main/runtime/orchestration/coordinator.ts:29` has an unrelated `phase: 'decomposing' |
-  'dispatching' | 'monitoring' | 'merging' | 'done'` — the Foreman coordinator's own run-lifecycle
+'dispatching' | 'monitoring' | 'merging' | 'done'` — the Foreman coordinator's own run-lifecycle
   state machine, also unrelated to ledger `stage_key`.
 
 **Skills system (large, ~180 files under `src/main/skills/`, `src/shared/skill-*.ts`,
 `src/renderer/src/components/skills/`):**
+
 - Discovery/scoping: `src/main/skills/skill-discovery-sources.ts` — `buildSkillDiscoverySources()`
   builds a flat list of `SkillScanRoot`s: per-agent **home** dirs (`~/.claude/skills`,
   `~/.codex/skills`, `~/.agents/skills`, 15 more), plus per-**repo** dirs
   (`<repo>/.claude/skills`, `<repo>/.agents/skills`, etc., lines 238-298) discovered from
   `Repo[]` + `cwd`. Types in `src/shared/skills.ts:5-43` (`SkillProvider`, `SkillSourceKind =
-  'home'|'repo'|'bundled'|'plugin'`, `DiscoveredSkill`, `SkillDiscoverySource`). **There is no
+'home'|'repo'|'bundled'|'plugin'`, `DiscoveredSkill`, `SkillDiscoverySource`). **There is no
   "org" or "project" scope in this enum today** — `repo` is the closest thing to project scope, and
   it is purely filesystem-path-based (which repo you're in), not an org-catalog concept.
 - Renderer hook `src/renderer/src/hooks/useInstalledAgentSkills.ts` —
   `useInstalledAgentSkillNames()` drives a cached, focus-refreshing scan; `GLOBAL_AGENT_SKILL_SOURCE_KINDS
-  = ['home']` (line 31-33) is the only place "global" vs. repo-local is distinguished today.
+= ['home']` (line 31-33) is the only place "global" vs. repo-local is distinguished today.
 - Cloud "share skills" feature (unlisted-link sharing, not org catalog): `src/main/skills/
-  skill-cloud-service.ts`, `skill-share-preparation-service.ts`; renderer
+skill-cloud-service.ts`, `skill-share-preparation-service.ts`; renderer
   `src/renderer/src/components/settings/ShareSkillsSettingsPane.tsx` (toggle "Allow agents ... to
   publish skill links", "Show Skills Button"); IPC `src/main/ipc/skill-cloud-ipc-handlers.ts`. Full
   UI in `src/renderer/src/components/skills/` (`SkillShareDialog.tsx`, `SkillSharedLinksView.tsx`,
   `SkillInstallDialog.tsx`, `SkillFreshnessUpdateDialog.tsx`, etc.).
 - **Skill version representation today**: `SkillPackageManifestV1` (`src/shared/
-  skill-package-manifest.ts:31-44`, one skill) and `SkillBundleManifestV1` (`src/shared/
-  skill-bundle-manifest.ts:54-67`, many skills) both carry `packageId` + `versionId` (opaque IDs,
+skill-package-manifest.ts:31-44`, one skill) and `SkillBundleManifestV1` (`src/shared/
+skill-bundle-manifest.ts:54-67`, many skills) both carry `packageId` + `versionId` (opaque IDs,
   regex `^[A-Za-z0-9_-]{1,128}$`) plus a content digest. `SkillCloudVersion` (`src/shared/
-  skill-cloud-contract.ts:16-27`) is the cloud-side read model exposing `versionId`,
+skill-cloud-contract.ts:16-27`) is the cloud-side read model exposing `versionId`,
   `packageDigest`, `manifest`. `src/renderer/src/components/skills/
-  skill-managed-version-selection.ts` (`retainManagedSkillVersion`) and `src/main/skills/
-  skill-cloud-grant-version.ts` (`assertSkillCloudGrantVersion`) show version *is* already pinned
+skill-managed-version-selection.ts` (`retainManagedSkillVersion`) and `src/main/skills/
+skill-cloud-grant-version.ts` (`assertSkillCloudGrantVersion`) show version _is_ already pinned
   **per install location on a device** (which versionId is on disk at a given path) — but nothing
   pins a version **per member** in Postgres. `member_skills.skill_id` (control-api schema) is a bare
   string with no FK to any skill/version table.
 
 **Folder workspaces & MCP:**
+
 - Folder workspace model: `src/main/ipc/worktrees/folder-workspace-model.ts` (`mergeFolderWorkspace`,
   `getFolderWorkspaceRootId`), `src/main/ipc/worktrees/create/folder-workspace-creation.ts`,
   `src/main/ipc/worktrees/listing/folder-workspace-catalog.ts`,
   `src/main/ipc/worktrees/removal/remove-folder-workspace.ts`, `src/main/ipc/repos/
-  folder-workspace-handlers.ts`. Preload bridge: `src/preload/api/folder-workspaces-bridge.ts`
+folder-workspace-handlers.ts`. Preload bridge: `src/preload/api/folder-workspaces-bridge.ts`
   (`list/getPathStatus/create/update/delete` over `ipcRenderer.invoke('folderWorkspaces:*')`).
 - MCP config today is **repo/worktree-scoped file inspection only**, not member-scoped:
   `src/shared/mcp-config.ts` — `MCP_CONFIG_CANDIDATES` (workspace `.mcp.json`, `.cursor/mcp.json`,
@@ -104,6 +108,7 @@ loaded"); all findings below are from direct grep/Read. Every path is relative t
   not an extension of an existing per-member MCP feature.
 
 **Org/membership UI (existing, but it is Orca's own cloud org, not Alicorn's Control API/Keycloak):**
+
 - `src/main/ipc/orca-profile-org-members-handlers.ts` — IPC handlers
   `orcaProfiles:orgMembersList/orgMemberInvite/orgInviteRevoke/orgMemberChangeRole/orgMemberRemove`,
   arg validation (`orgRoleFromUnknown` → `'owner'|'admin'|'member'`).
@@ -116,7 +121,7 @@ loaded"); all findings below are from direct grep/Read. Every path is relative t
   mirror on the Control API for OP1**: `GET /v1/desktop/orgs/:orgId/members` (returns
   `{members, pendingInvites, viewerRole, canManageMembers}`), `POST .../invites {email, role}`,
   `POST .../invites/revoke {email}`, `POST .../members/role {userId, role}`, `POST
-  .../members/remove {userId}`. Roles are `owner|admin|member` (line 12). This is Orca's own
+.../members/remove {userId}`. Roles are `owner|admin|member` (line 12). This is Orca's own
   relay-backed org (separate service/DB from `cloud/apps/control-api`), so OP1 is a **parallel new
   implementation on Control API/Keycloak organisations**, not a reuse of this code path — but the
   request/response contract, role enum, and error-code mapping are a near-exact template.
@@ -124,12 +129,13 @@ loaded"); all findings below are from direct grep/Read. Every path is relative t
   paired `.test.tsx` exists for the render-mock idiom).
 
 **Canvas/graph UI precedent — none found.**
+
 - `package.json` has no react-flow/xyflow/d3/dagre/cytoscape/konva/vis-network dependency at all.
 - The only board-shaped UI is the **kanban lane board** (columns, not nodes/edges):
   `src/renderer/src/components/sidebar/WorkspaceKanbanLaneGrid.tsx`,
   `WorkspaceKanbanLaneCardList.tsx`, `WorkspaceKanbanCard.tsx`,
   `workspace-kanban-worktree-groups.ts`, plus `src/renderer/src/components/dashboard-popout/
-  AgentKanbanBoard.tsx` / `AgentKanbanCard.tsx`. This is the "board" half of "Stages bind to board
+AgentKanbanBoard.tsx` / `AgentKanbanCard.tsx`. This is the "board" half of "Stages bind to board
   columns — one model, two views" (ARCHITECTURE.md, ROADMAP.md v1.5) — reusable for the board view,
   but it is drag-and-drop lanes, not a DAG/canvas renderer. **WF2's node canvas with a first-class
   return edge has zero code or dependency precedent in this repo.**
@@ -140,13 +146,13 @@ loaded"); all findings below are from direct grep/Read. Every path is relative t
 
 ## 2. Skills scoping model — today vs. target
 
-| Scope | Today | Target (v1.5) |
-|---|---|---|
-| Home/device (per-agent-backend dir) | Yes — `skill-discovery-sources.ts` home roots | unchanged |
-| Repo (path-based, effectively "project") | Yes — `repo-*` roots per `Repo.path` | PS1 formalizes this as a named third scope, "discovered from the repo" (committed, reviewed like code) — likely still the `.claude/skills`/`.agents/skills` dirs, but now surfaced as a first-class scope alongside org/member rather than an implicit filesystem root |
-| Member (custom skill list) | Yes but shallow — `member_skills(member_id, skill_id)`, `skill_id` is a bare string, no scope/version | Extends to: a member's skill *reference* should resolve against org catalog + project skills + per-member custom; SP1 needs to record which *version* is pinned |
-| Org catalog | Named in PROJECT-BRIEF §09 ("org catalog ... exist today") but referring to the **cloud share-link system** (`SkillCloudService`), not a first-class "org catalog" table/API — no `org_skill_catalog`-shaped table exists in `cloud/apps/control-api/src/schema-sql.ts` | OP2 needs a genuine org-scoped catalog with **stage-authored required checks** — likely a new control-api table (e.g. `org_skills` or extending `project_required_checks`'s pattern) since `RequiredCheckSchema` today is project-scoped, and WF1 is moving required-checks authorship onto `stages.required_checks jsonb` |
-| Version pinning | Exists only as "which version is installed at this on-disk path" (`skill-cloud-grant-version.ts`, `skill-managed-version-selection.ts`), never as a per-member record | SP1: add a version column/table to `member_skills` (or a sibling `member_skill_versions`), referencing the existing `SkillCloudVersion.versionId` concept |
+| Scope                                    | Today                                                                                                                                                                                                                                                                   | Target (v1.5)                                                                                                                                                                                                                                                                                                              |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home/device (per-agent-backend dir)      | Yes — `skill-discovery-sources.ts` home roots                                                                                                                                                                                                                           | unchanged                                                                                                                                                                                                                                                                                                                  |
+| Repo (path-based, effectively "project") | Yes — `repo-*` roots per `Repo.path`                                                                                                                                                                                                                                    | PS1 formalizes this as a named third scope, "discovered from the repo" (committed, reviewed like code) — likely still the `.claude/skills`/`.agents/skills` dirs, but now surfaced as a first-class scope alongside org/member rather than an implicit filesystem root                                                     |
+| Member (custom skill list)               | Yes but shallow — `member_skills(member_id, skill_id)`, `skill_id` is a bare string, no scope/version                                                                                                                                                                   | Extends to: a member's skill _reference_ should resolve against org catalog + project skills + per-member custom; SP1 needs to record which _version_ is pinned                                                                                                                                                            |
+| Org catalog                              | Named in PROJECT-BRIEF §09 ("org catalog ... exist today") but referring to the **cloud share-link system** (`SkillCloudService`), not a first-class "org catalog" table/API — no `org_skill_catalog`-shaped table exists in `cloud/apps/control-api/src/schema-sql.ts` | OP2 needs a genuine org-scoped catalog with **stage-authored required checks** — likely a new control-api table (e.g. `org_skills` or extending `project_required_checks`'s pattern) since `RequiredCheckSchema` today is project-scoped, and WF1 is moving required-checks authorship onto `stages.required_checks jsonb` |
+| Version pinning                          | Exists only as "which version is installed at this on-disk path" (`skill-cloud-grant-version.ts`, `skill-managed-version-selection.ts`), never as a per-member record                                                                                                   | SP1: add a version column/table to `member_skills` (or a sibling `member_skill_versions`), referencing the existing `SkillCloudVersion.versionId` concept                                                                                                                                                                  |
 
 **Key gap:** there is no `skills` (catalog) table in Postgres at all today — `member_skills.skill_id`
 is presently just whatever string the desktop's local skill discovery calls a skill's `id`/`name`
@@ -172,6 +178,7 @@ are greenfield for seat kind.
 
 No in-repo library or precedent. Options to weigh in the plan (this file doesn't decide, just
 surfaces facts for the planner):
+
 - Hand-rolled SVG/DOM node+edge renderer (matches the repo's existing zero-dependency-for-custom-UI
   style; `artifact-diagramming`-style inline SVG is the only "diagramming" convention seen anywhere
   in this environment, and it's for Artifacts, not the product).
@@ -199,7 +206,8 @@ in the desktop populates it** — the outbox enqueue path that will eventually s
 worker, never validated against a fixed set, and never written to `step_outcomes.stage_key`.
 
 Migration path SK1 must design:
-1. Whatever lands first (tier-1 items 3/6, pre-v1.5) to wire the outbox will need *some* stage key
+
+1. Whatever lands first (tier-1 items 3/6, pre-v1.5) to wire the outbox will need _some_ stage key
    per step_outcome — almost certainly hardcoded to `'build'` (matching the DB default) since no
    workflow/stage concept exists pre-v1.5.
 2. Once WF1's `workflows`/`stages` tables exist and WF4 ships default templates (Spec → Architecture
@@ -212,7 +220,7 @@ Migration path SK1 must design:
    `worker_done`).
 3. `--phase` (progress narration) and `stage_key` (workflow position) are and should remain
    **separate concepts** — SK1 should not conflate them; the plan text's "replace the `worker_done
-   --phase` mapping" phrasing should be read as "replace the not-yet-built ad hoc/default stage-key
+--phase` mapping" phrasing should be read as "replace the not-yet-built ad hoc/default stage-key
    assignment", since no actual `--phase`-to-`stage_key` mapping exists in code to replace.
 
 ## 6. Extension points
@@ -229,7 +237,7 @@ Migration path SK1 must design:
   fallback layer.
 - **member_stage_stats reads**: needs a new route in `ledger-routes.ts` (no existing GET) for GP1
   (separate plan) and possibly for autonomy-level UI surfaced by SK1/WF-adjacent work — e.g. `GET
-  /v1/ledger/member-stage-stats?memberId=&stageKey=&projectId=`.
+/v1/ledger/member-stage-stats?memberId=&stageKey=&projectId=`.
   `member-stage-stats.ts:upsertMemberStageStats` already computes `runs`/`accepted`/`accept_rate`;
   `level` and demotion (windows = last 50 runs, ARCHITECTURE.md §7) are **not yet computed anywhere**
   — `level` defaults to `0` in the schema and nothing updates it. SK1's "Level 3, automatic
@@ -238,7 +246,7 @@ Migration path SK1 must design:
   consistent with the existing single-transaction pattern and avoids a second moving part.
 - **Skill scoping**: `src/main/skills/skill-discovery-sources.ts:buildSkillDiscoverySources` is the
   one function that would need a new `SkillSourceKind` (e.g. `'org'`) or a parallel org-catalog fetch
-  path if PS1/OP2 want the desktop to *discover* org/project skills the same way it discovers
+  path if PS1/OP2 want the desktop to _discover_ org/project skills the same way it discovers
   filesystem ones; alternatively OP2's org catalog could live purely server-side and never touch this
   discovery code (member's resolved skill list comes from Control API, not local disk scan) — this is
   a design fork the planner must pick, not something the code decides for you.
@@ -316,6 +324,7 @@ Migration path SK1 must design:
 ## 10. Suggested task decomposition (≤2 ew each)
 
 **Workflows & stages (WF1, WF2, WF4, SK1)**
+
 1. **WF1a — schema + contract.** Add `workflows`/`stages`/`transitions` to
    `cloud/apps/control-api/src/schema-sql.ts` (+ RLS), new Zod schemas in
    `cloud/packages/control-plane-contract/src/workflow.ts`/`stage.ts`/`transition.ts` (model
@@ -347,18 +356,19 @@ Migration path SK1 must design:
    lanes are `stages.ordinal`-ordered from a workflow instead of ad hoc statuses. Proving test:
    renderer test asserting lane order matches `stages` fetched from Control API.
 8. **WF2b — node canvas (build-vs-buy spike first).** A timeboxed spike task to decide
-   hand-rolled-SVG vs. a library, *then* the chosen renderer for nodes+edges with the return edge as
+   hand-rolled-SVG vs. a library, _then_ the chosen renderer for nodes+edges with the return edge as
    a first-class edge type. Proving test: renderer test asserting a transition with `from_stage ==
-   to_stage`'s downstream target (a "return edge") renders distinctly from a forward edge.
+to_stage`'s downstream target (a "return edge") renders distinctly from a forward edge.
 
 **Org platform & skills (OP1–3, PS1, SP1)**
+
 1. **OP1a — org/invite/role/seat schema + contract.** New Control API tables mirroring
    `org_roles`/`seats` from ARCHITECTURE §6, gated as a follow-on to Identity I1-I3 landing (build
    and test against the constant `local` tenant in the interim). Proving test: Postgres RLS test per
    new table.
 2. **OP1b — invite/role/remove routes.** Mirror the exact endpoint shape of
    `profile-cloud-org-members-client.ts` (`GET .../members`, `POST .../invites`, `POST
-   .../invites/revoke`, `POST .../members/role`, `POST .../members/remove`) on Control API, with the
+.../invites/revoke`, `POST .../members/role`, `POST .../members/remove`) on Control API, with the
    same 403/404/409/400 error-code mapping. Proving test: route-postgres test covering each status
    code path (already_member, cannot_remove_self, etc.).
 3. **OP2a — decide and land the skill-catalog entity** (blocks PS1/SP1 — see Risk 1). Proving

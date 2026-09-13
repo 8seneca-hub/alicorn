@@ -2,11 +2,11 @@
   <header class="cat__head">
     <h2 class="cat__h2">What Alicorn ships</h2>
     <p class="cat__lede">
-      Everything below is grounded in the Orca source tree. Each row is tagged with how much
-      work it actually is: <span class="tag tag--have">inherited</span> already works today,
+      Everything below is grounded in the Orca source tree. Each row is tagged with how much work it
+      actually is: <span class="tag tag--have">inherited</span> already works today,
       <span class="tag tag--ext">extends</span> has a real foundation to build on, and
-      <span class="tag tag--new">net-new</span> has to be built from scratch. The ratio is the
-      point — most of this platform already exists.
+      <span class="tag tag--new">net-new</span> has to be built from scratch. The ratio is the point
+      — most of this platform already exists.
     </p>
   </header>
 
@@ -17,24 +17,60 @@
     <article class="fcard">
       <h4 class="fcard__t">Agents &amp; execution</h4>
       <ul class="flist">
-        <li><b>Parallel git worktrees</b> — one isolated checkout per task; fan one prompt across several agents and compare.</li>
-        <li><b>Folder workspaces</b> — a workspace with no repo checkout. <code>AgentSessionWorkspaceKind = 'git-worktree' | 'folder'</code>. This is what lets non-engineers in.</li>
-        <li><b>Multiple agent backends</b> — Claude Code, OpenClaude, Codex, Grok, OMP, plus other TUI agents. Each is a user-installed binary; Orca never redistributes them.</li>
-        <li><b>Orchestration layer</b> — runs, task DAGs, dispatch, workers, blocking ask/reply, decision gates, escalation, federation, <code>worker_done</code>. Agent-agnostic and already the substrate for hand-offs.</li>
-        <li><b>Agent teams</b> — Claude Code's native leader/teammate mode, hosted by faking a tmux server. Claude-Code-only.</li>
-        <li><b>SSH execution</b> — the execution host owns execution; loss of contact is never death. Verdicts are <code>live</code> / <code>unverifiable</code> / <code>exited</code>.</li>
-        <li><b>WSL, and a real terminal</b> — xterm with multiplexing, snapshots and orphan cleanup.</li>
-        <li><b>Computer use + embedded browser</b> — drive a browser or the desktop when the CLI is not enough.</li>
+        <li>
+          <b>Parallel git worktrees</b> — one isolated checkout per task; fan one prompt across
+          several agents and compare.
+        </li>
+        <li>
+          <b>Folder workspaces</b> — a workspace with no repo checkout.
+          <code>AgentSessionWorkspaceKind = 'git-worktree' | 'folder'</code>. This is what lets
+          non-engineers in.
+        </li>
+        <li>
+          <b>Multiple agent backends</b> — Claude Code, OpenClaude, Codex, Grok, OMP, plus other TUI
+          agents. Each is a user-installed binary; Orca never redistributes them.
+        </li>
+        <li>
+          <b>Orchestration layer</b> — runs, task DAGs, dispatch, workers, blocking ask/reply,
+          decision gates, escalation, federation, <code>worker_done</code>. Agent-agnostic and
+          already the substrate for hand-offs.
+        </li>
+        <li>
+          <b>Agent teams</b> — Claude Code's native leader/teammate mode, hosted by faking a tmux
+          server. Claude-Code-only.
+        </li>
+        <li>
+          <b>SSH execution</b> — the execution host owns execution; loss of contact is never death.
+          Verdicts are <code>live</code> / <code>unverifiable</code> / <code>exited</code>.
+        </li>
+        <li>
+          <b>WSL, and a real terminal</b> — xterm with multiplexing, snapshots and orphan cleanup.
+        </li>
+        <li>
+          <b>Computer use + embedded browser</b> — drive a browser or the desktop when the CLI is
+          not enough.
+        </li>
       </ul>
     </article>
 
     <article class="fcard">
       <h4 class="fcard__t">Work tracking</h4>
       <ul class="flist">
-        <li><b>Four trackers</b> — GitHub, GitLab, Linear, Jira, behind one <code>TaskProvider</code> registry.</li>
-        <li><b>Board that writes back</b> — dragging a card between columns already calls the tracker's update mutation. Two-way sync is not new work.</li>
-        <li><b>Workspace kanban</b> — worktrees themselves arranged in status lanes, with pointer drag.</li>
-        <li><b>Diff review + AI annotation</b> — review a change and have the agent annotate it.</li>
+        <li>
+          <b>Four trackers</b> — GitHub, GitLab, Linear, Jira, behind one
+          <code>TaskProvider</code> registry.
+        </li>
+        <li>
+          <b>Board that writes back</b> — dragging a card between columns already calls the
+          tracker's update mutation. Two-way sync is not new work.
+        </li>
+        <li>
+          <b>Workspace kanban</b> — worktrees themselves arranged in status lanes, with pointer
+          drag.
+        </li>
+        <li>
+          <b>Diff review + AI annotation</b> — review a change and have the agent annotate it.
+        </li>
         <li><b>Editors and viewers</b> — Monaco, file explorer, quick open.</li>
       </ul>
     </article>
@@ -42,95 +78,181 @@
     <article class="fcard">
       <h4 class="fcard__t">Skills &amp; extensibility</h4>
       <ul class="flist">
-        <li><b>Skill system</b> — discovery, install, bundling, sharing, and <b>per-agent skill selection</b>. Already most of what a "role" needs.</li>
-        <li><b>Skill transfer</b> — over SSH and the relay, plus cloud upload and a bundle manifest.</li>
+        <li>
+          <b>Skill system</b> — discovery, install, bundling, sharing, and
+          <b>per-agent skill selection</b>. Already most of what a "role" needs.
+        </li>
+        <li>
+          <b>Skill transfer</b> — over SSH and the relay, plus cloud upload and a bundle manifest.
+        </li>
         <li><b>Plugins</b> — with a remote kill-list for revoking a bad one.</li>
-        <li><b>MCP config management</b> — the route by which Drive and SharePoint will connect.</li>
-        <li><b>CLI (<code>orca</code>)</b> — worktrees, terminals, orchestration, skills, browser, computer use, automations.</li>
+        <li>
+          <b>MCP config management</b> — the route by which Drive and SharePoint will connect.
+        </li>
+        <li>
+          <b>CLI (<code>orca</code>)</b> — worktrees, terminals, orchestration, skills, browser,
+          computer use, automations.
+        </li>
       </ul>
     </article>
 
     <article class="fcard">
       <h4 class="fcard__t">Voice &amp; automation</h4>
       <ul class="flist">
-        <li><b>Speech-to-text, offline</b> — sherpa-onnx running whisper, paraformer, senseVoice, nemo-ctc and transducer models locally. Audio need never leave the machine.</li>
+        <li>
+          <b>Speech-to-text, offline</b> — sherpa-onnx running whisper, paraformer, senseVoice,
+          nemo-ctc and transducer models locally. Audio need never leave the machine.
+        </li>
         <li><b>Cloud STT</b> — OpenAI transcription as an alternative, with its own key store.</li>
         <li><b>Dictation UI</b> — already wired into the renderer.</li>
-        <li><b>Automations on a schedule</b> — cron, interval and one-shot, scoped to a project or a folder workspace.</li>
+        <li>
+          <b>Automations on a schedule</b> — cron, interval and one-shot, scoped to a project or a
+          folder workspace.
+        </li>
       </ul>
     </article>
 
     <article class="fcard">
       <h4 class="fcard__t">Platform</h4>
       <ul class="flist">
-        <li><b>Org membership</b> — members, invites and role changes, against the Orca Account service.</li>
-        <li><b>Mobile companion</b> — iOS and Android apps that pair through the relay to monitor and steer agents.</li>
-        <li><b>Web runtime + relay</b> — the existing path to a browser client, and the reason "desktop now, web later" is credible.</li>
-        <li><b>Eight languages</b> — en, zh, ja, ko, es, fr, pt, uk, with parity enforced in CI.</li>
-        <li><b>macOS, Windows, Linux</b> — with the platform hazards already documented and ratcheted in tests.</li>
+        <li>
+          <b>Org membership</b> — members, invites and role changes, against the Orca Account
+          service.
+        </li>
+        <li>
+          <b>Mobile companion</b> — iOS and Android apps that pair through the relay to monitor and
+          steer agents.
+        </li>
+        <li>
+          <b>Web runtime + relay</b> — the existing path to a browser client, and the reason
+          "desktop now, web later" is credible.
+        </li>
+        <li>
+          <b>Eight languages</b> — en, zh, ja, ko, es, fr, pt, uk, with parity enforced in CI.
+        </li>
+        <li>
+          <b>macOS, Windows, Linux</b> — with the platform hazards already documented and ratcheted
+          in tests.
+        </li>
         <li><b>Auto-update, telemetry with opt-out, artifacts and share links.</b></li>
       </ul>
     </article>
   </div>
 
   <!-- ── NEW ──────────────────────────────────────────────────────────────── -->
-  <h3 class="cat__h3"><span class="tag tag--new">net-new</span><span class="tag tag--ext">extends</span> What Alicorn adds</h3>
+  <h3 class="cat__h3">
+    <span class="tag tag--new">net-new</span><span class="tag tag--ext">extends</span> What Alicorn
+    adds
+  </h3>
 
   <div class="cat__grid">
     <article class="fcard fcard--new">
       <h4 class="fcard__t">Members <span class="tag tag--new">net-new</span></h4>
-      <p class="fcard__why">Orca has agents and it has skills, but nothing that binds them into a named, reusable thing. This is the central new object.</p>
+      <p class="fcard__why">
+        Orca has agents and it has skills, but nothing that binds them into a named, reusable thing.
+        This is the central new object.
+      </p>
       <ul class="flist">
-        <li><b>The Member entity</b> — name, role, agent backend, attached skills, permission mode, workspace kind and system rules, saved and reused.</li>
+        <li>
+          <b>The Member entity</b> — name, role, agent backend, attached skills, permission mode,
+          workspace kind and system rules, saved and reused.
+        </li>
         <li><b>A member library</b> — define "Code Review" once, use it on every project.</li>
-        <li><b>Role identity</b> — each role carries a hue mapped onto a token that already means that thing, so the agent map stays readable.</li>
+        <li>
+          <b>Role identity</b> — each role carries a hue mapped onto a token that already means that
+          thing, so the agent map stays readable.
+        </li>
       </ul>
     </article>
 
     <article class="fcard fcard--new">
       <h4 class="fcard__t">Cross-agent teaming <span class="tag tag--new">net-new</span></h4>
-      <p class="fcard__why">Today's teams are Claude Code's own, emulated through tmux — so a Grok analyst cannot hand work to a Claude developer.</p>
+      <p class="fcard__why">
+        Today's teams are Claude Code's own, emulated through tmux — so a Grok analyst cannot hand
+        work to a Claude developer.
+      </p>
       <ul class="flist">
-        <li><b>A mailbox Alicorn owns</b> — leader and teammates across <em>different</em> backends, not one vendor's implementation.</li>
-        <li><b>Visible hand-offs</b> — <code>worker_done → handed to Code Review</code> appears in the transcript, with provenance.</li>
-        <li><b>Return paths</b> — findings go back to the member that produced the work, and the loop is legible.</li>
+        <li>
+          <b>A mailbox Alicorn owns</b> — leader and teammates across <em>different</em> backends,
+          not one vendor's implementation.
+        </li>
+        <li>
+          <b>Visible hand-offs</b> — <code>worker_done → handed to Code Review</code> appears in the
+          transcript, with provenance.
+        </li>
+        <li>
+          <b>Return paths</b> — findings go back to the member that produced the work, and the loop
+          is legible.
+        </li>
       </ul>
     </article>
 
     <article class="fcard fcard--new">
       <h4 class="fcard__t">Workflows <span class="tag tag--ext">extends</span></h4>
-      <p class="fcard__why">Orchestration builds DAGs at runtime, but nothing authors or shows them. This makes the graph a first-class, editable object.</p>
+      <p class="fcard__why">
+        Orchestration builds DAGs at runtime, but nothing authors or shows them. This makes the
+        graph a first-class, editable object.
+      </p>
       <ul class="flist">
-        <li><b>Authored templates</b> — stages, the member that owns each, and the trigger between them, saved per project.</li>
-        <li><b>The canvas</b> — see the whole flow, including the return edge when review finds something.</li>
+        <li>
+          <b>Authored templates</b> — stages, the member that owns each, and the trigger between
+          them, saved per project.
+        </li>
+        <li>
+          <b>The canvas</b> — see the whole flow, including the return edge when review finds
+          something.
+        </li>
         <li><b>Live overlay</b> — which stages are running right now, on the same graph.</li>
       </ul>
     </article>
 
     <article class="fcard fcard--new">
       <h4 class="fcard__t">Board automation <span class="tag tag--ext">extends</span></h4>
-      <p class="fcard__why">The board and the orchestration layer both exist. Nothing connects a column change to a dispatch — that rule engine is the missing piece.</p>
+      <p class="fcard__why">
+        The board and the orchestration layer both exist. Nothing connects a column change to a
+        dispatch — that rule engine is the missing piece.
+      </p>
       <ul class="flist">
         <li><b>Custom columns</b> mapped onto workflow stages.</li>
-        <li><b>Actions bound to a transition</b> — "In Progress → In Review" dispatches Code Review; "→ Done" closes the ticket in the tracker.</li>
-        <li><b>The review loop</b> — the reviewer reports back to the developer member to fix, without a human relaying it.</li>
+        <li>
+          <b>Actions bound to a transition</b> — "In Progress → In Review" dispatches Code Review;
+          "→ Done" closes the ticket in the tracker.
+        </li>
+        <li>
+          <b>The review loop</b> — the reviewer reports back to the developer member to fix, without
+          a human relaying it.
+        </li>
       </ul>
     </article>
 
     <article class="fcard fcard--new">
       <h4 class="fcard__t">Integrations <span class="tag tag--ext">extends</span></h4>
       <ul class="flist">
-        <li><b>Plane</b> — a fifth provider in the existing <code>TaskProvider</code> registry, with the same two-way board sync the others get.</li>
-        <li><b>Drive and SharePoint</b> — connected through the MCP layer that already exists, so a BA or PM can produce documents from a folder workspace.</li>
+        <li>
+          <b>Plane</b> — a fifth provider in the existing <code>TaskProvider</code> registry, with
+          the same two-way board sync the others get.
+        </li>
+        <li>
+          <b>Drive and SharePoint</b> — connected through the MCP layer that already exists, so a BA
+          or PM can produce documents from a folder workspace.
+        </li>
       </ul>
     </article>
 
     <article class="fcard fcard--new">
       <h4 class="fcard__t">Voice &amp; org <span class="tag tag--ext">extends</span></h4>
       <ul class="flist">
-        <li><b>Intent routing</b> — transcription already works; turning "create a worktree for PAY-3021" into the operation is the new part.</li>
-        <li><b>Org skill catalog</b> — curated, installable skills per role, governed centrally.</li>
-        <li><b>Shared org seats</b> — members run on each employee's own machine today; a pooled org subscription that syncs is a later phase.</li>
+        <li>
+          <b>Intent routing</b> — transcription already works; turning "create a worktree for
+          PAY-3021" into the operation is the new part.
+        </li>
+        <li>
+          <b>Org skill catalog</b> — curated, installable skills per role, governed centrally.
+        </li>
+        <li>
+          <b>Shared org seats</b> — members run on each employee's own machine today; a pooled org
+          subscription that syncs is a later phase.
+        </li>
       </ul>
     </article>
   </div>

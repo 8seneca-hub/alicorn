@@ -8,7 +8,7 @@
 
 **Tech Stack:** Node 24, pnpm 10 (cloud workspace `packageManager`), TypeScript 5.9, hono 4, `@hono/node-server`, `pg` 8, zod 3 (cloud pins `^3.25`; the desktop uses zod 4 — do not share schema files across the boundary), vitest 4, Postgres 16 (`postgres:16-alpine`, the image `cloud-verify.yml` already uses).
 
-**Spec:** `docs/alicorn/PROJECT-BRIEF.md` (§03 base, §08 first slice, §09 gates, §11 decisions), `docs/alicorn/ARCHITECTURE.md` (§5 identity, §6 data model, §9 security), `docs/alicorn/INFRASTRUCTURE.md` (§3 environments), `CLAUDE.md` → *Control plane: Postgres from day one — identity deferred*. Companion plan: `2026-09-06-tier-1-desktop.md` consumes the wire contract defined here.
+**Spec:** `docs/alicorn/PROJECT-BRIEF.md` (§03 base, §08 first slice, §09 gates, §11 decisions), `docs/alicorn/ARCHITECTURE.md` (§5 identity, §6 data model, §9 security), `docs/alicorn/INFRASTRUCTURE.md` (§3 environments), `CLAUDE.md` → _Control plane: Postgres from day one — identity deferred_. Companion plan: `2026-09-06-tier-1-desktop.md` consumes the wire contract defined here.
 
 ## Global Constraints
 
@@ -28,7 +28,7 @@
 
 1. **Auth mode `local` is the only mode.** One constant tenant (`ALICORN_TENANT_ID`), one shared bearer. The desktop sends the same two values from its environment. When Keycloak lands: tenant = Keycloak organisation id, bearer = access token — same header names, same middleware seam (`requireTenant`), same schema.
 2. **No identity tables in tier 1.** `users`, `tenants`, `org_roles`, `cloud_profiles` (ARCHITECTURE §6) are created by the Keycloak plan. `members.created_by` records the optional `x-alicorn-actor` header, else `'local'`.
-3. **Exactly-once key includes `dispatch_id`.** Orca retries a task by creating a *new* `dispatch_contexts` row; a retry's outcome is a distinct step, not a duplicate. Key: `UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id)`. Duplicate deliveries of the same report (retries, reconnects, replay) share the dispatch id and are absorbed.
+3. **Exactly-once key includes `dispatch_id`.** Orca retries a task by creating a _new_ `dispatch_contexts` row; a retry's outcome is a distinct step, not a duplicate. Key: `UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id)`. Duplicate deliveries of the same report (retries, reconnects, replay) share the dispatch id and are absorbed.
 4. **No table partitioning in tier 1.** A partitioned `step_outcomes` cannot carry the exactly-once unique constraint without the partition key. The constraint is load-bearing; partitions are a capacity optimisation for ~1.2M rows/year (INFRASTRUCTURE §7). Revisit with a side table for the idempotency key when volume demands.
 5. **Required checks are authored per project** (`project_required_checks`) until stages exist in v1.5. In local mode the human operator is the admin; the member being judged is an agent and never calls this API.
 6. **`member_stage_stats` is written on every outcome insert** (runs, accepted, accept_rate) and is rebuildable. Nothing reads it until gate policy (v1.0); writing it now keeps the v0.1 exit criterion honest.
@@ -135,16 +135,19 @@ docs/alicorn/ARCHITECTURE.md                 exactly-once key / required-checks 
 ### Task 1 (A1): Wire contract package `@alicorn-cloud/control-plane-contract`
 
 **Files:**
+
 - Create: `cloud/packages/control-plane-contract/package.json`, `tsconfig.json`, `tsconfig.build.json`
 - Create: `cloud/packages/control-plane-contract/src/{index,member,org-policy,required-check,ledger}.ts`
 - Test: `cloud/packages/control-plane-contract/src/contract.test.ts`
 
 **Interfaces:**
+
 - Produces (used by every later task and by the desktop plan): `MemberSchema`, `MemberInputSchema`, `MEMBER_BACKENDS`, `MEMBER_ROLES`, `WORKSPACE_KINDS`, `PERMISSION_MODES`, `OrgPolicySchema`, `RequiredCheckSchema`, `RequiredChecksSchema`, `StepOutcomeInputSchema`, `StepVerificationInputSchema`, `ContextCaptureInputSchema`, `SpendPatchSchema`, `ProvenanceReportSchema`, `RunCostSchema`, and the inferred types (`Member`, `StepOutcomeInput`, …).
 
 - [ ] **Step 1: Scaffold the package** (copy the relay-contract shape)
 
 `cloud/packages/control-plane-contract/package.json`:
+
 ```json
 {
   "name": "@alicorn-cloud/control-plane-contract",
@@ -164,12 +167,14 @@ docs/alicorn/ARCHITECTURE.md                 exactly-once key / required-checks 
   "devDependencies": { "@types/node": "^24.10.0", "typescript": "^5.9.3", "vitest": "^4.0.8" }
 }
 ```
+
 `tsconfig.json`: `{ "extends": "../../tsconfig.base.json", "compilerOptions": { "noEmit": true }, "include": ["src/**/*.ts"] }`
 `tsconfig.build.json`: `{ "extends": "./tsconfig.json", "compilerOptions": { "declaration": true, "emitDeclarationOnly": false, "noEmit": false, "outDir": "dist", "rootDir": "src" }, "exclude": ["src/**/*.test.ts"] }`
 
 - [ ] **Step 2: Write the failing contract test**
 
 `src/contract.test.ts`:
+
 ```ts
 import { describe, expect, it } from 'vitest'
 import { MemberInputSchema, StepOutcomeInputSchema } from './index.js'
@@ -189,19 +194,27 @@ describe('control-plane contract', () => {
 
   it('rejects an unknown backend', () => {
     expect(() =>
-      MemberInputSchema.parse({ name: 'x', role: 'developer', backend: 'gemini', workspaceKind: 'worktree', permissionMode: 'ask' })
+      MemberInputSchema.parse({
+        name: 'x',
+        role: 'developer',
+        backend: 'gemini',
+        workspaceKind: 'worktree',
+        permissionMode: 'ask'
+      })
     ).toThrow()
   })
 
   it('defaults execution strategy to single and stage key to build', () => {
     const parsed = StepOutcomeInputSchema.parse({
-      runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1', outcome: 'succeeded'
+      runId: 'run_1',
+      taskId: 'task_1',
+      dispatchId: 'ctx_1',
+      outcome: 'succeeded'
     })
     expect(parsed.executionStrategy).toBe('single')
     expect(parsed.stageKey).toBe('build')
     expect(parsed.filesModified).toEqual([])
   })
-
 })
 ```
 
@@ -213,6 +226,7 @@ Expected: FAIL — `Cannot find module './index.js'`. (3 tests.)
 - [ ] **Step 4: Implement the schemas**
 
 `src/member.ts`:
+
 ```ts
 import { z } from 'zod'
 
@@ -249,6 +263,7 @@ export type Member = z.infer<typeof MemberSchema>
 ```
 
 `src/org-policy.ts`:
+
 ```ts
 import { z } from 'zod'
 // Why: decision §11.4 — enforced by default, explicit opt-out, bypass recorded on the run.
@@ -259,6 +274,7 @@ export type OrgPolicy = z.infer<typeof OrgPolicySchema>
 ```
 
 `src/required-check.ts`:
+
 ```ts
 import { z } from 'zod'
 export const DiffCoverageCheckSchema = z.object({
@@ -275,6 +291,7 @@ export type RequiredCheck = z.infer<typeof RequiredCheckSchema>
 ```
 
 `src/ledger.ts`:
+
 ```ts
 import { z } from 'zod'
 import { MemberBackendSchema } from './member.js'
@@ -321,15 +338,20 @@ export const StepVerificationInputSchema = z.object({
 })
 
 export const CONTEXT_CAPTURE_MAX_PROMPT_BYTES = 64 * 1024
-export const ContextCaptureInputSchema = z.object({
-  runId: z.string().min(1),
-  taskId: z.string().min(1),
-  dispatchId: z.string().min(1),
-  // Why: exactly one of prompt / promptPath — overflow is written to a file and the path is recorded.
-  prompt: z.string().max(CONTEXT_CAPTURE_MAX_PROMPT_BYTES).optional(),
-  promptPath: z.string().min(1).optional(),
-  contextSlice: z.record(z.unknown()).default({})
-}).refine((v) => (v.prompt === undefined) !== (v.promptPath === undefined), 'exactly one of prompt or promptPath')
+export const ContextCaptureInputSchema = z
+  .object({
+    runId: z.string().min(1),
+    taskId: z.string().min(1),
+    dispatchId: z.string().min(1),
+    // Why: exactly one of prompt / promptPath — overflow is written to a file and the path is recorded.
+    prompt: z.string().max(CONTEXT_CAPTURE_MAX_PROMPT_BYTES).optional(),
+    promptPath: z.string().min(1).optional(),
+    contextSlice: z.record(z.unknown()).default({})
+  })
+  .refine(
+    (v) => (v.prompt === undefined) !== (v.promptPath === undefined),
+    'exactly one of prompt or promptPath'
+  )
 
 export const StepOutcomeRecordSchema = StepOutcomeInputSchema.extend({
   id: z.string(),
@@ -340,22 +362,38 @@ export const StepOutcomeRecordSchema = StepOutcomeInputSchema.extend({
   gateReason: z.string(),
   createdAt: z.string().datetime()
 })
-export const StepVerificationRecordSchema = StepVerificationInputSchema.extend({ id: z.string(), createdAt: z.string().datetime() })
+export const StepVerificationRecordSchema = StepVerificationInputSchema.extend({
+  id: z.string(),
+  createdAt: z.string().datetime()
+})
 
 export const ProvenanceReportSchema = z.object({
   repoId: z.string(),
   branch: z.string(),
   outcomes: z.array(StepOutcomeRecordSchema),
   verifications: z.array(StepVerificationRecordSchema),
-  contextCaptures: z.array(z.object({ dispatchId: z.string(), promptBytes: z.number().int(), createdAt: z.string() })),
-  totals: z.object({ spendCents: z.number().int(), tasks: z.number().int(), dispatches: z.number().int() }),
+  contextCaptures: z.array(
+    z.object({ dispatchId: z.string(), promptBytes: z.number().int(), createdAt: z.string() })
+  ),
+  totals: z.object({
+    spendCents: z.number().int(),
+    tasks: z.number().int(),
+    dispatches: z.number().int()
+  }),
   reviewBackend: z.object({ enforced: z.boolean(), bypassed: z.boolean() })
 })
 
 export const RunCostSchema = z.object({
   runId: z.string(),
   totalSpendCents: z.number().int(),
-  byDispatch: z.array(z.object({ dispatchId: z.string(), taskId: z.string(), backend: z.string(), spendCents: z.number().int().nullable() }))
+  byDispatch: z.array(
+    z.object({
+      dispatchId: z.string(),
+      taskId: z.string(),
+      backend: z.string(),
+      spendCents: z.number().int().nullable()
+    })
+  )
 })
 
 export type ExecutionStrategy = z.infer<typeof ExecutionStrategySchema>
@@ -387,23 +425,34 @@ git commit -m "feat(cloud): add control-plane wire contract package"
 ### Task 2 (A2): Postgres helpers package `@alicorn-cloud/control-plane-postgres`
 
 **Files:**
+
 - Create: `cloud/packages/control-plane-postgres/package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`
 - Create: `src/{index,pool,apply-schema,tenant-transaction,rls-policy-sql,postgres-test-schema}.ts`
 - Test: `src/tenant-transaction-postgres.test.ts`, `src/rls-policy-sql.test.ts`
 
 **Interfaces:**
+
 - Produces: `openControlPlanePool(input: { databaseUrl: string; schema: string; applicationName: string; poolMax?: number }): Promise<pg.Pool>` (issues `CREATE SCHEMA` only when `pg_namespace` lacks it — an app role has no `CREATE` on the database, R5; sets `search_path` per connection); `applySchema(pool, statements: readonly string[]): Promise<void>`; `withTenant<T>(pool, tenantId: string, fn: (client: pg.PoolClient) => Promise<T>): Promise<T>` (`withoutTenant` is not implemented — R1); `tenantRlsPolicySql(table: string): string`; `createTestSchema(baseUrl, schema): Promise<{ appUrl: string }>` (creates a non-superuser role `cp_test_<schema>` and a schema it owns, returns a connection string for that role — R5); `dropTestSchema(baseUrl, schema)` (drops the schema and the role — R5; `scopedTestDatabaseUrl` is not implemented, R6); `describePostgres` helper: `export const describePostgres = process.env.ALICORN_TEST_POSTGRES_URL ? describe : describe.skip` lives in each test file (vitest import), not in the package.
 
 - [ ] **Step 1: Scaffold** — package.json like A1 but name `@alicorn-cloud/control-plane-postgres`, dependencies `{ "pg": "^8.22.0" }`, devDependencies add `"@types/pg": "^8.20.0"`. `vitest.config.ts`:
+
 ```ts
 import { defineConfig } from 'vitest/config'
 // Why: Postgres tests share one database; keep them serial like the relay's `relay-postgres` project.
-export default defineConfig({ test: { include: ['src/**/*.test.ts'], fileParallelism: false, testTimeout: 15_000, hookTimeout: 15_000 } })
+export default defineConfig({
+  test: {
+    include: ['src/**/*.test.ts'],
+    fileParallelism: false,
+    testTimeout: 15_000,
+    hookTimeout: 15_000
+  }
+})
 ```
 
 - [ ] **Step 2: Failing unit test for the policy SQL**
 
 `src/rls-policy-sql.test.ts`:
+
 ```ts
 import { describe, expect, it } from 'vitest'
 import { tenantRlsPolicySql } from './rls-policy-sql.js'
@@ -425,6 +474,7 @@ describe('tenantRlsPolicySql', () => {
 - [ ] **Step 3: Failing Postgres test for tenant isolation**
 
 `src/tenant-transaction-postgres.test.ts`:
+
 ```ts
 import pg from 'pg'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
@@ -442,7 +492,11 @@ describePostgres('withTenant', () => {
   let pool: pg.Pool
   beforeAll(async () => {
     await createTestSchema(databaseUrl!, schema)
-    pool = await openControlPlanePool({ databaseUrl: databaseUrl!, schema, applicationName: 'cp-test' })
+    pool = await openControlPlanePool({
+      databaseUrl: databaseUrl!,
+      schema,
+      applicationName: 'cp-test'
+    })
     await applySchema(pool, [
       `CREATE TABLE IF NOT EXISTS widgets (id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL, name TEXT NOT NULL)`,
       tenantRlsPolicySql('widgets')
@@ -454,9 +508,15 @@ describePostgres('withTenant', () => {
   })
 
   it('isolates rows by tenant even for the owning role', async () => {
-    await withTenant(pool, 'tenant-a', (c) => c.query(`INSERT INTO widgets VALUES ('w1', 'tenant-a', 'A')`))
-    await withTenant(pool, 'tenant-b', (c) => c.query(`INSERT INTO widgets VALUES ('w2', 'tenant-b', 'B')`))
-    const a = await withTenant(pool, 'tenant-a', (c) => c.query(`SELECT id FROM widgets ORDER BY id`))
+    await withTenant(pool, 'tenant-a', (c) =>
+      c.query(`INSERT INTO widgets VALUES ('w1', 'tenant-a', 'A')`)
+    )
+    await withTenant(pool, 'tenant-b', (c) =>
+      c.query(`INSERT INTO widgets VALUES ('w2', 'tenant-b', 'B')`)
+    )
+    const a = await withTenant(pool, 'tenant-a', (c) =>
+      c.query(`SELECT id FROM widgets ORDER BY id`)
+    )
     expect(a.rows.map((r) => r.id)).toEqual(['w1'])
     const none = await pool.query(`SELECT id FROM widgets`)
     expect(none.rows).toEqual([]) // no tenant set → policy false → nothing visible
@@ -464,7 +524,9 @@ describePostgres('withTenant', () => {
 
   it('refuses to insert a row for another tenant', async () => {
     await expect(
-      withTenant(pool, 'tenant-a', (c) => c.query(`INSERT INTO widgets VALUES ('w3', 'tenant-b', 'X')`))
+      withTenant(pool, 'tenant-a', (c) =>
+        c.query(`INSERT INTO widgets VALUES ('w3', 'tenant-b', 'X')`)
+      )
     ).rejects.toMatchObject({ code: '42501' })
   })
 })
@@ -478,6 +540,7 @@ Expected: FAIL — modules not found (the Postgres suite skips if the env var is
 - [ ] **Step 5: Implement**
 
 `src/rls-policy-sql.ts`:
+
 ```ts
 const IDENTIFIER = /^[a-z][a-z0-9_]{0,62}$/
 export function assertIdentifier(name: string): string {
@@ -500,6 +563,7 @@ END $$;`
 ```
 
 `src/pool.ts` (as amended by R5, R7):
+
 ```ts
 import pg from 'pg'
 import { assertIdentifier } from './rls-policy-sql.js'
@@ -515,7 +579,9 @@ export async function openControlPlanePool(input: {
   await admin.connect()
   try {
     // Why: an app role (R5) has no CREATE on the database — only create the schema if missing.
-    const schemaExists = await admin.query('SELECT 1 FROM pg_namespace WHERE nspname = $1', [schema])
+    const schemaExists = await admin.query('SELECT 1 FROM pg_namespace WHERE nspname = $1', [
+      schema
+    ])
     if (schemaExists.rows.length === 0) {
       await admin.query(`CREATE SCHEMA ${schema}`)
     }
@@ -544,6 +610,7 @@ export async function openControlPlanePool(input: {
 ```
 
 `src/apply-schema.ts`:
+
 ```ts
 import type pg from 'pg'
 export async function applySchema(pool: pg.Pool, statements: readonly string[]): Promise<void> {
@@ -559,9 +626,14 @@ export async function applySchema(pool: pg.Pool, statements: readonly string[]):
 ```
 
 `src/tenant-transaction.ts` (as amended by R1 — no `withoutTenant`):
+
 ```ts
 import type pg from 'pg'
-async function transaction<T>(pool: pg.Pool, prepare: (c: pg.PoolClient) => Promise<void>, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
+async function transaction<T>(
+  pool: pg.Pool,
+  prepare: (c: pg.PoolClient) => Promise<void>,
+  fn: (c: pg.PoolClient) => Promise<T>
+): Promise<T> {
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
@@ -577,20 +649,35 @@ async function transaction<T>(pool: pg.Pool, prepare: (c: pg.PoolClient) => Prom
   }
 }
 // Why: set_config(..., true) is transaction-local, so a pooled connection never leaks a tenant.
-export function withTenant<T>(pool: pg.Pool, tenantId: string, fn: (c: pg.PoolClient) => Promise<T>): Promise<T> {
+export function withTenant<T>(
+  pool: pg.Pool,
+  tenantId: string,
+  fn: (c: pg.PoolClient) => Promise<T>
+): Promise<T> {
   if (!tenantId) throw new Error('tenant_required')
-  return transaction(pool, async (c) => { await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [tenantId]) }, fn)
+  return transaction(
+    pool,
+    async (c) => {
+      await c.query(`SELECT set_config('app.tenant_id', $1, true)`, [tenantId])
+    },
+    fn
+  )
 }
 ```
 
 `src/postgres-test-schema.ts`:
+
 ```ts
 import pg from 'pg'
 import { assertIdentifier } from './rls-policy-sql.js'
 async function run(baseUrl: string, sql: string): Promise<void> {
   const client = new pg.Client({ connectionString: baseUrl })
   await client.connect()
-  try { await client.query(sql) } finally { await client.end() }
+  try {
+    await client.query(sql)
+  } finally {
+    await client.end()
+  }
 }
 export function createTestSchema(baseUrl: string, schema: string): Promise<void> {
   const s = assertIdentifier(schema)
@@ -620,14 +707,17 @@ git commit -m "feat(cloud): add Postgres pool, schema apply and forced-RLS tenan
 ### Task 3 (A3): Control API skeleton — config, schema, `/healthz`, bootstrap
 
 **Files:**
+
 - Create: `cloud/apps/control-api/package.json`, `tsconfig.json`, `tsconfig.build.json`, `vitest.config.ts`, `Dockerfile`
 - Create: `cloud/apps/control-api/src/{config,schema-sql,app,index}.ts`
 - Test: `src/config.test.ts`, `src/app.test.ts`, `src/schema-postgres.test.ts`
 
 **Interfaces:**
+
 - Produces: `loadControlApiConfig(env): ControlApiConfig` with fields `port`, `databaseUrl`, `databaseSchema`, `poolMax`, `authMode: 'local'`, `tenantId`, `localApiToken`; `CONTROL_SCHEMA_STATEMENTS: readonly string[]`; `createControlApiApp(deps: ControlApiDeps): Hono` where `ControlApiDeps = { config: ControlApiConfig; pool: pg.Pool; now?: () => number }`.
 
 - [ ] **Step 1: Scaffold** — `package.json` copied from `apps/relay/package.json` with name `@alicorn-cloud/control-api`, `dev: tsx watch src/index.ts`, dependencies `@hono/node-server ^1.19.14`, `hono ^4.12.27`, `pg ^8.22.0`, `zod ^3.25.76`, `@alicorn-cloud/control-plane-contract: workspace:*`, `@alicorn-cloud/control-plane-postgres: workspace:*`; `pretest: pnpm --filter @alicorn-cloud/control-plane-contract build && pnpm --filter @alicorn-cloud/control-plane-postgres build`. `vitest.config.ts` = copy of `apps/relay/vitest.config.ts` with the env var name replaced by `ALICORN_TEST_POSTGRES_URL` and project names `control-api` / `control-api-postgres`. `Dockerfile`:
+
 ```dockerfile
 FROM node:24-alpine AS build
 WORKDIR /app
@@ -641,11 +731,13 @@ COPY --from=build /app /app
 USER node
 CMD ["node", "apps/control-api/dist/index.js"]
 ```
+
 (build context is `cloud/`; the `...` filter builds dependencies too.)
 
 - [ ] **Step 2: Failing tests**
 
 `src/config.test.ts`:
+
 ```ts
 import { describe, expect, it } from 'vitest'
 import { loadControlApiConfig } from './config.js'
@@ -662,7 +754,9 @@ describe('loadControlApiConfig', () => {
     expect(c.tenantId).toBe('local')
   })
   it('fails without a database url', () => {
-    expect(() => loadControlApiConfig({ ALICORN_LOCAL_API_TOKEN: base.ALICORN_LOCAL_API_TOKEN })).toThrow()
+    expect(() =>
+      loadControlApiConfig({ ALICORN_LOCAL_API_TOKEN: base.ALICORN_LOCAL_API_TOKEN })
+    ).toThrow()
   })
   it('refuses a short shared token', () => {
     expect(() => loadControlApiConfig({ ...base, ALICORN_LOCAL_API_TOKEN: 'short' })).toThrow()
@@ -671,13 +765,17 @@ describe('loadControlApiConfig', () => {
 ```
 
 `src/app.test.ts`:
+
 ```ts
 import { describe, expect, it } from 'vitest'
 import { createControlApiApp } from './app.js'
 import { loadControlApiConfig } from './config.js'
 export function testDeps(overrides: Partial<Parameters<typeof createControlApiApp>[0]> = {}) {
   return {
-    config: loadControlApiConfig({ ALICORN_DATABASE_URL: 'postgres://x', ALICORN_LOCAL_API_TOKEN: 'local-dev-token-0123456789' }),
+    config: loadControlApiConfig({
+      ALICORN_DATABASE_URL: 'postgres://x',
+      ALICORN_LOCAL_API_TOKEN: 'local-dev-token-0123456789'
+    }),
     pool: {} as never,
     ...overrides
   }
@@ -692,9 +790,15 @@ describe('control-api app', () => {
 ```
 
 `src/schema-postgres.test.ts`:
+
 ```ts
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { applySchema, createTestSchema, dropTestSchema, openControlPlanePool } from '@alicorn-cloud/control-plane-postgres'
+import {
+  applySchema,
+  createTestSchema,
+  dropTestSchema,
+  openControlPlanePool
+} from '@alicorn-cloud/control-plane-postgres'
 import { CONTROL_SCHEMA_STATEMENTS } from './schema-sql.js'
 const databaseUrl = process.env.ALICORN_TEST_POSTGRES_URL
 const describePostgres = databaseUrl ? describe : describe.skip
@@ -703,14 +807,25 @@ describePostgres('control schema', () => {
   beforeAll(() => createTestSchema(databaseUrl!, schema))
   afterAll(() => dropTestSchema(databaseUrl!, schema))
   it('applies twice without error and forces RLS on tenant tables', async () => {
-    const pool = await openControlPlanePool({ databaseUrl: databaseUrl!, schema, applicationName: 't' })
+    const pool = await openControlPlanePool({
+      databaseUrl: databaseUrl!,
+      schema,
+      applicationName: 't'
+    })
     try {
       await applySchema(pool, CONTROL_SCHEMA_STATEMENTS)
       await applySchema(pool, CONTROL_SCHEMA_STATEMENTS)
       const { rows } = await pool.query(
         `SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-         WHERE n.nspname = $1 AND c.relforcerowsecurity ORDER BY relname`, [schema])
-      expect(rows.map((r) => r.relname)).toEqual(['member_skills', 'members', 'org_policies', 'project_required_checks'])
+         WHERE n.nspname = $1 AND c.relforcerowsecurity ORDER BY relname`,
+        [schema]
+      )
+      expect(rows.map((r) => r.relname)).toEqual([
+        'member_skills',
+        'members',
+        'org_policies',
+        'project_required_checks'
+      ])
     } finally {
       await pool.end()
     }
@@ -723,16 +838,23 @@ describePostgres('control schema', () => {
 - [ ] **Step 4: Implement**
 
 `src/config.ts`:
+
 ```ts
 import { z } from 'zod'
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(8081),
   ALICORN_DATABASE_URL: z.string().min(1),
-  ALICORN_DATABASE_SCHEMA: z.string().regex(/^[a-z][a-z0-9_]*$/).default('control'),
+  ALICORN_DATABASE_SCHEMA: z
+    .string()
+    .regex(/^[a-z][a-z0-9_]*$/)
+    .default('control'),
   ALICORN_DATABASE_POOL_MAX: z.coerce.number().int().positive().max(100).default(10),
   // Why: identity is deferred; `local` is the only mode until the Keycloak plan adds `keycloak`.
   ALICORN_AUTH_MODE: z.enum(['local']).default('local'),
-  ALICORN_TENANT_ID: z.string().regex(/^[A-Za-z0-9_-]{1,64}$/).default('local'),
+  ALICORN_TENANT_ID: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{1,64}$/)
+    .default('local'),
   ALICORN_LOCAL_API_TOKEN: z.string().min(16)
 })
 export type ControlApiConfig = {
@@ -758,7 +880,8 @@ export function loadControlApiConfig(env: NodeJS.ProcessEnv = process.env): Cont
 }
 ```
 
-`src/schema-sql.ts` (ARCHITECTURE §6 product tables; *Decisions* 2 and 5; index as amended by R3):
+`src/schema-sql.ts` (ARCHITECTURE §6 product tables; _Decisions_ 2 and 5; index as amended by R3):
+
 ```ts
 import { tenantRlsPolicySql } from '@alicorn-cloud/control-plane-postgres'
 export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
@@ -802,6 +925,7 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
 ```
 
 `src/app-env.ts` (R2; `ControlApiDeps` lives here rather than in `app.ts` — R8):
+
 ```ts
 import type pg from 'pg'
 import type { ControlApiConfig } from './config.js'
@@ -817,6 +941,7 @@ export type ControlApiDeps = {
 ```
 
 `src/app.ts` (as amended by R2, R8):
+
 ```ts
 import { Hono } from 'hono'
 import type { ControlApiEnv } from './app-env.js'
@@ -834,6 +959,7 @@ export function createControlApiApp(deps: ControlApiDeps): Hono<ControlApiEnv> {
 ```
 
 `src/index.ts`:
+
 ```ts
 import { serve } from '@hono/node-server'
 import { applySchema, openControlPlanePool } from '@alicorn-cloud/control-plane-postgres'
@@ -843,17 +969,22 @@ import { CONTROL_SCHEMA_STATEMENTS } from './schema-sql.js'
 
 const config = loadControlApiConfig()
 const pool = await openControlPlanePool({
-  databaseUrl: config.databaseUrl, schema: config.databaseSchema,
-  applicationName: 'alicorn-control-api', poolMax: config.poolMax
+  databaseUrl: config.databaseUrl,
+  schema: config.databaseSchema,
+  applicationName: 'alicorn-control-api',
+  poolMax: config.poolMax
 })
 await applySchema(pool, CONTROL_SCHEMA_STATEMENTS)
 const app = createControlApiApp({ config, pool })
-serve({ fetch: app.fetch, port: config.port }, () => console.log(`[alicorn-control-api] listening on :${config.port}`))
+serve({ fetch: app.fetch, port: config.port }, () =>
+  console.log(`[alicorn-control-api] listening on :${config.port}`)
+)
 ```
 
 - [ ] **Step 5: Run** — `pnpm --filter @alicorn-cloud/control-api test && pnpm --filter @alicorn-cloud/control-api typecheck` → 5 tests PASS (schema test needs `ALICORN_TEST_POSTGRES_URL`).
 
 - [ ] **Step 6: Commit**
+
 ```bash
 git add cloud/apps/control-api cloud/pnpm-lock.yaml
 git commit -m "feat(control-api): scaffold service with config, schema and healthz"
@@ -864,15 +995,18 @@ git commit -m "feat(control-api): scaffold service with config, schema and healt
 ### Task 4 (A4): Local auth middleware `requireTenant`
 
 **Files:**
+
 - Create: `cloud/apps/control-api/src/require-tenant.ts`
 - Test: `cloud/apps/control-api/src/require-tenant.test.ts`
 
 **Interfaces:**
+
 - Produces: `requireTenant(deps: { config: { tenantId: string; localApiToken: string } })` — a Hono middleware. `authorization` must be exactly `Bearer <localApiToken>` (constant-time compare via `timingSafeEqual` on equal-length buffers) → else 401 `{ error: 'unauthorized' }`. `x-alicorn-org`, when present, must equal `config.tenantId` → else 403 `{ error: 'not_a_member' }`. Sets `c.set('auth', { tenantId: config.tenantId, actor: c.req.header('x-alicorn-actor')?.slice(0, 120) ?? 'local' })`. Type `AuthContext = { tenantId: string; actor: string }`; declare Hono `Variables: { auth: AuthContext }` so `c.get('auth')` is typed.
 - Also `readBearer(header: string | undefined): string | null` (same regex as the relay's).
 - This is the **only** seam auth passes through; the Keycloak plan adds `authMode === 'keycloak'` here without touching routes.
 
 - [ ] **Step 1: Failing test**
+
 ```ts
 import { Hono } from 'hono'
 import { describe, expect, it } from 'vitest'
@@ -888,25 +1022,39 @@ function app() {
 describe('requireTenant (local mode)', () => {
   it('rejects a missing or wrong bearer', async () => {
     expect((await app().request('/v1/whoami')).status).toBe(401)
-    expect((await app().request('/v1/whoami', { headers: { authorization: 'Bearer nope' } })).status).toBe(401)
+    expect(
+      (await app().request('/v1/whoami', { headers: { authorization: 'Bearer nope' } })).status
+    ).toBe(401)
   })
   it('rejects another tenant', async () => {
-    const res = await app().request('/v1/whoami', { headers: { authorization: `Bearer ${config.localApiToken}`, 'x-alicorn-org': 'acme' } })
+    const res = await app().request('/v1/whoami', {
+      headers: { authorization: `Bearer ${config.localApiToken}`, 'x-alicorn-org': 'acme' }
+    })
     expect(res.status).toBe(403)
   })
   it('accepts the shared token and stamps tenant + actor', async () => {
-    const res = await app().request('/v1/whoami', { headers: { authorization: `Bearer ${config.localApiToken}`, 'x-alicorn-org': 'local', 'x-alicorn-actor': 'huy' } })
+    const res = await app().request('/v1/whoami', {
+      headers: {
+        authorization: `Bearer ${config.localApiToken}`,
+        'x-alicorn-org': 'local',
+        'x-alicorn-actor': 'huy'
+      }
+    })
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ tenantId: 'local', actor: 'huy' })
   })
   it('defaults the actor', async () => {
-    const res = await app().request('/v1/whoami', { headers: { authorization: `Bearer ${config.localApiToken}` } })
+    const res = await app().request('/v1/whoami', {
+      headers: { authorization: `Bearer ${config.localApiToken}` }
+    })
     expect(await res.json()).toEqual({ tenantId: 'local', actor: 'local' })
   })
 })
 ```
+
 - [ ] **Step 2: Run** `pnpm --filter @alicorn-cloud/control-api test` → FAIL (module missing).
 - [ ] **Step 3: Implement**
+
 ```ts
 import { timingSafeEqual } from 'node:crypto'
 import type { MiddlewareHandler } from 'hono'
@@ -936,11 +1084,15 @@ export function requireTenant(deps: {
     if (org !== undefined && org !== deps.config.tenantId) {
       return c.json({ error: 'not_a_member' }, 403)
     }
-    c.set('auth', { tenantId: deps.config.tenantId, actor: c.req.header('x-alicorn-actor')?.slice(0, 120) ?? 'local' })
+    c.set('auth', {
+      tenantId: deps.config.tenantId,
+      actor: c.req.header('x-alicorn-actor')?.slice(0, 120) ?? 'local'
+    })
     await next()
   }
 }
 ```
+
 - [ ] **Step 4: Run** → 4 PASS; `pnpm --filter @alicorn-cloud/control-api typecheck` clean.
 - [ ] **Step 5: Commit** `feat(control-api): local-mode tenant middleware (shared bearer, constant tenant)`.
 
@@ -949,11 +1101,13 @@ export function requireTenant(deps: {
 ### Task 5 (A5): Members CRUD
 
 **Files:**
+
 - Create: `cloud/apps/control-api/src/members-repository.ts`, `src/members-routes.ts`
 - Modify: `src/app.ts` — `app.use('/v1/*', requireTenant(deps))` then `registerMembersRoutes(app, deps)`
 - Test: `src/members-routes-postgres.test.ts`
 
 **Interfaces:**
+
 - Consumes: A4 `requireTenant` (`c.get('auth')` → `{ tenantId, actor }`).
 - Produces repository (all via `withTenant(pool, tenantId, …)`): `listMembers(pool, tenantId): Promise<Member[]>`, `getMember(pool, tenantId, id)`, `createMember(pool, tenantId, createdBy, input: MemberInput): Promise<Member>`, `updateMember(pool, tenantId, id, input: MemberInput): Promise<Member | null>`, `deleteMember(pool, tenantId, id): Promise<boolean>`. Skills are stored in `member_skills` and returned as `skills: string[]` sorted.
 - Routes: `GET /v1/members` → `{ members }`; `POST /v1/members` (body `MemberInputSchema`, 400 on zod error `{ error: 'invalid_body', issues }`) → 201 `{ member }`; `GET /v1/members/:id` → 200/404; `PUT /v1/members/:id` → 200/404; `DELETE /v1/members/:id` → 204/404.
@@ -966,11 +1120,13 @@ export function requireTenant(deps: {
 ### Task 6 (A6): Org policy and project required checks
 
 **Files:**
+
 - Create: `src/org-policy-repository.ts`, `src/org-policy-routes.ts`, `src/required-checks-repository.ts`, `src/required-checks-routes.ts`
 - Modify: `src/app.ts`
 - Test: `src/policy-routes-postgres.test.ts`
 
 **Interfaces:**
+
 - `getOrgPolicy(pool, tenantId): Promise<OrgPolicy>` — returns `{ enforceDistinctReviewerBackend: true }` when no row (the default is the safe one). `putOrgPolicy(pool, tenantId, updatedBy, policy)` upserts.
 - `getRequiredChecks(pool, tenantId, projectId): Promise<RequiredCheck[]>` (empty when no row), `putRequiredChecks(pool, tenantId, projectId, updatedBy, checks)`.
 - Routes: `GET /v1/policy/review-backend` → `OrgPolicy`; `PUT /v1/policy/review-backend` (body `OrgPolicySchema`) → 200; `GET /v1/projects/:projectId/required-checks` → `{ checks }`; `PUT /v1/projects/:projectId/required-checks` (body `{ checks: RequiredChecksSchema }`) → 200. `projectId` is Orca's project/repo id string (opaque here). `updated_by = auth.actor`.
@@ -984,11 +1140,13 @@ export function requireTenant(deps: {
 ### Task 7 (A7): Ledger API skeleton and schema
 
 **Files:**
+
 - Create: `cloud/apps/ledger-api/{package.json,tsconfig.json,tsconfig.build.json,vitest.config.ts,Dockerfile}` (as A3, name `@alicorn-cloud/ledger-api`, default `PORT` 8082, default schema `ledger`)
 - Create: `src/{config,schema-sql,app,index,require-tenant}.ts` — `config.ts` mirrors control-api's (`PORT` default 8082, schema default `ledger`, same `ALICORN_AUTH_MODE`/`ALICORN_TENANT_ID`/`ALICORN_LOCAL_API_TOKEN`); `require-tenant.ts` is a copy of control-api's A4 file with its test (decision 7).
 - Test: `src/config.test.ts`, `src/schema-postgres.test.ts` (forced-RLS tables = `context_captures, member_stage_stats, step_outcomes, step_verifications`)
 
-**Schema** (`LEDGER_SCHEMA_STATEMENTS`, ARCHITECTURE §6 + *Decisions* 3, 4, 6):
+**Schema** (`LEDGER_SCHEMA_STATEMENTS`, ARCHITECTURE §6 + _Decisions_ 3, 4, 6):
+
 ```sql
 CREATE TABLE IF NOT EXISTS step_outcomes (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -1042,6 +1200,7 @@ CREATE TABLE IF NOT EXISTS member_stage_stats (   -- derived; rebuildable from s
   PRIMARY KEY (tenant_id, member_id, stage_key, project_id)
 );
 ```
+
 plus `tenantRlsPolicySql(...)` after each table.
 
 - [ ] Steps: failing config + schema tests (as A3) → implement → `pnpm --filter @alicorn-cloud/ledger-api test && … typecheck` PASS → commit `feat(ledger-api): scaffold service with append-only ledger schema`.
@@ -1051,38 +1210,67 @@ plus `tenantRlsPolicySql(...)` after each table.
 ### Task 8 (A8): Ledger routes — exactly-once writes, provenance and cost reads
 
 **Files:**
+
 - Create: `src/step-outcomes-repository.ts`, `src/step-verifications-repository.ts`, `src/context-captures-repository.ts`, `src/member-stage-stats.ts`, `src/provenance-repository.ts`, `src/ledger-routes.ts`
 - Modify: `src/app.ts`
 - Test: `src/ledger-routes-postgres.test.ts`
 
 **Interfaces (all under `withTenant`):**
+
 - `insertStepOutcome(pool, tenantId, input: StepOutcomeInput): Promise<{ id: string; duplicate: boolean }>` — `INSERT … ON CONFLICT (tenant_id, run_id, task_id, stage_key, dispatch_id) DO NOTHING RETURNING id`; when no row returned, select the existing id and return `duplicate: true`. On a non-duplicate insert call `upsertMemberStageStats(client, { tenantId, memberId, stageKey, projectId, accepted: outcome === 'succeeded' })` in the same transaction (`runs = runs + 1`, `accepted = accepted + $x`, `accept_rate = accepted::numeric / runs`). Skip stats when `memberId` is null (a bare Orca worker is not a member).
 - `patchStepOutcomeSpend(pool, tenantId, id, patch: SpendPatch): Promise<boolean>`
-- `insertStepVerification(pool, tenantId, input): Promise<{ id; duplicate }>` — `ON CONFLICT (tenant_id, dispatch_id, kind, name) DO UPDATE SET status = EXCLUDED.status, detail = EXCLUDED.detail, required = EXCLUDED.required` (a re-run check may legitimately change status; not a ledger *outcome*), returns `duplicate: true` when the row pre-existed (`xmax <> 0` trick or a prior `SELECT`).
+- `insertStepVerification(pool, tenantId, input): Promise<{ id; duplicate }>` — `ON CONFLICT (tenant_id, dispatch_id, kind, name) DO UPDATE SET status = EXCLUDED.status, detail = EXCLUDED.detail, required = EXCLUDED.required` (a re-run check may legitimately change status; not a ledger _outcome_), returns `duplicate: true` when the row pre-existed (`xmax <> 0` trick or a prior `SELECT`).
 - `insertContextCapture(pool, tenantId, input): Promise<{ id; duplicate }>` — `prompt_bytes = Buffer.byteLength(prompt ?? '')`; conflict on `(tenant_id, dispatch_id)` → DO NOTHING.
 - `getProvenance(pool, tenantId, { repoId, branch }): Promise<ProvenanceReport>` — outcomes and verifications for that repo+branch ordered by `created_at`, `contextCaptures` for those dispatch ids, totals, `reviewBackend.bypassed = any(outcomes.review_backend_bypass)`, `reviewBackend.enforced = !bypassed` (the ledger does not know the org policy; the desktop plan renders "enforced/bypassed" from this).
 - `getRunCost(pool, tenantId, runId): Promise<RunCost>`.
 - Routes: `POST /v1/ledger/step-outcomes` → 201 `{ id, duplicate: false }` or 200 `{ id, duplicate: true }`; `PATCH /v1/ledger/step-outcomes/:id/spend` → 200/404; `POST /v1/ledger/step-verifications` → 201/200; `POST /v1/ledger/context-captures` → 201/200, 413 `{ error: 'prompt_too_large' }` when zod rejects `prompt` length; `GET /v1/ledger/provenance?repoId=&branch=` → `ProvenanceReport`; `GET /v1/ledger/runs/:runId/cost` → `RunCost`. All behind `requireTenant`.
 
 - [ ] **Step 1: Failing Postgres test** (this is the v0.1 exit criterion — "zero duplicates under induced retries"):
+
 ```ts
 it('absorbs duplicate deliveries and keeps retries', async () => {
-  const body = { runId: 'run_1', taskId: 'task_1', dispatchId: 'ctx_1', outcome: 'succeeded', memberId: 'm1', projectId: 'p1', repoId: 'r1', branch: 'feat/x' }
+  const body = {
+    runId: 'run_1',
+    taskId: 'task_1',
+    dispatchId: 'ctx_1',
+    outcome: 'succeeded',
+    memberId: 'm1',
+    projectId: 'p1',
+    repoId: 'r1',
+    branch: 'feat/x'
+  }
   const first = await post('/v1/ledger/step-outcomes', body)
   const again = await Promise.all([1, 2, 3].map(() => post('/v1/ledger/step-outcomes', body)))
   expect(first.status).toBe(201)
   expect(again.map((r) => r.status)).toEqual([200, 200, 200])
-  const retry = await post('/v1/ledger/step-outcomes', { ...body, dispatchId: 'ctx_2', outcome: 'failed' })
+  const retry = await post('/v1/ledger/step-outcomes', {
+    ...body,
+    dispatchId: 'ctx_2',
+    outcome: 'failed'
+  })
   expect(retry.status).toBe(201)
-  const { rows } = await withTenant(pool, 'org-1', (c) => c.query(`SELECT runs, accepted FROM member_stage_stats WHERE member_id = 'm1'`))
+  const { rows } = await withTenant(pool, 'org-1', (c) =>
+    c.query(`SELECT runs, accepted FROM member_stage_stats WHERE member_id = 'm1'`)
+  )
   expect(rows[0]).toEqual({ runs: 2, accepted: 1 })
 })
-it('assembles provenance for a branch', async () => { /* post 2 outcomes (one review_backend_bypass), 1 verification, 1 capture; GET provenance → totals.dispatches 2, reviewBackend.bypassed true, contextCaptures[0].promptBytes > 0 */ })
-it('patches spend and reports run cost', async () => { /* PATCH spendCents 82 → GET /runs/run_1/cost totalSpendCents 82 */ })
-it('rejects a capture over the size cap with 413', async () => { /* prompt of 65*1024 'x' */ })
-it('rejects another tenant header', async () => { /* same GETs with x-alicorn-org acme → 403 */ })
-it('keeps rows invisible outside the tenant transaction', async () => { /* pool.query without set_config → 0 rows; withTenant(pool,'other') → 0 rows */ })
+it('assembles provenance for a branch', async () => {
+  /* post 2 outcomes (one review_backend_bypass), 1 verification, 1 capture; GET provenance → totals.dispatches 2, reviewBackend.bypassed true, contextCaptures[0].promptBytes > 0 */
+})
+it('patches spend and reports run cost', async () => {
+  /* PATCH spendCents 82 → GET /runs/run_1/cost totalSpendCents 82 */
+})
+it('rejects a capture over the size cap with 413', async () => {
+  /* prompt of 65*1024 'x' */
+})
+it('rejects another tenant header', async () => {
+  /* same GETs with x-alicorn-org acme → 403 */
+})
+it('keeps rows invisible outside the tenant transaction', async () => {
+  /* pool.query without set_config → 0 rows; withTenant(pool,'other') → 0 rows */
+})
 ```
+
 - [ ] **Step 2: Run** → FAIL. **Step 3: Implement.** **Step 4: Run** → PASS. **Step 5: Commit** `feat(ledger-api): exactly-once step outcomes, verifications, context captures, provenance and cost reads`.
 
 ---
@@ -1090,42 +1278,46 @@ it('keeps rows invisible outside the tenant transaction', async () => { /* pool.
 ### Task 9 (A9): Local stack — compose, seed, CI wiring, docs
 
 **Files:**
+
 - Create: `cloud/dev/compose/alicorn-local.yml`, `cloud/dev/compose/desktop.env.example`
 - Create: `cloud/dev/scripts/seed-alicorn-local.mjs`, `cloud/dev/scripts/seed-alicorn-local.test.mjs`
 - Modify: `cloud/package.json` scripts (`alicorn:up`, `alicorn:down`, `alicorn:seed`, and add the seed test to the root `test` chain), `cloud/README.md`, `.github/workflows/cloud-verify.yml`
 
 - [ ] **Step 1: compose file**
+
 ```yaml
 name: alicorn-local
 services:
   postgres:
     image: postgres:16-alpine
     environment: { POSTGRES_USER: alicorn, POSTGRES_PASSWORD: alicorn, POSTGRES_DB: alicorn }
-    ports: ["127.0.0.1:5432:5432"]
+    ports: ['127.0.0.1:5432:5432']
     volumes: [alicorn-pg:/var/lib/postgresql/data]
-    healthcheck: { test: ["CMD-SHELL", "pg_isready -U alicorn"], interval: 5s, timeout: 3s, retries: 20 }
+    healthcheck:
+      { test: ['CMD-SHELL', 'pg_isready -U alicorn'], interval: 5s, timeout: 3s, retries: 20 }
   control-api:
     build: { context: ../.., dockerfile: apps/control-api/Dockerfile }
     environment:
-      PORT: "8081"
+      PORT: '8081'
       ALICORN_DATABASE_URL: postgres://alicorn:alicorn@postgres:5432/alicorn
       ALICORN_AUTH_MODE: local
       ALICORN_TENANT_ID: local
       ALICORN_LOCAL_API_TOKEN: ${ALICORN_LOCAL_API_TOKEN:-local-dev-token-change-me-0001}
-    ports: ["127.0.0.1:8081:8081"]
+    ports: ['127.0.0.1:8081:8081']
     depends_on: { postgres: { condition: service_healthy } }
   ledger-api:
     build: { context: ../.., dockerfile: apps/ledger-api/Dockerfile }
     environment:
-      PORT: "8082"
+      PORT: '8082'
       ALICORN_DATABASE_URL: postgres://alicorn:alicorn@postgres:5432/alicorn
       ALICORN_AUTH_MODE: local
       ALICORN_TENANT_ID: local
       ALICORN_LOCAL_API_TOKEN: ${ALICORN_LOCAL_API_TOKEN:-local-dev-token-change-me-0001}
-    ports: ["127.0.0.1:8082:8082"]
+    ports: ['127.0.0.1:8082:8082']
     depends_on: { postgres: { condition: service_healthy } }
 volumes: { alicorn-pg: {} }
 ```
+
 The default token is for the local stack only; the README says to export `ALICORN_LOCAL_API_TOKEN` for anything that leaves the laptop.
 
 - [ ] **Step 2: seed script** `cloud/dev/scripts/seed-alicorn-local.mjs` — pure functions exported for the test, `main()` guarded by the `import.meta.url` check like the relay scripts:
@@ -1134,6 +1326,7 @@ The default token is for the local stack only; the README says to export `ALICOR
   - Prints the three members and the env lines the desktop needs.
   - Test (`node --test`): `seedMembers` against a stubbed client records three inserts with the expected values; running it twice issues the same statements (idempotency is the DB's job, asserted in the Postgres suite of A5 via the unique index).
 - [ ] **Step 3: `desktop.env.example`**
+
 ```bash
 # Point the desktop at the local Alicorn control plane (dev builds only).
 export ALICORN_CONTROL_API_URL=http://127.0.0.1:8081
@@ -1141,10 +1334,11 @@ export ALICORN_LEDGER_API_URL=http://127.0.0.1:8082
 export ALICORN_TENANT_ID=local
 export ALICORN_LOCAL_API_TOKEN=local-dev-token-change-me-0001
 ```
+
 - [ ] **Step 4: Bring it up and prove it by hand** — `cd cloud && pnpm alicorn:up && pnpm alicorn:seed`; `curl -s http://127.0.0.1:8081/healthz` and `:8082/healthz` return ok; `curl -s -H "authorization: Bearer local-dev-token-change-me-0001" http://127.0.0.1:8081/v1/members | jq '.members | length'` → 3; without the header → 401. Record the outcome in the commit message body.
 - [ ] **Step 5: (reserved)** — no realm import in this plan.
 - [ ] **Step 6: CI** — in `.github/workflows/cloud-verify.yml` test job `env:` add `ALICORN_TEST_POSTGRES_URL: postgres://relay_test:relay_test@127.0.0.1:5432/orca_relay_test` (same service; our tests use their own schemas). Add the seed unit test to the root `pretest`/`test` chain in `cloud/package.json`. Add scripts: `"alicorn:up": "docker compose -f dev/compose/alicorn-local.yml up -d --build"`, `"alicorn:down": "docker compose -f dev/compose/alicorn-local.yml down"`, `"alicorn:seed": "node dev/scripts/seed-alicorn-local.mjs"`.
-- [ ] **Step 7: README** — add an *Alicorn control plane* section to `cloud/README.md` (what the two services are, the compose command, the seed, the env example, the test env var).
+- [ ] **Step 7: README** — add an _Alicorn control plane_ section to `cloud/README.md` (what the two services are, the compose command, the seed, the env example, the test env var).
 - [ ] **Step 8: Commit** `feat(cloud): local Alicorn stack — Postgres, control/ledger APIs, seed`.
 
 ---
@@ -1155,9 +1349,9 @@ Docs are authoritative; where this plan deviates deliberately, fix the doc rathe
 
 **Files:** Modify `docs/alicorn/ARCHITECTURE.md`
 
-- [ ] **Step 1: §6 Data model** — under `step_outcomes` add the tier-1 columns (`dispatch_id`, `backend`, `execution_strategy`, `worktree_id`, `branch`, `repo_id`, `review_backend_bypass`, `escalation_offered`, `escalation_accepted`, `usage`, `report_summary`) and change the key to `UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id)` with a one-line *why* (retries are new dispatches). Add `context_captures (id, tenant_id, run_id, task_id, dispatch_id, prompt | prompt_path, prompt_bytes, context_slice, created_at)`. Add `org_policies` and `project_required_checks` under *Product configuration* with the note "project-scoped until stages exist (v1.5); authored by an org admin, never by the member being judged." Leave the identity block as written and add above it: "*Status:* identity tables land with the Keycloak plan; tier 1 runs auth mode `local` with a constant `tenant_id`."
-- [ ] **Step 2: §5 Identity** — add a *Status* line: "Deferred. Tier 1 authenticates with a shared bearer (`ALICORN_LOCAL_API_TOKEN`) and a constant tenant (`ALICORN_TENANT_ID`); the middleware seam (`requireTenant`) is where Keycloak plugs in. When it does: tenant id = Keycloak organisation id, proven by the token's `organization` claim."
-- [ ] **Step 3: §6 rules** — add the outbox sentence: "The desktop enqueues each settled step in `ledger_outbox` inside the settlement transaction and a drainer posts it; the unique key absorbs replays." Note under *Offline writes reconcile* that tier 1 ships the outbox without a per-device sequence (server time still orders).
+- [ ] **Step 1: §6 Data model** — under `step_outcomes` add the tier-1 columns (`dispatch_id`, `backend`, `execution_strategy`, `worktree_id`, `branch`, `repo_id`, `review_backend_bypass`, `escalation_offered`, `escalation_accepted`, `usage`, `report_summary`) and change the key to `UNIQUE (tenant_id, run_id, task_id, stage_key, dispatch_id)` with a one-line _why_ (retries are new dispatches). Add `context_captures (id, tenant_id, run_id, task_id, dispatch_id, prompt | prompt_path, prompt_bytes, context_slice, created_at)`. Add `org_policies` and `project_required_checks` under _Product configuration_ with the note "project-scoped until stages exist (v1.5); authored by an org admin, never by the member being judged." Leave the identity block as written and add above it: "_Status:_ identity tables land with the Keycloak plan; tier 1 runs auth mode `local` with a constant `tenant_id`."
+- [ ] **Step 2: §5 Identity** — add a _Status_ line: "Deferred. Tier 1 authenticates with a shared bearer (`ALICORN_LOCAL_API_TOKEN`) and a constant tenant (`ALICORN_TENANT_ID`); the middleware seam (`requireTenant`) is where Keycloak plugs in. When it does: tenant id = Keycloak organisation id, proven by the token's `organization` claim."
+- [ ] **Step 3: §6 rules** — add the outbox sentence: "The desktop enqueues each settled step in `ledger_outbox` inside the settlement transaction and a drainer posts it; the unique key absorbs replays." Note under _Offline writes reconcile_ that tier 1 ships the outbox without a per-device sequence (server time still orders).
 - [ ] **Step 4: INFRASTRUCTURE.md §7** — add: "Partitioning deferred: the exactly-once unique key must stay a single-table constraint; introduce monthly partitions with a side idempotency table when rows exceed ~10M."
 - [ ] **Step 5: Commit** `docs(alicorn): align ARCHITECTURE with tier-1 ledger key, required-checks anchor and deferred identity`.
 

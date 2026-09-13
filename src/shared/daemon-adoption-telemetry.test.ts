@@ -10,7 +10,10 @@ describe('classifyDaemonSpawnerPath', () => {
       classifyDaemonSpawnerPath('/Applications/Alicorn.app/Contents/MacOS/Alicorn', alwaysExists)
     ).toBe('applications')
     expect(
-      classifyDaemonSpawnerPath('/private/Applications/Alicorn.app/Contents/MacOS/Alicorn', alwaysExists)
+      classifyDaemonSpawnerPath(
+        '/private/Applications/Alicorn.app/Contents/MacOS/Alicorn',
+        alwaysExists
+      )
     ).toBe('applications')
     expect(
       classifyDaemonSpawnerPath(
@@ -19,7 +22,10 @@ describe('classifyDaemonSpawnerPath', () => {
       )
     ).toBe('updater-cache')
     expect(
-      classifyDaemonSpawnerPath('/Users/a/Applications/Alicorn.app/Contents/MacOS/Alicorn', alwaysExists)
+      classifyDaemonSpawnerPath(
+        '/Users/a/Applications/Alicorn.app/Contents/MacOS/Alicorn',
+        alwaysExists
+      )
     ).toBe('other')
     expect(classifyDaemonSpawnerPath('/tmp/OrcaA.app/Contents/MacOS/Alicorn', alwaysExists)).toBe(
       'other'

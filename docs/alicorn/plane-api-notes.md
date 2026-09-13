@@ -58,7 +58,7 @@ and falls back to the default for anything unrecognised — an unsupported order
 error, it is ignored.
 
 The provider therefore filters locally (`plane-issue-search.ts`) and does not send filters it
-cannot rely on. `--limit` caps the *output*, not the fetch: a large project still pays the full
+cannot rely on. `--limit` caps the _output_, not the fetch: a large project still pays the full
 page walk.
 
 ## Pagination and response shapes
@@ -88,24 +88,24 @@ Worth stating plainly, because every test fixture we wrote before looking was ti
 **8HUB** (the delivery workflow the team actually runs) has **three** `started` states and **two**
 `completed` states:
 
-| Name | Group |
-|---|---|
-| Backlog | `backlog` |
-| Todo | `unstarted` |
-| In Progress | `started` |
-| In Review | `started` |
-| Testing on Dev | `started` |
+| Name           | Group       |
+| -------------- | ----------- |
+| Backlog        | `backlog`   |
+| Todo           | `unstarted` |
+| In Progress    | `started`   |
+| In Review      | `started`   |
+| Testing on Dev | `started`   |
 | Ready for Prod | `completed` |
-| Done | `completed` |
-| Cancelled | `cancelled` |
+| Done           | `completed` |
+| Cancelled      | `cancelled` |
 
-So the group alone decides almost nothing: *In progress* has to be separated from *Testing on Dev*,
-and *Done* from *Ready for Prod* — the latter matters, because "Ready for Prod" is the team's first
+So the group alone decides almost nothing: _In progress_ has to be separated from _Testing on Dev_,
+and _Done_ from _Ready for Prod_ — the latter matters, because "Ready for Prod" is the team's first
 closed state and "Done" is terminal. Confusing them would close a ticket that has not shipped. The
 within-group label match is what carries the mapping, not the group.
 
 **ALC** (this project's own board) is Plane's default set — Backlog, Todo, In Progress, Done,
-Cancelled — with **no review state at all**. The *In review* column therefore resolves to nothing
+Cancelled — with **no review state at all**. The _In review_ column therefore resolves to nothing
 and writes nothing, every time. That is the designed refusal working, not a bug, but it fires on our
 own board today, so expect to see it. Both boards are pinned as fixtures in
 `sync-plane-worktree-status.real-boards.test.ts`.
@@ -137,7 +137,7 @@ Only two, both partial updates:
 - **Comments**: `POST` to the issue's `comments/` with `comment_html`. Plane stores comment
   bodies as HTML. The CLI escapes and paragraph-wraps the body rather than half-converting
   markdown, which reads worse on a board than the source text, and strips tags on the way out
-  because the CLI has no DOM. ⚠ The comment *list* endpoint was observed returning the standard
+  because the CLI has no DOM. ⚠ The comment _list_ endpoint was observed returning the standard
   paginated envelope, but only with `results: []` — the `comment_html` field name on a populated
   comment is still taken from Plane's docs, not from a response we have seen.
 

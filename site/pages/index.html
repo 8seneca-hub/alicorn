@@ -21,24 +21,48 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
       <div class="row">
         <a class="btn btn--primary" href="/start">
           Start free
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
         </a>
         <a class="btn btn--outline" href="/autonomy">See how it decides</a>
       </div>
-      <p style="font-size:var(--text-caption);color:var(--color-text-tertiary)">
-        Works with Claude Code, Codex, Grok and OpenClaude. Your subscription, your machine,
-        your infrastructure.
+      <p style="font-size: var(--text-caption); color: var(--color-text-tertiary)">
+        Works with Claude Code, Codex, Grok and OpenClaude. Your subscription, your machine, your
+        infrastructure.
       </p>
     </div>
 
     <div class="shot reveal" data-d="2">
       <div class="shot__bar">
-        <span class="shot__dot"></span><span class="shot__dot"></span><span class="shot__dot"></span>
+        <span class="shot__dot"></span><span class="shot__dot"></span
+        ><span class="shot__dot"></span>
         <span class="shot__t">Needs you · 2 decisions</span>
       </div>
       <div class="shot__body">
         <div class="zero">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
           <span><strong>23 steps completed without you today.</strong></span>
         </div>
 
@@ -49,9 +73,11 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
             <span class="dcard__age num">18m</span>
           </div>
           <p class="dcard__q">Do partial refunds support multi-currency at launch?</p>
-          <p class="dcard__w">Gated because the decision is <strong>inherited</strong> — the ledger
-            schema and four downstream tasks depend on it.</p>
-          <div class="row" style="gap:6px;margin-top:10px">
+          <p class="dcard__w">
+            Gated because the decision is <strong>inherited</strong> — the ledger schema and four
+            downstream tasks depend on it.
+          </p>
+          <div class="row" style="gap: 6px; margin-top: 10px">
             <span class="btn btn--primary btn--sm">Yes, at launch</span>
             <span class="btn btn--outline btn--sm">Defer to v2</span>
           </div>
@@ -61,11 +87,13 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
           <div class="dcard__top">
             <span class="who">DV</span>
             <span class="meta">Build → Review</span>
-            <span class="pill" style="height:20px">auto-approved</span>
+            <span class="pill" style="height: 20px">auto-approved</span>
             <span class="dcard__age num">1h</span>
           </div>
-          <p class="dcard__w">3/3 checks passed · 14 files · isolated worktree ·
-            Developer at 96% accepted over 71 runs.</p>
+          <p class="dcard__w">
+            3/3 checks passed · 14 files · isolated worktree · Developer at 96% accepted over 71
+            runs.
+          </p>
         </div>
       </div>
     </div>
@@ -73,14 +101,22 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
 </section>
 
 <div class="stats reveal">
-  <div><b><span data-count="441" data-pre="+" data-suf="%">+441%</span></b>
-    <span>median code review time</span><small>Faros AI · 22,000 developers</small></div>
-  <div><b><span data-count="5.3" data-dec="1" data-suf="×">5.3×</span></b>
-    <span>longer pickup for agentic PRs</span><small>LinearB 2026 benchmarks</small></div>
-  <div><b><span data-count="29" data-suf="%">29%</span></b>
-    <span>developer trust in AI code, from 40%</span><small>2026 developer surveys</small></div>
-  <div><b><span data-count="85" data-suf="%">85%</span></b>
-    <span>say the bottleneck moved to review</span><small>2026 industry survey</small></div>
+  <div>
+    <b><span data-count="441" data-pre="+" data-suf="%">+441%</span></b>
+    <span>median code review time</span><small>Faros AI · 22,000 developers</small>
+  </div>
+  <div>
+    <b><span data-count="5.3" data-dec="1" data-suf="×">5.3×</span></b>
+    <span>longer pickup for agentic PRs</span><small>LinearB 2026 benchmarks</small>
+  </div>
+  <div>
+    <b><span data-count="29" data-suf="%">29%</span></b>
+    <span>developer trust in AI code, from 40%</span><small>2026 developer surveys</small>
+  </div>
+  <div>
+    <b><span data-count="85" data-suf="%">85%</span></b>
+    <span>say the bottleneck moved to review</span><small>2026 industry survey</small>
+  </div>
 </div>
 
 <section class="section">
@@ -97,11 +133,26 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
     </div>
     <div class="grid-3">
       <div class="feat reveal">
-        <h3>Real git worktrees</h3><p>One per task, isolated from your main branch. <code>cd</code> in and use plain git whenever you want — nothing is a private abstraction.</p></div>
+        <h3>Real git worktrees</h3>
+        <p>
+          One per task, isolated from your main branch. <code>cd</code> in and use plain git
+          whenever you want — nothing is a private abstraction.
+        </p>
+      </div>
       <div class="feat reveal" data-d="1">
-        <h3>Agents you already pay for</h3><p>Claude Code, Codex, Cursor CLI, OpenCode. Bring your own subscription; Alicorn never holds a model key and never resells capacity.</p></div>
+        <h3>Agents you already pay for</h3>
+        <p>
+          Claude Code, Codex, Cursor CLI, OpenCode. Bring your own subscription; Alicorn never holds
+          a model key and never resells capacity.
+        </p>
+      </div>
       <div class="feat reveal" data-d="2">
-        <h3>A terminal per task</h3><p>Agent terminal, browser tab and worktree together. No stashing, no branch-juggling, no losing your place between three parallel attempts.</p></div>
+        <h3>A terminal per task</h3>
+        <p>
+          Agent terminal, browser tab and worktree together. No stashing, no branch-juggling, no
+          losing your place between three parallel attempts.
+        </p>
+      </div>
     </div>
     <p class="reveal"><a class="link" href="/docs">See the docs &rarr;</a></p>
   </div>
@@ -112,15 +163,20 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
     <span class="label reveal">The problem</span>
     <h2 class="reveal">Your agents got fast. Your team got slower.</h2>
     <p class="reveal">
-      Developers using AI complete <strong>21% more tasks</strong> and merge <strong>98% more pull
-      requests</strong> — and then everything jams. Review time is up 441%. Agentic PRs sit 5.3×
-      longer before anyone picks them up. Trust in the output has fallen to 29%.
+      Developers using AI complete <strong>21% more tasks</strong> and merge
+      <strong>98% more pull requests</strong> — and then everything jams. Review time is up 441%.
+      Agentic PRs sit 5.3× longer before anyone picks them up. Trust in the output has fallen to
+      29%.
     </p>
     <p class="reveal" data-d="1">
-      The reason is specific, and no better model fixes it: <strong>a reviewer receives a finished
-      diff with no implementation journey and no decision trail.</strong> They reconstruct intent from
-      the ticket and the code. So they stay in the loop for everything — approving plans, approving
-      edits, approving commands — because they cannot tell what happened when they weren't watching.
+      The reason is specific, and no better model fixes it:
+      <strong
+        >a reviewer receives a finished diff with no implementation journey and no decision
+        trail.</strong
+      >
+      They reconstruct intent from the ticket and the code. So they stay in the loop for everything
+      — approving plans, approving edits, approving commands — because they cannot tell what
+      happened when they weren't watching.
     </p>
   </div>
 </section>
@@ -132,18 +188,30 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
       <h2 class="reveal">Set it up once. Then get out of the way.</h2>
     </div>
     <div class="grid-3">
-      <div class="step reveal"><div class="step__n">01</div>
+      <div class="step reveal">
+        <div class="step__n">01</div>
         <h3>Build your team</h3>
-        <p>Create members with a role, an agent backend, skills and a permission mode. A developer on
-          Claude Code, a reviewer on Codex, an analyst who never touches the repo.</p></div>
-      <div class="step reveal" data-d="1"><div class="step__n">02</div>
+        <p>
+          Create members with a role, an agent backend, skills and a permission mode. A developer on
+          Claude Code, a reviewer on Codex, an analyst who never touches the repo.
+        </p>
+      </div>
+      <div class="step reveal" data-d="1">
+        <div class="step__n">02</div>
         <h3>Draw the process</h3>
-        <p>Stages, who owns each, and what triggers the next. Dragging a card to In Review dispatches
-          your reviewer. Findings go back to the author with no human relay.</p></div>
-      <div class="step reveal" data-d="2"><div class="step__n">03</div>
+        <p>
+          Stages, who owns each, and what triggers the next. Dragging a card to In Review dispatches
+          your reviewer. Findings go back to the author with no human relay.
+        </p>
+      </div>
+      <div class="step reveal" data-d="2">
+        <div class="step__n">03</div>
         <h3>Approve what matters</h3>
-        <p>Everything verifiable and reversible runs on its own. You see a summary, and get
-          interrupted for architecture, merges and deploys — nothing else.</p></div>
+        <p>
+          Everything verifiable and reversible runs on its own. You see a summary, and get
+          interrupted for architecture, merges and deploys — nothing else.
+        </p>
+      </div>
     </div>
   </div>
 </section>
@@ -154,24 +222,63 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
       <span class="label reveal">The autonomy rule</span>
       <h2 class="reveal">Three gates in eight steps — and not the ones you'd guess.</h2>
       <p class="reveal">
-        A step keeps its human gate when it is <strong>neither machine-verifiable nor cheaply
-        reversible</strong>, or when the member has no track record on it yet. Everything else runs
-        and reports.
+        A step keeps its human gate when it is
+        <strong>neither machine-verifiable nor cheaply reversible</strong>, or when the member has
+        no track record on it yet. Everything else runs and reports.
       </p>
     </div>
     <div class="pipe">
-      <div class="pipe__r reveal"><span class="pipe__s">Idea → Research</span><span class="pipe__w">free to redo</span><span class="pill">no gate</span></div>
-      <div class="pipe__r reveal"><span class="pipe__s">Research → PRD</span><span class="pipe__w">free to redo</span><span class="pill">no gate</span></div>
-      <div class="pipe__r pipe__r--gate reveal"><span class="pipe__s">PRD → Architecture</span><span class="pipe__w">everything downstream inherits it</span><span class="pill pill--attn">you decide</span></div>
-      <div class="pipe__r reveal"><span class="pipe__s">Architecture → Tasks</span><span class="pipe__w">checkable against the approved design</span><span class="pill">no gate</span></div>
-      <div class="pipe__r reveal"><span class="pipe__s">Tasks → Build</span><span class="pipe__w">tests, types, lint · isolated worktree</span><span class="pill">no gate</span></div>
-      <div class="pipe__r reveal"><span class="pipe__s">Build → Review</span><span class="pipe__w">agent reviews agent, findings return</span><span class="pill">no gate</span></div>
-      <div class="pipe__r pipe__r--gate reveal"><span class="pipe__s">Review → Merge</span><span class="pipe__w">irreversible — never retires</span><span class="pill pill--attn">you decide</span></div>
-      <div class="pipe__r pipe__r--gate reveal"><span class="pipe__s">Merge → Deploy</span><span class="pipe__w">irreversible — never retires</span><span class="pill pill--attn">you decide</span></div>
+      <div class="pipe__r reveal">
+        <span class="pipe__s">Idea → Research</span><span class="pipe__w">free to redo</span
+        ><span class="pill">no gate</span>
+      </div>
+      <div class="pipe__r reveal">
+        <span class="pipe__s">Research → PRD</span><span class="pipe__w">free to redo</span
+        ><span class="pill">no gate</span>
+      </div>
+      <div class="pipe__r pipe__r--gate reveal">
+        <span class="pipe__s">PRD → Architecture</span
+        ><span class="pipe__w">everything downstream inherits it</span
+        ><span class="pill pill--attn">you decide</span>
+      </div>
+      <div class="pipe__r reveal">
+        <span class="pipe__s">Architecture → Tasks</span
+        ><span class="pipe__w">checkable against the approved design</span
+        ><span class="pill">no gate</span>
+      </div>
+      <div class="pipe__r reveal">
+        <span class="pipe__s">Tasks → Build</span
+        ><span class="pipe__w">tests, types, lint · isolated worktree</span
+        ><span class="pill">no gate</span>
+      </div>
+      <div class="pipe__r reveal">
+        <span class="pipe__s">Build → Review</span
+        ><span class="pipe__w">agent reviews agent, findings return</span
+        ><span class="pill">no gate</span>
+      </div>
+      <div class="pipe__r pipe__r--gate reveal">
+        <span class="pipe__s">Review → Merge</span
+        ><span class="pipe__w">irreversible — never retires</span
+        ><span class="pill pill--attn">you decide</span>
+      </div>
+      <div class="pipe__r pipe__r--gate reveal">
+        <span class="pipe__s">Merge → Deploy</span
+        ><span class="pipe__w">irreversible — never retires</span
+        ><span class="pill pill--attn">you decide</span>
+      </div>
     </div>
-    <p class="reveal" style="color:var(--color-text-tertiary);font-size:var(--text-body-sm)">
-      Teams assume the creative front of the pipeline needs the most supervision. It needs the least —
-      those outputs are free to throw away. <a href="/autonomy" style="color:var(--color-text-primary);text-decoration:underline;text-underline-offset:3px">Read the full rule →</a>
+    <p class="reveal" style="color: var(--color-text-tertiary); font-size: var(--text-body-sm)">
+      Teams assume the creative front of the pipeline needs the most supervision. It needs the least
+      — those outputs are free to throw away.
+      <a
+        href="/autonomy"
+        style="
+          color: var(--color-text-primary);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        "
+        >Read the full rule →</a
+      >
     </p>
   </div>
 </section>
@@ -181,10 +288,14 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
     <div class="stack">
       <span class="label reveal">Why it's safe</span>
       <h2 class="reveal">Every step leaves a trail you can read.</h2>
-      <p class="reveal">This is what a reviewer sees when no human was asked. Every line is a
-        recorded fact, not a summary the agent wrote about itself.</p>
+      <p class="reveal">
+        This is what a reviewer sees when no human was asked. Every line is a recorded fact, not a
+        summary the agent wrote about itself.
+      </p>
     </div>
-    <pre class="term reveal"><code>Build → Review                                    <span class="k">auto-approved</span>
+    <pre
+      class="term reveal"
+    ><code>Build → Review                                    <span class="k">auto-approved</span>
 
   <span class="c">Why no human was asked</span>
     verified        3/3 required checks passed
@@ -209,27 +320,142 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
       <h2 class="reveal">Everything that makes autonomy defensible.</h2>
     </div>
     <div class="grid-3">
-      <div class="feat reveal"><div class="feat__i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg></div>
-        <h3>The decision trail</h3><p>Every step records what ran, what verified it, how much it touched, and why no human was asked. Exportable for audit.</p></div>
-      <div class="feat reveal" data-d="1"><div class="feat__i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></div>
-        <h3>Any agent, one process</h3><p>Claude Code, Codex, Grok and OpenClaude side by side. A Grok analyst can hand work to a Claude developer.</p></div>
-      <div class="feat reveal" data-d="2"><div class="feat__i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></div>
-        <h3>Isolated by default</h3><p>Every task gets its own git worktree. Nothing touches your main branch until you approve the merge.</p></div>
-      <div class="feat reveal"><div class="feat__i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="8" x="3" y="3" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect width="8" height="8" x="13" y="13" rx="2"/></svg></div>
-        <h3>Your board, automated</h3><p>Two-way sync with Plane, Linear, Jira, GitHub and GitLab. Column transitions dispatch members.</p></div>
-      <div class="feat reveal" data-d="1"><div class="feat__i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg></div>
-        <h3>Blast-radius budgets</h3><p>Files, spend and protected paths are capped per run. Exceed the budget and it escalates to a human.</p></div>
+      <div class="feat reveal">
+        <div class="feat__i">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+            />
+          </svg>
+        </div>
+        <h3>The decision trail</h3>
+        <p>
+          Every step records what ran, what verified it, how much it touched, and why no human was
+          asked. Exportable for audit.
+        </p>
+      </div>
+      <div class="feat reveal" data-d="1">
+        <div class="feat__i">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 8V4H8" />
+            <rect width="16" height="12" x="4" y="8" rx="2" />
+            <path d="M2 14h2" />
+            <path d="M20 14h2" />
+            <path d="M15 13v2" />
+            <path d="M9 13v2" />
+          </svg>
+        </div>
+        <h3>Any agent, one process</h3>
+        <p>
+          Claude Code, Codex, Grok and OpenClaude side by side. A Grok analyst can hand work to a
+          Claude developer.
+        </p>
+      </div>
+      <div class="feat reveal" data-d="2">
+        <div class="feat__i">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="6" x2="6" y1="3" y2="15" />
+            <circle cx="18" cy="6" r="3" />
+            <circle cx="6" cy="18" r="3" />
+            <path d="M18 9a9 9 0 0 1-9 9" />
+          </svg>
+        </div>
+        <h3>Isolated by default</h3>
+        <p>
+          Every task gets its own git worktree. Nothing touches your main branch until you approve
+          the merge.
+        </p>
+      </div>
+      <div class="feat reveal">
+        <div class="feat__i">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="8" height="8" x="3" y="3" rx="2" />
+            <path d="M7 11v4a2 2 0 0 0 2 2h4" />
+            <rect width="8" height="8" x="13" y="13" rx="2" />
+          </svg>
+        </div>
+        <h3>Your board, automated</h3>
+        <p>
+          Two-way sync with Plane, Linear, Jira, GitHub and GitLab. Column transitions dispatch
+          members.
+        </p>
+      </div>
+      <div class="feat reveal" data-d="1">
+        <div class="feat__i">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+            />
+          </svg>
+        </div>
+        <h3>Blast-radius budgets</h3>
+        <p>
+          Files, spend and protected paths are capped per run. Exceed the budget and it escalates to
+          a human.
+        </p>
+      </div>
       <div class="feat reveal" data-d="4">
-        <h3>A signed decision trail</h3><p>Exports are ES256-signed and dated. An auditor verifies one against published keys instead of trusting a screenshot.</p></div>
+        <h3>A signed decision trail</h3>
+        <p>
+          Exports are ES256-signed and dated. An auditor verifies one against published keys instead
+          of trusting a screenshot.
+        </p>
+      </div>
       <div class="feat reveal" data-d="5">
-        <h3>Gates that measure themselves</h3><p>Every gate shows what the policy would have decided and records whether you agreed. Autonomy is earned on that evidence, never assumed.</p></div>
+        <h3>Gates that measure themselves</h3>
+        <p>
+          Every gate shows what the policy would have decided and records whether you agreed.
+          Autonomy is earned on that evidence, never assumed.
+        </p>
+      </div>
       <div class="feat reveal" data-d="6">
-        <h3>QA that never reads the code</h3><p>A QA member cannot open the implementation with its file tools or name it in a shell command &mdash; enforced at the tool boundary, not asked for in a prompt.</p></div>
-          </div>
+        <h3>QA that never reads the code</h3>
+        <p>
+          A QA member cannot open the implementation with its file tools or name it in a shell
+          command &mdash; enforced at the tool boundary, not asked for in a prompt.
+        </p>
+      </div>
+    </div>
     <div class="stack reveal">
       <span class="label">Runs the agents you already have</span>
       <div class="agents">
-        <span>claude-code</span><span>codex</span><span>grok</span><span>openclaude</span><span>omp</span>
+        <span>claude-code</span><span>codex</span><span>grok</span><span>openclaude</span
+        ><span>omp</span>
       </div>
     </div>
   </div>
@@ -247,52 +473,101 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
     </div>
     <div class="grid-3">
       <div class="feat reveal">
-        <h3>Desktop by default</h3><p>macOS, Windows and Linux. The agents run on your machine, under your accounts.</p></div>
+        <h3>Desktop by default</h3>
+        <p>macOS, Windows and Linux. The agents run on your machine, under your accounts.</p>
+      </div>
       <div class="feat reveal" data-d="1">
-        <h3>SSH and remote servers</h3><p>Point a workspace at a remote host, or run a self-hosted server and keep the desktop as the client.</p></div>
+        <h3>SSH and remote servers</h3>
+        <p>
+          Point a workspace at a remote host, or run a self-hosted server and keep the desktop as
+          the client.
+        </p>
+      </div>
       <div class="feat reveal" data-d="2">
-        <h3>Cloud VMs, per workspace</h3><p>On-demand environments for work that should not touch your laptop.</p></div>
+        <h3>Cloud VMs, per workspace</h3>
+        <p>On-demand environments for work that should not touch your laptop.</p>
+      </div>
       <div class="feat reveal" data-d="3">
-        <h3>Watch it from your phone</h3><p>A run you started at your desk, followed from the train &mdash; approvals included.</p></div>
+        <h3>Watch it from your phone</h3>
+        <p>A run you started at your desk, followed from the train &mdash; approvals included.</p>
+      </div>
       <div class="feat reveal" data-d="4">
-        <h3>Self-hosted control plane</h3><p>Your infrastructure, your identity provider, your data. Nothing about a run leaves machines you own.</p></div>
+        <h3>Self-hosted control plane</h3>
+        <p>
+          Your infrastructure, your identity provider, your data. Nothing about a run leaves
+          machines you own.
+        </p>
+      </div>
       <div class="feat reveal" data-d="5">
-        <h3>Your board, automated</h3><p>Two-way sync with Plane, Linear, Jira, GitHub and GitLab. Column transitions dispatch members.</p></div>
+        <h3>Your board, automated</h3>
+        <p>
+          Two-way sync with Plane, Linear, Jira, GitHub and GitLab. Column transitions dispatch
+          members.
+        </p>
+      </div>
     </div>
   </div>
 </section>
-
 
 <section class="section">
   <div class="wrap stack-8">
     <div class="stack">
       <span class="label reveal">Pricing</span>
       <h2 class="reveal">You bring the agents. We hold the process.</h2>
-      <p class="reveal">Everyone uses their own subscription — so there is no inference markup and no
-        surprise token bill from us.</p>
+      <p class="reveal">
+        Everyone uses their own subscription — so there is no inference markup and no surprise token
+        bill from us.
+      </p>
     </div>
     <div class="grid-3">
       <div class="price reveal">
-        <span class="label">Team</span><div class="price__p">$39</div>
+        <span class="label">Team</span>
+        <div class="price__p">$39</div>
         <span class="price__u">per builder seat / month</span>
-        <ul><li>Members and workflows</li><li>Board automation</li><li>Tracker two-way sync</li><li>Decision trail</li></ul>
+        <ul>
+          <li>Members and workflows</li>
+          <li>Board automation</li>
+          <li>Tracker two-way sync</li>
+          <li>Decision trail</li>
+        </ul>
         <a class="btn btn--outline" href="/start">Start free</a>
       </div>
       <div class="price price--hero reveal" data-d="1">
-        <span class="label">Business</span><div class="price__p">$69</div>
+        <span class="label">Business</span>
+        <div class="price__p">$69</div>
         <span class="price__u">per builder seat / month</span>
-        <ul><li>Everything in Team</li><li>SSO and audit export</li><li>Org skill catalog</li><li>Autonomy policy controls</li><li><strong>Collaborator seats $18</strong></li></ul>
+        <ul>
+          <li>Everything in Team</li>
+          <li>SSO and audit export</li>
+          <li>Org skill catalog</li>
+          <li>Autonomy policy controls</li>
+          <li><strong>Collaborator seats $18</strong></li>
+        </ul>
         <a class="btn btn--primary" href="/start">Start free</a>
       </div>
       <div class="price reveal" data-d="2">
-        <span class="label">Enterprise</span><div class="price__p">$60k+</div>
+        <span class="label">Enterprise</span>
+        <div class="price__p">$60k+</div>
         <span class="price__u">per year, self-hosted</span>
-        <ul><li>Your infrastructure</li><li>Your identity provider</li><li>Compliance evidence</li><li>Support SLA</li></ul>
+        <ul>
+          <li>Your infrastructure</li>
+          <li>Your identity provider</li>
+          <li>Compliance evidence</li>
+          <li>Support SLA</li>
+        </ul>
         <a class="btn btn--outline" href="/start#contact">Talk to us</a>
       </div>
     </div>
-    <p class="reveal" style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">
-      <a href="/pricing" style="color:var(--color-text-primary);text-decoration:underline;text-underline-offset:3px">Full pricing details →</a>
+    <p class="reveal" style="font-size: var(--text-body-sm); color: var(--color-text-tertiary)">
+      <a
+        href="/pricing"
+        style="
+          color: var(--color-text-primary);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        "
+        >Full pricing details →</a
+      >
     </p>
   </div>
 </section>
@@ -300,8 +575,10 @@ desc: Set the team and the process once. Agents run it, hand work to each other,
 <section class="cta">
   <div class="wrap stack-6">
     <h2 class="reveal">How many times did you get pulled in today?</h2>
-    <p class="lede reveal">Most teams have never measured it. Alicorn counts it from day one — even
-      before it removes a single gate.</p>
+    <p class="lede reveal">
+      Most teams have never measured it. Alicorn counts it from day one — even before it removes a
+      single gate.
+    </p>
     <div class="row reveal">
       <a class="btn btn--primary" href="/start">Start free</a>
       <a class="btn btn--outline" href="/autonomy">Read the autonomy rule</a>

@@ -88,7 +88,7 @@ export function makeHostSnapshot(
       {
         type: 'terminal',
         id: hostSurfaceId,
-        title: translate("auto.runtime.host.session.mirror.frame.fixtures.17e758e12c", "Codex"),
+        title: translate('auto.runtime.host.session.mirror.frame.fixtures.17e758e12c', 'Codex'),
         parentTabId,
         leafId: LEAF_ID,
         isActive: true,
@@ -132,5 +132,10 @@ export function makePtylessHostSnapshot(
 }
 
 export function mirrorTabRow(tabId: string, worktreeId: string): unknown {
-  return { id: tabId, title: translate("auto.runtime.host.session.mirror.frame.fixtures.17e758e12c", "Codex"), ptyId: null, worktreeId }
+  return {
+    id: tabId,
+    title: translate('auto.runtime.host.session.mirror.frame.fixtures.17e758e12c', 'Codex'),
+    ptyId: null,
+    worktreeId
+  }
 }

@@ -11,30 +11,36 @@ have to throw away.
 
 ```markdown
 ## Objective
+
 <One paragraph. What "done" looks like, concretely and verifiably.>
 
 ## Scope
-Repo/paths you own:   <exact paths>
+
+Repo/paths you own: <exact paths>
 Commands you may run: <build, test, lint — be specific>
-Workspace:            <worktree | folder>
+Workspace: <worktree | folder>
 
 ## Boundaries — do NOT do these
+
 - Do not touch <path>. Another subagent owns it.
 - Do not refactor anything you were not asked to change.
 - Do not commit, push, or open a PR.
 - <anything else that is someone else's job>
 
 ## Contract you build against
+
 <Paste the interface contract verbatim — the endpoint shape, the type, the schema.
 Never paste another subagent's transcript or reasoning. The contract is the only
 thing that crosses between subagents.>
 
 ## Verification
+
 Before reporting done, run: <exact command>
 It must: <exact expected result>
 If it cannot run, say so in `status: blocked` — do not report success.
 
 ## Report back
+
 Return ONLY the report schema below. Nothing else — no transcript, no narration,
 no file contents. Hard ceiling ~1500 tokens.
 If you need to say more, write it to a file and return the path in `artifacts`.
@@ -104,13 +110,15 @@ context is a cache of it.
 # run_alc42 — partial refunds
 
 **Status:** running
-**Started:** 2026-09-07T00:00:00.000Z   **Budget:** $50.00
+**Started:** 2026-09-07T00:00:00.000Z **Budget:** $50.00
 **Spent so far:** $12.34
 
 ## Objective
+
 One paragraph, from the user.
 
 ## Team
+
 > Composed by Orca from member roles and their accept rate at each seat's stage, then **approved by
 > a human at a gate** — never applied silently. Orca writes this section; the gate row holds the
 > verdict, so nothing here says whether it was accepted.
@@ -118,11 +126,11 @@ One paragraph, from the user.
 **Gate:** gate_alc42
 **Goal:** Ship partial refunds end to end.
 
-| Seat | Stage | Member | Id | Backend | Accepted | Runs | Why |
-|---|---|---|---|---|---|---|---|
-| developer | build | Ada | mem_dev1 | claude | 92% | 24 | Best of 3 developer candidates: 92% accepted over 24 run(s) at "build". |
-| reviewer | review | Bo | mem_rev1 | codex | 88% | 11 | Best of 2 reviewer candidates: 88% accepted over 11 run(s) at "review". Not on the developer's backend (claude). |
-| qa | verify | — | — | — | — | — | No qa member exists in this organisation — add one, or run this stage yourself. |
+| Seat      | Stage  | Member | Id       | Backend | Accepted | Runs | Why                                                                                                              |
+| --------- | ------ | ------ | -------- | ------- | -------- | ---- | ---------------------------------------------------------------------------------------------------------------- |
+| developer | build  | Ada    | mem_dev1 | claude  | 92%      | 24   | Best of 3 developer candidates: 92% accepted over 24 run(s) at "build".                                          |
+| reviewer  | review | Bo     | mem_rev1 | codex   | 88%      | 11   | Best of 2 reviewer candidates: 88% accepted over 11 run(s) at "review". Not on the developer's backend (claude). |
+| qa        | verify | —      | —        | —       | —        | —    | No qa member exists in this organisation — add one, or run this stage yourself.                                  |
 
 - No qa member exists in this organisation — add one, or run this stage yourself.
 
@@ -131,25 +139,28 @@ seat is left empty rather than filled with a member that could not be launched i
 on the developer's backend is refused at launch, so proposing one would only waste the dispatch.
 
 ## Decisions
-| # | Decision | Chosen | Why | Reversible? |
-|---|---|---|---|---|
-| 1 | Multi-currency at launch | yes | asked user, they confirmed | no — changes schema |
+
+| #   | Decision                 | Chosen | Why                        | Reversible?         |
+| --- | ------------------------ | ------ | -------------------------- | ------------------- |
+| 1   | Multi-currency at launch | yes    | asked user, they confirmed | no — changes schema |
 
 ## Assumptions made without asking
+
 > These went into the run report. Any of them may be overridden — note which nodes
 > depend on each, so a reversal re-dispatches only those.
 
-| # | Assumption | Blast radius | Nodes depending on it |
-|---|---|---|---|
-| 1 | Idempotency keys scoped per merchant | contained | 3, 4 |
+| #   | Assumption                           | Blast radius | Nodes depending on it |
+| --- | ------------------------------------ | ------------ | --------------------- |
+| 1   | Idempotency keys scoped per merchant | contained    | 3, 4                  |
 
 ## Plan
-| Node | Title | Owner | Depends on | Status | Model | Dispatch | Files |
-|---|---|---|---|---|---|---|---|
-| 1 | orient — map the area | scout | — | done | haiku | ctx_1 | — |
-| 2 | backend endpoint | builder | 1 | dispatched | opus | ctx_2 | src/api/refunds.ts |
-| 3 | frontend, against contract | builder | 1 | dispatched | opus | ctx_3 | src/ui/refund-form.tsx |
-| 4 | review | reviewer — not the author | 2, 3 | pending | codex/sonnet | — | — |
+
+| Node | Title                      | Owner                     | Depends on | Status     | Model        | Dispatch | Files                  |
+| ---- | -------------------------- | ------------------------- | ---------- | ---------- | ------------ | -------- | ---------------------- |
+| 1    | orient — map the area      | scout                     | —          | done       | haiku        | ctx_1    | —                      |
+| 2    | backend endpoint           | builder                   | 1          | dispatched | opus         | ctx_2    | src/api/refunds.ts     |
+| 3    | frontend, against contract | builder                   | 1          | dispatched | opus         | ctx_3    | src/ui/refund-form.tsx |
+| 4    | review                     | reviewer — not the author | 2, 3       | pending    | codex/sonnet | —        | —                      |
 
 Run status is one of `planning`, `running`, `paused`, `blocked`, `done`, `failed`; node status is
 one of `pending`, `dispatched`, `done`, `failed`, `blocked`. Budget and spend are money or `—`. Empty cells are `—`, and
@@ -160,48 +171,54 @@ this file back, so a hand-written journal has to round-trip.
 hidden-dependency check reads, so a node with no Files declared is a node the check cannot protect.
 
 ## Waves
+
 > Derived from Plan, not authored — Orca recomputes this from `Depends on` and `Files` on every
 > write. Two nodes declaring the same file are not independent, whatever the edges say, so they are
 > split into successive waves and the overlap is recorded here.
 
-| Wave | Nodes | Reduced | Overlapping files |
-|---|---|---|---|
-| 1 | 1 | .foreman/run_alc42/wave-1.md | — |
-| 2 | 2, 3 | — | — |
-| 3 | 4 | — | — |
+| Wave | Nodes | Reduced                      | Overlapping files |
+| ---- | ----- | ---------------------------- | ----------------- |
+| 1    | 1     | .foreman/run_alc42/wave-1.md | —                 |
+| 2    | 2, 3  | —                            | —                 |
+| 3    | 4     | —                            | —                 |
 
 `Reduced` is the wave's table: when every node in the wave has settled, a code step folds their
 bounded reports into one row per node at `.foreman/<run-id>/wave-<n>.md`. **Read that, not the
 reports** — one bounded report is affordable, N of them in a lead's window is context collapse.
 
 ## Contract registry
+
 Orca fills this at run start from the repo's OpenAPI documents and shared contract types, and adds
 each report's `interface_delta` as a node settles. This is what you paste into a brief — one row,
 about 200 tokens, never a transcript. `Provenance` is the column that decides how far to trust a
 row: `extracted` was read out of a schema, `⚠ agent-declared` is a subagent's word for it. An
 extracted row is never overwritten by a declared one.
 
-A repo under *Schema generation required* is a repo whose interfaces nobody could extract — not a
+A repo under _Schema generation required_ is a repo whose interfaces nobody could extract — not a
 repo without interfaces. Until what its last column names exists, every entry for it can only be
 agent-declared. Prose you write above the tables is kept; Orca only rewrites the tables.
 
 ### Interfaces
-| Repo | Kind | Name | Shape | Provenance | Source | Breaking? |
-|---|---|---|---|---|---|---|
-| — | endpoint | POST /refunds/partial | body PartialRefundRequest; → 201 Refund | extracted | openapi.yaml#/paths/~1refunds~1partial/post | no |
-| — | type | RefundState | type RefundState = 'pending' \| 'settled' | ⚠ agent-declared | node 3 | no |
+
+| Repo | Kind     | Name                  | Shape                                     | Provenance       | Source                                        | Breaking? |
+| ---- | -------- | --------------------- | ----------------------------------------- | ---------------- | --------------------------------------------- | --------- |
+| —    | endpoint | POST /refunds/partial | body PartialRefundRequest; → 201 Refund   | extracted        | openapi.yaml#/paths/~~1refunds~~1partial/post | no        |
+| —    | type     | RefundState           | type RefundState = 'pending' \| 'settled' | ⚠ agent-declared | node 3                                        | no        |
 
 ### Schema generation required
-| Repo | Missing | Must be generated |
-|---|---|---|
+
+| Repo    | Missing                                                | Must be generated                                                            |
+| ------- | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
 | billing | no OpenAPI document and no shared contract types found | an OpenAPI document for the HTTP surface, or exported types under contracts/ |
 
 ## Log
+
 - `<time>` node 2 dispatched — brief: implement POST /refunds/partial
 - `<time>` node 2 done — 14 files, tests green, 1 interface delta
 - `<time>` node 4 findings ×2 → back to node 2
 
 ## Not done, and why
+
 - <things deliberately left out of scope>
 ```
 

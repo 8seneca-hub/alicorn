@@ -29,15 +29,15 @@ product's durable asset.
 
 ## 3. Components
 
-| Component | Responsibility | Runtime | State |
-|---|---|---|---|
-| **Alicorn Desktop** | Worktrees, terminals, agent processes, member sessions, UI | Electron | Local SQLite + files |
-| **Alicorn CLI** (`alicorn`) | Same runtime headless; used by agents and CI | Node | — |
-| **Keycloak** | OIDC provider, organisations, SSO/SAML, LDAP/AD, SCIM | JVM (Quarkus) | Postgres |
-| **Control API** | Members, workflows, autonomy policy, org→policy mapping, relay tokens | Node | Postgres |
-| **Ledger API** | Step outcomes, verifications, gate decisions, track record | Node | Postgres |
-| **Relay** | Device pairing, stream fan-out to mobile and remote clients | Node | Redis |
-| **Object store** | Reports, artifacts, exported trails | S3-compatible | — |
+| Component                   | Responsibility                                                        | Runtime       | State                |
+| --------------------------- | --------------------------------------------------------------------- | ------------- | -------------------- |
+| **Alicorn Desktop**         | Worktrees, terminals, agent processes, member sessions, UI            | Electron      | Local SQLite + files |
+| **Alicorn CLI** (`alicorn`) | Same runtime headless; used by agents and CI                          | Node          | —                    |
+| **Keycloak**                | OIDC provider, organisations, SSO/SAML, LDAP/AD, SCIM                 | JVM (Quarkus) | Postgres             |
+| **Control API**             | Members, workflows, autonomy policy, org→policy mapping, relay tokens | Node          | Postgres             |
+| **Ledger API**              | Step outcomes, verifications, gate decisions, track record            | Node          | Postgres             |
+| **Relay**                   | Device pairing, stream fan-out to mobile and remote clients           | Node          | Redis                |
+| **Object store**            | Reports, artifacts, exported trails                                   | S3-compatible | —                    |
 
 Control API and Ledger API are separate services because they have different write profiles,
 different retention rules and different blast radius. They share a Postgres instance until measurement
@@ -55,11 +55,11 @@ orchestration SQLite (`alicorn_board_transitions`, `alicorn_board_automation_sta
 
 This is the relationship to keep straight, because the two features look independent and are not:
 
-| Workflow (WF1, v1.5) | Board rule (BA1, v1.0) |
-|---|---|
-| stage with `key`, `member_id`, `required_checks` | rule with `toStatusId`, `memberId`, `promptTemplate` |
-| transition fires the next stage | a column change fires the rule |
-| `stage.key` → `step_outcomes.stage_key` | `to_status_id` → *(see below)* |
+| Workflow (WF1, v1.5)                                     | Board rule (BA1, v1.0)                                         |
+| -------------------------------------------------------- | -------------------------------------------------------------- |
+| stage with `key`, `member_id`, `required_checks`         | rule with `toStatusId`, `memberId`, `promptTemplate`           |
+| transition fires the next stage                          | a column change fires the rule                                 |
+| `stage.key` → `step_outcomes.stage_key`                  | `to_status_id` → _(see below)_                                 |
 | `reversibility` / `inherited_cost` authored on the stage | not expressible — every board dispatch is `single` and ungated |
 
 A board rule is what a one-stage workflow degenerates into when there is no graph to walk: one
@@ -77,7 +77,7 @@ dispatch with no board transition still falls back to the reported phase, then t
 
 This is what makes per-stage track record mean anything: `member_stage_stats` is keyed on
 `(member_id, stage_key)` and the autonomy policy reads it, so a reviewer dispatched by an
-*In Review* column must not accumulate its record mixed in with implementation work.
+_In Review_ column must not accumulate its record mixed in with implementation work.
 
 **As built (SK1, 2026-09-08) — keys come from the template, and the column maps onto it.**
 `resolveStageKey` (`src/shared/alicorn/stage-keys.ts`) is the single resolver, used by the
@@ -135,9 +135,9 @@ does not scale past a few hundred.
 Core tables. Every tenant-scoped one carries `tenant_id` with row-level security forced on it.
 Identity tables are the exception and are global — a person belongs to several organisations, so a
 user row scoped to a tenant would have to be duplicated per organisation. The tenancy of a person
-is `org_roles`, which *is* tenant-scoped and RLS-forced like everything else.
+is `org_roles`, which _is_ tenant-scoped and RLS-forced like everything else.
 
-*Status:* identity tables built (I3); tier 1 runs auth mode `local`, which has no subject to map and
+_Status:_ identity tables built (I3); tier 1 runs auth mode `local`, which has no subject to map and
 a constant `tenant_id`.
 
 ```sql
@@ -236,16 +236,16 @@ member_stage_stats(tenant_id, member_id, stage_key, project_id,
   until stages bind to dispatch (WF3).
 - **Ordinals are contiguous from zero, enforced on the wire.** There is deliberately no unique index on
   `(workflow_id, ordinal)` — it would fail mid-statement on a reorder.
-- **Stage checks win over project checks; an empty stage list still wins.** Only a *missing* stage falls
+- **Stage checks win over project checks; an empty stage list still wins.** Only a _missing_ stage falls
   back to `project_required_checks`, so a stage never silently inherits a rule it did not author.
-- **Templates ship in code, not in a table.** A template names a *role*; instantiation binds the
+- **Templates ship in code, not in a table.** A template names a _role_; instantiation binds the
   tenant's member holding it, and a role with no member leaves the stage unassigned. Keys therefore
   come from templates rather than free-text `phase` — the set SK1 consumes is
   `FEATURE_DELIVERY_STAGE_KEYS`.
 - **Deleting a member unassigns its stages** (`ON DELETE SET NULL`). An unassigned stage is a visible,
   fixable state; a vanished workflow is not.
 - **A code stage runs on the machine it is authored for, or not at all.** `code_command` is executed
-  through `runProcess` on the desktop; `worktree_path` is a path on the *execution* host, so an
+  through `runProcess` on the desktop; `worktree_path` is a path on the _execution_ host, so an
   SSH-hosted workspace refuses rather than running the command locally, where it would either fail or
   find a same-named local directory and report success for work that never happened.
 - **A code stage takes an edge or gates; it never simply stops.** Exit 0 takes `on_success`, any other
@@ -316,7 +316,7 @@ guesses which step is irreversible guesses wrong once, and that once is a produc
 
 **As built (GP1, 2026-09-08).** `evaluateGate` is a pure function
 (`src/main/alicorn/gates/evaluate-gate.ts`) in exactly this order, with two clarifications the
-pseudo-code left open. An unexpired `never_gate` returns `auto` *after* the two hard stops and
+pseudo-code left open. An unexpired `never_gate` returns `auto` _after_ the two hard stops and
 before the evidence checks, so a standing exception buys a project out of its track record but
 never out of an irreversible step; a lapsed or unparseable expiry falls back to `evidence`. Every
 `null` in the evidence is a gate, not a pass — unknown required checks and unknown protected-path
@@ -329,12 +329,12 @@ and `contained`/`low` for everything else. They become `stages.*` once a workflo
 
 ### Levels
 
-| Level | Entry | Behaviour |
-|---|---|---|
-| 0 Observed | default | Always gates. Records the decision it *would* have made. |
-| 1 Advisory | runs ≥ 10 | Gates, pre-fills a recommendation, measures agreement. |
-| 2 Conditional | runs ≥ 20, accept ≥ 0.90 | Auto when verified and inside budget. |
-| 3 Autonomous | runs ≥ 50, accept ≥ 0.95, no amendment in 20 | Notifies instead of blocking. |
+| Level         | Entry                                        | Behaviour                                                |
+| ------------- | -------------------------------------------- | -------------------------------------------------------- |
+| 0 Observed    | default                                      | Always gates. Records the decision it _would_ have made. |
+| 1 Advisory    | runs ≥ 10                                    | Gates, pre-fills a recommendation, measures agreement.   |
+| 2 Conditional | runs ≥ 20, accept ≥ 0.90                     | Auto when verified and inside budget.                    |
+| 3 Autonomous  | runs ≥ 50, accept ≥ 0.95, no amendment in 20 | Notifies instead of blocking.                            |
 
 **Demotion:** one `rejected`, or two `amended` within the last ten runs, drops the stage one level
 immediately and requires the full entry condition again. Windows are the last 50 runs, not lifetime —
@@ -350,7 +350,7 @@ whose aggregate is lifetime. `summarizeTrackRecord` and `computeAutonomyLevel`
 (`cloud/packages/control-plane-contract/src/track-record.ts`) hold the arithmetic and the level
 table. The level is **derived and stored nowhere** — `member_stage_stats.level` is still unwritten
 — because nothing consumes it to retire a gate yet; that is SK1's, and `evaluateGate` never sees
-it. It is named *track record*, not *evidence*: `GateEvidence` is the wider shape (required checks,
+it. It is named _track record_, not _evidence_: `GateEvidence` is the wider shape (required checks,
 blast radius, track record) assembled on the client, and one word for two shapes is how the two
 drift apart.
 
@@ -362,7 +362,7 @@ this stage earned the right to skip the interruption?". Its order is the contrac
 level 3 — and every non-retirement path returns a named `RetirementRefusal`, stored on the gate row
 (`decision_gates.retirement_refusal`, v41) so a gate that came back can say why.
 
-Three things keep it inert until evidence genuinely exists, and each has a test that a *spotless*
+Three things keep it inert until evidence genuinely exists, and each has a test that a _spotless_
 record is refused rather than one that a bad record is:
 
 - **Hard stops are re-checked here**, not inherited from `evaluateGate`'s ordering. A perfect
@@ -396,13 +396,13 @@ commit-author identity — see `src/main/alicorn/corrections/`.
 
 Additive over Orca's existing orchestration RPC. No protocol version bump.
 
-| Method | Purpose |
-|---|---|
-| `orchestration.gateCreate` | Existing. Gains optional `evaluate: boolean` and `stageKey`. When set, the server runs the policy and records the decision it would have made on the gate row (`recommended_decision`, `recommended_reason`). |
-| `orchestration.gateResolve` | Existing. |
-| `orchestration.verifyRecord` | Record named check results for a task. |
-| `orchestration.policySet` / `policyGet` | Read and write autonomy policy; `policySet` records `created_by` and a mandatory expiry for `never_gate`. |
-| `orchestration.evidence` | Track record for `(project, stage, member)` plus what the policy would decide now. |
+| Method                                  | Purpose                                                                                                                                                                                                       |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `orchestration.gateCreate`              | Existing. Gains optional `evaluate: boolean` and `stageKey`. When set, the server runs the policy and records the decision it would have made on the gate row (`recommended_decision`, `recommended_reason`). |
+| `orchestration.gateResolve`             | Existing.                                                                                                                                                                                                     |
+| `orchestration.verifyRecord`            | Record named check results for a task.                                                                                                                                                                        |
+| `orchestration.policySet` / `policyGet` | Read and write autonomy policy; `policySet` records `created_by` and a mandatory expiry for `never_gate`.                                                                                                     |
+| `orchestration.evidence`                | Track record for `(project, stage, member)` plus what the policy would decide now.                                                                                                                            |
 
 Evaluation lives inside `gateCreate` rather than a separate "should I gate?" call, so a caller cannot
 ask the policy and then ignore the answer. The ledger stays authoritative.
@@ -412,12 +412,12 @@ gate is always pending: **nothing auto-resolves**. Level 0 records the decision 
 which is how a level is ever earned — autonomy is unlocked by evidence, and evidence only
 accumulates by running gated. Retiring a gate on an `auto` recommendation is SK1's, once the Ledger
 API serves the windowed track record (GP2 — shipped; `evaluateGateForTask` now reads it, so a
-stage with a real record can reach `auto` as a *recommendation*, and still gates).
+stage with a real record can reach `auto` as a _recommendation_, and still gates).
 
 **As built (GP2, 2026-09-08).** `policyGet`, `policySet`, `policyList` and `evidence` are the four
 methods, all reached through `MemberDirectory` so a policy read is cached for 60 s and a write
 evicts what it invalidates. `policySet` is the only mutation of the four and is declared as one in
-`orchestration-rpc-contract.ts`; it is a *replace*, so an omitted budget clears it. A `never_gate`
+`orchestration-rpc-contract.ts`; it is a _replace_, so an omitted budget clears it. A `never_gate`
 with no expiry — or one already lapsed — is rejected before the write leaves the process, which is
 the third place that rule is enforced after zod and the DB CHECK. `policyList` is the §9 audit view:
 it lists lapsed exceptions as well as standing ones, because when an exception ended is part of the

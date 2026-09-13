@@ -1,994 +1,2510 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<title>Alicorn — interactive flow</title>
-<link rel="stylesheet" href="shared.css">
-</head>
-<body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Alicorn — interactive flow</title>
+    <link rel="stylesheet" href="shared.css" />
+  </head>
+  <body>
+    <!-- Real lucide geometry (24x24, stroke 2, round caps). No emoji standing in for icons. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <g id="i-users">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </g>
+        <g id="i-grid">
+          <rect width="7" height="7" x="3" y="3" rx="1" />
+          <rect width="7" height="7" x="14" y="3" rx="1" />
+          <rect width="7" height="7" x="14" y="14" rx="1" />
+          <rect width="7" height="7" x="3" y="14" rx="1" />
+        </g>
+        <g id="i-workflow">
+          <rect width="8" height="8" x="3" y="3" rx="2" />
+          <path d="M7 11v4a2 2 0 0 0 2 2h4" />
+          <rect width="8" height="8" x="13" y="13" rx="2" />
+        </g>
+        <g id="i-bot">
+          <path d="M12 8V4H8" />
+          <rect width="16" height="12" x="4" y="8" rx="2" />
+          <path d="M2 14h2" />
+          <path d="M20 14h2" />
+          <path d="M15 13v2" />
+          <path d="M9 13v2" />
+        </g>
+        <g id="i-plus">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </g>
+        <g id="i-mic">
+          <path d="M12 19v3" />
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+          <rect x="9" y="2" width="6" height="13" rx="3" />
+        </g>
+        <g id="i-branch">
+          <line x1="6" x2="6" y1="3" y2="15" />
+          <circle cx="18" cy="6" r="3" />
+          <circle cx="6" cy="18" r="3" />
+          <path d="M18 9a9 9 0 0 1-9 9" />
+        </g>
+        <g id="i-folder">
+          <path
+            d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+          />
+        </g>
+        <g id="i-check"><path d="M20 6 9 17l-5-5" /></g>
+        <g id="i-chev"><path d="m6 9 6 6 6-6" /></g>
+        <g id="i-search">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </g>
+        <g id="i-shield">
+          <path
+            d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"
+          />
+        </g>
+        <g id="i-x">
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </g>
+        <g id="i-play"><polygon points="6 3 20 12 6 21 6 3" /></g>
+        <g id="i-sliders">
+          <path d="M20 7h-9" />
+          <path d="M14 17H5" />
+          <circle cx="17" cy="17" r="3" />
+          <circle cx="7" cy="7" r="3" />
+        </g>
+        <g id="i-alert">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" x2="12" y1="8" y2="12" />
+          <line x1="12" x2="12.01" y1="16" y2="16" />
+        </g>
+        <g id="i-arrow">
+          <path d="M5 12h14" />
+          <path d="m12 5 7 7-7 7" />
+        </g>
+        <g id="i-clock">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </g>
+        <g id="i-sparkle">
+          <path
+            d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.13 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"
+          />
+        </g>
+        <g id="i-link">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </g>
+        <g id="i-inbox">
+          <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+          <path
+            d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+          />
+        </g>
+        <g id="i-activity">
+          <path
+            d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+          />
+        </g>
+        <g id="i-gauge">
+          <path d="m12 14 4-4" />
+          <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+        </g>
+        <g id="i-book">
+          <path
+            d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"
+          />
+        </g>
+      </defs>
+    </svg>
 
-<!-- Real lucide geometry (24x24, stroke 2, round caps). No emoji standing in for icons. -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<g id="i-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></g>
-<g id="i-grid"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></g>
-<g id="i-workflow"><rect width="8" height="8" x="3" y="3" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect width="8" height="8" x="13" y="13" rx="2"/></g>
-<g id="i-bot"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></g>
-<g id="i-plus"><path d="M5 12h14"/><path d="M12 5v14"/></g>
-<g id="i-mic"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></g>
-<g id="i-branch"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></g>
-<g id="i-folder"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></g>
-<g id="i-check"><path d="M20 6 9 17l-5-5"/></g>
-<g id="i-chev"><path d="m6 9 6 6 6-6"/></g>
-<g id="i-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></g>
-<g id="i-shield"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></g>
-<g id="i-x"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></g>
-<g id="i-play"><polygon points="6 3 20 12 6 21 6 3"/></g>
-<g id="i-sliders"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></g>
-<g id="i-alert"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></g>
-<g id="i-arrow"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></g>
-<g id="i-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></g>
-<g id="i-sparkle"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.13-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.13a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.13 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0z"/></g>
-<g id="i-link"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></g>
-<g id="i-inbox"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></g>
-<g id="i-activity"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></g>
-<g id="i-gauge"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></g>
-<g id="i-book"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/></g>
-</defs></svg>
+    <div class="frames">
+      <div class="frame-wrap">
+        <p class="frame-label">
+          <b>Alicorn</b> · desktop 1440 × 900 · interactive flow · dark (primary)
+        </p>
 
-<div class="frames">
-
-<div class="frame-wrap">
-<p class="frame-label"><b>Alicorn</b> · desktop 1440 × 900 · interactive flow · dark (primary)</p>
-
-<div class="frame" data-viewport="desktop">
-
-  <!-- ── Icon rail. Global chrome: present on every screen, so every root
+        <div class="frame" data-viewport="desktop">
+          <!-- ── Icon rail. Global chrome: present on every screen, so every root
        screen is reachable from every other one. ─────────────────────────── -->
-  <nav class="rail">
-    <div class="rail__mark" title="Alicorn">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-sparkle"/></svg>
-    </div>
-    <button class="rail__btn" data-tab="inbox" data-navfor="inbox" title="Inbox">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-inbox"/></svg><span>Inbox</span>
-    </button>
-    <button class="rail__btn" data-tab="team" data-navfor="team" title="Team">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-users"/></svg><span>Team</span>
-    </button>
-    <button class="rail__btn" data-tab="board" data-navfor="board" title="Board">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg><span>Board</span>
-    </button>
-    <button class="rail__btn" data-tab="workflow" data-navfor="workflow" title="Workflows">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg><span>Flows</span>
-    </button>
-    <button class="rail__btn" data-tab="members" data-navfor="members" title="Members">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bot"/></svg><span>Members</span>
-    </button>
-    <div class="rail__spacer"></div>
-    <button class="rail__btn" data-sheet="command" title="Command bar">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg><span>Voice</span>
-    </button>
-    <button class="rail__btn" data-tab="autonomy" data-navfor="autonomy" title="Autonomy">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gauge"/></svg><span>Autonomy</span>
-    </button>
-  </nav>
-
-  <!-- ── Project sidebar ─────────────────────────────────────────────────── -->
-  <aside class="side">
-    <div class="side__head">
-      <p class="side__title">Payments Platform</p>
-      <p class="side__sub">plane · 14 open · 3 in review</p>
-    </div>
-    <div class="side__group">
-      <p class="side__label">Workspaces</p>
-      <button class="side__row" aria-current="true">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg>
-        <span>feat/refund-api</span><span class="side__count">4</span>
-      </button>
-      <button class="side__row">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg>
-        <span>fix/webhook-retry</span><span class="side__count">2</span>
-      </button>
-      <button class="side__row">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg>
-        <span>Q3 Discovery</span><span class="side__count">3</span>
-      </button>
-      <button class="side__row">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg>
-        <span>Brand refresh</span><span class="side__count">1</span>
-      </button>
-    </div>
-    <div class="side__group">
-      <p class="side__label">Workflows</p>
-      <button class="side__row" data-go="workflow" data-owner="workflow">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-        <span>Feature delivery</span>
-      </button>
-      <button class="side__row" data-go="workflow" data-owner="workflow">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-        <span>Hotfix</span>
-      </button>
-      <button class="side__row" data-go="workflow" data-owner="workflow">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-        <span>Discovery → spec</span>
-      </button>
-    </div>
-    <div class="side__group">
-      <p class="side__label">Connected</p>
-      <button class="side__row">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-link"/></svg>
-        <span>Plane</span><span class="side__count">sync</span>
-      </button>
-      <button class="side__row">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-book"/></svg>
-        <span>SharePoint</span>
-      </button>
-    </div>
-    <div class="side__group">
-      <p class="side__label">Organisation</p>
-      <button class="side__row" data-go="org" data-owner="inbox">
-        <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-users"/></svg>
-        <span>8Seneca</span><span class="side__count">9</span>
-      </button>
-    </div>
-  </aside>
-
-  <main class="main">
-
-    <!-- ══ SCREEN 1 — Team workspace ═══════════════════════════════════════ -->
-    <section data-scr="team">
-      <div class="topbar">
-        <h1 class="topbar__title">Team</h1>
-        <span class="badge badge--brand">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-          Feature delivery
-        </span>
-        <span class="badge">PAY-3021 · refund API</span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--ghost btn--sm" data-sheet="command">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg>
-          Ask or say a command
-          <span class="kbd">⌘K</span>
-        </button>
-      </div>
-
-      <div class="memberbar">
-        <button class="mtab" aria-current="true">
-          <span class="avatar">DV</span> Developer
-          <span class="status status--run"><span class="dot dot--run"></span>Live</span>
-        </button>
-        <button class="mtab">
-          <span class="avatar">CR</span> Code Review
-          <span class="status status--run"><span class="dot dot--run"></span>Live</span>
-        </button>
-        <button class="mtab">
-          <span class="avatar">BA</span> Business Analyst
-          <span class="status status--ask"><span class="dot dot--ask"></span>Needs you</span>
-        </button>
-        <button class="mtab">
-          <span class="avatar">DS</span> Designer
-          <span class="status status--idle"><span class="dot dot--idle"></span>Idle</span>
-        </button>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--outline btn--sm" data-go="member-edit" data-owner="members">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-plus"/></svg>
-          Add member
-        </button>
-      </div>
-
-      <div class="columns">
-        <!-- Developer -->
-        <div class="col">
-          <div class="col__head">
-            <span class="avatar">DV</span>
-            <span class="col__name">Developer</span>
-            <span class="badge">Claude Code</span>
-          </div>
-          <div class="col__body">
-            <div class="msg"><p class="msg__who">You</p><div class="msg--out msg__body">Implement partial refunds on the payments API.</div></div>
-            <div class="msg__tool msg--tool">git worktree add ../feat-refund-api</div>
-            <div class="msg"><p class="msg__who">Developer</p><div class="msg__body">Added <code>POST /refunds/partial</code> with idempotency keys. 14 files, 260 insertions. Tests green.</div></div>
-            <div class="handoff">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg>
-              worker_done → handed to Code Review
+          <nav class="rail">
+            <div class="rail__mark" title="Alicorn">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-sparkle" />
+              </svg>
             </div>
-            <div class="msg"><p class="msg__who">Developer</p><div class="msg__body">Waiting on review findings before touching the migration.</div></div>
-          </div>
-          <div class="col__foot">
-            <div class="col__input"><span>Message Developer…</span>
-              <button class="btn btn--ghost btn--sm btn--icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg></button>
+            <button class="rail__btn" data-tab="inbox" data-navfor="inbox" title="Inbox">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-inbox" /></svg
+              ><span>Inbox</span>
+            </button>
+            <button class="rail__btn" data-tab="team" data-navfor="team" title="Team">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-users" /></svg
+              ><span>Team</span>
+            </button>
+            <button class="rail__btn" data-tab="board" data-navfor="board" title="Board">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-grid" /></svg
+              ><span>Board</span>
+            </button>
+            <button class="rail__btn" data-tab="workflow" data-navfor="workflow" title="Workflows">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-workflow" /></svg
+              ><span>Flows</span>
+            </button>
+            <button class="rail__btn" data-tab="members" data-navfor="members" title="Members">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-bot" /></svg
+              ><span>Members</span>
+            </button>
+            <div class="rail__spacer"></div>
+            <button class="rail__btn" data-sheet="command" title="Command bar">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-mic" /></svg
+              ><span>Voice</span>
+            </button>
+            <button class="rail__btn" data-tab="autonomy" data-navfor="autonomy" title="Autonomy">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <use href="#i-gauge" /></svg
+              ><span>Autonomy</span>
+            </button>
+          </nav>
+
+          <!-- ── Project sidebar ─────────────────────────────────────────────────── -->
+          <aside class="side">
+            <div class="side__head">
+              <p class="side__title">Payments Platform</p>
+              <p class="side__sub">plane · 14 open · 3 in review</p>
             </div>
-          </div>
-        </div>
-
-        <!-- Code Review -->
-        <div class="col">
-          <div class="col__head">
-            <span class="avatar">CR</span>
-            <span class="col__name">Code Review</span>
-            <span class="badge">Codex</span>
-          </div>
-          <div class="col__body">
-            <div class="handoff">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-              Triggered by: In Progress → In Review
-            </div>
-            <div class="msg__tool msg--tool">orca orchestration task-create --stage review</div>
-            <div class="msg"><p class="msg__who">Code Review</p><div class="msg__body">Reviewing 14 files against quality + security skills.</div></div>
-            <div class="msg"><p class="msg__who">Findings · 2</p>
-              <div class="msg--out msg__body"><strong>Security.</strong> Refund amount is not re-validated server-side against the original charge.</div>
-            </div>
-            <div class="msg"><div class="msg--out msg__body"><strong>Correctness.</strong> Idempotency key collides across merchants — scope it per-merchant.</div></div>
-            <div class="handoff">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg>
-              Returned to Developer to fix
-            </div>
-          </div>
-          <div class="col__foot">
-            <div class="col__input"><span>Message Code Review…</span>
-              <button class="btn btn--ghost btn--sm btn--icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- BA -->
-        <div class="col">
-          <div class="col__head">
-            <span class="avatar">BA</span>
-            <span class="col__name">Business Analyst</span>
-            <span class="badge">Grok</span>
-          </div>
-          <div class="col__body">
-            <div class="badge" style="align-self:flex-start">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg>
-              Folder workspace · Q3 Discovery
-            </div>
-            <div class="msg"><p class="msg__who">Business Analyst</p><div class="msg__body">Drafted the partial-refund acceptance criteria to SharePoint.</div></div>
-            <div class="msg__tool msg--tool">sharepoint · Refunds-AC-v3.docx</div>
-            <div class="msg"><p class="msg__who">Needs you</p>
-              <div class="msg--ask msg__body">Do partial refunds need to support multi-currency at launch? It changes the ledger schema.</div>
-            </div>
-            <div style="display:flex;gap:6px">
-              <button class="btn btn--outline btn--sm">Yes, at launch</button>
-              <button class="btn btn--outline btn--sm">Defer</button>
-            </div>
-          </div>
-          <div class="col__foot">
-            <div class="col__input"><span>Message Business Analyst…</span>
-              <button class="btn btn--ghost btn--sm btn--icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg></button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Designer -->
-        <div class="col">
-          <div class="col__head">
-            <span class="avatar">DS</span>
-            <span class="col__name">Designer</span>
-            <span class="badge">OpenClaude</span>
-          </div>
-          <div class="col__body">
-            <div class="badge" style="align-self:flex-start">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-clock"/></svg>
-              Idle · waiting for spec
-            </div>
-            <div class="msg"><p class="msg__who">Workflow</p><div class="msg__body">Blocked until <strong>Business Analyst</strong> settles multi-currency.</div></div>
-            <div class="trig">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-              <span>Starts on: spec approved</span>
-            </div>
-          </div>
-          <div class="col__foot">
-            <div class="col__input"><span>Message Designer…</span>
-              <button class="btn btn--ghost btn--sm btn--icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg></button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ SCREEN 2 — Board ════════════════════════════════════════════════ -->
-    <section data-scr="board">
-      <div class="topbar">
-        <h1 class="topbar__title">Board</h1>
-        <span class="badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-link"/></svg>
-          Plane · two-way sync
-        </span>
-        <span class="badge badge--ok">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>
-          Synced 12s ago
-        </span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--outline btn--sm" data-go="workflow" data-owner="workflow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-sliders"/></svg>
-          Edit columns &amp; actions
-        </button>
-      </div>
-
-      <div class="board">
-        <div class="lane">
-          <div class="lane__head"><span class="lane__name">Backlog</span><span class="lane__n">6</span></div>
-          <div class="lane__body">
-            <div class="tcard"><p class="tcard__key">PAY-3044</p><p class="tcard__title">Ledger entries for partial refunds</p>
-              <div class="tcard__foot"><span class="avatar">BA</span><span class="badge">spec</span></div></div>
-            <div class="tcard"><p class="tcard__key">PAY-3051</p><p class="tcard__title">Multi-currency refund rounding</p>
-              <div class="tcard__foot"><span class="badge">unassigned</span></div></div>
-          </div>
-        </div>
-
-        <div class="lane">
-          <div class="lane__head"><span class="lane__name">Spec</span><span class="lane__n">2</span></div>
-          <div class="lane__rule">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bot"/></svg>
-            <span>on enter → Business Analyst</span>
-          </div>
-          <div class="lane__body">
-            <div class="tcard"><p class="tcard__key">PAY-3038</p><p class="tcard__title">Refund eligibility rules by merchant tier</p>
-              <div class="tcard__foot"><span class="avatar">BA</span><span class="badge badge--ask">asking</span></div></div>
-          </div>
-        </div>
-
-        <div class="lane">
-          <div class="lane__head"><span class="lane__name">In Progress</span><span class="lane__n">3</span></div>
-          <div class="lane__rule">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg>
-            <span>on enter → Developer</span>
-          </div>
-          <div class="lane__body">
-            <div class="tcard"><p class="tcard__key">PAY-3029</p><p class="tcard__title">Webhook retry backoff</p>
-              <div class="tcard__foot"><span class="avatar">DV</span><span class="badge">fix/webhook-retry</span></div></div>
-            <div class="drop">drop to move</div>
-          </div>
-        </div>
-
-        <div class="lane">
-          <div class="lane__head"><span class="lane__name">In Review</span><span class="lane__n">2</span></div>
-          <div class="lane__rule">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-shield"/></svg>
-            <span>on enter → Code Review</span>
-          </div>
-          <div class="lane__body">
-            <div class="tcard tcard--drag"><p class="tcard__key">PAY-3021</p><p class="tcard__title">Partial refunds on the payments API</p>
-              <div class="tcard__foot"><span class="avatar">DV</span>
-                <svg class="icon--xs" style="color:var(--brand)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-arrow"/></svg>
-                <span class="avatar">CR</span>
-                <span class="badge badge--brand">dispatching</span></div></div>
-            <div class="tcard"><p class="tcard__key">PAY-2998</p><p class="tcard__title">Idempotency key scoping</p>
-              <div class="tcard__foot"><span class="avatar">CR</span><span class="badge">2 findings</span></div></div>
-          </div>
-        </div>
-
-        <div class="lane">
-          <div class="lane__head"><span class="lane__name">Done</span><span class="lane__n">11</span></div>
-          <div class="lane__rule">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-link"/></svg>
-            <span>on enter → close in Plane</span>
-          </div>
-          <div class="lane__body">
-            <div class="tcard"><p class="tcard__key">PAY-2971</p><p class="tcard__title">Refund audit log</p>
-              <div class="tcard__foot"><span class="badge badge--ok">merged</span></div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ SCREEN 3 — Workflow canvas ══════════════════════════════════════ -->
-    <section data-scr="workflow">
-      <div class="topbar">
-        <h1 class="topbar__title">Feature delivery</h1>
-        <span class="badge">5 stages</span>
-        <span class="badge badge--brand">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-play"/></svg>
-          2 running
-        </span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--ghost btn--sm" data-go="board" data-owner="board">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg>
-          View as board
-        </button>
-        <button class="btn btn--primary btn--sm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-plus"/></svg>
-          Add stage
-        </button>
-      </div>
-
-      <div class="canvas">
-        <!-- viewBox matches the canvas box exactly (1144 x 852): main is 1440-56-240
-             wide, and 900 minus the 48px topbar tall. A mismatch here skews every wire. -->
-        <svg class="wires" viewBox="0 0 1124 852" preserveAspectRatio="none" fill="none" stroke-width="1.5">
-          <defs>
-            <marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0 1 L7 4 L0 7 z" fill="var(--muted-foreground)"/>
-            </marker>
-            <marker id="ahb" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
-              <path d="M0 1 L7 4 L0 7 z" fill="var(--brand)"/>
-            </marker>
-          </defs>
-          <path d="M248 192 H 288" stroke="var(--muted-foreground)" marker-end="url(#ah)"/>
-          <path d="M496 192 H 536" stroke="var(--muted-foreground)" marker-end="url(#ah)"/>
-          <path d="M744 192 H 784" stroke="var(--muted-foreground)" marker-end="url(#ah)"/>
-          <!-- Review → Verify -->
-          <path d="M888 244 V 400" stroke="var(--muted-foreground)" marker-end="url(#ah)"/>
-          <!-- the return edge: review findings go back to the developer -->
-          <path d="M830 244 V 300 H 640 V 248" stroke="var(--brand)" stroke-dasharray="5 4" marker-end="url(#ahb)"/>
-        </svg>
-
-        <div class="node" style="left:40px;top:140px">
-          <div class="node__head"><span class="avatar">BA</span><span class="node__stage">Spec</span></div>
-          <div class="node__body">
-            <p class="node__owner">Business Analyst · Grok</p>
-            <div class="trig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg><span>on column → Spec</span></div>
-          </div>
-        </div>
-
-        <div class="node" style="left:288px;top:140px">
-          <div class="node__head"><span class="avatar">DS</span><span class="node__stage">Design</span></div>
-          <div class="node__body">
-            <p class="node__owner">Designer · OpenClaude</p>
-            <div class="trig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg><span>on spec approved</span></div>
-          </div>
-        </div>
-
-        <div class="node node--sel" style="left:536px;top:140px">
-          <div class="node__head"><span class="avatar">DV</span><span class="node__stage">Build</span>
-            <span class="status status--run" style="margin-left:auto"><span class="dot dot--run"></span>Live</span></div>
-          <div class="node__body">
-            <p class="node__owner">Developer · Claude Code</p>
-            <div class="trig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg><span>creates git worktree</span></div>
-          </div>
-        </div>
-
-        <div class="node" style="left:784px;top:140px">
-          <div class="node__head"><span class="avatar">CR</span><span class="node__stage">Review</span>
-            <span class="status status--run" style="margin-left:auto"><span class="dot dot--run"></span>Live</span></div>
-          <div class="node__body">
-            <p class="node__owner">Code Review · Codex</p>
-            <div class="trig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-shield"/></svg><span>quality + security skills</span></div>
-          </div>
-        </div>
-
-        <div class="node" style="left:784px;top:400px">
-          <div class="node__head"><span class="avatar">QA</span><span class="node__stage">Verify</span></div>
-          <div class="node__body">
-            <p class="node__owner">QA · Claude Code</p>
-            <div class="trig"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg><span>on review clean</span></div>
-          </div>
-        </div>
-
-        <!-- The return edge carries the whole point of the diagram, so it gets a label
-             rather than relying on the legend to explain a dashed line. -->
-        <span class="edge-label" style="left:646px;top:286px">2 findings → back to Build</span>
-
-        <div class="canvas__legend">
-          <span class="legend__item"><span class="legend__swatch" style="background:var(--muted-foreground)"></span> hand-off</span>
-          <span class="legend__item"><span class="legend__swatch" style="background:var(--brand)"></span> return on findings</span>
-          <span class="legend__item"><span class="dot dot--run"></span> running now</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ SCREEN 4 — Members roster ═══════════════════════════════════════ -->
-    <section data-scr="members">
-      <div class="topbar">
-        <h1 class="topbar__title">Members</h1>
-        <span class="badge">6 in this org</span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--ghost btn--sm" data-go="skills" data-owner="members">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-book"/></svg>
-          Skill catalog
-        </button>
-        <button class="btn btn--primary btn--sm" data-go="member-edit" data-owner="members">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-plus"/></svg>
-          New member
-        </button>
-      </div>
-      <div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-content:start;overflow:hidden">
-        <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
-          <span class="avatar avatar--lg">DV</span>
-          <div style="min-width:0"><p style="margin:0;font-size:var(--text-body);font-weight:600">Developer</p>
-          <p style="margin:2px 0 0;font-size:var(--text-sub);color:var(--muted-foreground)">Claude Code · worktree</p></div></div>
-          <div class="chips"><span class="chip">tdd</span><span class="chip">orca-cli</span><span class="chip">+2</span></div></div>
-
-        <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
-          <span class="avatar avatar--lg">CR</span>
-          <div style="min-width:0"><p style="margin:0;font-size:var(--text-body);font-weight:600">Code Review</p>
-          <p style="margin:2px 0 0;font-size:var(--text-sub);color:var(--muted-foreground)">Codex · worktree</p></div></div>
-          <div class="chips"><span class="chip">security-review</span><span class="chip">code-review</span></div></div>
-
-        <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
-          <span class="avatar avatar--lg">BA</span>
-          <div style="min-width:0"><p style="margin:0;font-size:var(--text-body);font-weight:600">Business Analyst</p>
-          <p style="margin:2px 0 0;font-size:var(--text-sub);color:var(--muted-foreground)">Grok · folder</p></div></div>
-          <div class="chips"><span class="chip">sharepoint</span><span class="chip">linear-tickets</span></div></div>
-
-        <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
-          <span class="avatar avatar--lg">DS</span>
-          <div style="min-width:0"><p style="margin:0;font-size:var(--text-body);font-weight:600">Designer</p>
-          <p style="margin:2px 0 0;font-size:var(--text-sub);color:var(--muted-foreground)">OpenClaude · folder</p></div></div>
-          <div class="chips"><span class="chip">pica</span><span class="chip">computer-use</span></div></div>
-
-        <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
-          <span class="avatar avatar--lg">PM</span>
-          <div style="min-width:0"><p style="margin:0;font-size:var(--text-body);font-weight:600">Project Manager</p>
-          <p style="margin:2px 0 0;font-size:var(--text-sub);color:var(--muted-foreground)">Claude Code · folder</p></div></div>
-          <div class="chips"><span class="chip">orchestration</span><span class="chip">plane</span></div></div>
-
-        <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">
-          <span class="avatar avatar--lg">QA</span>
-          <div style="min-width:0"><p style="margin:0;font-size:var(--text-body);font-weight:600">QA</p>
-          <p style="margin:2px 0 0;font-size:var(--text-sub);color:var(--muted-foreground)">Claude Code · worktree</p></div></div>
-          <div class="chips"><span class="chip">test-automator</span><span class="chip">verification</span></div></div>
-      </div>
-    </section>
-
-    <!-- ══ SCREEN 5 — Member editor (pushed from members) ══════════════════ -->
-    <section data-scr="member-edit">
-      <div class="topbar">
-        <button class="btn btn--ghost btn--sm btn--icon" data-popback>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-x"/></svg>
-        </button>
-        <h1 class="topbar__title">New member</h1>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--ghost btn--sm" data-go="members" data-owner="members">Cancel</button>
-        <button class="btn btn--primary btn--sm" data-go="members" data-owner="members">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>
-          Create member
-        </button>
-      </div>
-
-      <div class="editor">
-        <div class="editor__form">
-          <div class="row2">
-            <div class="field"><label class="field__label">Name</label>
-              <div class="input">Code Review</div></div>
-            <div class="field"><label class="field__label">Role</label>
-              <div class="input">Reviewer<svg class="icon--sm" style="float:right;margin-top:8px;color:var(--muted-foreground)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chev"/></svg></div></div>
-          </div>
-
-          <div class="field"><label class="field__label">Agent backend</label>
-            <div class="seg">
-              <button class="seg__opt">Claude Code</button>
-              <button class="seg__opt" aria-pressed="true">Codex</button>
-              <button class="seg__opt">Grok</button>
-              <button class="seg__opt">OpenClaude</button>
-            </div>
-            <p class="field__hint">Runs on this machine with your own subscription. Org-shared seats arrive in a later phase.</p>
-          </div>
-
-          <div class="field"><label class="field__label">Workspace</label>
-            <div class="seg">
-              <button class="seg__opt" aria-pressed="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg>
-                Git worktree
+            <div class="side__group">
+              <p class="side__label">Workspaces</p>
+              <button class="side__row" aria-current="true">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-branch" />
+                </svg>
+                <span>feat/refund-api</span><span class="side__count">4</span>
               </button>
-              <button class="seg__opt">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg>
-                Folder
+              <button class="side__row">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-branch" />
+                </svg>
+                <span>fix/webhook-retry</span><span class="side__count">2</span>
+              </button>
+              <button class="side__row">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-folder" />
+                </svg>
+                <span>Q3 Discovery</span><span class="side__count">3</span>
+              </button>
+              <button class="side__row">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-folder" />
+                </svg>
+                <span>Brand refresh</span><span class="side__count">1</span>
               </button>
             </div>
-            <p class="field__hint">Folder workspaces let non-engineering members work without a repo checkout.</p>
-          </div>
-
-          <div class="field"><label class="field__label">Skills</label>
-            <div class="chips">
-              <button class="chip" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>code-review</button>
-              <button class="chip" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>security-review</button>
-              <button class="chip">orchestration</button>
-              <button class="chip">orca-cli</button>
-              <button class="chip">tdd</button>
-              <button class="chip">computer-use</button>
-              <button class="chip">linear-tickets</button>
-              <button class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-plus"/></svg>Custom skill</button>
+            <div class="side__group">
+              <p class="side__label">Workflows</p>
+              <button class="side__row" data-go="workflow" data-owner="workflow">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-workflow" />
+                </svg>
+                <span>Feature delivery</span>
+              </button>
+              <button class="side__row" data-go="workflow" data-owner="workflow">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-workflow" />
+                </svg>
+                <span>Hotfix</span>
+              </button>
+              <button class="side__row" data-go="workflow" data-owner="workflow">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-workflow" />
+                </svg>
+                <span>Discovery → spec</span>
+              </button>
             </div>
-            <p class="field__hint">Installed skills come from the org catalog. A custom skill is scoped to this member.</p>
-          </div>
-
-          <div class="field"><label class="field__label">Permission mode</label>
-            <div class="seg">
-              <button class="seg__opt">Ask every action</button>
-              <button class="seg__opt" aria-pressed="true">Accept edits</button>
-              <button class="seg__opt">YOLO</button>
+            <div class="side__group">
+              <p class="side__label">Connected</p>
+              <button class="side__row">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-link" />
+                </svg>
+                <span>Plane</span><span class="side__count">sync</span>
+              </button>
+              <button class="side__row">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-book" />
+                </svg>
+                <span>SharePoint</span>
+              </button>
             </div>
-          </div>
-
-          <div class="field"><label class="field__label">System rules</label>
-            <div class="rules">Review only what the diff touches.<br>Report security findings first, then correctness.<br>Never push. Hand findings back to the member that produced the diff.<br>Fail closed: if a check cannot run, say so rather than passing it.</div>
-          </div>
-        </div>
-
-        <aside class="editor__aside">
-          <p class="preview__title">Preview</p>
-          <div class="card" style="padding:0;overflow:hidden">
-            <div class="col__head" style="border-radius:0">
-              <span class="avatar">CR</span>
-              <span class="col__name">Code Review</span>
-              <span class="badge">Codex</span>
+            <div class="side__group">
+              <p class="side__label">Organisation</p>
+              <button class="side__row" data-go="org" data-owner="inbox">
+                <svg
+                  class="icon--sm"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <use href="#i-users" />
+                </svg>
+                <span>8Seneca</span><span class="side__count">9</span>
+              </button>
             </div>
-            <div style="padding:10px;display:flex;flex-direction:column;gap:8px">
-              <div class="badge" style="align-self:flex-start">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg>
-                Git worktree
+          </aside>
+
+          <main class="main">
+            <!-- ══ SCREEN 1 — Team workspace ═══════════════════════════════════════ -->
+            <section data-scr="team">
+              <div class="topbar">
+                <h1 class="topbar__title">Team</h1>
+                <span class="badge badge--brand">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-workflow" />
+                  </svg>
+                  Feature delivery
+                </span>
+                <span class="badge">PAY-3021 · refund API</span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--ghost btn--sm" data-sheet="command">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-mic" />
+                  </svg>
+                  Ask or say a command
+                  <span class="kbd">⌘K</span>
+                </button>
               </div>
-              <div class="msg"><p class="msg__who">Code Review</p><div class="msg__body">Ready. Waiting for a hand-off from the Build stage.</div></div>
-            </div>
-          </div>
 
-          <p class="preview__title" style="margin-top:18px">Used by</p>
-          <div style="display:flex;flex-direction:column;gap:7px">
-            <div class="card" style="padding:9px 11px;display:flex;align-items:center;gap:8px">
-              <svg class="icon--sm" style="color:var(--brand)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-              <span style="font-size:var(--text-sub)">Feature delivery · Review</span>
-            </div>
-            <div class="card" style="padding:9px 11px;display:flex;align-items:center;gap:8px">
-              <svg class="icon--sm" style="color:var(--brand)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg>
-              <span style="font-size:var(--text-sub)">Board · on enter In Review</span>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </section>
+              <div class="memberbar">
+                <button class="mtab" aria-current="true">
+                  <span class="avatar">DV</span> Developer
+                  <span class="status status--run"><span class="dot dot--run"></span>Live</span>
+                </button>
+                <button class="mtab">
+                  <span class="avatar">CR</span> Code Review
+                  <span class="status status--run"><span class="dot dot--run"></span>Live</span>
+                </button>
+                <button class="mtab">
+                  <span class="avatar">BA</span> Business Analyst
+                  <span class="status status--ask"
+                    ><span class="dot dot--ask"></span>Needs you</span
+                  >
+                </button>
+                <button class="mtab">
+                  <span class="avatar">DS</span> Designer
+                  <span class="status status--idle"><span class="dot dot--idle"></span>Idle</span>
+                </button>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--outline btn--sm" data-go="member-edit" data-owner="members">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-plus" />
+                  </svg>
+                  Add member
+                </button>
+              </div>
 
+              <div class="columns">
+                <!-- Developer -->
+                <div class="col">
+                  <div class="col__head">
+                    <span class="avatar">DV</span>
+                    <span class="col__name">Developer</span>
+                    <span class="badge">Claude Code</span>
+                  </div>
+                  <div class="col__body">
+                    <div class="msg">
+                      <p class="msg__who">You</p>
+                      <div class="msg--out msg__body">
+                        Implement partial refunds on the payments API.
+                      </div>
+                    </div>
+                    <div class="msg__tool msg--tool">git worktree add ../feat-refund-api</div>
+                    <div class="msg">
+                      <p class="msg__who">Developer</p>
+                      <div class="msg__body">
+                        Added <code>POST /refunds/partial</code> with idempotency keys. 14 files,
+                        260 insertions. Tests green.
+                      </div>
+                    </div>
+                    <div class="handoff">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-arrow" />
+                      </svg>
+                      worker_done → handed to Code Review
+                    </div>
+                    <div class="msg">
+                      <p class="msg__who">Developer</p>
+                      <div class="msg__body">
+                        Waiting on review findings before touching the migration.
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col__foot">
+                    <div class="col__input">
+                      <span>Message Developer…</span>
+                      <button class="btn btn--ghost btn--sm btn--icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-mic" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-    <!-- ══ INBOX — the home. Only what needs you. ══════════════════════════ -->
-    <section data-scr="inbox">
-      <div class="topbar">
-        <h1 class="topbar__title">Needs you</h1>
-        <span class="badge badge--ask">2 decisions</span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--ghost btn--sm" data-go="run" data-owner="inbox">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-activity"/></svg>
-          Activity
-        </button>
-        <button class="btn btn--ghost btn--sm" data-sheet="command">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg>
-          Ask or say a command <span class="kbd">⌘K</span>
-        </button>
-      </div>
+                <!-- Code Review -->
+                <div class="col">
+                  <div class="col__head">
+                    <span class="avatar">CR</span>
+                    <span class="col__name">Code Review</span>
+                    <span class="badge">Codex</span>
+                  </div>
+                  <div class="col__body">
+                    <div class="handoff">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-workflow" />
+                      </svg>
+                      Triggered by: In Progress → In Review
+                    </div>
+                    <div class="msg__tool msg--tool">
+                      orca orchestration task-create --stage review
+                    </div>
+                    <div class="msg">
+                      <p class="msg__who">Code Review</p>
+                      <div class="msg__body">
+                        Reviewing 14 files against quality + security skills.
+                      </div>
+                    </div>
+                    <div class="msg">
+                      <p class="msg__who">Findings · 2</p>
+                      <div class="msg--out msg__body">
+                        <strong>Security.</strong> Refund amount is not re-validated server-side
+                        against the original charge.
+                      </div>
+                    </div>
+                    <div class="msg">
+                      <div class="msg--out msg__body">
+                        <strong>Correctness.</strong> Idempotency key collides across merchants —
+                        scope it per-merchant.
+                      </div>
+                    </div>
+                    <div class="handoff">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-arrow" />
+                      </svg>
+                      Returned to Developer to fix
+                    </div>
+                  </div>
+                  <div class="col__foot">
+                    <div class="col__input">
+                      <span>Message Code Review…</span>
+                      <button class="btn btn--ghost btn--sm btn--icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-mic" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-      <div class="inbox">
-        <div class="inbox__list">
-          <div class="zero">
-            <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>
-            <span><strong>23 steps completed without you today.</strong> 2 needed a decision.</span>
-          </div>
+                <!-- BA -->
+                <div class="col">
+                  <div class="col__head">
+                    <span class="avatar">BA</span>
+                    <span class="col__name">Business Analyst</span>
+                    <span class="badge">Grok</span>
+                  </div>
+                  <div class="col__body">
+                    <div class="badge" style="align-self: flex-start">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-folder" />
+                      </svg>
+                      Folder workspace · Q3 Discovery
+                    </div>
+                    <div class="msg">
+                      <p class="msg__who">Business Analyst</p>
+                      <div class="msg__body">
+                        Drafted the partial-refund acceptance criteria to SharePoint.
+                      </div>
+                    </div>
+                    <div class="msg__tool msg--tool">sharepoint · Refunds-AC-v3.docx</div>
+                    <div class="msg">
+                      <p class="msg__who">Needs you</p>
+                      <div class="msg--ask msg__body">
+                        Do partial refunds need to support multi-currency at launch? It changes the
+                        ledger schema.
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 6px">
+                      <button class="btn btn--outline btn--sm">Yes, at launch</button>
+                      <button class="btn btn--outline btn--sm">Defer</button>
+                    </div>
+                  </div>
+                  <div class="col__foot">
+                    <div class="col__input">
+                      <span>Message Business Analyst…</span>
+                      <button class="btn btn--ghost btn--sm btn--icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-mic" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-          <div class="dcard dcard--urgent">
-            <div class="dcard__top">
-              <span class="avatar">BA</span>
-              <span class="dcard__stage">PAY-3021 · Spec → Architecture</span>
-              <span class="dcard__age">18m ago</span>
-            </div>
-            <p class="dcard__q">Do partial refunds support multi-currency at launch?</p>
-            <p class="dcard__why">Gated because the decision is <strong>inherited</strong> — the
-              ledger schema, the API contract and four downstream tasks all depend on it.</p>
-            <div class="dcard__acts">
-              <button class="btn btn--primary btn--sm">Yes, at launch</button>
-              <button class="btn btn--outline btn--sm">Defer to v2</button>
-              <button class="btn btn--ghost btn--sm">Ask Business Analyst</button>
-            </div>
-          </div>
+                <!-- Designer -->
+                <div class="col">
+                  <div class="col__head">
+                    <span class="avatar">DS</span>
+                    <span class="col__name">Designer</span>
+                    <span class="badge">OpenClaude</span>
+                  </div>
+                  <div class="col__body">
+                    <div class="badge" style="align-self: flex-start">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-clock" />
+                      </svg>
+                      Idle · waiting for spec
+                    </div>
+                    <div class="msg">
+                      <p class="msg__who">Workflow</p>
+                      <div class="msg__body">
+                        Blocked until <strong>Business Analyst</strong> settles multi-currency.
+                      </div>
+                    </div>
+                    <div class="trig">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-workflow" />
+                      </svg>
+                      <span>Starts on: spec approved</span>
+                    </div>
+                  </div>
+                  <div class="col__foot">
+                    <div class="col__input">
+                      <span>Message Designer…</span>
+                      <button class="btn btn--ghost btn--sm btn--icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-mic" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-          <div class="dcard">
-            <div class="dcard__top">
-              <span class="avatar">CR</span>
-              <span class="dcard__stage">PAY-2998 · Review → Merge</span>
-              <span class="dcard__age">42m ago</span>
-            </div>
-            <p class="dcard__q">Merge <strong>Idempotency key scoping</strong> into main?</p>
-            <p class="dcard__why">Gated because merging is <strong>irreversible</strong>. This gate
-              never retires, whatever the track record. All 3 required checks passed.</p>
-            <div class="dcard__acts">
-              <button class="btn btn--primary btn--sm">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>
-                Approve merge
-              </button>
-              <button class="btn btn--outline btn--sm" data-go="run" data-owner="inbox">Review the trail</button>
-              <button class="btn btn--ghost btn--sm">Send back</button>
-            </div>
-          </div>
+            <!-- ══ SCREEN 2 — Board ════════════════════════════════════════════════ -->
+            <section data-scr="board">
+              <div class="topbar">
+                <h1 class="topbar__title">Board</h1>
+                <span class="badge">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-link" />
+                  </svg>
+                  Plane · two-way sync
+                </span>
+                <span class="badge badge--ok">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-check" />
+                  </svg>
+                  Synced 12s ago
+                </span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--outline btn--sm" data-go="workflow" data-owner="workflow">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-sliders" />
+                  </svg>
+                  Edit columns &amp; actions
+                </button>
+              </div>
 
-          <p class="side__label" style="margin:8px 0 0 2px">Ran without you</p>
-          <div class="dcard" style="border-style:dashed">
-            <div class="dcard__top">
-              <span class="avatar">DV</span>
-              <span class="dcard__stage">PAY-3021 · Build → Review</span>
-              <span class="badge badge--ok">auto-approved</span>
-              <span class="dcard__age">1h ago</span>
+              <div class="board">
+                <div class="lane">
+                  <div class="lane__head">
+                    <span class="lane__name">Backlog</span><span class="lane__n">6</span>
+                  </div>
+                  <div class="lane__body">
+                    <div class="tcard">
+                      <p class="tcard__key">PAY-3044</p>
+                      <p class="tcard__title">Ledger entries for partial refunds</p>
+                      <div class="tcard__foot">
+                        <span class="avatar">BA</span><span class="badge">spec</span>
+                      </div>
+                    </div>
+                    <div class="tcard">
+                      <p class="tcard__key">PAY-3051</p>
+                      <p class="tcard__title">Multi-currency refund rounding</p>
+                      <div class="tcard__foot"><span class="badge">unassigned</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="lane">
+                  <div class="lane__head">
+                    <span class="lane__name">Spec</span><span class="lane__n">2</span>
+                  </div>
+                  <div class="lane__rule">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <use href="#i-bot" />
+                    </svg>
+                    <span>on enter → Business Analyst</span>
+                  </div>
+                  <div class="lane__body">
+                    <div class="tcard">
+                      <p class="tcard__key">PAY-3038</p>
+                      <p class="tcard__title">Refund eligibility rules by merchant tier</p>
+                      <div class="tcard__foot">
+                        <span class="avatar">BA</span><span class="badge badge--ask">asking</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="lane">
+                  <div class="lane__head">
+                    <span class="lane__name">In Progress</span><span class="lane__n">3</span>
+                  </div>
+                  <div class="lane__rule">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <use href="#i-branch" />
+                    </svg>
+                    <span>on enter → Developer</span>
+                  </div>
+                  <div class="lane__body">
+                    <div class="tcard">
+                      <p class="tcard__key">PAY-3029</p>
+                      <p class="tcard__title">Webhook retry backoff</p>
+                      <div class="tcard__foot">
+                        <span class="avatar">DV</span><span class="badge">fix/webhook-retry</span>
+                      </div>
+                    </div>
+                    <div class="drop">drop to move</div>
+                  </div>
+                </div>
+
+                <div class="lane">
+                  <div class="lane__head">
+                    <span class="lane__name">In Review</span><span class="lane__n">2</span>
+                  </div>
+                  <div class="lane__rule">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <use href="#i-shield" />
+                    </svg>
+                    <span>on enter → Code Review</span>
+                  </div>
+                  <div class="lane__body">
+                    <div class="tcard tcard--drag">
+                      <p class="tcard__key">PAY-3021</p>
+                      <p class="tcard__title">Partial refunds on the payments API</p>
+                      <div class="tcard__foot">
+                        <span class="avatar">DV</span>
+                        <svg
+                          class="icon--xs"
+                          style="color: var(--brand)"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-arrow" />
+                        </svg>
+                        <span class="avatar">CR</span>
+                        <span class="badge badge--brand">dispatching</span>
+                      </div>
+                    </div>
+                    <div class="tcard">
+                      <p class="tcard__key">PAY-2998</p>
+                      <p class="tcard__title">Idempotency key scoping</p>
+                      <div class="tcard__foot">
+                        <span class="avatar">CR</span><span class="badge">2 findings</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="lane">
+                  <div class="lane__head">
+                    <span class="lane__name">Done</span><span class="lane__n">11</span>
+                  </div>
+                  <div class="lane__rule">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <use href="#i-link" />
+                    </svg>
+                    <span>on enter → close in Plane</span>
+                  </div>
+                  <div class="lane__body">
+                    <div class="tcard">
+                      <p class="tcard__key">PAY-2971</p>
+                      <p class="tcard__title">Refund audit log</p>
+                      <div class="tcard__foot"><span class="badge badge--ok">merged</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ══ SCREEN 3 — Workflow canvas ══════════════════════════════════════ -->
+            <section data-scr="workflow">
+              <div class="topbar">
+                <h1 class="topbar__title">Feature delivery</h1>
+                <span class="badge">5 stages</span>
+                <span class="badge badge--brand">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-play" />
+                  </svg>
+                  2 running
+                </span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--ghost btn--sm" data-go="board" data-owner="board">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-grid" />
+                  </svg>
+                  View as board
+                </button>
+                <button class="btn btn--primary btn--sm">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-plus" />
+                  </svg>
+                  Add stage
+                </button>
+              </div>
+
+              <div class="canvas">
+                <!-- viewBox matches the canvas box exactly (1144 x 852): main is 1440-56-240
+             wide, and 900 minus the 48px topbar tall. A mismatch here skews every wire. -->
+                <svg
+                  class="wires"
+                  viewBox="0 0 1124 852"
+                  preserveAspectRatio="none"
+                  fill="none"
+                  stroke-width="1.5"
+                >
+                  <defs>
+                    <marker
+                      id="ah"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto"
+                    >
+                      <path d="M0 1 L7 4 L0 7 z" fill="var(--muted-foreground)" />
+                    </marker>
+                    <marker
+                      id="ahb"
+                      viewBox="0 0 8 8"
+                      refX="7"
+                      refY="4"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto"
+                    >
+                      <path d="M0 1 L7 4 L0 7 z" fill="var(--brand)" />
+                    </marker>
+                  </defs>
+                  <path d="M248 192 H 288" stroke="var(--muted-foreground)" marker-end="url(#ah)" />
+                  <path d="M496 192 H 536" stroke="var(--muted-foreground)" marker-end="url(#ah)" />
+                  <path d="M744 192 H 784" stroke="var(--muted-foreground)" marker-end="url(#ah)" />
+                  <!-- Review → Verify -->
+                  <path d="M888 244 V 400" stroke="var(--muted-foreground)" marker-end="url(#ah)" />
+                  <!-- the return edge: review findings go back to the developer -->
+                  <path
+                    d="M830 244 V 300 H 640 V 248"
+                    stroke="var(--brand)"
+                    stroke-dasharray="5 4"
+                    marker-end="url(#ahb)"
+                  />
+                </svg>
+
+                <div class="node" style="left: 40px; top: 140px">
+                  <div class="node__head">
+                    <span class="avatar">BA</span><span class="node__stage">Spec</span>
+                  </div>
+                  <div class="node__body">
+                    <p class="node__owner">Business Analyst · Grok</p>
+                    <div class="trig">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-grid" /></svg
+                      ><span>on column → Spec</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="node" style="left: 288px; top: 140px">
+                  <div class="node__head">
+                    <span class="avatar">DS</span><span class="node__stage">Design</span>
+                  </div>
+                  <div class="node__body">
+                    <p class="node__owner">Designer · OpenClaude</p>
+                    <div class="trig">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-check" /></svg
+                      ><span>on spec approved</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="node node--sel" style="left: 536px; top: 140px">
+                  <div class="node__head">
+                    <span class="avatar">DV</span><span class="node__stage">Build</span>
+                    <span class="status status--run" style="margin-left: auto"
+                      ><span class="dot dot--run"></span>Live</span
+                    >
+                  </div>
+                  <div class="node__body">
+                    <p class="node__owner">Developer · Claude Code</p>
+                    <div class="trig">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-branch" /></svg
+                      ><span>creates git worktree</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="node" style="left: 784px; top: 140px">
+                  <div class="node__head">
+                    <span class="avatar">CR</span><span class="node__stage">Review</span>
+                    <span class="status status--run" style="margin-left: auto"
+                      ><span class="dot dot--run"></span>Live</span
+                    >
+                  </div>
+                  <div class="node__body">
+                    <p class="node__owner">Code Review · Codex</p>
+                    <div class="trig">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-shield" /></svg
+                      ><span>quality + security skills</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="node" style="left: 784px; top: 400px">
+                  <div class="node__head">
+                    <span class="avatar">QA</span><span class="node__stage">Verify</span>
+                  </div>
+                  <div class="node__body">
+                    <p class="node__owner">QA · Claude Code</p>
+                    <div class="trig">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-check" /></svg
+                      ><span>on review clean</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- The return edge carries the whole point of the diagram, so it gets a label
+             rather than relying on the legend to explain a dashed line. -->
+                <span class="edge-label" style="left: 646px; top: 286px"
+                  >2 findings → back to Build</span
+                >
+
+                <div class="canvas__legend">
+                  <span class="legend__item"
+                    ><span
+                      class="legend__swatch"
+                      style="background: var(--muted-foreground)"
+                    ></span>
+                    hand-off</span
+                  >
+                  <span class="legend__item"
+                    ><span class="legend__swatch" style="background: var(--brand)"></span> return on
+                    findings</span
+                  >
+                  <span class="legend__item"><span class="dot dot--run"></span> running now</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- ══ SCREEN 4 — Members roster ═══════════════════════════════════════ -->
+            <section data-scr="members">
+              <div class="topbar">
+                <h1 class="topbar__title">Members</h1>
+                <span class="badge">6 in this org</span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--ghost btn--sm" data-go="skills" data-owner="members">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-book" />
+                  </svg>
+                  Skill catalog
+                </button>
+                <button class="btn btn--primary btn--sm" data-go="member-edit" data-owner="members">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-plus" />
+                  </svg>
+                  New member
+                </button>
+              </div>
+              <div
+                style="
+                  padding: 16px;
+                  display: grid;
+                  grid-template-columns: repeat(3, 1fr);
+                  gap: 12px;
+                  align-content: start;
+                  overflow: hidden;
+                "
+              >
+                <div class="card" style="padding: 14px">
+                  <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 9px">
+                    <span class="avatar avatar--lg">DV</span>
+                    <div style="min-width: 0">
+                      <p style="margin: 0; font-size: var(--text-body); font-weight: 600">
+                        Developer
+                      </p>
+                      <p
+                        style="
+                          margin: 2px 0 0;
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                        "
+                      >
+                        Claude Code · worktree
+                      </p>
+                    </div>
+                  </div>
+                  <div class="chips">
+                    <span class="chip">tdd</span><span class="chip">orca-cli</span
+                    ><span class="chip">+2</span>
+                  </div>
+                </div>
+
+                <div class="card" style="padding: 14px">
+                  <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 9px">
+                    <span class="avatar avatar--lg">CR</span>
+                    <div style="min-width: 0">
+                      <p style="margin: 0; font-size: var(--text-body); font-weight: 600">
+                        Code Review
+                      </p>
+                      <p
+                        style="
+                          margin: 2px 0 0;
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                        "
+                      >
+                        Codex · worktree
+                      </p>
+                    </div>
+                  </div>
+                  <div class="chips">
+                    <span class="chip">security-review</span><span class="chip">code-review</span>
+                  </div>
+                </div>
+
+                <div class="card" style="padding: 14px">
+                  <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 9px">
+                    <span class="avatar avatar--lg">BA</span>
+                    <div style="min-width: 0">
+                      <p style="margin: 0; font-size: var(--text-body); font-weight: 600">
+                        Business Analyst
+                      </p>
+                      <p
+                        style="
+                          margin: 2px 0 0;
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                        "
+                      >
+                        Grok · folder
+                      </p>
+                    </div>
+                  </div>
+                  <div class="chips">
+                    <span class="chip">sharepoint</span><span class="chip">linear-tickets</span>
+                  </div>
+                </div>
+
+                <div class="card" style="padding: 14px">
+                  <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 9px">
+                    <span class="avatar avatar--lg">DS</span>
+                    <div style="min-width: 0">
+                      <p style="margin: 0; font-size: var(--text-body); font-weight: 600">
+                        Designer
+                      </p>
+                      <p
+                        style="
+                          margin: 2px 0 0;
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                        "
+                      >
+                        OpenClaude · folder
+                      </p>
+                    </div>
+                  </div>
+                  <div class="chips">
+                    <span class="chip">pica</span><span class="chip">computer-use</span>
+                  </div>
+                </div>
+
+                <div class="card" style="padding: 14px">
+                  <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 9px">
+                    <span class="avatar avatar--lg">PM</span>
+                    <div style="min-width: 0">
+                      <p style="margin: 0; font-size: var(--text-body); font-weight: 600">
+                        Project Manager
+                      </p>
+                      <p
+                        style="
+                          margin: 2px 0 0;
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                        "
+                      >
+                        Claude Code · folder
+                      </p>
+                    </div>
+                  </div>
+                  <div class="chips">
+                    <span class="chip">orchestration</span><span class="chip">plane</span>
+                  </div>
+                </div>
+
+                <div class="card" style="padding: 14px">
+                  <div style="display: flex; align-items: center; gap: 9px; margin-bottom: 9px">
+                    <span class="avatar avatar--lg">QA</span>
+                    <div style="min-width: 0">
+                      <p style="margin: 0; font-size: var(--text-body); font-weight: 600">QA</p>
+                      <p
+                        style="
+                          margin: 2px 0 0;
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                        "
+                      >
+                        Claude Code · worktree
+                      </p>
+                    </div>
+                  </div>
+                  <div class="chips">
+                    <span class="chip">test-automator</span><span class="chip">verification</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ══ SCREEN 5 — Member editor (pushed from members) ══════════════════ -->
+            <section data-scr="member-edit">
+              <div class="topbar">
+                <button class="btn btn--ghost btn--sm btn--icon" data-popback>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-x" />
+                  </svg>
+                </button>
+                <h1 class="topbar__title">New member</h1>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--ghost btn--sm" data-go="members" data-owner="members">
+                  Cancel
+                </button>
+                <button class="btn btn--primary btn--sm" data-go="members" data-owner="members">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-check" />
+                  </svg>
+                  Create member
+                </button>
+              </div>
+
+              <div class="editor">
+                <div class="editor__form">
+                  <div class="row2">
+                    <div class="field">
+                      <label class="field__label">Name</label>
+                      <div class="input">Code Review</div>
+                    </div>
+                    <div class="field">
+                      <label class="field__label">Role</label>
+                      <div class="input">
+                        Reviewer<svg
+                          class="icon--sm"
+                          style="float: right; margin-top: 8px; color: var(--muted-foreground)"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-chev" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label">Agent backend</label>
+                    <div class="seg">
+                      <button class="seg__opt">Claude Code</button>
+                      <button class="seg__opt" aria-pressed="true">Codex</button>
+                      <button class="seg__opt">Grok</button>
+                      <button class="seg__opt">OpenClaude</button>
+                    </div>
+                    <p class="field__hint">
+                      Runs on this machine with your own subscription. Org-shared seats arrive in a
+                      later phase.
+                    </p>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label">Workspace</label>
+                    <div class="seg">
+                      <button class="seg__opt" aria-pressed="true">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-branch" />
+                        </svg>
+                        Git worktree
+                      </button>
+                      <button class="seg__opt">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-folder" />
+                        </svg>
+                        Folder
+                      </button>
+                    </div>
+                    <p class="field__hint">
+                      Folder workspaces let non-engineering members work without a repo checkout.
+                    </p>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label">Skills</label>
+                    <div class="chips">
+                      <button class="chip" aria-pressed="true">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-check" /></svg
+                        >code-review
+                      </button>
+                      <button class="chip" aria-pressed="true">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="3"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-check" /></svg
+                        >security-review
+                      </button>
+                      <button class="chip">orchestration</button>
+                      <button class="chip">orca-cli</button>
+                      <button class="chip">tdd</button>
+                      <button class="chip">computer-use</button>
+                      <button class="chip">linear-tickets</button>
+                      <button class="chip">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-plus" /></svg
+                        >Custom skill
+                      </button>
+                    </div>
+                    <p class="field__hint">
+                      Installed skills come from the org catalog. A custom skill is scoped to this
+                      member.
+                    </p>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label">Permission mode</label>
+                    <div class="seg">
+                      <button class="seg__opt">Ask every action</button>
+                      <button class="seg__opt" aria-pressed="true">Accept edits</button>
+                      <button class="seg__opt">YOLO</button>
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label">System rules</label>
+                    <div class="rules">
+                      Review only what the diff touches.<br />Report security findings first, then
+                      correctness.<br />Never push. Hand findings back to the member that produced
+                      the diff.<br />Fail closed: if a check cannot run, say so rather than passing
+                      it.
+                    </div>
+                  </div>
+                </div>
+
+                <aside class="editor__aside">
+                  <p class="preview__title">Preview</p>
+                  <div class="card" style="padding: 0; overflow: hidden">
+                    <div class="col__head" style="border-radius: 0">
+                      <span class="avatar">CR</span>
+                      <span class="col__name">Code Review</span>
+                      <span class="badge">Codex</span>
+                    </div>
+                    <div style="padding: 10px; display: flex; flex-direction: column; gap: 8px">
+                      <div class="badge" style="align-self: flex-start">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-branch" />
+                        </svg>
+                        Git worktree
+                      </div>
+                      <div class="msg">
+                        <p class="msg__who">Code Review</p>
+                        <div class="msg__body">
+                          Ready. Waiting for a hand-off from the Build stage.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="preview__title" style="margin-top: 18px">Used by</p>
+                  <div style="display: flex; flex-direction: column; gap: 7px">
+                    <div
+                      class="card"
+                      style="padding: 9px 11px; display: flex; align-items: center; gap: 8px"
+                    >
+                      <svg
+                        class="icon--sm"
+                        style="color: var(--brand)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-workflow" />
+                      </svg>
+                      <span style="font-size: var(--text-sub)">Feature delivery · Review</span>
+                    </div>
+                    <div
+                      class="card"
+                      style="padding: 9px 11px; display: flex; align-items: center; gap: 8px"
+                    >
+                      <svg
+                        class="icon--sm"
+                        style="color: var(--brand)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-grid" />
+                      </svg>
+                      <span style="font-size: var(--text-sub)">Board · on enter In Review</span>
+                    </div>
+                  </div>
+                </aside>
+              </div>
+            </section>
+
+            <!-- ══ INBOX — the home. Only what needs you. ══════════════════════════ -->
+            <section data-scr="inbox">
+              <div class="topbar">
+                <h1 class="topbar__title">Needs you</h1>
+                <span class="badge badge--ask">2 decisions</span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--ghost btn--sm" data-go="run" data-owner="inbox">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-activity" />
+                  </svg>
+                  Activity
+                </button>
+                <button class="btn btn--ghost btn--sm" data-sheet="command">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-mic" />
+                  </svg>
+                  Ask or say a command <span class="kbd">⌘K</span>
+                </button>
+              </div>
+
+              <div class="inbox">
+                <div class="inbox__list">
+                  <div class="zero">
+                    <svg
+                      class="icon--sm"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <use href="#i-check" />
+                    </svg>
+                    <span
+                      ><strong>23 steps completed without you today.</strong> 2 needed a
+                      decision.</span
+                    >
+                  </div>
+
+                  <div class="dcard dcard--urgent">
+                    <div class="dcard__top">
+                      <span class="avatar">BA</span>
+                      <span class="dcard__stage">PAY-3021 · Spec → Architecture</span>
+                      <span class="dcard__age">18m ago</span>
+                    </div>
+                    <p class="dcard__q">Do partial refunds support multi-currency at launch?</p>
+                    <p class="dcard__why">
+                      Gated because the decision is <strong>inherited</strong> — the ledger schema,
+                      the API contract and four downstream tasks all depend on it.
+                    </p>
+                    <div class="dcard__acts">
+                      <button class="btn btn--primary btn--sm">Yes, at launch</button>
+                      <button class="btn btn--outline btn--sm">Defer to v2</button>
+                      <button class="btn btn--ghost btn--sm">Ask Business Analyst</button>
+                    </div>
+                  </div>
+
+                  <div class="dcard">
+                    <div class="dcard__top">
+                      <span class="avatar">CR</span>
+                      <span class="dcard__stage">PAY-2998 · Review → Merge</span>
+                      <span class="dcard__age">42m ago</span>
+                    </div>
+                    <p class="dcard__q">
+                      Merge <strong>Idempotency key scoping</strong> into main?
+                    </p>
+                    <p class="dcard__why">
+                      Gated because merging is <strong>irreversible</strong>. This gate never
+                      retires, whatever the track record. All 3 required checks passed.
+                    </p>
+                    <div class="dcard__acts">
+                      <button class="btn btn--primary btn--sm">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <use href="#i-check" />
+                        </svg>
+                        Approve merge
+                      </button>
+                      <button class="btn btn--outline btn--sm" data-go="run" data-owner="inbox">
+                        Review the trail
+                      </button>
+                      <button class="btn btn--ghost btn--sm">Send back</button>
+                    </div>
+                  </div>
+
+                  <p class="side__label" style="margin: 8px 0 0 2px">Ran without you</p>
+                  <div class="dcard" style="border-style: dashed">
+                    <div class="dcard__top">
+                      <span class="avatar">DV</span>
+                      <span class="dcard__stage">PAY-3021 · Build → Review</span>
+                      <span class="badge badge--ok">auto-approved</span>
+                      <span class="dcard__age">1h ago</span>
+                    </div>
+                    <p class="dcard__why" style="margin: 0">
+                      3/3 checks passed · 14 files · isolated worktree · Developer at 96% accepted
+                      over 71 runs.
+                      <span
+                        style="color: var(--brand); cursor: pointer"
+                        data-go="run"
+                        data-owner="inbox"
+                        >See why</span
+                      >
+                    </p>
+                  </div>
+                </div>
+
+                <aside class="inbox__side">
+                  <p class="preview__title">Today</p>
+                  <div class="prov">
+                    <div class="prov__row">
+                      <span class="prov__k">Completed</span
+                      ><span class="prov__v"><b>23 steps</b> across 6 tasks</span>
+                    </div>
+                    <div class="prov__row">
+                      <span class="prov__k">Asked you</span
+                      ><span class="prov__v"><b>2</b> — both hard stops, never auto</span>
+                    </div>
+                    <div class="prov__row">
+                      <span class="prov__k">Auto-passed</span
+                      ><span class="prov__v"
+                        ><b>21</b> — verified and reversible
+                        <span class="meter"><span style="width: 91%"></span></span
+                      ></span>
+                    </div>
+                    <div class="prov__row">
+                      <span class="prov__k">Amended</span
+                      ><span class="prov__v"><b>0</b> after the fact</span>
+                    </div>
+                  </div>
+
+                  <p class="preview__title" style="margin-top: 20px">Gates that never retire</p>
+                  <div style="display: flex; flex-direction: column; gap: 7px">
+                    <div
+                      class="card"
+                      style="padding: 9px 11px; display: flex; align-items: center; gap: 8px"
+                    >
+                      <span class="lvl lvl--0">hard stop</span>
+                      <span style="font-size: var(--text-sub)">Review → Merge</span>
+                    </div>
+                    <div
+                      class="card"
+                      style="padding: 9px 11px; display: flex; align-items: center; gap: 8px"
+                    >
+                      <span class="lvl lvl--0">hard stop</span>
+                      <span style="font-size: var(--text-sub)">Merge → Deploy</span>
+                    </div>
+                    <div
+                      class="card"
+                      style="padding: 9px 11px; display: flex; align-items: center; gap: 8px"
+                    >
+                      <span class="lvl lvl--0">hard stop</span>
+                      <span style="font-size: var(--text-sub)">Architecture decisions</span>
+                    </div>
+                  </div>
+                  <p class="field__hint" style="margin-top: 12px">
+                    Irreversible or inherited. Evidence never retires these — only a policy owner
+                    can, with an expiry.
+                  </p>
+                </aside>
+              </div>
+            </section>
+
+            <!-- ══ RUN — the decision trail ═══════════════════════════════════════ -->
+            <section data-scr="run">
+              <div class="topbar">
+                <button class="btn btn--ghost btn--sm btn--icon" data-popback>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-x" />
+                  </svg>
+                </button>
+                <h1 class="topbar__title">PAY-3021 · Partial refunds</h1>
+                <span class="badge badge--brand">Feature delivery</span>
+                <span class="badge">run_8f21c4</span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--outline btn--sm">Export trail</button>
+              </div>
+
+              <div class="inbox">
+                <div class="inbox__list">
+                  <div class="dcard">
+                    <div class="dcard__top">
+                      <span class="avatar">BA</span><span class="dcard__stage">1 · Spec</span>
+                      <span class="badge badge--ok">auto</span><span class="dcard__age">09:04</span>
+                    </div>
+                    <p class="dcard__why" style="margin: 0">
+                      Acceptance criteria drafted to SharePoint. Reversible, nothing downstream
+                      committed yet.
+                    </p>
+                  </div>
+                  <div class="dcard dcard--urgent">
+                    <div class="dcard__top">
+                      <span class="avatar">BA</span
+                      ><span class="dcard__stage">2 · Architecture</span>
+                      <span class="badge badge--ask">gated</span
+                      ><span class="dcard__age">09:41</span>
+                    </div>
+                    <p class="dcard__q" style="font-size: var(--text-sub)">
+                      Multi-currency at launch?
+                    </p>
+                    <p class="dcard__why" style="margin: 0">Waiting on you · inherited decision</p>
+                  </div>
+                  <div class="dcard">
+                    <div class="dcard__top">
+                      <span class="avatar">DV</span><span class="dcard__stage">3 · Build</span>
+                      <span class="badge badge--ok">auto</span><span class="dcard__age">10:12</span>
+                    </div>
+                    <p class="dcard__why" style="margin: 0">
+                      14 files, 260 insertions in
+                      <code style="font-family: var(--font-mono); font-size: 11px"
+                        >feat/refund-api</code
+                      >. Handed to Code Review.
+                    </p>
+                  </div>
+                  <div class="dcard">
+                    <div class="dcard__top">
+                      <span class="avatar">CR</span><span class="dcard__stage">4 · Review</span>
+                      <span class="badge badge--ok">auto</span><span class="dcard__age">10:58</span>
+                    </div>
+                    <p class="dcard__why" style="margin: 0">
+                      2 findings returned to Developer. Fixed and re-verified without a human relay.
+                    </p>
+                  </div>
+                  <div class="dcard" style="opacity: 0.6">
+                    <div class="dcard__top">
+                      <span class="avatar">QA</span><span class="dcard__stage">5 · Verify</span>
+                      <span class="badge">pending</span>
+                    </div>
+                    <p class="dcard__why" style="margin: 0">
+                      Starts when the architecture gate resolves.
+                    </p>
+                  </div>
+                </div>
+
+                <aside class="inbox__side">
+                  <p class="preview__title">Build → Review · why no human was asked</p>
+                  <div class="prov">
+                    <div class="prov__row">
+                      <span class="prov__k">Verified</span
+                      ><span class="prov__v">
+                        <div class="checkline">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <use href="#i-check" /></svg
+                          >pnpm test · 4m 12s
+                        </div>
+                        <div class="checkline">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <use href="#i-check" /></svg
+                          >tc:node · 38s
+                        </div>
+                        <div class="checkline">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="3"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <use href="#i-check" /></svg
+                          >oxlint · 11s
+                        </div>
+                      </span>
+                    </div>
+                    <div class="prov__row">
+                      <span class="prov__k">Reversible</span
+                      ><span class="prov__v">
+                        isolated worktree <b>feat/refund-api</b> · not merged</span
+                      >
+                    </div>
+                    <div class="prov__row">
+                      <span class="prov__k">Blast</span
+                      ><span class="prov__v">
+                        14 files of 25 · $0.82 of $5.00
+                        <span class="meter"><span style="width: 56%"></span></span
+                      ></span>
+                    </div>
+                    <div class="prov__row">
+                      <span class="prov__k">Record</span
+                      ><span class="prov__v">
+                        Developer · stage=build · <b>71 runs</b><br />96.1% accepted · last
+                        amendment 44 runs ago
+                        <span class="meter"><span style="width: 96%"></span></span
+                      ></span>
+                    </div>
+                    <div class="prov__row">
+                      <span class="prov__k">Policy</span
+                      ><span class="prov__v">
+                        evidence · <span class="lvl lvl--3">Level 3</span><br />
+                        <span style="color: var(--muted-foreground)"
+                          >set by nghia.dangvan · 2026-08-14</span
+                        ></span
+                      >
+                    </div>
+                  </div>
+                  <p class="field__hint" style="margin-top: 14px">
+                    Every line is a row in the ledger, not a summary the agent wrote about itself.
+                  </p>
+                </aside>
+              </div>
+            </section>
+
+            <!-- ══ AUTONOMY — policy per stage ════════════════════════════════════ -->
+            <section data-scr="autonomy">
+              <div class="topbar">
+                <h1 class="topbar__title">Autonomy</h1>
+                <span class="badge">Feature delivery</span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--outline btn--sm">Observe-only mode</button>
+              </div>
+              <div class="pane">
+                <p class="pane__lede">
+                  A gate retires when evidence replaces it — machine verification, cheap reversal,
+                  or accumulated track record. Hard stops never retire, whatever the numbers say.
+                  Any rejection, or two amendments in the last ten runs, drops a stage one level
+                  immediately.
+                </p>
+                <div class="dwrap">
+                  <table class="dtable">
+                    <thead>
+                      <tr>
+                        <th>Stage</th>
+                        <th>Owner</th>
+                        <th>Reversibility</th>
+                        <th>Verified by</th>
+                        <th>Record</th>
+                        <th>Level</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><b>Spec</b></td>
+                        <td>Business Analyst</td>
+                        <td>free</td>
+                        <td>—</td>
+                        <td>38 runs · 92%</td>
+                        <td><span class="lvl lvl--3">3 · autonomous</span></td>
+                      </tr>
+                      <tr>
+                        <td><b>Architecture</b></td>
+                        <td>Business Analyst</td>
+                        <td>inherited <span class="badge badge--ask">hard stop</span></td>
+                        <td>—</td>
+                        <td>12 runs · 83%</td>
+                        <td><span class="lvl lvl--0">0 · always gate</span></td>
+                      </tr>
+                      <tr>
+                        <td><b>Design</b></td>
+                        <td>Designer</td>
+                        <td>free</td>
+                        <td>—</td>
+                        <td>7 runs · 100%</td>
+                        <td><span class="lvl lvl--1">1 · advisory</span></td>
+                      </tr>
+                      <tr>
+                        <td><b>Build</b></td>
+                        <td>Developer</td>
+                        <td>worktree</td>
+                        <td>test · types · lint</td>
+                        <td>71 runs · 96%</td>
+                        <td><span class="lvl lvl--3">3 · autonomous</span></td>
+                      </tr>
+                      <tr>
+                        <td><b>Review</b></td>
+                        <td>Code Review</td>
+                        <td>worktree</td>
+                        <td>test · security</td>
+                        <td>63 runs · 95%</td>
+                        <td><span class="lvl lvl--3">3 · autonomous</span></td>
+                      </tr>
+                      <tr>
+                        <td><b>Verify</b></td>
+                        <td>QA</td>
+                        <td>worktree</td>
+                        <td>e2e</td>
+                        <td>24 runs · 88%</td>
+                        <td><span class="lvl lvl--2">2 · conditional</span></td>
+                      </tr>
+                      <tr>
+                        <td><b>Merge</b></td>
+                        <td>—</td>
+                        <td>irreversible <span class="badge badge--ask">hard stop</span></td>
+                        <td>all required</td>
+                        <td>—</td>
+                        <td><span class="lvl lvl--0">0 · always gate</span></td>
+                      </tr>
+                      <tr>
+                        <td><b>Deploy</b></td>
+                        <td>—</td>
+                        <td>irreversible <span class="badge badge--ask">hard stop</span></td>
+                        <td>smoke</td>
+                        <td>—</td>
+                        <td><span class="lvl lvl--0">0 · always gate</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div style="display: flex; gap: 22px; margin-top: 18px; flex-wrap: wrap">
+                  <div>
+                    <p class="side__label">Blast-radius budget · per run</p>
+                    <div style="display: flex; gap: 10px">
+                      <div class="card" style="padding: 9px 13px">
+                        <span class="field__hint">Files</span>
+                        <div style="font-size: var(--text-body); font-weight: 600">25</div>
+                      </div>
+                      <div class="card" style="padding: 9px 13px">
+                        <span class="field__hint">Spend</span>
+                        <div style="font-size: var(--text-body); font-weight: 600">$5.00</div>
+                      </div>
+                      <div class="card" style="padding: 9px 13px">
+                        <span class="field__hint">Protected paths</span>
+                        <div style="font-size: var(--text-body); font-weight: 600">4</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="side__label">Promotion ladder</p>
+                    <div
+                      style="
+                        display: flex;
+                        flex-direction: column;
+                        gap: 7px;
+                        font-size: var(--text-sub);
+                        color: var(--muted-foreground);
+                      "
+                    >
+                      <span
+                        ><span class="ladder"><i class="on"></i><i></i><i></i><i></i></span> &nbsp;0
+                        · observed — always gates, records what it would decide</span
+                      >
+                      <span
+                        ><span class="ladder"
+                          ><i class="on"></i><i class="on"></i><i></i><i></i
+                        ></span>
+                        &nbsp;1 · advisory — gates, but pre-fills a recommendation</span
+                      >
+                      <span
+                        ><span class="ladder"
+                          ><i class="on"></i><i class="on"></i><i class="on"></i><i></i
+                        ></span>
+                        &nbsp;2 · conditional — auto when verified and inside budget</span
+                      >
+                      <span
+                        ><span class="ladder"
+                          ><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i
+                        ></span>
+                        &nbsp;3 · autonomous — notifies instead of blocking</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ══ SKILLS — org catalog ═══════════════════════════════════════════ -->
+            <section data-scr="skills">
+              <div class="topbar">
+                <button class="btn btn--ghost btn--sm btn--icon" data-popback>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-x" />
+                  </svg>
+                </button>
+                <h1 class="topbar__title">Skill catalog</h1>
+                <span class="badge">12 approved for this org</span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--primary btn--sm">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-plus" />
+                  </svg>
+                  Publish a skill
+                </button>
+              </div>
+              <div class="pane">
+                <p class="pane__lede">
+                  Skills a member can be given. The <strong>required checks</strong> a stage
+                  verifies against are authored here, not by the member — a member cannot loosen the
+                  criteria it is judged by.
+                </p>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 12px;
+                    align-content: start;
+                  "
+                >
+                  <div class="card" style="padding: 14px">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px">
+                      <svg
+                        class="icon--sm"
+                        style="color: var(--brand)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-shield" />
+                      </svg>
+                      <b style="font-size: var(--text-row)">security-review</b
+                      ><span class="badge badge--ok">org</span>
+                    </div>
+                    <p class="field__hint" style="line-height: 1.5">
+                      Injection, authz, secrets, dependency risk. Used by Code Review at the Review
+                      stage.
+                    </p>
+                  </div>
+                  <div class="card" style="padding: 14px">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px">
+                      <svg
+                        class="icon--sm"
+                        style="color: var(--brand)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-check" />
+                      </svg>
+                      <b style="font-size: var(--text-row)">code-review</b
+                      ><span class="badge badge--ok">org</span>
+                    </div>
+                    <p class="field__hint" style="line-height: 1.5">
+                      Correctness and reuse against the diff only. Reports findings back to the
+                      author.
+                    </p>
+                  </div>
+                  <div class="card" style="padding: 14px">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px">
+                      <svg
+                        class="icon--sm"
+                        style="color: var(--brand)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-workflow" />
+                      </svg>
+                      <b style="font-size: var(--text-row)">orchestration</b
+                      ><span class="badge badge--ok">org</span>
+                    </div>
+                    <p class="field__hint" style="line-height: 1.5">
+                      Task DAGs, dispatch, gates. Required for any member that owns a workflow
+                      stage.
+                    </p>
+                  </div>
+                  <div class="card" style="padding: 14px">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px">
+                      <svg
+                        class="icon--sm"
+                        style="color: var(--muted-foreground)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-book" />
+                      </svg>
+                      <b style="font-size: var(--text-row)">sharepoint</b
+                      ><span class="badge">custom</span>
+                    </div>
+                    <p class="field__hint" style="line-height: 1.5">
+                      Read and write specs in the company tenant. Folder-workspace members only.
+                    </p>
+                  </div>
+                  <div class="card" style="padding: 14px">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 7px">
+                      <svg
+                        class="icon--sm"
+                        style="color: var(--muted-foreground)"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <use href="#i-branch" />
+                      </svg>
+                      <b style="font-size: var(--text-row)">tdd</b><span class="badge">custom</span>
+                    </div>
+                    <p class="field__hint" style="line-height: 1.5">
+                      Test-first. Raises the verified signal that Build depends on for Level 3.
+                    </p>
+                  </div>
+                  <div
+                    class="card"
+                    style="
+                      padding: 14px;
+                      border-style: dashed;
+                      display: grid;
+                      place-items: center;
+                      min-height: 96px;
+                    "
+                  >
+                    <span class="field__hint">+ 7 more</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ══ ORG — people, not agents ═══════════════════════════════════════ -->
+            <section data-scr="org">
+              <div class="topbar">
+                <button class="btn btn--ghost btn--sm btn--icon" data-popback>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-x" />
+                  </svg>
+                </button>
+                <h1 class="topbar__title">Organisation</h1>
+                <span class="badge">8Seneca</span>
+                <span class="badge badge--ok">self-hosted</span>
+                <div class="topbar__spacer"></div>
+                <button class="btn btn--primary btn--sm">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-plus" />
+                  </svg>
+                  Invite people
+                </button>
+              </div>
+              <div class="pane">
+                <p class="pane__lede">
+                  People, not agent members. Everyone runs agents on their own machine with their
+                  own subscription — Alicorn never holds a model key.
+                </p>
+                <div class="dwrap">
+                  <table class="dtable">
+                    <thead>
+                      <tr>
+                        <th>Person</th>
+                        <th>Role</th>
+                        <th>Seat</th>
+                        <th>Can loosen gates</th>
+                        <th>Last active</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <b>Nghia Dang</b><br /><span class="field__hint"
+                            >nghia.dangvan@8seneca.com</span
+                          >
+                        </td>
+                        <td>Owner</td>
+                        <td><span class="badge badge--brand">Builder</span></td>
+                        <td><span class="badge badge--ok">yes</span></td>
+                        <td>now</td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <b>Platform team</b><br /><span class="field__hint">4 engineers</span>
+                        </td>
+                        <td>Admin</td>
+                        <td><span class="badge badge--brand">Builder</span></td>
+                        <td><span class="badge badge--ok">yes</span></td>
+                        <td>today</td>
+                      </tr>
+                      <tr>
+                        <td><b>Product</b><br /><span class="field__hint">2 PMs, 1 BA</span></td>
+                        <td>Member</td>
+                        <td><span class="badge">Collaborator</span></td>
+                        <td><span class="badge">no</span></td>
+                        <td>today</td>
+                      </tr>
+                      <tr>
+                        <td><b>Design</b><br /><span class="field__hint">1 designer</span></td>
+                        <td>Member</td>
+                        <td><span class="badge">Collaborator</span></td>
+                        <td><span class="badge">no</span></td>
+                        <td>2d ago</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap">
+                  <div class="card" style="padding: 13px 16px">
+                    <span class="field__hint">Builder seats</span>
+                    <div style="font-size: 19px; font-weight: 600">
+                      5
+                      <span
+                        style="
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                          font-weight: 400;
+                        "
+                        >of 10</span
+                      >
+                    </div>
+                  </div>
+                  <div class="card" style="padding: 13px 16px">
+                    <span class="field__hint">Collaborator seats</span>
+                    <div style="font-size: 19px; font-weight: 600">
+                      4
+                      <span
+                        style="
+                          font-size: var(--text-sub);
+                          color: var(--muted-foreground);
+                          font-weight: 400;
+                        "
+                        >of 25</span
+                      >
+                    </div>
+                  </div>
+                  <div class="card" style="padding: 13px 16px">
+                    <span class="field__hint">Identity</span>
+                    <div style="font-size: var(--text-body); font-weight: 600; margin-top: 3px">
+                      SuperTokens · self-hosted
+                    </div>
+                  </div>
+                  <div class="card" style="padding: 13px 16px">
+                    <span class="field__hint">Standing gate exceptions</span>
+                    <div style="font-size: 19px; font-weight: 600; color: var(--status-attention)">
+                      1
+                    </div>
+                  </div>
+                </div>
+                <p class="field__hint" style="margin-top: 12px">
+                  One <code style="font-family: var(--font-mono)">never_gate</code> exception is
+                  active on Design → Build, set by an admin and expiring in 6 days.
+                </p>
+              </div>
+            </section>
+          </main>
+
+          <!-- ══ SHEET — Command bar (chat + voice) ════════════════════════════════ -->
+          <div class="sheetwrap" data-sheetwrap="command">
+            <div class="scrim" data-sheetclose="command"></div>
+            <div class="cmd">
+              <div class="cmd__input">
+                <span class="cmd__mic">
+                  <svg
+                    class="icon--sm"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-mic" />
+                  </svg>
+                </span>
+                <span class="wave">
+                  <i style="height: 5px"></i><i style="height: 11px"></i><i style="height: 16px"></i
+                  ><i style="height: 9px"></i> <i style="height: 14px"></i
+                  ><i style="height: 6px"></i><i style="height: 12px"></i
+                  ><i style="height: 4px"></i>
+                </span>
+                <span class="cmd__text"
+                  >create a worktree for PAY-3021 and start the Developer…</span
+                >
+                <span class="badge badge--brand">Listening</span>
+              </div>
+              <div class="cmd__list">
+                <div class="cmd__row" aria-selected="true">
+                  <svg
+                    class="icon--sm"
+                    style="color: var(--brand)"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-branch" />
+                  </svg>
+                  <span>Create worktree <strong>feat/PAY-3021</strong> and start Developer</span>
+                  <span class="cmd__hint">↵</span>
+                </div>
+                <div class="cmd__row">
+                  <svg
+                    class="icon--sm"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-bot" />
+                  </svg>
+                  <span>Add a QA member to this team</span>
+                </div>
+                <div class="cmd__row">
+                  <svg
+                    class="icon--sm"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-play" />
+                  </svg>
+                  <span>Start the <strong>Feature delivery</strong> workflow on PAY-3021</span>
+                </div>
+                <div class="cmd__row">
+                  <svg
+                    class="icon--sm"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <use href="#i-alert" />
+                  </svg>
+                  <span>Ask Business Analyst about multi-currency</span>
+                </div>
+              </div>
+              <div class="cmd__foot">
+                <span><span class="kbd">↵</span> run</span>
+                <span><span class="kbd">⇥</span> pick member</span>
+                <span><span class="kbd">esc</span> stop listening</span>
+                <div class="topbar__spacer"></div>
+                <span>On-device speech · nothing leaves this machine</span>
+              </div>
             </div>
-            <p class="dcard__why" style="margin:0">3/3 checks passed · 14 files · isolated worktree ·
-              Developer at 96% accepted over 71 runs. <span style="color:var(--brand);cursor:pointer" data-go="run" data-owner="inbox">See why</span></p>
           </div>
         </div>
-
-        <aside class="inbox__side">
-          <p class="preview__title">Today</p>
-          <div class="prov">
-            <div class="prov__row"><span class="prov__k">Completed</span><span class="prov__v"><b>23 steps</b> across 6 tasks</span></div>
-            <div class="prov__row"><span class="prov__k">Asked you</span><span class="prov__v"><b>2</b> — both hard stops, never auto</span></div>
-            <div class="prov__row"><span class="prov__k">Auto-passed</span><span class="prov__v"><b>21</b> — verified and reversible
-              <span class="meter"><span style="width:91%"></span></span></span></div>
-            <div class="prov__row"><span class="prov__k">Amended</span><span class="prov__v"><b>0</b> after the fact</span></div>
-          </div>
-
-          <p class="preview__title" style="margin-top:20px">Gates that never retire</p>
-          <div style="display:flex;flex-direction:column;gap:7px">
-            <div class="card" style="padding:9px 11px;display:flex;align-items:center;gap:8px">
-              <span class="lvl lvl--0">hard stop</span>
-              <span style="font-size:var(--text-sub)">Review → Merge</span>
-            </div>
-            <div class="card" style="padding:9px 11px;display:flex;align-items:center;gap:8px">
-              <span class="lvl lvl--0">hard stop</span>
-              <span style="font-size:var(--text-sub)">Merge → Deploy</span>
-            </div>
-            <div class="card" style="padding:9px 11px;display:flex;align-items:center;gap:8px">
-              <span class="lvl lvl--0">hard stop</span>
-              <span style="font-size:var(--text-sub)">Architecture decisions</span>
-            </div>
-          </div>
-          <p class="field__hint" style="margin-top:12px">Irreversible or inherited. Evidence never
-            retires these — only a policy owner can, with an expiry.</p>
-        </aside>
+        <!-- /frame -->
       </div>
-    </section>
-
-    <!-- ══ RUN — the decision trail ═══════════════════════════════════════ -->
-    <section data-scr="run">
-      <div class="topbar">
-        <button class="btn btn--ghost btn--sm btn--icon" data-popback>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-x"/></svg>
-        </button>
-        <h1 class="topbar__title">PAY-3021 · Partial refunds</h1>
-        <span class="badge badge--brand">Feature delivery</span>
-        <span class="badge">run_8f21c4</span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--outline btn--sm">Export trail</button>
-      </div>
-
-      <div class="inbox">
-        <div class="inbox__list">
-          <div class="dcard">
-            <div class="dcard__top"><span class="avatar">BA</span><span class="dcard__stage">1 · Spec</span>
-              <span class="badge badge--ok">auto</span><span class="dcard__age">09:04</span></div>
-            <p class="dcard__why" style="margin:0">Acceptance criteria drafted to SharePoint.
-              Reversible, nothing downstream committed yet.</p>
-          </div>
-          <div class="dcard dcard--urgent">
-            <div class="dcard__top"><span class="avatar">BA</span><span class="dcard__stage">2 · Architecture</span>
-              <span class="badge badge--ask">gated</span><span class="dcard__age">09:41</span></div>
-            <p class="dcard__q" style="font-size:var(--text-sub)">Multi-currency at launch?</p>
-            <p class="dcard__why" style="margin:0">Waiting on you · inherited decision</p>
-          </div>
-          <div class="dcard">
-            <div class="dcard__top"><span class="avatar">DV</span><span class="dcard__stage">3 · Build</span>
-              <span class="badge badge--ok">auto</span><span class="dcard__age">10:12</span></div>
-            <p class="dcard__why" style="margin:0">14 files, 260 insertions in
-              <code style="font-family:var(--font-mono);font-size:11px">feat/refund-api</code>. Handed to Code Review.</p>
-          </div>
-          <div class="dcard">
-            <div class="dcard__top"><span class="avatar">CR</span><span class="dcard__stage">4 · Review</span>
-              <span class="badge badge--ok">auto</span><span class="dcard__age">10:58</span></div>
-            <p class="dcard__why" style="margin:0">2 findings returned to Developer. Fixed and
-              re-verified without a human relay.</p>
-          </div>
-          <div class="dcard" style="opacity:.6">
-            <div class="dcard__top"><span class="avatar">QA</span><span class="dcard__stage">5 · Verify</span>
-              <span class="badge">pending</span></div>
-            <p class="dcard__why" style="margin:0">Starts when the architecture gate resolves.</p>
-          </div>
-        </div>
-
-        <aside class="inbox__side">
-          <p class="preview__title">Build → Review · why no human was asked</p>
-          <div class="prov">
-            <div class="prov__row"><span class="prov__k">Verified</span><span class="prov__v">
-              <div class="checkline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>pnpm test · 4m 12s</div>
-              <div class="checkline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>tc:node · 38s</div>
-              <div class="checkline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>oxlint · 11s</div>
-            </span></div>
-            <div class="prov__row"><span class="prov__k">Reversible</span><span class="prov__v">
-              isolated worktree <b>feat/refund-api</b> · not merged</span></div>
-            <div class="prov__row"><span class="prov__k">Blast</span><span class="prov__v">
-              14 files of 25 · $0.82 of $5.00
-              <span class="meter"><span style="width:56%"></span></span></span></div>
-            <div class="prov__row"><span class="prov__k">Record</span><span class="prov__v">
-              Developer · stage=build · <b>71 runs</b><br>96.1% accepted · last amendment 44 runs ago
-              <span class="meter"><span style="width:96%"></span></span></span></div>
-            <div class="prov__row"><span class="prov__k">Policy</span><span class="prov__v">
-              evidence · <span class="lvl lvl--3">Level 3</span><br>
-              <span style="color:var(--muted-foreground)">set by nghia.dangvan · 2026-08-14</span></span></div>
-          </div>
-          <p class="field__hint" style="margin-top:14px">Every line is a row in the ledger, not a
-            summary the agent wrote about itself.</p>
-        </aside>
-      </div>
-    </section>
-
-    <!-- ══ AUTONOMY — policy per stage ════════════════════════════════════ -->
-    <section data-scr="autonomy">
-      <div class="topbar">
-        <h1 class="topbar__title">Autonomy</h1>
-        <span class="badge">Feature delivery</span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--outline btn--sm">Observe-only mode</button>
-      </div>
-      <div class="pane">
-        <p class="pane__lede">A gate retires when evidence replaces it — machine verification, cheap
-          reversal, or accumulated track record. Hard stops never retire, whatever the numbers say.
-          Any rejection, or two amendments in the last ten runs, drops a stage one level immediately.</p>
-        <div class="dwrap">
-          <table class="dtable">
-            <thead><tr><th>Stage</th><th>Owner</th><th>Reversibility</th><th>Verified by</th><th>Record</th><th>Level</th></tr></thead>
-            <tbody>
-              <tr><td><b>Spec</b></td><td>Business Analyst</td><td>free</td><td>—</td><td>38 runs · 92%</td><td><span class="lvl lvl--3">3 · autonomous</span></td></tr>
-              <tr><td><b>Architecture</b></td><td>Business Analyst</td><td>inherited <span class="badge badge--ask">hard stop</span></td><td>—</td><td>12 runs · 83%</td><td><span class="lvl lvl--0">0 · always gate</span></td></tr>
-              <tr><td><b>Design</b></td><td>Designer</td><td>free</td><td>—</td><td>7 runs · 100%</td><td><span class="lvl lvl--1">1 · advisory</span></td></tr>
-              <tr><td><b>Build</b></td><td>Developer</td><td>worktree</td><td>test · types · lint</td><td>71 runs · 96%</td><td><span class="lvl lvl--3">3 · autonomous</span></td></tr>
-              <tr><td><b>Review</b></td><td>Code Review</td><td>worktree</td><td>test · security</td><td>63 runs · 95%</td><td><span class="lvl lvl--3">3 · autonomous</span></td></tr>
-              <tr><td><b>Verify</b></td><td>QA</td><td>worktree</td><td>e2e</td><td>24 runs · 88%</td><td><span class="lvl lvl--2">2 · conditional</span></td></tr>
-              <tr><td><b>Merge</b></td><td>—</td><td>irreversible <span class="badge badge--ask">hard stop</span></td><td>all required</td><td>—</td><td><span class="lvl lvl--0">0 · always gate</span></td></tr>
-              <tr><td><b>Deploy</b></td><td>—</td><td>irreversible <span class="badge badge--ask">hard stop</span></td><td>smoke</td><td>—</td><td><span class="lvl lvl--0">0 · always gate</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div style="display:flex;gap:22px;margin-top:18px;flex-wrap:wrap">
-          <div><p class="side__label">Blast-radius budget · per run</p>
-            <div style="display:flex;gap:10px">
-              <div class="card" style="padding:9px 13px"><span class="field__hint">Files</span><div style="font-size:var(--text-body);font-weight:600">25</div></div>
-              <div class="card" style="padding:9px 13px"><span class="field__hint">Spend</span><div style="font-size:var(--text-body);font-weight:600">$5.00</div></div>
-              <div class="card" style="padding:9px 13px"><span class="field__hint">Protected paths</span><div style="font-size:var(--text-body);font-weight:600">4</div></div>
-            </div>
-          </div>
-          <div><p class="side__label">Promotion ladder</p>
-            <div style="display:flex;flex-direction:column;gap:7px;font-size:var(--text-sub);color:var(--muted-foreground)">
-              <span><span class="ladder"><i class="on"></i><i></i><i></i><i></i></span> &nbsp;0 · observed — always gates, records what it would decide</span>
-              <span><span class="ladder"><i class="on"></i><i class="on"></i><i></i><i></i></span> &nbsp;1 · advisory — gates, but pre-fills a recommendation</span>
-              <span><span class="ladder"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span> &nbsp;2 · conditional — auto when verified and inside budget</span>
-              <span><span class="ladder"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span> &nbsp;3 · autonomous — notifies instead of blocking</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ SKILLS — org catalog ═══════════════════════════════════════════ -->
-    <section data-scr="skills">
-      <div class="topbar">
-        <button class="btn btn--ghost btn--sm btn--icon" data-popback>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-x"/></svg>
-        </button>
-        <h1 class="topbar__title">Skill catalog</h1>
-        <span class="badge">12 approved for this org</span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--primary btn--sm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-plus"/></svg>
-          Publish a skill
-        </button>
-      </div>
-      <div class="pane">
-        <p class="pane__lede">Skills a member can be given. The <strong>required checks</strong> a
-          stage verifies against are authored here, not by the member — a member cannot loosen the
-          criteria it is judged by.</p>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-content:start">
-          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-            <svg class="icon--sm" style="color:var(--brand)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-shield"/></svg>
-            <b style="font-size:var(--text-row)">security-review</b><span class="badge badge--ok">org</span></div>
-            <p class="field__hint" style="line-height:1.5">Injection, authz, secrets, dependency risk. Used by Code Review at the Review stage.</p></div>
-          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-            <svg class="icon--sm" style="color:var(--brand)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check"/></svg>
-            <b style="font-size:var(--text-row)">code-review</b><span class="badge badge--ok">org</span></div>
-            <p class="field__hint" style="line-height:1.5">Correctness and reuse against the diff only. Reports findings back to the author.</p></div>
-          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-            <svg class="icon--sm" style="color:var(--brand)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-workflow"/></svg>
-            <b style="font-size:var(--text-row)">orchestration</b><span class="badge badge--ok">org</span></div>
-            <p class="field__hint" style="line-height:1.5">Task DAGs, dispatch, gates. Required for any member that owns a workflow stage.</p></div>
-          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-            <svg class="icon--sm" style="color:var(--muted-foreground)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-book"/></svg>
-            <b style="font-size:var(--text-row)">sharepoint</b><span class="badge">custom</span></div>
-            <p class="field__hint" style="line-height:1.5">Read and write specs in the company tenant. Folder-workspace members only.</p></div>
-          <div class="card" style="padding:14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-            <svg class="icon--sm" style="color:var(--muted-foreground)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg>
-            <b style="font-size:var(--text-row)">tdd</b><span class="badge">custom</span></div>
-            <p class="field__hint" style="line-height:1.5">Test-first. Raises the verified signal that Build depends on for Level 3.</p></div>
-          <div class="card" style="padding:14px;border-style:dashed;display:grid;place-items:center;min-height:96px">
-            <span class="field__hint">+ 7 more</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══ ORG — people, not agents ═══════════════════════════════════════ -->
-    <section data-scr="org">
-      <div class="topbar">
-        <button class="btn btn--ghost btn--sm btn--icon" data-popback>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-x"/></svg>
-        </button>
-        <h1 class="topbar__title">Organisation</h1>
-        <span class="badge">8Seneca</span>
-        <span class="badge badge--ok">self-hosted</span>
-        <div class="topbar__spacer"></div>
-        <button class="btn btn--primary btn--sm">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-plus"/></svg>
-          Invite people
-        </button>
-      </div>
-      <div class="pane">
-        <p class="pane__lede">People, not agent members. Everyone runs agents on their own machine with
-          their own subscription — Alicorn never holds a model key.</p>
-        <div class="dwrap">
-          <table class="dtable">
-            <thead><tr><th>Person</th><th>Role</th><th>Seat</th><th>Can loosen gates</th><th>Last active</th></tr></thead>
-            <tbody>
-              <tr><td><b>Nghia Dang</b><br><span class="field__hint">nghia.dangvan@8seneca.com</span></td><td>Owner</td><td><span class="badge badge--brand">Builder</span></td><td><span class="badge badge--ok">yes</span></td><td>now</td></tr>
-              <tr><td><b>Platform team</b><br><span class="field__hint">4 engineers</span></td><td>Admin</td><td><span class="badge badge--brand">Builder</span></td><td><span class="badge badge--ok">yes</span></td><td>today</td></tr>
-              <tr><td><b>Product</b><br><span class="field__hint">2 PMs, 1 BA</span></td><td>Member</td><td><span class="badge">Collaborator</span></td><td><span class="badge">no</span></td><td>today</td></tr>
-              <tr><td><b>Design</b><br><span class="field__hint">1 designer</span></td><td>Member</td><td><span class="badge">Collaborator</span></td><td><span class="badge">no</span></td><td>2d ago</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap">
-          <div class="card" style="padding:13px 16px"><span class="field__hint">Builder seats</span>
-            <div style="font-size:19px;font-weight:600">5 <span style="font-size:var(--text-sub);color:var(--muted-foreground);font-weight:400">of 10</span></div></div>
-          <div class="card" style="padding:13px 16px"><span class="field__hint">Collaborator seats</span>
-            <div style="font-size:19px;font-weight:600">4 <span style="font-size:var(--text-sub);color:var(--muted-foreground);font-weight:400">of 25</span></div></div>
-          <div class="card" style="padding:13px 16px"><span class="field__hint">Identity</span>
-            <div style="font-size:var(--text-body);font-weight:600;margin-top:3px">SuperTokens · self-hosted</div></div>
-          <div class="card" style="padding:13px 16px"><span class="field__hint">Standing gate exceptions</span>
-            <div style="font-size:19px;font-weight:600;color:var(--status-attention)">1</div></div>
-        </div>
-        <p class="field__hint" style="margin-top:12px">One <code style="font-family:var(--font-mono)">never_gate</code>
-          exception is active on Design → Build, set by an admin and expiring in 6 days.</p>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ══ SHEET — Command bar (chat + voice) ════════════════════════════════ -->
-  <div class="sheetwrap" data-sheetwrap="command">
-    <div class="scrim" data-sheetclose="command"></div>
-    <div class="cmd">
-      <div class="cmd__input">
-        <span class="cmd__mic">
-          <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-mic"/></svg>
-        </span>
-        <span class="wave">
-          <i style="height:5px"></i><i style="height:11px"></i><i style="height:16px"></i><i style="height:9px"></i>
-          <i style="height:14px"></i><i style="height:6px"></i><i style="height:12px"></i><i style="height:4px"></i>
-        </span>
-        <span class="cmd__text">create a worktree for PAY-3021 and start the Developer…</span>
-        <span class="badge badge--brand">Listening</span>
-      </div>
-      <div class="cmd__list">
-        <div class="cmd__row" aria-selected="true">
-          <svg class="icon--sm" style="color:var(--brand)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-branch"/></svg>
-          <span>Create worktree <strong>feat/PAY-3021</strong> and start Developer</span>
-          <span class="cmd__hint">↵</span>
-        </div>
-        <div class="cmd__row">
-          <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bot"/></svg>
-          <span>Add a QA member to this team</span>
-        </div>
-        <div class="cmd__row">
-          <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-play"/></svg>
-          <span>Start the <strong>Feature delivery</strong> workflow on PAY-3021</span>
-        </div>
-        <div class="cmd__row">
-          <svg class="icon--sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#i-alert"/></svg>
-          <span>Ask Business Analyst about multi-currency</span>
-        </div>
-      </div>
-      <div class="cmd__foot">
-        <span><span class="kbd">↵</span> run</span>
-        <span><span class="kbd">⇥</span> pick member</span>
-        <span><span class="kbd">esc</span> stop listening</span>
-        <div class="topbar__spacer"></div>
-        <span>On-device speech · nothing leaves this machine</span>
-      </div>
+      <!-- /frame-wrap -->
     </div>
-  </div>
+    <!-- /frames -->
 
-</div><!-- /frame -->
-</div><!-- /frame-wrap -->
-</div><!-- /frames -->
-
-<script src="proto.js" data-nav='[{"id":"inbox"},{"id":"team"},{"id":"board"},{"id":"workflow"},{"id":"members"},{"id":"autonomy"}]' data-home="inbox"></script>
-</body>
+    <script
+      src="proto.js"
+      data-nav='[{"id":"inbox"},{"id":"team"},{"id":"board"},{"id":"workflow"},{"id":"members"},{"id":"autonomy"}]'
+      data-home="inbox"
+    ></script>
+  </body>
 </html>

@@ -72,7 +72,11 @@ export function disposeCodexServerRequest(
       connection.respond(request.id, { decision: 'abort' })
       break
     case CODEX_AUTH_TOKEN_REFRESH_METHOD:
-      connection.respondWithError(request.id, -32001, 'Alicorn cannot refresh app-server auth tokens')
+      connection.respondWithError(
+        request.id,
+        -32001,
+        'Alicorn cannot refresh app-server auth tokens'
+      )
       break
     case CODEX_ATTESTATION_METHOD:
       connection.respondWithError(request.id, -32001, 'Alicorn did not negotiate attestation')

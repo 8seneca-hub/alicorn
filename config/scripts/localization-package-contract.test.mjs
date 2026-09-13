@@ -17,7 +17,9 @@ describe('localization package scripts', () => {
     expect(scripts['sync:localization-runtime-catalog']).toBeDefined()
     // The chain lives in the runner now, so the assertion follows it there: `scripts.lint` is
     // just the runner's path, and a substring check against it would pass on any chain at all.
-    expect(LINT_CHAIN_STEPS.map((step) => step.name)).toContain('verify:localization-runtime-catalog')
+    expect(LINT_CHAIN_STEPS.map((step) => step.name)).toContain(
+      'verify:localization-runtime-catalog'
+    )
   })
 
   it('does not expose whole-catalog translation and repair commands', () => {

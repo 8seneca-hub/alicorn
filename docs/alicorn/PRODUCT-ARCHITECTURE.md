@@ -3,7 +3,7 @@
 **Written 2026-09-10.** The brief for the prototype of every screen, new and inherited.
 
 Alicorn is a hard fork of an IDE that is becoming an ADE. That is not a reskin: an IDE's primary
-object is a *file in a worktree*, an ADE's is *a task worked by members*. Orca shipped 41 settings
+object is a _file in a worktree_, an ADE's is _a task worked by members_. Orca shipped 41 settings
 panes and 13 right-sidebar panels around the first model. The question this document answers is
 what happens to them — because "delete it and start again" throws away the platform work that is
 genuinely expensive (Windows EDR posture, WSL argv, SSH boundaries, Git version floors) and
@@ -13,18 +13,18 @@ genuinely expensive (Windows EDR posture, WSL argv, SSH boundaries, Git version 
 
 ## 1. They are not competing. They are at different altitudes.
 
-The inherited surfaces and the new ones never fought for the same job. Sorting them by *what
-question they answer* makes the conflict disappear:
+The inherited surfaces and the new ones never fought for the same job. Sorting them by _what
+question they answer_ makes the conflict disappear:
 
-| Altitude | The question | Where it came from |
-|---|---|---|
-| **Direct** | What work, by whom, under what rules? | New — Alicorn |
+| Altitude    | The question                                       | Where it came from     |
+| ----------- | -------------------------------------------------- | ---------------------- |
+| **Direct**  | What work, by whom, under what rules?              | New — Alicorn          |
 | **Execute** | What is actually happening on a machine right now? | Orca, nearly all of it |
-| **Operate** | How is this machine and this account set up? | Orca, nearly all of it |
+| **Operate** | How is this machine and this account set up?       | Orca, nearly all of it |
 
 Read that way, **all 13 right-sidebar tabs are Execute** — explorer, search, vault, workspaces,
 pr-checks, source-control, checks, ports, run, terminal, provenance, context, gates. Every one of
-them is a thing you want open *while work is happening*. They do not belong to an org or a project,
+them is a thing you want open _while work is happening_. They do not belong to an org or a project,
 which is exactly why they never fitted the org→project split. They belong to a **task**.
 
 That single observation resolves most of the inheritance problem. The Orca panels are not legacy to
@@ -72,12 +72,12 @@ object model disagree in front of the user.
 
 ## 3. The two surfaces that cut across every altitude
 
-The altitudes are for *inspecting*. Two surfaces are always present and belong to no altitude:
+The altitudes are for _inspecting_. Two surfaces are always present and belong to no altitude:
 
 ### Converse — the input
 
 Chat and voice are not a destination. v1's prototype had **Voice** as a rail button, which is the
-same category error as making **Team** a rail button: you do not *go to* voice, you speak. It is
+same category error as making **Team** a rail button: you do not _go to_ voice, you speak. It is
 omnipresent, and it routes by intent, not by where you are standing:
 
 - "add a QA member on Gemini, read-only, joins at verify" → Direct
@@ -107,10 +107,10 @@ members — is `execution_strategy: orchestrated`, which exists:
 - `execution_strategy` is a field on a task, `single` | `orchestrated`, and **`single` is the default
   and stays the default**.
 - **"Escalation is per task and is offered, never applied silently."** When a session crosses the
-  300k context ceiling or turns out to touch more than one repo, Alicorn *offers* the switch and
+  300k context ceiling or turns out to touch more than one repo, Alicorn _offers_ the switch and
   **records whether the offer was accepted**.
 
-So the missing piece is not the mechanism. It is a UI that can render *an offer* — and by §3 that
+So the missing piece is not the mechanism. It is a UI that can render _an offer_ — and by §3 that
 is an inbox card, the same shape as a gate.
 
 The Foreman layer is what runs a decomposed task: a lead that writes no code and reads no
@@ -127,12 +127,12 @@ the stage, not by the member being judged."**
 
 So agent-initiated change splits in two, and the split is not stylistic:
 
-| Agents may apply directly (with a receipt) | Agents may only propose |
-|---|---|
-| Create a task, split a task, assign a member | Required checks on a stage |
-| Draft a workflow, add a stage | Autonomy level |
-| Open a workspace, run a command | Hard stops, reversibility, inherited cost |
-| Write a summary, post a PR body | Anything judging the proposing member |
+| Agents may apply directly (with a receipt)   | Agents may only propose                   |
+| -------------------------------------------- | ----------------------------------------- |
+| Create a task, split a task, assign a member | Required checks on a stage                |
+| Draft a workflow, add a stage                | Autonomy level                            |
+| Open a workspace, run a command              | Hard stops, reversibility, inherited cost |
+| Write a summary, post a PR body              | Anything judging the proposing member     |
 
 The right-hand column is the trust boundary. It is also where the existing invariants live:
 **hard stops never retire** regardless of track record, and `reversibility` / `inherited_cost` are
@@ -170,7 +170,7 @@ The remainder are general/advanced and belong to a flat Settings root.
 
 - **Rail** — scope switcher only: projects, then Org, then Settings. It stops being a menu of
   screens, because conversation replaces most navigation.
-- **Sidebar** — a *function of* the rail selection. This is the v1 bug: one static `<aside>`
+- **Sidebar** — a _function of_ the rail selection. This is the v1 bug: one static `<aside>`
   served all fifteen screens and read "Payments Platform · 14 open" while you edited org-wide
   autonomy.
 - **Main** — the inspector for the selected scope.

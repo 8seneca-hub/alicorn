@@ -153,11 +153,17 @@ describe('ArtifactCloudService record authorization', () => {
 
     await expect(service.publish(writeRequest)).resolves.toMatchObject({
       status: 'ok',
-      value: { change: 'created', item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-a' } }
+      value: {
+        change: 'created',
+        item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-a' }
+      }
     })
     await expect(service.publish(writeRequest)).resolves.toMatchObject({
       status: 'ok',
-      value: { change: 'updated', item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-a' } }
+      value: {
+        change: 'updated',
+        item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-a' }
+      }
     })
 
     expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ method: 'POST' })
@@ -287,11 +293,17 @@ describe('ArtifactCloudService record authorization', () => {
     await service.publish(writeRequest)
     await expect(service.publish(writeRequest)).resolves.toMatchObject({
       status: 'ok',
-      value: { change: 'created', item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-b' } }
+      value: {
+        change: 'created',
+        item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-b' }
+      }
     })
     await expect(service.publish(writeRequest)).resolves.toMatchObject({
       status: 'ok',
-      value: { change: 'updated', item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-b' } }
+      value: {
+        change: 'updated',
+        item: { shareUrl: 'https://share.alicorn.8seneca.com/a/artifact-b' }
+      }
     })
 
     expect(fetchMock.mock.calls.map(([, options]) => options?.method)).toEqual([

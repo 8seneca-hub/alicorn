@@ -159,9 +159,9 @@ describe('OsOpenedMarkdownFileState', () => {
     const state = new OsOpenedMarkdownFileState()
     const publish = vi.fn()
 
-    expect(state.capture(['/Applications/Alicorn.app/Contents/MacOS/Alicorn', '--serve'], publish)).toBe(
-      false
-    )
+    expect(
+      state.capture(['/Applications/Alicorn.app/Contents/MacOS/Alicorn', '--serve'], publish)
+    ).toBe(false)
     expect(publish).not.toHaveBeenCalled()
     expect(state.consume()).toEqual([])
   })
@@ -171,9 +171,9 @@ describe('OsOpenedMarkdownFileState', () => {
     const publish = vi.fn()
     const filePath = hostPath('a.md')
 
-    expect(state.capture(['/Applications/Alicorn.app/Contents/MacOS/Alicorn', filePath], publish)).toBe(
-      true
-    )
+    expect(
+      state.capture(['/Applications/Alicorn.app/Contents/MacOS/Alicorn', filePath], publish)
+    ).toBe(true)
     expect(publish).toHaveBeenCalledTimes(1)
     expect(state.consume()).toEqual([filePath])
   })

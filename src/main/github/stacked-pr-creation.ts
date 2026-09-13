@@ -26,6 +26,7 @@ import {
   type GitHubStackPullRequest,
   type NumberedHostedReviewSummary
 } from './github-stack-api-responses'
+import { registeredStackNumber } from './stacked-pr-stack-membership'
 
 type StackedPullRequestPlan =
   | {
@@ -152,10 +153,14 @@ export async function prepareGitHubStackedPullRequest(
       )
     }
     if (parentPullRequests.length !== 1) {
-      return creationError(`Alicorn found multiple open pull requests for the parent branch ${base}.`)
+      return creationError(
+        `Alicorn found multiple open pull requests for the parent branch ${base}.`
+      )
     }
     if (currentPullRequests.length > 1) {
-      return creationError(`Alicorn found multiple open pull requests for the current branch ${head}.`)
+      return creationError(
+        `Alicorn found multiple open pull requests for the current branch ${head}.`
+      )
     }
     const parentReview = parentPullRequests[0]
     const currentReview = currentPullRequests[0] ?? null
@@ -195,30 +200,6 @@ export async function prepareGitHubStackedPullRequest(
   } finally {
     release()
   }
-}
-
-function registeredStackNumber(
-  parentReview: NumberedHostedReviewSummary,
-  currentReview: NumberedHostedReviewSummary,
-  parentStacks: GitHubStack[],
-  currentStacks: GitHubStack[]
-): number | null {
-  const parentStack = parentStacks[0]
-  const currentStack = currentStacks[0]
-  if (!parentStack || !currentStack || parentStack.number !== currentStack.number) {
-    return null
-  }
-  const parentPosition = parentStack.pull_requests.findIndex(
-    (pullRequest) => pullRequest.number === parentReview.number
-  )
-  // Why: a miss is -1, and -1 + 1 reads the first entry — which reports "already
-  // registered" whenever the current PR heads a stack the parent has left.
-  if (parentPosition === -1) {
-    return null
-  }
-  return parentStack.pull_requests[parentPosition + 1]?.number === currentReview.number
-    ? parentStack.number
-    : null
 }
 
 export async function registerGitHubStackedPullRequest(args: {

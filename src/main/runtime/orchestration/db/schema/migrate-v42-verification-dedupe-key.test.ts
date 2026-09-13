@@ -73,9 +73,7 @@ describe('v42 migration: the verification dedupe key stops naming one check kind
 
     applySchemaMigrationV42.call(db, 41)
 
-    expect(keysOf(db).map((row) => row.dedupe_key)).toEqual([
-      'step_verification:d1:diff_coverage'
-    ])
+    expect(keysOf(db).map((row) => row.dedupe_key)).toEqual(['step_verification:d1:diff_coverage'])
   })
 
   // A downgrade and re-upgrade can leave both spellings queued; the rename must not delete a row.

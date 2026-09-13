@@ -2,7 +2,7 @@
 
 **Written 2026-09-08.** Companion to
 [`2026-09-08-remaining-work-sequencing.md`](./2026-09-08-remaining-work-sequencing.md). That plan
-answers *what order*. This one answers *how many at once* — which of the 49 open tickets can be in
+answers _what order_. This one answers _how many at once_ — which of the 49 open tickets can be in
 flight in separate worktrees simultaneously, and what has to be reserved up front so the merges later
 cost less than the parallelism saves.
 
@@ -12,11 +12,11 @@ Baseline: `main` at `771f742c8`, 49 open tickets, all assigned to one person.
 
 ## 0. The governing rule
 
-**Two branches are safe to run concurrently when they do not write the same *concept*. Disjoint files
+**Two branches are safe to run concurrently when they do not write the same _concept_. Disjoint files
 is not the test.**
 
 We already have the counter-example in the repo. PR #41 and PR #42 merged 51 minutes apart. They
-touched *entirely disjoint files*, both were green on their own, and GitHub's mergeability check saw
+touched _entirely disjoint files_, both were green on their own, and GitHub's mergeability check saw
 nothing. They still shipped two contradictory models of "a terminal outside the main tab area" —
 `TerminalTab.surface` and `TabGroup.surface` — which took `ALC-104` (UI6) to unpick after the fact.
 
@@ -28,7 +28,7 @@ they are serialized even when their diffs would merge cleanly.
 ## 1. Reserve these before opening any worktree
 
 Three resources are allocated from a single global counter. A worktree that "takes the next one"
-in isolation will collide with its sibling, and in two of the three cases git will *not* catch it.
+in isolation will collide with its sibling, and in two of the three cases git will _not_ catch it.
 
 ### 1a. SQLite migration numbers — git will catch this, but messily
 
@@ -40,15 +40,15 @@ Two worktrees each writing `migrate-v38-*.ts` produce two differently-named file
 happily, plus a conflict in `migrate.ts` and `contract-constants.ts`. The conflict is the only thing
 that saves you, and resolving it carelessly leaves a version chain with a hole in it.
 
-**Reserve at branch-creation time.** Nothing in Batch 1 is *known* to need a migration — none of the
+**Reserve at branch-creation time.** Nothing in Batch 1 is _known_ to need a migration — none of the
 tickets names one, and I have not traced each implementation far enough to promise that. So the table
 starts empty and the rule is what matters:
 
-| Version | Ticket | Notes |
-|---|---|---|
-| v38 | *unallocated* | claim here, in a commit to `main`, before writing the file |
-| v39 | *unallocated* | |
-| v40 | *unallocated* | |
+| Version | Ticket        | Notes                                                      |
+| ------- | ------------- | ---------------------------------------------------------- |
+| v38     | _unallocated_ | claim here, in a commit to `main`, before writing the file |
+| v39     | _unallocated_ |                                                            |
+| v40     | _unallocated_ |                                                            |
 
 MR1 is the most likely first claimant (repo/branch/worktree tuples need somewhere to live), but it may
 land in the renderer's persisted workspace-session state rather than orchestration SQLite — check
@@ -63,16 +63,16 @@ apps/ledger-api/src/schema-postgres.test.ts:6:  const schema = 'ledger_schema_te
 ```
 
 Two worktrees running `pnpm -r test` against the same database will `createTestSchema` /
-`dropTestSchema` on the *same* schema concurrently.
+`dropTestSchema` on the _same_ schema concurrently.
 
 **Reproduced on 2026-09-08**, primary worktree and the GP1 worktree both running the `ledger-api`
 suite against `alicorn_test`, three rounds:
 
-| Round | Result |
-|---|---|
-| 1 | both sides **33 passed** |
-| 2 | both sides FAIL — `ledger routes (postgres)`, `ledger metrics (postgres)`, `schema > applies twice … forces RLS` |
-| 3 | both sides FAIL |
+| Round | Result                                                                                                           |
+| ----- | ---------------------------------------------------------------------------------------------------------------- |
+| 1     | both sides **33 passed**                                                                                         |
+| 2     | both sides FAIL — `ledger routes (postgres)`, `ledger metrics (postgres)`, `schema > applies twice … forces RLS` |
+| 3     | both sides FAIL                                                                                                  |
 
 Round 1 passing is the dangerous part: try it once, see green, conclude sharing is fine, then spend a
 day chasing "flaky RLS tests" that are neither flaky nor about RLS. The database recovers on its own —
@@ -103,10 +103,10 @@ the directory (`src/main/git/worktree-removal.ts` → `src/main/worktree-trash.t
 
 What survived is exactly what had been committed:
 
-| | State when the limit hit | Outcome |
-|---|---|---|
-| LG6, LG5 | had committed | branch survived — `git branch -d` refuses an unmerged branch |
-| UI7, GP2, PV1, QA1 | uncommitted | branch deleted, work unrecoverable |
+|                    | State when the limit hit | Outcome                                                      |
+| ------------------ | ------------------------ | ------------------------------------------------------------ |
+| LG6, LG5           | had committed            | branch survived — `git branch -d` refuses an unmerged branch |
+| UI7, GP2, PV1, QA1 | uncommitted              | branch deleted, work unrecoverable                           |
 
 Nothing was recoverable from the trash: it held only `node_modules` remnants, and `git fsck` found no
 dangling commits for the four. The startup sweep (`sweepStaleWorktreeTrash`) only drains the trash and
@@ -133,17 +133,17 @@ genuinely need a second, but prefer not to.
 
 Churn is commits in the last 30 days — a proxy for how often you will rebase on it.
 
-| Spine | Churn | Who touches it | Rule |
-|---|---|---|---|
-| `src/preload/index.ts` | **69** | MB1, RB1, QA1, GP1 | Additive one-liners only. Second to land rebases. Never reorder. |
-| `src/preload/api-types.ts` | 34 | same | as above |
-| `src/main/startup/main-process-runtime-service.ts` | 14 | MB1, CR1, LG3 | additive registration only |
-| `src/main/ipc/register-core-handlers/…` | 9 | MB1, QA1, RB1 | additive registration only |
-| `orchestration-schemas.ts` | 4 | GP1, MR1 | additive fields; wire rules apply |
-| `src/renderer/src/i18n/locales/*.json` (6 locales) | — | every UI ticket | **Never resolve by hand.** See §5. |
-| `cloud/packages/control-plane-contract` | — | GP1, I2, LG4-ctx | Split per domain (`ledger.ts`, `member.ts`, …) so real collisions are rare; the 7-line `index.ts` barrel takes one-line adds. |
-| `cloud/apps/*/src/schema-sql.ts` | — | GP1, I2 | append-only statement array; append at the end |
-| `cloud/pnpm-lock.yaml` | — | any cloud ticket | **Regenerate, never merge.** See §5. |
+| Spine                                              | Churn  | Who touches it     | Rule                                                                                                                          |
+| -------------------------------------------------- | ------ | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `src/preload/index.ts`                             | **69** | MB1, RB1, QA1, GP1 | Additive one-liners only. Second to land rebases. Never reorder.                                                              |
+| `src/preload/api-types.ts`                         | 34     | same               | as above                                                                                                                      |
+| `src/main/startup/main-process-runtime-service.ts` | 14     | MB1, CR1, LG3      | additive registration only                                                                                                    |
+| `src/main/ipc/register-core-handlers/…`            | 9      | MB1, QA1, RB1      | additive registration only                                                                                                    |
+| `orchestration-schemas.ts`                         | 4      | GP1, MR1           | additive fields; wire rules apply                                                                                             |
+| `src/renderer/src/i18n/locales/*.json` (6 locales) | —      | every UI ticket    | **Never resolve by hand.** See §5.                                                                                            |
+| `cloud/packages/control-plane-contract`            | —      | GP1, I2, LG4-ctx   | Split per domain (`ledger.ts`, `member.ts`, …) so real collisions are rare; the 7-line `index.ts` barrel takes one-line adds. |
+| `cloud/apps/*/src/schema-sql.ts`                   | —      | GP1, I2            | append-only statement array; append at the end                                                                                |
+| `cloud/pnpm-lock.yaml`                             | —      | any cloud ticket   | **Regenerate, never merge.** See §5.                                                                                          |
 
 Note: L1's ticket says "8 catalogs"; there are **6** (`en, es, fr, ja, ko, zh`). Worth correcting on
 the ticket.
@@ -155,22 +155,22 @@ the ticket.
 Every row below has all dependencies Done and owns a distinct concept. Branch names follow
 `alc-<sequence-id>-<slug>` from `OWNERSHIP.md`.
 
-| # | Branch | Ticket | Concept owned | Spine risk | Slot |
-|---|---|---|---|---|---|
-| 1 | `alc-55-gp1-gate-policy` | GP1 | gate evaluation | preload, schema-sql | c1 |
-| 2 | `alc-36-i2-keycloak-auth` | I2 | auth mode | contract barrel | c2 |
-| 3 | `alc-102-lg4-context-captures` | LG4 | ledger read route | contract barrel | c3 |
-| 4 | `alc-101-lg4-wsl-cancel` | LG4 | WSL cancellation | **none** | — |
-| 5 | `alc-99-lg3-outbox-retention` | LG3 | outbox retention | runtime-service | — |
-| 6 | `alc-86-qa1-context-sandbox` | QA1 | tool-layer path policy | preload, handlers | — |
-| 7 | `alc-93-fm5-foreman-waves` | FM5 | wave reduce/serialise | **none** (`.foreman/`) | — |
-| 8 | `alc-87-sm1-success-measurement` | SM1 | measurement protocol | **none** (docs) | — |
-| 9 | `alc-81-cr1-contract-registry` | CR1 | contract extraction | runtime-service | — |
-| 10 | `alc-77-mb1-mailbox` | MB1 | mailbox transport | preload, handlers, **wire** | — |
-| 11 | `alc-62-wf2-canvas` | WF2 | workflow canvas | i18n, settings nav | — |
-| 12 | `alc-74-rb1-rulebook` | RB1 | rule promotion | i18n, preload | — |
-| 13 | `alc-104-ui6-sidebar-collision` | UI6 | **tab surface model** | tabs — sole owner | — |
-| 14 | `alc-29-r1-product-identity` | R1 | brand identity | packaging config | — |
+| #   | Branch                           | Ticket | Concept owned          | Spine risk                  | Slot |
+| --- | -------------------------------- | ------ | ---------------------- | --------------------------- | ---- |
+| 1   | `alc-55-gp1-gate-policy`         | GP1    | gate evaluation        | preload, schema-sql         | c1   |
+| 2   | `alc-36-i2-keycloak-auth`        | I2     | auth mode              | contract barrel             | c2   |
+| 3   | `alc-102-lg4-context-captures`   | LG4    | ledger read route      | contract barrel             | c3   |
+| 4   | `alc-101-lg4-wsl-cancel`         | LG4    | WSL cancellation       | **none**                    | —    |
+| 5   | `alc-99-lg3-outbox-retention`    | LG3    | outbox retention       | runtime-service             | —    |
+| 6   | `alc-86-qa1-context-sandbox`     | QA1    | tool-layer path policy | preload, handlers           | —    |
+| 7   | `alc-93-fm5-foreman-waves`       | FM5    | wave reduce/serialise  | **none** (`.foreman/`)      | —    |
+| 8   | `alc-87-sm1-success-measurement` | SM1    | measurement protocol   | **none** (docs)             | —    |
+| 9   | `alc-81-cr1-contract-registry`   | CR1    | contract extraction    | runtime-service             | —    |
+| 10  | `alc-77-mb1-mailbox`             | MB1    | mailbox transport      | preload, handlers, **wire** | —    |
+| 11  | `alc-62-wf2-canvas`              | WF2    | workflow canvas        | i18n, settings nav          | —    |
+| 12  | `alc-74-rb1-rulebook`            | RB1    | rule promotion         | i18n, preload               | —    |
+| 13  | `alc-104-ui6-sidebar-collision`  | UI6    | **tab surface model**  | tabs — sole owner           | —    |
+| 14  | `alc-29-r1-product-identity`     | R1     | brand identity         | packaging config            | —    |
 
 **Practical ceiling is lower than 14.** The limiting resource is not worktrees or tokens — it is your
 review capacity and the fact that every merge needs a combined-tree run (§5). **Five or six concurrent
@@ -197,7 +197,7 @@ worktrees. Give them **one** worktree and walk the chain.
 R4 renames 886 `ORCA_*` env vars across the whole tree. It will conflict with every open branch.
 
 But R4 is a **codemod**, and that changes the calculus: you do not resolve a codemod's conflicts, you
-*re-run* it. So the cheap order is to land all feature work first, then run R4 against a quiet tree.
+_re-run_ it. So the cheap order is to land all feature work first, then run R4 against a quiet tree.
 CLAUDE.md's rule — one sweep, never piecemeal, or the CI grep gate lies — is the same instruction.
 
 **This is the one real cost of heavy parallelism**: R5 (the upstream cut, a deadline with a running
@@ -213,7 +213,7 @@ or an early cut. They trade against each other.
 
 - A branch that changes a **design or invariant** (UI6) lands **first**. N−1 branches then rebase once
   onto it, instead of it absorbing N conflicts — and, more importantly, nobody builds on the wrong model.
-- A branch that is a **mechanical sweep** (R4, L1) lands **last** and is *re-run* rather than merged.
+- A branch that is a **mechanical sweep** (R4, L1) lands **last** and is _re-run_ rather than merged.
 
 **Every merge:**
 

@@ -8,7 +8,9 @@ import { SCHEMA_VERSION } from '../contract-constants'
 import { applySchemaMigrationV40 } from './migrate-v40-gate-agreement'
 
 function hasColumn(sqlite: Database.Database, table: string, column: string): boolean {
-  return (sqlite.pragma(`table_info(${table})`) as { name: string }[]).some((r) => r.name === column)
+  return (sqlite.pragma(`table_info(${table})`) as { name: string }[]).some(
+    (r) => r.name === column
+  )
 }
 
 describe('v40 migration: gate agreement', () => {

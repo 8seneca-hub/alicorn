@@ -21,13 +21,14 @@ Ledger API from [`cloud/dev/compose/alicorn-local.yml`](../../cloud/dev/compose/
 
   **The desktop root has the same mismatch with a worse failure.** It pins `pnpm@12.0.0`. Running
   `pnpm install` at the root with an older global pnpm does not warn and does not fail — it rewrites
-  `pnpm-lock.yaml` wholesale (~2900 lines each way, a lockfile-format downgrade) *and* resolves
+  `pnpm-lock.yaml` wholesale (~2900 lines each way, a lockfile-format downgrade) _and_ resolves
   different package versions than the lockfile pins. Observed 2026-09-08 installing with 9.15.0 and
   then correcting with 12.0.0: `zustand` moved 5.0.15 → 5.0.14. So the wrong-pnpm install is not
   cosmetic, and if the lockfile churn is ever committed it takes the whole team's resolutions with it.
 
   At the root, use `corepack pnpm install --frozen-lockfile`. `--frozen-lockfile` is the part that
   matters: it makes an accidental rewrite an error instead of a silent diff.
+
 - **Docker** with Compose, running.
 
 ## 1. Bring the stack up
@@ -80,7 +81,7 @@ does, in the admin console at `http://127.0.0.1:8080` (`admin`/`admin`), realm `
 Organizations → create **Acme** (alias `acme`, domain `acme.test`) → Members → add `dev`. Copy the
 organisation's id from its URL.
 
-The tenant in keycloak mode *is* that organisation id, so seed the members into it rather than
+The tenant in keycloak mode _is_ that organisation id, so seed the members into it rather than
 into `local`:
 
 ```sh
@@ -110,21 +111,21 @@ a sign-in bug.
 Read only through `src/main/alicorn/control-plane-urls.ts` and `control-plane-session.ts`; nothing
 else reads these variables directly.
 
-| Variable | Meaning |
-|---|---|
-| `ALICORN_AUTH_MODE` | `local` or `keycloak`. Optional; see the mode rule below. |
-| `ALICORN_CONTROL_API_URL` | Control API base — members, org policy, required checks. Required. |
-| `ALICORN_LEDGER_API_URL` | Ledger API base. Optional; defaults to the Control API URL. |
-| `ALICORN_LOCAL_API_TOKEN` | Shared bearer for auth mode `local`. Must be at least 16 characters. |
-| `ALICORN_TENANT_ID` | Constant tenant for auth mode `local`. Optional; defaults to `local`. Ignored in `keycloak` mode. |
+| Variable                  | Meaning                                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------------- |
+| `ALICORN_AUTH_MODE`       | `local` or `keycloak`. Optional; see the mode rule below.                                         |
+| `ALICORN_CONTROL_API_URL` | Control API base — members, org policy, required checks. Required.                                |
+| `ALICORN_LEDGER_API_URL`  | Ledger API base. Optional; defaults to the Control API URL.                                       |
+| `ALICORN_LOCAL_API_TOKEN` | Shared bearer for auth mode `local`. Must be at least 16 characters.                              |
+| `ALICORN_TENANT_ID`       | Constant tenant for auth mode `local`. Optional; defaults to `local`. Ignored in `keycloak` mode. |
 
 Keycloak mode reads the desktop's existing Orca Cloud sign-in, so it also uses that flow's
 pre-rebrand `ALICORN_CLOUD_*` variables (`profile-cloud-auth-config.ts`), of which three matter here:
 
-| Variable | Meaning |
-|---|---|
-| `ALICORN_CLOUD_API_URL` | Where `/v1/desktop/auth/*` lives — the Control API, which brokers Keycloak. |
-| `ALICORN_CLOUD_CLIENT_ID` | The public PKCE client, `alicorn-desktop`. |
+| Variable                      | Meaning                                                                                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ALICORN_CLOUD_API_URL`       | Where `/v1/desktop/auth/*` lives — the Control API, which brokers Keycloak.                                                                               |
+| `ALICORN_CLOUD_CLIENT_ID`     | The public PKCE client, `alicorn-desktop`.                                                                                                                |
 | `ALICORN_CLOUD_AUTHORIZE_URL` | Keycloak's own realm authorize endpoint. The broker does not serve `/authorize`, so leaving this unset points the browser at a route that does not exist. |
 
 Both control-plane URLs must parse as `http(s)`, and trailing slashes are stripped so paths append
@@ -145,7 +146,7 @@ never reads the session store.
 ## What `x-alicorn-org` carries, and why it must agree
 
 The org header is a cross-check, not an instruction. In `keycloak` mode the server takes the
-organisations the *token* proves and uses the header only to select which of them to act as — a
+organisations the _token_ proves and uses the header only to select which of them to act as — a
 header naming an organisation the token does not carry is `403 not_a_member`, and no header at all
 is `400 org_header_required`. So the desktop reads the org from the same place as the token: the
 signed-in profile's `activeOrgId`, never `ALICORN_TENANT_ID`. If a refresh or an org switch changes
@@ -164,7 +165,7 @@ Two failures are worth recognising:
 
 - **`ControlPlaneUnavailableError('control_plane_unconfigured')`** — no credential was produced,
   so nothing was sent. In `local` mode: the URLs or the token are missing or malformed —
-  re-`source` the env file. In `keycloak` mode it means the same *or* that nobody is signed in;
+  re-`source` the env file. In `keycloak` mode it means the same _or_ that nobody is signed in;
   the one code covers both today, so check Settings → Orca Account before the env file.
 - **`ControlPlaneRequestError(403, 'not_a_member')`** — the token and `x-alicorn-org` disagreed.
   Usually a stale `ALICORN_LOCAL_API_TOKEN`/`ALICORN_TENANT_ID` pair left in the shell, or an org
@@ -187,7 +188,7 @@ pnpm tc:node
 
 Cloud side — **the Postgres suites skip without a database, and a skip is not a pass.** Check the run
 count, not the colour: with no `ALICORN_TEST_POSTGRES_URL`, `control-api` reports 12 passed and
-51 *skipped*, and `ledger-api` 12 passed and 21 *skipped*, while still exiting 0.
+51 _skipped_, and `ledger-api` 12 passed and 21 _skipped_, while still exiting 0.
 
 The URL must be a **superuser** — the suites create their own non-superuser roles and schemas to prove
 forced RLS — and it should point at a throwaway database, not the dev stack's `alicorn` on 5432, since
@@ -238,7 +239,7 @@ Results are recorded in the PR description or the Plane issue (E1 / ALC-27) when
 
 1. `cd cloud && pnpm alicorn:up && pnpm alicorn:seed` → both `/healthz` ok; seed prints org id.
 2. `source cloud/dev/compose/desktop.env.example && pnpm dev`. (Keycloak mode: follow §2b instead, then connect as `dev`/`dev` before step 3.)
-3. Settings → Workflows → Members → three seeded members; create *Reviewer B* (codex); quit and relaunch — it is still there (Postgres, not local).
+3. Settings → Workflows → Members → three seeded members; create _Reviewer B_ (codex); quit and relaunch — it is still there (Postgres, not local).
 4. CLI: `task-create` → `worker-start --member <Developer>` → worker sends `worker_done --phase build` → provenance endpoint shows the outcome with `backend claude`, `execution_strategy single`, a context capture, and (after ~1 min) `spend_cents`.
 5. `worker-start --member <Reviewer on claude>` on a dependent task → rejected `reviewer_backend_conflict`; with `--allow-same-backend-review` → allowed; ledger row `review_backend_bypass true`.
 6. Push the branch, create a PR from the sidebar → PR body has the Provenance section with the bypass warning and the diff-coverage line (after configuring the project's required check).

@@ -11,17 +11,17 @@ pnpm --dir site dev      # build and serve on :8899
 
 ## Layout
 
-| Path | What |
-| --- | --- |
-| `pages/*.html` | Page content only. A leading HTML comment carries `title:` and `desc:`. |
-| `layout.html` | The shell — head, nav, footer. Edited once, applied everywhere. |
-| `assets/system.css` | Design system: the three colour ramps and the semantic tier. |
-| `assets/site.css` | Marketing components — hero, stat band, pipeline, pricing. |
-| `assets/motion.js` | Scroll reveals and counters. |
-| `assets/mark.svg` | The brand mark. |
-| `build.mjs` | Assembles `dist/`. |
-| `linkcheck.mjs` | Fails on a dead internal link or anchor. |
-| `color.mjs`, `gen.mjs` | Generate the ramps and **measure** every contrast pair. |
+| Path                   | What                                                                    |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `pages/*.html`         | Page content only. A leading HTML comment carries `title:` and `desc:`. |
+| `layout.html`          | The shell — head, nav, footer. Edited once, applied everywhere.         |
+| `assets/system.css`    | Design system: the three colour ramps and the semantic tier.            |
+| `assets/site.css`      | Marketing components — hero, stat band, pipeline, pricing.              |
+| `assets/motion.js`     | Scroll reveals and counters.                                            |
+| `assets/mark.svg`      | The brand mark.                                                         |
+| `build.mjs`            | Assembles `dist/`.                                                      |
+| `linkcheck.mjs`        | Fails on a dead internal link or anchor.                                |
+| `color.mjs`, `gen.mjs` | Generate the ramps and **measure** every contrast pair.                 |
 
 ## Design system
 

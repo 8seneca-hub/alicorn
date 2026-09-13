@@ -673,7 +673,8 @@ describe('WslCliInstaller', () => {
       platform: 'win32',
       distro: 'Ubuntu',
       hostInstaller: {
-        getStatus: async () => makeHostStatus('C:\\Program Files\\Alicorn\\resources\\bin\\orca.exe')
+        getStatus: async () =>
+          makeHostStatus('C:\\Program Files\\Alicorn\\resources\\bin\\orca.exe')
       },
       wslRunner: wsl.runner
     })
@@ -733,7 +734,8 @@ describe('WslCliInstaller', () => {
         platform: 'win32',
         distro: 'Ubuntu',
         hostInstaller: {
-          getStatus: async () => makeHostStatus('C:\\Program Files\\Alicorn\\resources\\bin\\orca.exe')
+          getStatus: async () =>
+            makeHostStatus('C:\\Program Files\\Alicorn\\resources\\bin\\orca.exe')
         },
         wslRunner: runner
       })

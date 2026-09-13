@@ -439,7 +439,9 @@ describe('LinuxPackageInstallRecoveryCard details', () => {
     expect(screen.getByText('Details')).toBeTruthy()
     expect(screen.queryByText('Last error')).toBeNull()
     // Why: the digest check is a point-in-time claim, not a standing guarantee about the file.
-    const detail = screen.getByText(/Alicorn checks the downloaded file against the release metadata/)
+    const detail = screen.getByText(
+      /Alicorn checks the downloaded file against the release metadata/
+    )
     expect(detail.textContent).not.toContain(DIAGNOSTIC)
     expect(detail.textContent).toContain('at the moment it builds this command')
     expect(detail.textContent).toContain(

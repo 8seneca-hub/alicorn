@@ -35,7 +35,7 @@ export function makeTerminalTab(
 ) {
   return {
     ptyId: null,
-    title: translate("auto.store.slices.worktrees.slice.test.fixtures.e851268bd6", "Terminal"),
+    title: translate('auto.store.slices.worktrees.slice.test.fixtures.e851268bd6', 'Terminal'),
     customTitle: null,
     color: null,
     sortOrder: 0,

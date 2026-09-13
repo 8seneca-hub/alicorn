@@ -2,18 +2,25 @@
 title: Docs — Alicorn
 desc: Install Alicorn, create your first member, author a workflow, and read the CLI reference.
 -->
-<section class="section" style="padding-top:var(--space-16)">
+<section class="section" style="padding-top: var(--space-16)">
   <div class="wrap stack-6">
     <span class="label reveal">Documentation</span>
-    <h1 class="reveal" style="font-size:var(--text-title);letter-spacing:var(--tracking-title)">Get running in fifteen minutes</h1>
-    <p class="lede reveal">Install the desktop app, connect a project, add a member. Every stage starts
-      gated, so nothing runs unattended while you are still deciding whether you trust it.</p>
+    <h1 class="reveal" style="font-size: var(--text-title); letter-spacing: var(--tracking-title)">
+      Get running in fifteen minutes
+    </h1>
+    <p class="lede reveal">
+      Install the desktop app, connect a project, add a member. Every stage starts gated, so nothing
+      runs unattended while you are still deciding whether you trust it.
+    </p>
   </div>
 </section>
 
 <section class="section">
   <div class="wrap stack-8">
-    <div class="stack"><span class="label reveal">Quickstart</span><h2 class="reveal">1 · Install</h2></div>
+    <div class="stack">
+      <span class="label reveal">Quickstart</span>
+      <h2 class="reveal">1 · Install</h2>
+    </div>
     <pre class="term reveal"><code><span class="c"># macOS</span>
 brew install --cask alicorn
 
@@ -21,23 +28,33 @@ brew install --cask alicorn
 <span class="c"># then install the agent hooks on every host you use</span>
 alicorn hooks install --local --wsl --ssh</code></pre>
 
-    <div class="stack"><h2 class="reveal">2 · Connect a project</h2>
-      <p class="reveal">Point Alicorn at a repository and a tracker. Worktrees are created under a
-        directory you choose; the tracker sync runs both ways.</p></div>
+    <div class="stack">
+      <h2 class="reveal">2 · Connect a project</h2>
+      <p class="reveal">
+        Point Alicorn at a repository and a tracker. Worktrees are created under a directory you
+        choose; the tracker sync runs both ways.
+      </p>
+    </div>
     <pre class="term reveal"><code>alicorn project add --repo git@github.com:acme/payments.git \
                     --tracker plane --url https://plane.acme.internal</code></pre>
 
-    <div class="stack"><h2 class="reveal">3 · Create a member</h2>
-      <p class="reveal">A member is a role bound to a backend, a skill set and a workspace kind.</p></div>
+    <div class="stack">
+      <h2 class="reveal">3 · Create a member</h2>
+      <p class="reveal">A member is a role bound to a backend, a skill set and a workspace kind.</p>
+    </div>
     <pre class="term reveal"><code>alicorn member create "Code Review" \
   --backend codex \
   --skills code-review,security-review \
   --workspace worktree \
   --permission accept-edits</code></pre>
 
-    <div class="stack"><h2 class="reveal">4 · Author a workflow</h2>
-      <p class="reveal">Stages, owners and triggers. Mark which stages are irreversible or carry an
-        inherited decision — those are the gates that never retire.</p></div>
+    <div class="stack">
+      <h2 class="reveal">4 · Author a workflow</h2>
+      <p class="reveal">
+        Stages, owners and triggers. Mark which stages are irreversible or carry an inherited
+        decision — those are the gates that never retire.
+      </p>
+    </div>
     <pre class="term reveal"><code>alicorn workflow create "Feature delivery"
 alicorn stage add build  --member Developer   --reversibility contained \
                          --checks "pnpm test,tc:node,oxlint"
@@ -48,21 +65,55 @@ alicorn stage add merge  --reversibility <span class="a">irreversible</span></co
 
 <section class="section" id="cli">
   <div class="wrap stack-8">
-    <div class="stack"><span class="label reveal">Reference</span><h2 class="reveal">CLI</h2>
-      <p class="reveal">The same runtime as the desktop app, headless. Agents use it too — it is how a
-        member creates a worktree or hands work to the next stage.</p></div>
+    <div class="stack">
+      <span class="label reveal">Reference</span>
+      <h2 class="reveal">CLI</h2>
+      <p class="reveal">
+        The same runtime as the desktop app, headless. Agents use it too — it is how a member
+        creates a worktree or hands work to the next stage.
+      </p>
+    </div>
     <div class="tablewrap reveal">
       <table>
-        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>What it does</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>alicorn member</code></td><td>Create, list and edit members</td></tr>
-          <tr><td><code>alicorn workflow</code></td><td>Author workflows and stages</td></tr>
-          <tr><td><code>alicorn worktree</code></td><td>Create and manage isolated worktrees</td></tr>
-          <tr><td><code>alicorn orchestration</code></td><td>Runs, tasks, dispatch, gates, evidence</td></tr>
-          <tr><td><code>alicorn policy</code></td><td>Read and set autonomy policy per stage</td></tr>
-          <tr><td><code>alicorn trail</code></td><td>Read and export the decision trail</td></tr>
-          <tr><td><code>alicorn skills</code></td><td>Install and share skills from the org catalog</td></tr>
-          <tr><td><code>alicorn hooks</code></td><td>Install agent hooks on local, WSL and SSH hosts</td></tr>
+          <tr>
+            <td><code>alicorn member</code></td>
+            <td>Create, list and edit members</td>
+          </tr>
+          <tr>
+            <td><code>alicorn workflow</code></td>
+            <td>Author workflows and stages</td>
+          </tr>
+          <tr>
+            <td><code>alicorn worktree</code></td>
+            <td>Create and manage isolated worktrees</td>
+          </tr>
+          <tr>
+            <td><code>alicorn orchestration</code></td>
+            <td>Runs, tasks, dispatch, gates, evidence</td>
+          </tr>
+          <tr>
+            <td><code>alicorn policy</code></td>
+            <td>Read and set autonomy policy per stage</td>
+          </tr>
+          <tr>
+            <td><code>alicorn trail</code></td>
+            <td>Read and export the decision trail</td>
+          </tr>
+          <tr>
+            <td><code>alicorn skills</code></td>
+            <td>Install and share skills from the org catalog</td>
+          </tr>
+          <tr>
+            <td><code>alicorn hooks</code></td>
+            <td>Install agent hooks on local, WSL and SSH hosts</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -71,8 +122,10 @@ alicorn stage add merge  --reversibility <span class="a">irreversible</span></co
 
 <section class="section">
   <div class="wrap stack-8">
-    <div class="stack"><h2 class="reveal">Reading the trail</h2>
-      <p class="reveal">Ask why a step ran without you. Every line is a recorded fact.</p></div>
+    <div class="stack">
+      <h2 class="reveal">Reading the trail</h2>
+      <p class="reveal">Ask why a step ran without you. Every line is a recorded fact.</p>
+    </div>
     <pre class="term reveal"><code>$ alicorn trail show PAY-3021 --stage build
 
 Build → Review                                    <span class="k">auto-approved</span>
@@ -89,7 +142,9 @@ $ alicorn trail export --run run_8f21c4 --format json --signed</code></pre>
 <section class="cta">
   <div class="wrap stack-6">
     <h2 class="reveal">Ready to try it?</h2>
-    <div class="row reveal"><a class="btn btn--primary" href="/start">Start free</a>
-      <a class="btn btn--outline" href="/product">See the product</a></div>
+    <div class="row reveal">
+      <a class="btn btn--primary" href="/start">Start free</a>
+      <a class="btn btn--outline" href="/product">See the product</a>
+    </div>
   </div>
 </section>

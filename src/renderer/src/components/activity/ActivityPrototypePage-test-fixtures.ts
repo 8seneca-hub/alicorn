@@ -59,7 +59,10 @@ export function makeTab(): TerminalTab {
     id: 'tab-1',
     ptyId: 'pty-1',
     worktreeId: 'wt-1',
-    title: translate("auto.components.activity.ActivityPrototypePage.test.fixtures.43a827f6a7", "Claude"),
+    title: translate(
+      'auto.components.activity.ActivityPrototypePage.test.fixtures.43a827f6a7',
+      'Claude'
+    ),
     customTitle: null,
     color: null,
     sortOrder: 0,

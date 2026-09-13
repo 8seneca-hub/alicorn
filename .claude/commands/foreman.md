@@ -6,8 +6,8 @@ description: Run a task as a lead agent that writes no code — plans, dispatche
 
 You are the **lead**. You do not write code. You plan, delegate, verify, and keep the record.
 
-This is the orchestrator-subagent pattern (LangGraph calls it *supervisor*, OpenAI calls it
-*manager*), run strictly. It is also the working prototype of the Foreman layer described in
+This is the orchestrator-subagent pattern (LangGraph calls it _supervisor_, OpenAI calls it
+_manager_), run strictly. It is also the working prototype of the Foreman layer described in
 `docs/alicorn/` — treat what you learn here as input to that design.
 
 ## Decide whether to use this at all
@@ -15,11 +15,11 @@ This is the orchestrator-subagent pattern (LangGraph calls it *supervisor*, Open
 Orchestration costs roughly **10–15× the tokens** of one agent doing the work directly. It is a
 trade, not an upgrade. Scale the effort to the task, and say which tier you picked and why:
 
-| Task shape | What to do | Subagents |
-|---|---|---|
-| One concern, one area, under an hour | **Do not use Foreman.** Just do the work | 0 |
-| 2–4 independent concerns in one repo | Light dispatch, no journal file | 2–3 |
-| Multi-repo, multi-day, or a context window already strained | Full Foreman: journal, gates, review | 3–6 |
+| Task shape                                                  | What to do                               | Subagents |
+| ----------------------------------------------------------- | ---------------------------------------- | --------- |
+| One concern, one area, under an hour                        | **Do not use Foreman.** Just do the work | 0         |
+| 2–4 independent concerns in one repo                        | Light dispatch, no journal file          | 2–3       |
+| Multi-repo, multi-day, or a context window already strained | Full Foreman: journal, gates, review     | 3–6       |
 
 If you are already mid-task in a normal session and the context is filling, that is the signal to
 escalate — say so and offer, do not switch silently.
@@ -76,8 +76,8 @@ Every subagent brief contains four things, and a brief missing any of them produ
 - **Objective** — what done looks like, concretely
 - **Output format** — the report schema, quoted, with its token ceiling
 - **Tools and scope** — which paths, which commands, what it may touch
-- **Boundaries** — explicitly what *not* to do: *"do not touch the API layer, another subagent owns
-  it"*
+- **Boundaries** — explicitly what _not_ to do: _"do not touch the API layer, another subagent owns
+  it"_
 
 Subagents do not know about each other and cannot coordinate mid-task. That constraint is what
 keeps them cheap — do not try to work around it by passing them each other's output. Pass them the
@@ -146,14 +146,14 @@ If a check cannot run, say so plainly rather than passing it. Fail closed.
 
 ## Anti-patterns
 
-| Temptation | Why it is wrong |
-|---|---|
-| Reading the implementation "just to check" | Your context is the scarce resource. That is the subagent's job. |
-| Passing a subagent's full output to another subagent | Pass the interface contract, not the transcript. |
-| One subagent per file | Decompose by concern and boundary, not by file count. |
-| Spawning six subagents for a two-file change | The tier table exists for this. Most work needs none. |
-| Fixed number of review rounds | Stop on "no new findings", with a budget outside the loop. |
-| Reconstructing the journal at the end | Then it does not survive a crash, which was its only job. |
+| Temptation                                           | Why it is wrong                                                  |
+| ---------------------------------------------------- | ---------------------------------------------------------------- |
+| Reading the implementation "just to check"           | Your context is the scarce resource. That is the subagent's job. |
+| Passing a subagent's full output to another subagent | Pass the interface contract, not the transcript.                 |
+| One subagent per file                                | Decompose by concern and boundary, not by file count.            |
+| Spawning six subagents for a two-file change         | The tier table exists for this. Most work needs none.            |
+| Fixed number of review rounds                        | Stop on "no new findings", with a budget outside the loop.       |
+| Reconstructing the journal at the end                | Then it does not survive a crash, which was its only job.        |
 
 ## Templates
 

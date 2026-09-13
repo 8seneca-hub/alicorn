@@ -156,7 +156,10 @@ export function OrcaAccountSettingsPane(): React.JSX.Element {
               <AccountBenefit
                 icon={Smartphone}
                 className="md:pl-6"
-                title={translate('auto.components.settings.orcaAccount.relayTitle', 'Alicorn Relay')}
+                title={translate(
+                  'auto.components.settings.orcaAccount.relayTitle',
+                  'Alicorn Relay'
+                )}
                 description={translate(
                   'auto.components.settings.orcaAccount.relayDescription',
                   'Connect Alicorn Mobile to this desktop across cellular or any Wi-Fi.'

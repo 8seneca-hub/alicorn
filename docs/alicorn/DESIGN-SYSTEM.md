@@ -20,28 +20,28 @@ divergent token is a component that has to be re-themed by hand.
 
 The skill classifies this product's dashboard as **Real-Time Monitor + Terminal**, and
 that is a better frame than "team chat columns". A team view where four agents are
-working is a *monitoring surface*: the operator's job is to see, at a glance, which
+working is a _monitoring surface_: the operator's job is to see, at a glance, which
 member is live, which is blocked, and which needs them.
 
 Concretely adopted:
 
-| Skill rule | Applied as |
-|---|---|
-| Live status indicators (pulsing) | `.dot--run` pulses; static dot read as "stopped" |
-| Connection status shown | Persistent sync indicator in the rail, not only on Board |
-| Critical alerts prominent | `needs you` promoted above transcript body |
-| Status indicator animation | Guarded by `prefers-reduced-motion` |
+| Skill rule                       | Applied as                                               |
+| -------------------------------- | -------------------------------------------------------- |
+| Live status indicators (pulsing) | `.dot--run` pulses; static dot read as "stopped"         |
+| Connection status shown          | Persistent sync indicator in the rail, not only on Board |
+| Critical alerts prominent        | `needs you` promoted above transcript body               |
+| Status indicator animation       | Guarded by `prefers-reduced-motion`                      |
 
 ### 2. Semantic alert triad
 
 The skill's `critical (red) / warning (orange) / normal (green)` maps cleanly onto tokens
 Orca **already has**, so this costs nothing and changes no identity:
 
-| Skill role | Alicorn token | Orca origin |
-|---|---|---|
-| normal / live | `--status-live` | `--status-success` `#86efac` |
+| Skill role          | Alicorn token        | Orca origin                  |
+| ------------------- | -------------------- | ---------------------------- |
+| normal / live       | `--status-live`      | `--status-success` `#86efac` |
 | warning / needs you | `--status-attention` | `--agent-question` `#f97316` |
-| critical | `--status-critical` | `--destructive` `#ff6568` |
+| critical            | `--status-critical`  | `--destructive` `#ff6568`    |
 
 ### 3. Accessibility rules — all four were real defects in the v1 prototype
 
@@ -63,8 +63,8 @@ Reinforces what Orca already does: 11/12/13/14px scale, tight rows, no decorativ
 
 ### 1. Typeface: **Inter** → keep **Geist**
 
-`STYLEGUIDE.md` is explicit: *"Always reach for `Geist` for sans, never `Inter` or system
-sans."* Geist ships in the repo as a single variable woff2. Switching to Inter would
+`STYLEGUIDE.md` is explicit: _"Always reach for `Geist` for sans, never `Inter` or system
+sans."_ Geist ships in the repo as a single variable woff2. Switching to Inter would
 contradict a written project rule and re-flow every existing screen for no gain — the
 skill picks Inter as a safe generic default, which `artifact-design` separately names as
 an AI-design tell.
@@ -90,18 +90,18 @@ defect, not a taste call.
 
 Blue is not a new colour either: main.css already ships `--sidebar-primary: #1447e6` in dark
 as the sidebar's own active/primary tone. The skill's own database independently returns the
-same modern pattern twice — *"Monochrome + blue accent"* and *"Neutral grey + link blue"*.
+same modern pattern twice — _"Monochrome + blue accent"_ and _"Neutral grey + link blue"_.
 
 Contrast, measured against `--background` `#0a0a0a`:
 
-| Pair | Ratio | Result |
-|---|---|---|
-| `--brand #4f8cff` on ground | 6.1:1 | WCAG AA normal text |
-| `#fff` on `--brand-strong #1447e6` | 6.8:1 | WCAG AA |
+| Pair                               | Ratio | Result              |
+| ---------------------------------- | ----- | ------------------- |
+| `--brand #4f8cff` on ground        | 6.1:1 | WCAG AA normal text |
+| `#fff` on `--brand-strong #1447e6` | 6.8:1 | WCAG AA             |
 
 **Violet was wrong, and not only because of taste.** v1 promoted `--ai-action-accent` to the
 brand — but Orca reserves violet to mean "this was done by AI", so the brand competed with an
-existing meaning. Worse, violet was *simultaneously* the brand and the Designer role hue, so
+existing meaning. Worse, violet was _simultaneously_ the brand and the Designer role hue, so
 brand chrome and member identity used the same pixel colour. Violet is now left alone,
 carrying only its Orca meaning.
 
@@ -111,12 +111,12 @@ v1 gave each of six roles its own hue — six decorative colours in front of the
 actually signal something. Member avatars are now **monochrome**; initials identify the
 member. Colour is spent only on status:
 
-| Meaning | Token | Form |
-|---|---|---|
-| working now | `--status-live` | filled dot, pulsing |
-| blocked on a person | `--status-attention` | ring |
-| nothing to do | `--status-idle` | hollow |
-| automation running | `--brand` | blue |
+| Meaning             | Token                | Form                |
+| ------------------- | -------------------- | ------------------- |
+| working now         | `--status-live`      | filled dot, pulsing |
+| blocked on a person | `--status-attention` | ring                |
+| nothing to do       | `--status-idle`      | hollow              |
+| automation running  | `--brand`            | blue                |
 
 The rule this buys: **on this surface, a coloured pixel always means something needs
 attention.** That is worth more on a monitoring UI than a role rainbow.
@@ -140,17 +140,17 @@ Ground, type, radius and elevation are unchanged — see
 > pre-existing token line moved.
 
 ```css
---status-live:      var(--status-success);   /* normal    */
---status-attention: var(--agent-question);   /* warning   */
---status-critical:  var(--destructive);      /* critical  */
---focus-ring: 2px;                            /* a11y priority 1 */
---motion-fast: 150ms;                         /* skill: 150-300ms */
+--status-live: var(--status-success); /* normal    */
+--status-attention: var(--agent-question); /* warning   */
+--status-critical: var(--destructive); /* critical  */
+--focus-ring: 2px; /* a11y priority 1 */
+--motion-fast: 150ms; /* skill: 150-300ms */
 ```
 
 ## Deviations held deliberately
 
-| Rule | Status | Why |
-|---|---|---|
+| Rule                      | Status      | Why                                                                                                                         |
+| ------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `touch-target-size` 44×44 | Not applied | Desktop pointer app. Orca's own rows are 26–32px; forcing 44px would halve the information density this product depends on. |
-| `mobile-first` / 375px | Not applied | Electron desktop. Mobile is a separate companion app. |
-| Light mode | Deferred | Tokens carry the light set; only dark was designed and measured. |
+| `mobile-first` / 375px    | Not applied | Electron desktop. Mobile is a separate companion app.                                                                       |
+| Light mode                | Deferred    | Tokens carry the light set; only dark was designed and measured.                                                            |

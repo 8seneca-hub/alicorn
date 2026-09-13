@@ -46,46 +46,52 @@ grows an Alicorn section, it does not gain a rival modal.
    decides whether a shared backend is a conflict. With it off, a match is not flagged.
 3. **Repository resolution is name-token matching against title + brief, with the composer's current
    repo as the stated fallback.** One repo in the workspace resolves silently; several with no match
-   resolves to the open one *and says so*, so the developer can see the choice was weak.
+   resolves to the open one _and says so_, so the developer can see the choice was weak.
 4. **A thin brief is a hint, not a gate.** Under `THIN_BRIEF_CHARS` the UI suggests another sentence;
    it never blocks submission. Nothing invents a spec stage the backend does not model.
 
 ## Tasks
 
 ### Task 1: the planner — **done**
+
 `src/shared/alicorn/task-composer-plan.ts` — `planTaskComposition(input): TaskComposerPlan`, pure, no
 IO, returning `{ authorId, reviewerId, repoIds, reasons, reviewerConflict }` where every reason is a
 discriminated union the renderer localises. Tests cover: name-token repo match; single-repo silent
 resolve; fallback-with-reason when several repos and no match; reviewer chosen on a different backend;
 conflict flagged only when the org enforces it; no-reviewer-available; thin brief.
+
 - [x] Commit `feat(alicorn): task composition planner`.
 
 ### Task 2: the composer section — **done**
+
 `NewWorkspaceComposerCard.tsx` grows an Alicorn block under the existing name/repo fields: a context
 textarea, the plan line with its reasons, and a disclosure holding member, backend, repository and
 branch. Loads members and org policy once through the existing api; renders "—" rather than a guess
 when the control plane is unreachable. Pins the plan on first override.
+
 - [x] Localise. Commit `feat(alicorn): the composer proposes a plan and shows why`.
 
 ### Task 3: strategy and cost — **withdrawn 2026-09-10, not backed**
+
 Both halves were checked against the code and neither is implementable in the renderer today.
 
 **Execution strategy has nothing to attach to at composer time.** A task is created inside a Run
 (`createTaskInRun`, `orchestration-task-internal.ts:26`) by an agent or by board automation, and it
-takes `executionStrategy` at creation. The composer creates a *workspace*, not a task, so there is
+takes `executionStrategy` at creation. The composer creates a _workspace_, not a task, so there is
 no task id when the developer would choose. Landing it needs somewhere to park the choice until a
 task appears in that workspace's run, plus a main-side read at task creation — backend work, not UI.
-The existing surfaces where a task *does* exist already carry the control: `EscalationOfferToaster`
+The existing surfaces where a task _does_ exist already carry the control: `EscalationOfferToaster`
 and `orchestration.taskCreate`.
 
 **The estimate would have to be invented.** `RunCostByDispatch` is keyed by dispatch id and holds
-*actuals* for dispatches that have already run; there is no historical query to size a task that has
+_actuals_ for dispatches that have already run; there is no historical query to size a task that has
 not started. `formatRunCostUsd` returns `—` for an unknown, and `summarizeRunCost` marks a total
 partial rather than guessing at a missing figure. Fabricating an estimator here would break the one
 rule this subsystem exists to keep. If the estimate is wanted, it is a ledger-side feature: a
 `step_outcomes` aggregate per project, which is a Ledger API ticket.
 
 ### Task 4: import from a PM tool — **already built, 2026-09-10**
+
 Nothing to write. `src/renderer/src/components/task-page/plane/` already ships the whole flow:
 `PlaneIssueList` and `PlaneIssueDetail` browse a project's issues, and `usePlaneStartWork` opens the
 new-workspace composer with the issue prefilled and its link carried as `linkedWorkItem`. Plane's

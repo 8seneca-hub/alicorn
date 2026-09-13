@@ -1,7 +1,7 @@
 {
   "name": "alicorn-site",
-  "private": true,
   "version": "0.1.0",
+  "private": true,
   "description": "Alicorn marketing site — static, no dependencies",
   "type": "module",
   "scripts": {

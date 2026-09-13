@@ -7,8 +7,12 @@ import {
 } from './renderer-recovery-prompt'
 
 const POISON: InstallDirAclPoisonDiagnosis = {
-  detail: "Windows permissions on Alicorn's install folder are blocking its own sandboxed processes.",
-  commands: ['icacls "C:\\Alicorn" /grant "*S-1-15-2-2:(OI)(CI)(RX)"', 'icacls "C:\\Alicorn" /grant b']
+  detail:
+    "Windows permissions on Alicorn's install folder are blocking its own sandboxed processes.",
+  commands: [
+    'icacls "C:\\Alicorn" /grant "*S-1-15-2-2:(OI)(CI)(RX)"',
+    'icacls "C:\\Alicorn" /grant b'
+  ]
 }
 
 function harness(overrides: Partial<RendererRecoveryPromptDeps> & { responses?: number[] } = {}): {

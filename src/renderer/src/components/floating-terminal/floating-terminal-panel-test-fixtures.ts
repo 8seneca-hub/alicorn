@@ -173,7 +173,10 @@ export function setFloatingSimulatorTab(): Tab {
     groupId,
     worktreeId: FLOATING_TERMINAL_WORKTREE_ID,
     contentType: 'simulator',
-    label: translate("auto.components.floating.terminal.floating.terminal.panel.test.fixtures.00cde6717e", "Mobile Emulator"),
+    label: translate(
+      'auto.components.floating.terminal.floating.terminal.panel.test.fixtures.00cde6717e',
+      'Mobile Emulator'
+    ),
     customLabel: null,
     color: null,
     sortOrder: 0,

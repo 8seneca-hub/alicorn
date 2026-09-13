@@ -13,16 +13,16 @@ waiting on certificates.
 
 Do not invent variants of these. They are set, and other things key off them.
 
-| Value | Setting | Where it lives |
-|---|---|---|
-| Bundle / app id | `com.8seneca.alicorn` | `config/electron-builder.config.cjs` |
-| Product name | `Alicorn` | same |
-| Protocol schemes | `alicorn`, and `orca` for one release | same |
-| CLI command | `alicorn` (macOS/Windows), `alicorn-ide` (Linux) | `src/shared/alicorn-cli-command-name.ts` |
-| Dev CLI command | `alicorn-dev`, with `orca-dev` aliased | `config/scripts/alicorn-dev.mjs` |
-| Release repository | `8seneca-hub/alicorn` | `src/shared/release-feed-repositories.ts` |
-| OAuth client id | `alicorn-desktop` | `profile-cloud-auth-config.ts` |
-| Upstream cut | `436ef827d`, v1.4.198 | `UPSTREAM_BASE` |
+| Value              | Setting                                          | Where it lives                            |
+| ------------------ | ------------------------------------------------ | ----------------------------------------- |
+| Bundle / app id    | `com.8seneca.alicorn`                            | `config/electron-builder.config.cjs`      |
+| Product name       | `Alicorn`                                        | same                                      |
+| Protocol schemes   | `alicorn`, and `orca` for one release            | same                                      |
+| CLI command        | `alicorn` (macOS/Windows), `alicorn-ide` (Linux) | `src/shared/alicorn-cli-command-name.ts`  |
+| Dev CLI command    | `alicorn-dev`, with `orca-dev` aliased           | `config/scripts/alicorn-dev.mjs`          |
+| Release repository | `8seneca-hub/alicorn`                            | `src/shared/release-feed-repositories.ts` |
+| OAuth client id    | `alicorn-desktop`                                | `profile-cloud-auth-config.ts`            |
+| Upstream cut       | `436ef827d`, v1.4.198                            | `UPSTREAM_BASE`                           |
 
 **The app id is a clean install, not an update.** It moved from the Orca id, so an existing Orca
 install is not upgraded in place — the two coexist. That is deliberate; do not "fix" it by
@@ -70,13 +70,13 @@ default listing, which is exactly how the missing ledger key reads as a clean st
 
 Environment for the desktop, auth mode `local` — one tenant, one shared bearer, no Keycloak:
 
-| Variable | Value |
-|---|---|
-| `ALICORN_TENANT_ID` | `local` |
-| `ALICORN_LOCAL_API_TOKEN` | any long random string, same on desktop and services |
-| `ALICORN_CONTROL_API_URL` | `http://127.0.0.1:8081` |
-| `ALICORN_LEDGER_API_URL` | `http://127.0.0.1:8082` |
-| `ALICORN_DATABASE_URL` | from `cloud/dev/compose` |
+| Variable                    | Value                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------ |
+| `ALICORN_TENANT_ID`         | `local`                                                                              |
+| `ALICORN_LOCAL_API_TOKEN`   | any long random string, same on desktop and services                                 |
+| `ALICORN_CONTROL_API_URL`   | `http://127.0.0.1:8081`                                                              |
+| `ALICORN_LEDGER_API_URL`    | `http://127.0.0.1:8082`                                                              |
+| `ALICORN_DATABASE_URL`      | from `cloud/dev/compose`                                                             |
 | `ALICORN_TEST_POSTGRES_URL` | same; **without it the Postgres suites skip rather than fail, which reads as green** |
 
 **This is the phase where the product is actually exercisable.** Members, the ledger, gates,
@@ -90,14 +90,14 @@ find out whether the thing is any good.
 One zone, one label each. The code already points at these (BC2); until they resolve, a packaged
 build's auth, relay and artifacts reach nothing.
 
-| Host | Serves |
-|---|---|
-| `login.alicorn.8seneca.com` | Keycloak — desktop sign-in |
-| `api.alicorn.8seneca.com` | Control API + Ledger API |
-| `relay.alicorn.8seneca.com` | Relay director |
-| `relay-c1.alicorn.8seneca.com` | Relay cell 1 (add `-c2`… as cells grow) |
-| `share.alicorn.8seneca.com` | Artifacts |
-| `www.alicorn.8seneca.com` | Docs — every in-app help link resolves here |
+| Host                           | Serves                                      |
+| ------------------------------ | ------------------------------------------- |
+| `login.alicorn.8seneca.com`    | Keycloak — desktop sign-in                  |
+| `api.alicorn.8seneca.com`      | Control API + Ledger API                    |
+| `relay.alicorn.8seneca.com`    | Relay director                              |
+| `relay-c1.alicorn.8seneca.com` | Relay cell 1 (add `-c2`… as cells grow)     |
+| `share.alicorn.8seneca.com`    | Artifacts                                   |
+| `www.alicorn.8seneca.com`      | Docs — every in-app help link resolves here |
 
 TLS on all six. `www` matters more than it looks: the feature wall, the help menu and the telemetry
 privacy link all point into `/docs/...`, so a missing docs site is visible on first launch.
@@ -122,14 +122,14 @@ is why both names are read rather than cut over blind.
 Auth mode `keycloak` is built and behind the same middleware seam as `local`; it is configuration,
 not code.
 
-| Variable | Note |
-|---|---|
-| `ALICORN_AUTH_MODE` | `keycloak` |
-| `ALICORN_KEYCLOAK_ISSUER` | `https://login.alicorn.8seneca.com/realms/alicorn` |
-| `ALICORN_KEYCLOAK_INTERNAL_ISSUER` | in-cluster URL, if it differs |
-| `ALICORN_KEYCLOAK_ADMIN_PASSWORD` | from your secret store, never a file |
-| `ALICORN_DESKTOP_CLIENT_ID` | `alicorn-desktop` — public client, PKCE, loopback redirect |
-| `ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID` / `_PEM` | ES256 keypair for signed provenance exports |
+| Variable                                        | Note                                                       |
+| ----------------------------------------------- | ---------------------------------------------------------- |
+| `ALICORN_AUTH_MODE`                             | `keycloak`                                                 |
+| `ALICORN_KEYCLOAK_ISSUER`                       | `https://login.alicorn.8seneca.com/realms/alicorn`         |
+| `ALICORN_KEYCLOAK_INTERNAL_ISSUER`              | in-cluster URL, if it differs                              |
+| `ALICORN_KEYCLOAK_ADMIN_PASSWORD`               | from your secret store, never a file                       |
+| `ALICORN_DESKTOP_CLIENT_ID`                     | `alicorn-desktop` — public client, PKCE, loopback redirect |
+| `ALICORN_LEDGER_EXPORT_SIGNING_KEY_ID` / `_PEM` | ES256 keypair for signed provenance exports                |
 
 Create the realm `alicorn` and the public client `alicorn-desktop`. Organisations map to tenants;
 `tenant_id` is on every row with RLS forced, so this is a second auth mode, not a migration.
@@ -175,7 +175,7 @@ puts this at week 0 for that reason; it is the item most likely to set the launc
 ## 7. Brand assets — the remaining artwork
 
 Icons and wordmark (R1). Everything else about product identity is done; these are files a designer
-produces, and the `NOTICE` legal entity line still says *to be confirmed*.
+produces, and the `NOTICE` legal entity line still says _to be confirmed_.
 
 ---
 

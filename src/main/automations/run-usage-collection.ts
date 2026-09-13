@@ -95,5 +95,9 @@ export async function collectAutomationRunUsage({
       completedAt: collectedAt
     })
   }
-  return unavailable(null, 'provider_unsupported', 'This agent does not report usage to Alicorn yet.')
+  return unavailable(
+    null,
+    'provider_unsupported',
+    'This agent does not report usage to Alicorn yet.'
+  )
 }

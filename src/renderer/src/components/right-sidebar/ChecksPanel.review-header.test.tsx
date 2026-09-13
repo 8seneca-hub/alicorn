@@ -100,7 +100,9 @@ describe('ChecksPanelReviewHeader', () => {
   // Why: with inverting on and Link Routing off the modifier reaches Alicorn here, so the
   // hint must name Alicorn rather than the destination a plain click already uses.
   it('names Alicorn when the modifier inverts toward the built-in browser', () => {
-    expect(renderHeader({ modifierHintDestination: 'orca' })).toContain('⇧⌘+click to open in Alicorn')
+    expect(renderHeader({ modifierHintDestination: 'orca' })).toContain(
+      '⇧⌘+click to open in Alicorn'
+    )
 
     vi.stubGlobal('navigator', { userAgent: 'Windows' })
     expect(renderHeader({ modifierHintDestination: 'orca' })).toContain(

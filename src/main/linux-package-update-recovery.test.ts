@@ -135,7 +135,9 @@ describe('captureLinuxPackageArtifact', () => {
 
   it('accepts an uppercase extension', () => {
     capture({ downloadedFile: path.join(downloadDir, 'Alicorn.DEB') })
-    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(path.join(downloadDir, 'Alicorn.DEB'))
+    expect(recovery.getTrackedLinuxPackageArtifact()?.path).toBe(
+      path.join(downloadDir, 'Alicorn.DEB')
+    )
   })
 
   it('requires a non-empty string version', () => {

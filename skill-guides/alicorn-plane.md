@@ -39,7 +39,7 @@ If the installed CLI help disagrees with this skill, trust `alicorn plane --help
 Plane differs from Linear in three ways that shape every command here.
 
 - **An issue is addressed inside a project.** There is no workspace-wide issue route. A readable id (`ALC-11`) resolves on its own, because the project key is part of it. A bare uuid needs `--project`.
-- **State *names* are per-project and user-editable; state *groups* are not.** The five groups are `backlog`, `unstarted`, `started`, `completed`, `cancelled`. Filter on the group; name the state only when you mean one specific column.
+- **State _names_ are per-project and user-editable; state _groups_ are not.** The five groups are `backlog`, `unstarted`, `started`, `completed`, `cancelled`. Filter on the group; name the state only when you mean one specific column.
 - **There is no server-side issue filtering.** `alicorn plane search` reads the project's issues and narrows them locally, so prefer `--limit` on large projects.
 
 ## Read first

@@ -308,7 +308,9 @@ describe('history page byte ceiling', () => {
     expect(tail.items).toHaveLength(1)
     const bodyOnPage = tail.items[0]?.body
     expect(bodyOnPage?.kind).toBe('status')
-    expect(bodyOnPage?.kind === 'status' ? bodyOnPage.text : '').toContain('[Alicorn: item truncated')
+    expect(bodyOnPage?.kind === 'status' ? bodyOnPage.text : '').toContain(
+      '[Alicorn: item truncated'
+    )
   })
 })
 

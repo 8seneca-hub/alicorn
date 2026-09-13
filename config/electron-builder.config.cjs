@@ -38,7 +38,8 @@ const isWinHourly = process.env.ALICORN_WIN_HOURLY === '1'
 const isWinDaily = process.env.ALICORN_WIN_DAILY === '1'
 const isWinAdhoc = process.env.ALICORN_WIN_ADHOC === '1'
 const isWinDevChannel = isWinHourly || isWinDaily || isWinAdhoc
-const isMacRelease = process.env.ALICORN_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
+const isMacRelease =
+  process.env.ALICORN_MAC_RELEASE === '1' || isMacHourly || isMacDaily || isMacAdhoc
 const isLinuxArm64Release = process.env.ALICORN_LINUX_ARM64_RELEASE === '1'
 const localBuildVersion =
   isMacRelease || isWinDevChannel ? undefined : process.env.ALICORN_LOCAL_BUILD_VERSION

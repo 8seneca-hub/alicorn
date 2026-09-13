@@ -248,7 +248,8 @@ const SKIPPED_COPY: Partial<
     },
     body: {
       key: 'auto.components.right.sidebar.checks.panel.review.skipped.not_git.body',
-      fallback: 'Alicorn could not treat this folder as a Git repository for {{reviewLabel}} status.'
+      fallback:
+        'Alicorn could not treat this folder as a Git repository for {{reviewLabel}} status.'
     },
     recovery: []
   },

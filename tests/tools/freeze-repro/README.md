@@ -55,7 +55,7 @@ Or: `node config/scripts/live-remote-realistic-freeze-repro.mjs`
 
 ### Scenarios
 
-| `ALICORN_FREEZE_SCENARIO`        | Models                                                                                        |
+| `ALICORN_FREEZE_SCENARIO`     | Models                                                                                        |
 | ----------------------------- | --------------------------------------------------------------------------------------------- |
 | `idle-backlog-open`           | User away while agents stream; returns and opens sessions                                     |
 | `idle-backlog-reconnect-open` | Same + parallel status/worktree/terminal refresh (wake/reconnect client storm)                |
@@ -64,8 +64,8 @@ Or: `node config/scripts/live-remote-realistic-freeze-repro.mjs`
 
 ### Realistic knobs
 
-| Variable                          | Default             | Meaning                                                           |
-| --------------------------------- | ------------------- | ----------------------------------------------------------------- |
+| Variable                             | Default             | Meaning                                                           |
+| ------------------------------------ | ------------------- | ----------------------------------------------------------------- |
 | `ALICORN_FREEZE_ENV`                 | `paired-remote`     | Paired remote environment name                                    |
 | `ALICORN_FREEZE_SCENARIO`            | `idle-backlog-open` | See table above                                                   |
 | `ALICORN_FREEZE_CREATE`              | `0`                 | New flood terminals; mutation requires an explicit positive value |

@@ -22,11 +22,16 @@ import {
   AUTOMATION_CREATE_IDEMPOTENCY_RUNTIME_CAPABILITY as CREATE_IDEMPOTENCY
 } from '../../../../shared/protocol-version'
 import type { AppState } from '@/store'
-import type { AutomationHostCatalogEntry } from './automation-host-catalog-types'
-import type { AutomationHostCatalogView } from './use-automation-host-catalog'
-import type { AutomationCreateDestinationControl } from './use-automation-create-destination'
-import type { ExternalAutomationListEntry } from './external-automation-list-entries'
 import type { AutomationListRow } from './automation-list-row-identity'
+import type {
+  ListPanelProps,
+  DetailPaneProps,
+  EditorDialogProps,
+  DeleteDialogProps
+} from './automations-page-test-harness-props'
+
+// Re-exported so a test keeps one import of the rig it mounts, props included.
+export type { ListPanelProps, DetailPaneProps, EditorDialogProps, DeleteDialogProps }
 import { resetAutomationCapabilityProbes } from './automation-scoped-list-client'
 import {
   addRuntimeProject as addRuntimeProjectFixture,
@@ -37,79 +42,6 @@ import {
 
 export const RUNTIME_REPO_ID = RUNTIME_REPO_ID_FIXTURE
 export const RUNTIME_WORKSPACE_ID = RUNTIME_WORKSPACE_ID_FIXTURE
-
-export type ListPanelProps = {
-  filteredExternalAutomationEntries: ExternalAutomationListEntry[]
-  selectedExternal: ExternalAutomationListEntry | null
-  openEditExternalDialog: (
-    manager: ExternalAutomationListEntry['manager'],
-    job: ExternalAutomationListEntry['job'],
-    scope: ExternalAutomationListEntry['scope']
-  ) => void
-  externalActionKey: string | null
-  requestExternalAction: (
-    manager: ExternalAutomationListEntry['manager'],
-    job: ExternalAutomationListEntry['job'],
-    action: 'run' | 'pause' | 'resume' | 'delete',
-    scope: ExternalAutomationListEntry['scope']
-  ) => void
-  hasListItems: boolean
-  hasFilteredListItems: boolean
-  filteredRows: readonly AutomationListRow[]
-  selectedRowKey: string | null
-  selectedExternalKey: string | null
-  hostCatalog: AutomationHostCatalogView
-  searchCounts: { hostRowCount: number; visibleRowCount: number; searchActive: boolean }
-  externalManagersUncheckedNotice: string | null
-  isActionEnabled: (row: AutomationListRow, action: string) => boolean
-  onSelectHost: (filter: unknown) => void
-  selectAutomationRow: (rowKey: string | null) => void
-  selectExternalKey: (entryKey: string | null) => void
-  onOpenDetail: () => void
-  onRefresh: () => void
-  runNow: (row: AutomationListRow) => void
-  openEditDialog: (row: AutomationListRow) => void
-  toggleAutomation: (row: AutomationListRow) => void
-  requestDeleteAutomation: (row: AutomationListRow) => void
-  openCreateDialog: () => void
-  canCreateAutomation: boolean
-}
-
-export type DetailPaneProps = {
-  selected: Automation | null
-  selectedHostEntry: AutomationHostCatalogEntry | null
-  selectedRuns: AutomationRun[]
-  selectedRunsNotice: { message: string } | null
-  runNow: (automation: Automation) => void
-  toggleAutomation: (automation: Automation) => void
-  requestDeleteAutomation: (automation: Automation) => void
-  openEditDialog: (automation: Automation) => void
-  fetchExternalAutomationRuns: (input: {
-    scope: ExternalAutomationListEntry['scope']
-    manager: ExternalAutomationListEntry['manager']
-    job: ExternalAutomationListEntry['job']
-    page: number
-    pageSize: number
-  }) => Promise<unknown>
-}
-
-export type EditorDialogProps = {
-  open: boolean
-  isEditing: boolean
-  createDestination?: AutomationCreateDestinationControl
-  editDestination?: AutomationCreateDestinationControl
-  notice?: { message: string; recovery: string | null } | null
-  onNoticeRecover?: (action: string) => void
-  repos?: { id: string }[]
-  draft?: { projectId: string; workspaceId: string }
-  onSave: () => void
-  onDraftChange: (updater: (current: unknown) => unknown) => void
-}
-
-export type DeleteDialogProps = {
-  deleteTarget: Automation | null
-  onConfirm: () => void
-}
 
 type AutomationsPageMocks = {
   state: Record<string, unknown>
@@ -210,7 +142,13 @@ vi.mock('./AutomationsListPanel', () => ({
     mocks.listPanel = { ...props, selectAutomationRow }
     return (
       <div data-testid="list-panel">
-        <button aria-label={translate("auto.components.automations.automations.page.test.harness.90edd9c380", "Refresh automations")} onClick={props.onRefresh} />
+        <button
+          aria-label={translate(
+            'auto.components.automations.automations.page.test.harness.90edd9c380',
+            'Refresh automations'
+          )}
+          onClick={props.onRefresh}
+        />
         {props.filteredRows.map((row) => (
           <button
             type="button"

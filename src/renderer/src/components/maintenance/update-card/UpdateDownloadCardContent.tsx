@@ -78,9 +78,13 @@ export function UpdateDownloadingContent({
       <p className="text-sm text-muted-foreground">
         {release
           ? release.description
-          : translate('auto.components.UpdateCard.93794ea932', 'Alicorn v{{value0}} is downloading.', {
-              value0: version
-            })}
+          : translate(
+              'auto.components.UpdateCard.93794ea932',
+              'Alicorn v{{value0}} is downloading.',
+              {
+                value0: version
+              }
+            )}
       </p>
       {showReleaseNotes && (
         <button

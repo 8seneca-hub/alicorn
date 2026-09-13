@@ -97,7 +97,9 @@ describe('resolveSshHostTargetId', () => {
     await expect(
       resolveSshHostTargetId(clientReturning([]), 'openclaw', ENVIRONMENTS)
     ).rejects.toMatchObject({
-      data: { nextSteps: expect.arrayContaining(['This Alicorn host has no SSH targets registered.']) }
+      data: {
+        nextSteps: expect.arrayContaining(['This Alicorn host has no SSH targets registered.'])
+      }
     })
   })
 })

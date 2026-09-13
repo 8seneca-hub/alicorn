@@ -192,9 +192,9 @@ describe('SSH config picker tombstoned hosts', () => {
     await openPickerWith({ hosts: [], totalHostCount: 0, newHostCount: 0, matchCount: 0 })
 
     expect(await screen.findByText('No hosts in ~/.ssh/config')).toBeDefined()
-    expect(screen.getByRole('button', { name: 'Add all to Alicorn' }).hasAttribute('disabled')).toBe(
-      true
-    )
+    expect(
+      screen.getByRole('button', { name: 'Add all to Alicorn' }).hasAttribute('disabled')
+    ).toBe(true)
   })
 })
 

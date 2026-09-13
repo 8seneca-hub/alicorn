@@ -250,7 +250,8 @@ describe('addOrcaWslInteropEnv', () => {
     // would adopt Alicorn's Windows overlay as its config root.
     const env: Record<string, string> = {
       OPENCODE_CONFIG_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Alicorn\\opencode-overlays\\abc',
-      ALICORN_OPENCODE_CONFIG_DIR: 'C:\\Users\\jin\\AppData\\Roaming\\Alicorn\\opencode-overlays\\abc'
+      ALICORN_OPENCODE_CONFIG_DIR:
+        'C:\\Users\\jin\\AppData\\Roaming\\Alicorn\\opencode-overlays\\abc'
     }
     addOrcaWslInteropEnv(env)
     expect(env.WSLENV).not.toContain('OPENCODE_CONFIG_DIR')

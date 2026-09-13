@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Ticket:** [ALC-61](https://projects.8seneca.com/8seneca/browse/ALC-61/) · lane `control-plane` · estimate 2 ew · depends on A6 (shipped) · owner **Nghia** (OWNERSHIP → *Workflows & stages*).
+**Ticket:** [ALC-61](https://projects.8seneca.com/8seneca/browse/ALC-61/) · lane `control-plane` · estimate 2 ew · depends on A6 (shipped) · owner **Nghia** (OWNERSHIP → _Workflows & stages_).
 
 **Goal:** A workflow is a saved object. Stages carry `member`, `reversibility`, `inherited_cost` and `required_checks`; transitions carry triggers. Control API gets CRUD over the whole graph, versioned for safe concurrent editing.
 
@@ -10,29 +10,29 @@
 
 **Tech stack:** unchanged from tier 1 — Node 24, pnpm 10, TypeScript 5.9, hono 4, `pg` 8, zod **3** (`^3.25` — cloud pins 3, the desktop uses 4; never share a schema file across that boundary), vitest 4, Postgres 16.
 
-**Spec:** `docs/alicorn/ARCHITECTURE.md` §6 (data model), §7 (autonomy — why `reversibility`/`inherited_cost` are authored not inferred), §9 (security — a member cannot loosen its own criteria); `docs/alicorn/ROADMAP.md` v1.5 *Authored workflows*; `CLAUDE.md` → *Invariants*. Precedent to mirror: `cloud/apps/control-api/src/members-{routes,repository}.ts` and `required-checks-{routes,repository}.ts`.
+**Spec:** `docs/alicorn/ARCHITECTURE.md` §6 (data model), §7 (autonomy — why `reversibility`/`inherited_cost` are authored not inferred), §9 (security — a member cannot loosen its own criteria); `docs/alicorn/ROADMAP.md` v1.5 _Authored workflows_; `CLAUDE.md` → _Invariants_. Precedent to mirror: `cloud/apps/control-api/src/members-{routes,repository}.ts` and `required-checks-{routes,repository}.ts`.
 
 ---
 
 ## Global constraints
 
 - **`tenant_id` on every row, RLS enabled and forced** — including `stages` and `transitions`, whose ARCHITECTURE §6 sketch omits it. `member_skills` already sets the precedent (tenant column on a child table keyed by parent). Task 6 corrects §6.
-- **`reversibility` and `inherited_cost` are authored on the stage, never inferred.** No defaulting logic that guesses from a stage name. `reversibility` defaults to the *safe* value (`contained`), never `free`.
+- **`reversibility` and `inherited_cost` are authored on the stage, never inferred.** No defaulting logic that guesses from a stage name. `reversibility` defaults to the _safe_ value (`contained`), never `free`.
 - **A member cannot loosen its own criteria.** `required_checks` is authored on the stage by the operator through this API; nothing in the dispatch path may write it back.
 - **Wire changes are additive.** New routes, new contract module, no change to existing route shapes.
 - **Auth is unchanged.** `requireTenant` already guards `/v1/*`; workflow routes inherit it and read `c.get('auth')`.
 - Run every command from `cloud/`. Postgres-backed tests read `ALICORN_TEST_POSTGRES_URL` and `describe.skip` without it.
-- Branch `alc-61-workflows-stages` from `main`; move the Plane issue to *In Progress* now and *Done* when the PR merges.
+- Branch `alc-61-workflows-stages` from `main`; move the Plane issue to _In Progress_ now and _Done_ when the PR merges.
 
 ## Decisions (settled — do not relitigate mid-task)
 
-1. **Required checks are additive; the stage wins.** `project_required_checks` and its route are untouched, so D5's `required-checks-fetch.ts` (Huy's) keeps working. Resolution is a pure function — `stage.requiredChecks` when the run has a stage, else the project's. Deprecation of the project scope waits for the v1.5 exit, and the resolution *endpoint* waits for WF3, when stages actually bind to runs.
+1. **Required checks are additive; the stage wins.** `project_required_checks` and its route are untouched, so D5's `required-checks-fetch.ts` (Huy's) keeps working. Resolution is a pure function — `stage.requiredChecks` when the run has a stage, else the project's. Deprecation of the project scope waits for the v1.5 exit, and the resolution _endpoint_ waits for WF3, when stages actually bind to runs.
 2. **`version` is optimistic concurrency, not a snapshot.** A monotonic int, bumped on every successful `PUT`. The client sends the version it read; a mismatch is `409 version_conflict` carrying the current version. Immutable published snapshots were considered and rejected for WF1 — roughly double the ticket, and nothing pins a version to a run until stages bind to dispatch (WF3).
 3. **Stages are addressed on the wire by `key`, not by id.** Ids are internal. This keeps a save idempotent, lets a reorder be one `PUT`, and gives WF3's column bindings something stable to point at. `key` is already the ledger's join column (`step_outcomes.stage_key`, `autonomy_policies.stage_key`).
 4. **The graph is written wholesale in one tenant transaction.** Stages upsert on `(workflow_id, key)`, missing keys are deleted, transitions are replaced entirely — the `replaceSkills` pattern from `members-repository.ts`, scaled up. No PATCH-per-stage surface.
 5. **No unique index on `(workflow_id, ordinal)`.** A reorder would violate it mid-statement, and `DEFERRABLE` buys nothing here: ordinal contiguity is validated in zod (`0..n-1`, distinct) before any SQL runs.
 6. **`stages.member_id` is `ON DELETE SET NULL`.** Deleting a member unassigns its stages rather than blocking the delete or cascading a workflow away. An unassigned stage is a visible, fixable state; a vanished workflow is not.
-7. **Cycles are legal.** WF2 makes the return edge first-class, so no DAG check. What *is* enforced: at most one transition per `(from_stage, trigger.kind)`, so dispatch is deterministic.
+7. **Cycles are legal.** WF2 makes the return edge first-class, so no DAG check. What _is_ enforced: at most one transition per `(from_stage, trigger.kind)`, so dispatch is deterministic.
 8. **Triggers stay small.** `on_success` | `on_failure` | `manual`. The board-column trigger arrives with WF3, as an additive member of the union.
 
 ## Files
@@ -59,8 +59,8 @@ docs/alicorn/ARCHITECTURE.md      EDIT §6 — tenant_id on stages/transitions, 
 
 ### Ownership notes (OWNERSHIP.md)
 
-- `cloud/packages/control-plane-contract` **is Huy's**: the rule is *propose field changes in the PR description rather than editing in a feature branch*. WF1 adds a new module rather than changing an existing field, so it lands in the branch — but the PR description must call out `workflow.ts` and the `index.ts` re-export explicitly, and list the enum values so the desktop mirror stays honest.
-- `schema-sql.ts`, `schema-postgres.test.ts` and `cloud/dev/**` are Huy's. All three edits here are additive; `schema-postgres.test.ts` is a *required* edit because it asserts an exact ordered table list and will go red the moment the tables land. Flag it in the PR description.
+- `cloud/packages/control-plane-contract` **is Huy's**: the rule is _propose field changes in the PR description rather than editing in a feature branch_. WF1 adds a new module rather than changing an existing field, so it lands in the branch — but the PR description must call out `workflow.ts` and the `index.ts` re-export explicitly, and list the enum values so the desktop mirror stays honest.
+- `schema-sql.ts`, `schema-postgres.test.ts` and `cloud/dev/**` are Huy's. All three edits here are additive; `schema-postgres.test.ts` is a _required_ edit because it asserts an exact ordered table list and will go red the moment the tables land. Flag it in the PR description.
 - `app.ts` is on the shared-files list: additive one-liners only, second to land rebases.
 
 ---
@@ -118,7 +118,7 @@ docs/alicorn/ARCHITECTURE.md      EDIT §6 — tenant_id on stages/transitions, 
 
 ## Task 5 (WF1.5): Required-checks resolution
 
-- [ ] `required-checks-resolution.ts`: `resolveRequiredChecks(stageChecks: RequiredCheck[] | null, projectChecks: RequiredCheck[]): { checks, source: 'stage' | 'project' }`. A stage that exists and authors checks wins; a stage with an **empty** array is a deliberate "no checks here" and still wins — only a *missing* stage falls back to the project. Returning `source` keeps the eventual provenance line ("checks came from the stage") honest.
+- [ ] `required-checks-resolution.ts`: `resolveRequiredChecks(stageChecks: RequiredCheck[] | null, projectChecks: RequiredCheck[]): { checks, source: 'stage' | 'project' }`. A stage that exists and authors checks wins; a stage with an **empty** array is a deliberate "no checks here" and still wins — only a _missing_ stage falls back to the project. Returning `source` keeps the eventual provenance line ("checks came from the stage") honest.
 - [ ] Unit tests for all four cases: no stage → project; stage with checks → stage; stage with `[]` → stage, empty; neither → `[]`.
 - [ ] Wire nothing to it yet (decision 1). Add a one-line comment naming WF3 as the consumer so the next reader does not think it is dead code.
 
@@ -128,7 +128,7 @@ docs/alicorn/ARCHITECTURE.md      EDIT §6 — tenant_id on stages/transitions, 
 - [ ] `docs/alicorn/ARCHITECTURE.md` §6: add `tenant_id` to the `stages` and `transitions` sketches, add `stages.name`, note that the wire addresses stages by `key`, and state that `version` is optimistic-concurrency (bumped per save) rather than a published snapshot. Same spirit as A10.
 - [ ] Note in the PR description: the new contract module and its enum values (Huy's package), the forced `schema-postgres.test.ts` edit, the `app.ts` one-liner, and the seed edit.
 - [ ] `pnpm -r typecheck && pnpm -r test` from `cloud/`, once with `ALICORN_TEST_POSTGRES_URL` set so the gated suites actually run.
-- [ ] Move ALC-61 to *Done* when the PR merges.
+- [ ] Move ALC-61 to _Done_ when the PR merges.
 
 ---
 

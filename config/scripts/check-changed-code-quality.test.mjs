@@ -46,7 +46,6 @@ describe('changed-code quality line matching', () => {
     ).toBe(true)
   })
 
-
   // ALC-115: `max-lines` is reported at the file's last line, which the diff that pushed the file
   // over the cap usually never touches. Three tickets walked one file 300 → 302 with this gate
   // reporting zero findings.

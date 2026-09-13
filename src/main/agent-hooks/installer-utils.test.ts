@@ -495,7 +495,9 @@ describe('wrapPosixHookCommand', () => {
     // Why: Electron's userData on macOS lives under "Application Support" with
     // a space. The guard must keep the path quoted so each file test and
     // `/bin/sh` see one argument.
-    const cmd = wrapPosixHookCommand('/Users/a/Library/Application Support/Alicorn/agent-hooks/x.sh')
+    const cmd = wrapPosixHookCommand(
+      '/Users/a/Library/Application Support/Alicorn/agent-hooks/x.sh'
+    )
     expect(cmd).toContain("'/Users/a/Library/Application Support/Alicorn/agent-hooks/x.sh'")
   })
 

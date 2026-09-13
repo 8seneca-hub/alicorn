@@ -63,9 +63,7 @@ describe('task worktree tuple methods', () => {
     ])
     db.setTaskWorktrees('task-1', [{ repoId: 'repo_api', worktreeId: 'w2', primary: true }])
     const tuples = db.listTaskWorktrees('task-1')
-    expect(tuples).toEqual([
-      { repoId: 'repo_api', worktreeId: 'w2', branch: null, primary: true }
-    ])
+    expect(tuples).toEqual([{ repoId: 'repo_api', worktreeId: 'w2', branch: null, primary: true }])
   })
 
   it('unbinds a task when handed an empty set', () => {

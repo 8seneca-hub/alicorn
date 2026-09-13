@@ -13,22 +13,22 @@
   /* --- Type. STYLEGUIDE.md "Typography": Geist only, never Inter. ---------- */
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', SFMono-Regular, ui-monospace, 'Cascadia Code', Menlo, Consolas, monospace;
-  --body-tracking: 0.01em;          /* set globally on body; never overridden per component */
+  --body-tracking: 0.01em; /* set globally on body; never overridden per component */
 
   /* Sizes: Tailwind default scale, restricted to the four this repo actually uses. */
-  --text-meta: 11px;                /* uppercase meta / rail headers / captions */
-  --text-sub: 12px;                 /* sub-text, paths, secondary */
-  --text-row: 13px;                 /* sidebar items, dense list rows */
-  --text-body: 14px;                /* default body, default button text */
+  --text-meta: 11px; /* uppercase meta / rail headers / captions */
+  --text-sub: 12px; /* sub-text, paths, secondary */
+  --text-row: 13px; /* sidebar items, dense list rows */
+  --text-body: 14px; /* default body, default button text */
   --meta-weight: 600;
   --meta-tracking: 0.05em;
 
   /* --- Radius. STYLEGUIDE.md "Radius": 0.625rem base, rest computed. ------- */
-  --radius: 0.625rem;               /* 10px */
-  --radius-sm: calc(var(--radius) * 0.6);   /* 6px  */
-  --radius-md: calc(var(--radius) * 0.8);   /* 8px  — buttons, inputs */
-  --radius-lg: var(--radius);               /* 10px */
-  --radius-xl: calc(var(--radius) * 1.4);   /* 14px — Card primitive */
+  --radius: 0.625rem; /* 10px */
+  --radius-sm: calc(var(--radius) * 0.6); /* 6px  */
+  --radius-md: calc(var(--radius) * 0.8); /* 8px  — buttons, inputs */
+  --radius-lg: var(--radius); /* 10px */
+  --radius-xl: calc(var(--radius) * 1.4); /* 14px — Card primitive */
 
   /* --- Elevation. STYLEGUIDE.md: exactly three levels. Do not add a fourth. */
   --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.28);
@@ -61,19 +61,19 @@
   --sidebar-accent: #1f1f1f;
   --sidebar-accent-foreground: #fafafa;
   --sidebar-border: rgb(255 255 255 / 0.07);
-  --panel: #171717;                 /* = --worktree-sidebar (.dark), the lifted panel tone */
+  --panel: #171717; /* = --worktree-sidebar (.dark), the lifted panel tone */
 
   /* --- Agent + workspace semantics. Verbatim; these already exist. ---------
    * Reusing them is the point: a status keeps its identity across the rebrand. */
-  --agent-question: #f97316;        /* --color-orange-500 — "an agent is asking you something" */
-  --agent-question-text: #fdba74;   /* --color-orange-300 */
+  --agent-question: #f97316; /* --color-orange-500 — "an agent is asking you something" */
+  --agent-question-text: #fdba74; /* --color-orange-300 */
   --status-success: #86efac;
   --status-success-bg: color-mix(in srgb, var(--status-success) 10%, transparent);
   --status-success-border: color-mix(in srgb, var(--status-success) 25%, transparent);
   --workspace-status-done: #c7a594;
   --workspace-status-review: #16a34a;
   --workspace-status-progress: #d4a300;
-  --terminal-pane-locate: #60a5fa;  /* --color-blue-400 */
+  --terminal-pane-locate: #60a5fa; /* --color-blue-400 */
 
   /* --- BRAND: monochrome. ---------------------------------------------------
    * No hue at all. On a surface whose whole job is surfacing what needs you, an
@@ -83,8 +83,8 @@
    * Contrast against --background #0a0a0a:
    *   --brand #fafafa on ground   -> 18.9:1  (WCAG AAA)
    *   #0a0a0a on --brand-strong   -> 18.9:1  (WCAG AAA) */
-  --brand: #fafafa;                 /* text, icons, active state */
-  --brand-strong: #ffffff;          /* solid fills — white button, black label */
+  --brand: #fafafa; /* text, icons, active state */
+  --brand-strong: #ffffff; /* solid fills — white button, black label */
   --brand-foreground: #0a0a0a;
   --brand-bg: rgb(255 255 255 / 0.07);
   --brand-border: rgb(255 255 255 / 0.16);
@@ -100,11 +100,11 @@
    * the a11y pass already required, so nothing is lost by dropping the hue:
    *   live  = filled + pulsing        idle = hollow ring
    * Red survives only for destructive/failed, where convention is load-bearing. */
-  --status-attention: #f5a524;      /* THE accent. Needs a human. */
+  --status-attention: #f5a524; /* THE accent. Needs a human. */
   --status-attention-text: #ffc866;
-  --status-live: #fafafa;           /* working now — white, pulsing */
+  --status-live: #fafafa; /* working now — white, pulsing */
   --status-idle: #6f6f6f;
-  --status-critical: #ff6568;       /* failed / destructive only */
+  --status-critical: #ff6568; /* failed / destructive only */
   --status-success-bg: rgb(255 255 255 / 0.06);
   --status-success-border: rgb(255 255 255 / 0.16);
   --attention-bg: color-mix(in srgb, var(--status-attention) 11%, transparent);
@@ -121,7 +121,7 @@
    * Initials identify the member; colour is spent only on status. */
   --avatar: #242424;
   --avatar-foreground: #e8e8e8;
-  --avatar-ring: rgb(255 255 255 / 0.10);
+  --avatar-ring: rgb(255 255 255 / 0.1);
 }
 
 [data-theme='light'] {
@@ -150,10 +150,10 @@
   --sidebar-accent-foreground: #171717;
   --sidebar-border: #e5e5e5;
   --panel: #f5f5f5;
-  --agent-question: #ea580c;        /* --color-orange-600 */
-  --agent-question-text: #c2410c;   /* --color-orange-700 */
+  --agent-question: #ea580c; /* --color-orange-600 */
+  --agent-question-text: #c2410c; /* --color-orange-700 */
   --status-success: #15803d;
-  --terminal-pane-locate: #2563eb;  /* --color-blue-600 */
+  --terminal-pane-locate: #2563eb; /* --color-blue-600 */
   --brand: #0a0a0a;
   --brand-strong: #0a0a0a;
   --brand-foreground: #ffffff;
@@ -161,5 +161,5 @@
   --brand-border: rgb(0 0 0 / 0.14);
   --avatar: #e7e7e7;
   --avatar-foreground: #262626;
-  --avatar-ring: rgb(0 0 0 / 0.10);
+  --avatar-ring: rgb(0 0 0 / 0.1);
 }

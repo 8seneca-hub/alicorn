@@ -25,7 +25,9 @@ export function parseSharedControlFrame(
   if (!sharedKey) {
     return {
       type: 'error',
-      error: invalidRemoteRuntimeResponseError('Remote Alicorn runtime returned a frame before E2EE.')
+      error: invalidRemoteRuntimeResponseError(
+        'Remote Alicorn runtime returned a frame before E2EE.'
+      )
     }
   }
   const plaintext = decrypt(frame, sharedKey)

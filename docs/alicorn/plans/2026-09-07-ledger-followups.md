@@ -4,11 +4,11 @@
 
 **Goal:** Close the three findings the ledger reviews filed rather than fixed — the outbox grows without bound, a WSL-hosted check cannot be cancelled, and a stored context capture cannot be read back.
 
-**Architecture:** Three independent changes in code that already ships. Retention is a second timer beside the drainer that deletes only *sent* rows. Cancellation threads the `AbortSignal` that already exists on the host branch through the WSL branch. The capture read route is a new `GET` on the Ledger API over a table that is already written.
+**Architecture:** Three independent changes in code that already ships. Retention is a second timer beside the drainer that deletes only _sent_ rows. Cancellation threads the `AbortSignal` that already exists on the host branch through the WSL branch. The capture read route is a new `GET` on the Ledger API over a table that is already written.
 
 **Tech Stack:** Electron main (TypeScript, better-sqlite3), Hono 4 + `pg` 8 + zod 3 in `cloud/`, vitest 4, Node 24.
 
-**Spec:** Plane ALC-99 (LG3), ALC-101 (LG4), ALC-102 (LG4); `docs/alicorn/ARCHITECTURE.md`; `CLAUDE.md` (*Control plane: Postgres from day one*); `docs/reference/wsl-command-execution.md`.
+**Spec:** Plane ALC-99 (LG3), ALC-101 (LG4), ALC-102 (LG4); `docs/alicorn/ARCHITECTURE.md`; `CLAUDE.md` (_Control plane: Postgres from day one_); `docs/reference/wsl-command-execution.md`.
 
 ## Global Constraints
 
@@ -28,11 +28,14 @@
 ### Task 1 (LG3): Outbox retention — delete delivered rows, count what is left
 
 **Files:**
+
 - Create: `src/main/alicorn/outbox-retention.ts`, `src/main/alicorn/outbox-retention.test.ts`
 - Modify: `src/main/runtime/orchestration/db/alicorn/ledger-outbox-methods.ts` (+ `deleteSentLedgerOutboxBefore`, `countLedgerOutbox`), `src/main/startup/main-process-runtime-service.ts` (start the timer), `src/main/startup/main-process-state.ts` (hold the handle)
 
 **Interfaces:**
+
 - Produces:
+
   ```ts
   // ledger-outbox-methods.ts, attached like the existing methods
   deleteSentLedgerOutboxBefore(this: OrchestrationDb, cutoffIso: string): number  // rows removed
@@ -63,7 +66,9 @@
 export function deleteSentLedgerOutboxBefore(this: OrchestrationDb, cutoffIso: string): number {
   // Why sent_at IS NOT NULL and dead_at IS NULL: a dead row is an operator signal kept until requeued (LG1).
   return this.db
-    .prepare(`DELETE FROM ledger_outbox WHERE sent_at IS NOT NULL AND dead_at IS NULL AND sent_at < ?`)
+    .prepare(
+      `DELETE FROM ledger_outbox WHERE sent_at IS NOT NULL AND dead_at IS NULL AND sent_at < ?`
+    )
     .run(cutoffIso).changes
 }
 
@@ -98,12 +103,15 @@ export function countLedgerOutbox(this: OrchestrationDb): {
 ### Task 2 (LG4/ALC-101): A WSL check can actually be cancelled
 
 **Files:**
+
 - Modify: `src/main/wsl/wsl-runner.ts` (`WslSpec` gains `signal`, `runWslProcess` forwards it), `src/main/alicorn/diff-coverage/diff-coverage-check.ts` (`wslSpecForCheck` takes and passes the signal; surface `environmentResolved` in the failure detail)
 - Test: `src/main/wsl/wsl-runner.test.ts` (or the existing WSL runner spec file), `src/main/alicorn/diff-coverage/diff-coverage-check.test.ts`
 
 **Interfaces:**
+
 - Consumes: `runProcess` already accepts `signal` and kills the process tree on abort. `runDiffCoverageCheck` already has `input.signal` and already passes it on the host branch (`diff-coverage-check.ts:86`).
 - Produces:
+
   ```ts
   export type WslSpec = WslCommand & {
     distro?: string
@@ -137,10 +145,12 @@ export function countLedgerOutbox(this: OrchestrationDb): {
 ### Task 3 (LG4/ALC-102): Read a stored context capture back
 
 **Files:**
+
 - Modify: `cloud/packages/control-plane-contract/src/ledger.ts` (a read shape), `cloud/apps/ledger-api/src/context-captures-repository.ts` (+ a list function), `cloud/apps/ledger-api/src/ledger-routes.ts` (the route)
 - Test: `cloud/apps/ledger-api/src/ledger-routes-postgres.test.ts` (or a sibling Postgres spec beside it, matching how that file sets up its schema and pool)
 
 **Interfaces:**
+
 - Produces:
   ```ts
   // control-plane-contract/src/ledger.ts — distinct from ContextCaptureInputSchema, which is the write shape
@@ -158,7 +168,10 @@ export function countLedgerOutbox(this: OrchestrationDb): {
   export type ContextCaptureRead = z.infer<typeof ContextCaptureReadSchema>
   export const ContextCaptureListSchema = z.object({ captures: z.array(ContextCaptureReadSchema) })
   // ledger-api/src/context-captures-repository.ts
-  export function listContextCapturesForRun(c: pg.PoolClient, runId: string): Promise<ContextCaptureRead[]>
+  export function listContextCapturesForRun(
+    c: pg.PoolClient,
+    runId: string
+  ): Promise<ContextCaptureRead[]>
   ```
 - Route: `GET /v1/ledger/runs/:runId/context-captures`, **oldest first** — the reading order of a run. Scoped by run, not by repo and branch, because the inspector is opened from a run and a branch's provenance can span several.
 

@@ -10,7 +10,7 @@
 
 **Tech Stack:** `src/main/runtime/orchestration/coordinator*.ts`, `preamble.ts`, `lifecycle-reconciliation.ts`, CLI `message-send-handler.ts`, Claude Agent SDK launch options (`disallowedTools`) + a deny-capable `PreToolUse` hook, `contextTokensFromTranscriptTail` (D4), renderer run view, vitest.
 
-**Spec:** `CLAUDE.md` → *Foreman is an add-on* (three stricter rules), *Execution: two axes*; `docs/alicorn/PROJECT-BRIEF.md` §05 (context boundary, report fields, lead ceiling, Journal), §11.7 (success measurement); `.claude/commands/foreman.md` + `docs/alicorn/foreman-templates.md` (prototype); `docs/alicorn/GRAPH-ENGINEERING.md` (reduce node, fake-edge test, executor spike); research `research/foreman-rulebook.md`. Plane: FM1–FM6, AT1, MR2, SM1 (module *Execution strategy & Foreman*, owner Nghia).
+**Spec:** `CLAUDE.md` → _Foreman is an add-on_ (three stricter rules), _Execution: two axes_; `docs/alicorn/PROJECT-BRIEF.md` §05 (context boundary, report fields, lead ceiling, Journal), §11.7 (success measurement); `.claude/commands/foreman.md` + `docs/alicorn/foreman-templates.md` (prototype); `docs/alicorn/GRAPH-ENGINEERING.md` (reduce node, fake-edge test, executor spike); research `research/foreman-rulebook.md`. Plane: FM1–FM6, AT1, MR2, SM1 (module _Execution strategy & Foreman_, owner Nghia).
 
 ## Global Constraints
 
@@ -61,31 +61,62 @@ docs/alicorn/FOREMAN.md                               product spec of the lead; 
 ### Task 1 (FM2): Report schema and CLI-boundary ceiling
 
 **Files:** `src/shared/alicorn/foreman-report.ts` (+ test), `src/cli/handlers/orchestration/worker-done-report-ceiling.ts` (+ test), modify `message-send-handler.ts` / `message-payload.ts`.
+
 ```ts
 export const FOREMAN_REPORT_MAX_TOKENS = 1500
 export const FOREMAN_REPORT_MAX_CHARS = FOREMAN_REPORT_MAX_TOKENS * 4
 export const ForemanReportSchema = z.object({
   status: z.enum(['done', 'blocked', 'needs_decision', 'failed']),
-  summary: z.string().min(1).max(600),                         // ≤ 3 sentences (checked: ≤ 3 '.'/'!'/'?' terminators)
-  changes: z.array(z.object({ repo: z.string().optional(), path: z.string(), kind: z.enum(['added','modified','deleted','renamed']), why: z.string().max(200) })).max(200),
-  interface_delta: z.array(z.object({ kind: z.string(), name: z.string(), shape: z.string().max(500), breaking: z.boolean() })).max(50),
-  verification: z.object({ command: z.string().max(500), result: z.enum(['passed','failed','not_run']), evidence: z.string().max(500) }),
+  summary: z.string().min(1).max(600), // ≤ 3 sentences (checked: ≤ 3 '.'/'!'/'?' terminators)
+  changes: z
+    .array(
+      z.object({
+        repo: z.string().optional(),
+        path: z.string(),
+        kind: z.enum(['added', 'modified', 'deleted', 'renamed']),
+        why: z.string().max(200)
+      })
+    )
+    .max(200),
+  interface_delta: z
+    .array(
+      z.object({
+        kind: z.string(),
+        name: z.string(),
+        shape: z.string().max(500),
+        breaking: z.boolean()
+      })
+    )
+    .max(50),
+  verification: z.object({
+    command: z.string().max(500),
+    result: z.enum(['passed', 'failed', 'not_run']),
+    evidence: z.string().max(500)
+  }),
   open_questions: z.array(z.string().max(300)).max(20),
   artifacts: z.array(z.string()).max(50).default([]),
-  cost: z.object({ tokens_in: z.number().int().nonnegative().nullable(), tokens_out: z.number().int().nonnegative().nullable() })
+  cost: z.object({
+    tokens_in: z.number().int().nonnegative().nullable(),
+    tokens_out: z.number().int().nonnegative().nullable()
+  })
 })
 export type FitResult = { body: string; spilled: boolean; reportPath?: string }
-export function fitReportBody(body: string, opts: { writeSpill: (content: string) => string /* returns path */; maxChars?: number }): FitResult
+export function fitReportBody(
+  body: string,
+  opts: { writeSpill: (content: string) => string /* returns path */; maxChars?: number }
+): FitResult
 // ≤ max → unchanged; > max → writeSpill(full body) → body = JSON of the parsed report with `summary`, `status`, `verification`, `cost` kept and `changes`/`interface_delta`/`open_questions` truncated to the first N entries + `artifacts: [reportPath]`
 ```
+
 CLI (`orchestration send --type worker_done`): if the run's strategy is orchestrated (`--orchestrated` flag injected by the preamble, or detected from `ORCA_ALICORN_STRATEGY` env stamped at dispatch), parse `--body` with `ForemanReportSchema` (400-style `RuntimeClientError('invalid_report', issues)`), then `fitReportBody` (spill to `.foreman/<run>/<dispatch>-report.md`); with `--report-path` already given and body over the limit → error `report_ambiguous`.
+
 - [x] Tests: schema accepts the template report and rejects a 4-sentence summary; fit spills > 6000 chars and sets `artifacts`; handler rejects invalid reports for orchestrated runs and passes free text for single runs. Commit `feat(foreman): bounded worker reports — schema, ceiling and overflow spill at the CLI boundary`.
 
 **As built.** `ORCA_ALICORN_STRATEGY` is read but nothing stamps it yet — that is Task 4's preamble
 change — so only the `--orchestrated` flag fires today. Both detection paths are implemented and
 tested so Task 4 is a one-line env addition rather than a change here.
 
-`fitReportBody` spills a body that is *not* a parseable report as well as one that is: an oversized
+`fitReportBody` spills a body that is _not_ a parseable report as well as one that is: an oversized
 body is often oversized because it is free text, and throwing there would fail the worker's
 settlement rather than bound it. The unparseable case spills and returns
 `{ status: 'needs_decision', artifacts: [path] }`.
@@ -98,6 +129,7 @@ The pass-through preserves `body: undefined` rather than coercing to `''` — a 
 ### Task 2 (FM2): Server-side defence in depth
 
 **Files:** `lifecycle-reconciliation.ts` (+ test), `federation-worker-report-payload.ts`, `orchestration-schemas.ts` (`SendParams.body` `.max(FOREMAN_REPORT_MAX_CHARS * 4)` as an absolute sanity cap for all runs).
+
 - [x] `worker_done` with body > cap on an orchestrated task → `{ action: 'rejected', code: 'body_too_large' }`; single runs unaffected below the absolute cap. Commit `feat(orchestration): reject oversized worker reports server-side`.
 
 **As built.** The check sits after the lifecycle-authority check, so a sender who is not the
@@ -115,21 +147,53 @@ chosen to be the part nobody else is editing.
 ### Task 3 (FM1): Journal format and primitives
 
 **Files:** `src/main/alicorn/foreman/journal.ts` (+ round-trip test).
+
 ```ts
-export type JournalNode = { id: string; title: string; owner: string; dependsOn: string[]; status: 'pending' | 'dispatched' | 'done' | 'failed' | 'blocked'; model: string | null; dispatchId: string | null }
-export type Journal = { runId: string; objective: string; status: 'running' | 'paused' | 'done' | 'failed'; startedAt: string; budgetCents: number | null; spentCents: number | null; decisions: Array<{ n: number; decision: string; chosen: string; why: string; reversible: boolean }>; assumptions: Array<{ n: number; assumption: string; blastRadius: string; dependents: string[] }>; plan: JournalNode[]; contractRegistry: string; log: Array<{ at: string; line: string }>; notDone: string[] }
-export function renderJournal(j: Journal): string; export function parseJournal(md: string): Journal   // sections/tables exactly as foreman-templates.md; parse errors → JournalParseError with the section name
-export function journalPath(worktreePath: string, runId: string): string   // .foreman/<runId>/journal.md
-export async function readJournal(path): Promise<Journal | null>; export async function writeJournal(path, j): Promise<void>   // atomic write (tmp + rename)
+export type JournalNode = {
+  id: string
+  title: string
+  owner: string
+  dependsOn: string[]
+  status: 'pending' | 'dispatched' | 'done' | 'failed' | 'blocked'
+  model: string | null
+  dispatchId: string | null
+}
+export type Journal = {
+  runId: string
+  objective: string
+  status: 'running' | 'paused' | 'done' | 'failed'
+  startedAt: string
+  budgetCents: number | null
+  spentCents: number | null
+  decisions: Array<{
+    n: number
+    decision: string
+    chosen: string
+    why: string
+    reversible: boolean
+  }>
+  assumptions: Array<{ n: number; assumption: string; blastRadius: string; dependents: string[] }>
+  plan: JournalNode[]
+  contractRegistry: string
+  log: Array<{ at: string; line: string }>
+  notDone: string[]
+}
+export function renderJournal(j: Journal): string
+export function parseJournal(md: string): Journal // sections/tables exactly as foreman-templates.md; parse errors → JournalParseError with the section name
+export function journalPath(worktreePath: string, runId: string): string // .foreman/<runId>/journal.md
+export async function readJournal(path): Promise<Journal | null>
+export async function writeJournal(path, j): Promise<void> // atomic write (tmp + rename)
 ```
+
 - [x] Commit `feat(foreman): Feature Journal on disk — format, parse, atomic write`.
 
 **As built** — three deviations, all forced by making the template actually round-trip:
+
 - The template's plan table could not carry the type. Its header said `Owner` while its example put
-  a *title* there, and it had no column for `dispatchId`. The table is now
+  a _title_ there, and it had no column for `dispatchId`. The table is now
   `Node | Title | Owner | Depends on | Status | Model | Dispatch`, and `foreman-templates.md` was
   updated to match — a parity test parses the document's own template, so the two cannot drift.
-- The template's example used `running` as a *node* status, which is not in the node vocabulary.
+- The template's example used `running` as a _node_ status, which is not in the node vocabulary.
   Node statuses are `pending | dispatched | done | failed | blocked`; the example now uses them.
 - Run status is the union of both vocabularies — the template's `planning`/`blocked` and the plan
   interface's `paused`/`failed` — because a hand-written journal must parse and a resumed run needs
@@ -143,7 +207,8 @@ a test, so it has to be a real example. Split across `journal-types.ts`, `journa
 
 ### Task 4 (FM1): Coordinator writes the journal for orchestrated runs
 
-**Files:** `src/main/alicorn/foreman/journal-writer.ts`, `src/main/runtime/orchestration/coordinator-foreman-journal.ts` (sibling in the existing `coordinator-*.ts` decomposition), `coordinator.ts` (three call sites: run start, dispatch, worker_done/escalation), `preamble.ts` (orchestrated dispatch preamble gains a *Report* section stating the schema, ceiling and spill path, and the lead's preamble gains *Journal* instructions + `ORCA_ALICORN_STRATEGY=orchestrated` in the worker env).
+**Files:** `src/main/alicorn/foreman/journal-writer.ts`, `src/main/runtime/orchestration/coordinator-foreman-journal.ts` (sibling in the existing `coordinator-*.ts` decomposition), `coordinator.ts` (three call sites: run start, dispatch, worker_done/escalation), `preamble.ts` (orchestrated dispatch preamble gains a _Report_ section stating the schema, ceiling and spill path, and the lead's preamble gains _Journal_ instructions + `ORCA_ALICORN_STRATEGY=orchestrated` in the worker env).
+
 - [ ] Tests: orchestrated task → journal created at run start, node dispatched/done logged, decisions preserved across a simulated restart (`Coordinator` re-created reads the journal); single task → no `.foreman/`. Commit `feat(foreman): coordinator journals orchestrated runs; resumable from disk`.
 
 **Corrected 2026-09-09 (FJ1).** The coordinator wiring above never reaches a running app and cannot
@@ -171,10 +236,15 @@ a folder workspace journals normally, since `.foreman/` needs no git.
 ### Task 5 (FM3): Lead launch restrictions
 
 **Files:** `src/main/alicorn/foreman/lead-launch-options.ts` (+ test), `src/main/claude/hook-settings.ts` (+ deny `PreToolUse` command for lead panes; the managed hook returns `{ decision: 'block', reason }` when `tool_name ∈ {Edit,Write,MultiEdit,NotebookEdit}` or (`tool_name ∈ {Read,Grep,Glob}` and the path is under the worktree and not under `.foreman/`)), `orchestration-worker-start-schema.ts` (`role: z.enum(['worker','lead']).optional()`), `orchestration-workers.ts` (apply `leadLaunchOptions(backend)`; `lead_backend_unsupported` for backends without tool restrictions), D2's `worker-member-launch.ts` hook point.
+
 ```ts
-export function leadLaunchOptions(backend: MemberBackend): { disallowedTools: string[]; env: Record<string,string> } | { unsupported: true; reason: string }
+export function leadLaunchOptions(
+  backend: MemberBackend
+):
+  { disallowedTools: string[]; env: Record<string, string> } | { unsupported: true; reason: string }
 // claude: disallowedTools ['Edit','Write','MultiEdit','NotebookEdit'], env ALICORN_ROLE=lead (hook reads it); codex: unsupported until an equivalent exists
 ```
+
 - [ ] Tests: options per backend; hook command blocks Edit and allows Read under `.foreman/`; a lead dispatch carries `role: lead` and the env. Commit `feat(foreman): the lead writes no code and reads no implementation — enforced at launch and by a PreToolUse deny hook`.
 
 ---
@@ -182,6 +252,7 @@ export function leadLaunchOptions(backend: MemberBackend): { disallowedTools: st
 ### Task 6 (FM3): 40 % context ceiling and compaction
 
 **Files:** `src/shared/alicorn/model-windows.ts`, `src/main/alicorn/foreman/lead-context-ceiling.ts` (+ test; reuses `contextTokensFromTranscriptTail` from D4), `lead-compaction-prompt.ts` (a fixed prompt: "write everything to the journal, then continue reading only the journal"), wiring into D4's watcher tick for panes with `role: lead` (one branch).
+
 - [ ] Fixture transcript at 39 % / 41 % → below/at ceiling; unknown → null (do not block); at ceiling → `sendTerminalAgentPrompt(compactionPrompt)` once per compaction generation. Commit `feat(foreman): lead context ceiling at 40% of the model window with journal compaction`.
 
 ---
@@ -189,6 +260,7 @@ export function leadLaunchOptions(backend: MemberBackend): { disallowedTools: st
 ### Task 7 (FM4): Run view with cost meter
 
 **Files:** `src/renderer/src/components/right-sidebar/run-view/RunView.tsx` (+ test), `use-run-view-state.ts`, IPC `alicorn:foreman:journal` (main reads the journal for the active run), cost from D7's `alicornRunCost` store summed over the run's dispatches (partial when any dispatch is `unavailable`).
+
 - [ ] Component test with a journal fixture (4 nodes) and cost fixture (one unknown → "≥ $x (partial)"). Localise. Commit `feat(foreman): run view — plan nodes, status, running cost`.
 
 ---
@@ -196,9 +268,10 @@ export function leadLaunchOptions(backend: MemberBackend): { disallowedTools: st
 ### Task 8 (AT1, v2.0): Agent-composed teams — gated composition
 
 **Files:** `src/main/alicorn/foreman/team-composer.ts` (+ test): `composeTeam(goal: string, members: Member[], history: Array<{ memberId; stageKey; acceptRate }>): TeamProposal` — picks one member per required role (`developer`, `reviewer` on a different backend, `qa`) preferring the highest windowed accept rate; the proposal is a decision gate (`question: 'Run with this team?'`) the human resolves; on accept the lead is dispatched with the proposal in its brief. **This is the thin, gated form; automatic composition without a gate is not in scope until evidence exists (CLAUDE.md sequencing rule 1).**
+
 - [x] Tests: role coverage, backend separation for the reviewer, gate created. Commit `feat(foreman): agent-composed team proposal behind a decision gate`.
 
-**As built (2026-09-09).** Where the line between *design* and *thin implementation* was drawn: the
+**As built (2026-09-09).** Where the line between _design_ and _thin implementation_ was drawn: the
 composer is a pure ranking function with a full test matrix, and everything around it is the
 shortest wiring that makes one composition reach one lead through one human. No autonomous team
 builder, no re-composition on failure, no enforcement that the lead actually dispatches the approved
@@ -208,14 +281,14 @@ evidence nobody has yet.
 Five decisions worth keeping:
 
 - **Seats name their stage key, and that is the whole SK1 dependency.** `TEAM_SEAT_STAGE_KEYS` maps
-  `developer → build`, `reviewer → review`, `qa → verify`, and each candidate is ranked on *its own*
+  `developer → build`, `reviewer → review`, `qa → verify`, and each candidate is ranked on _its own_
   seat's window. Ranking a reviewer on its `build` accept rate compares a member to work it never
   did — which is exactly why AT1 waited for stable stage keys rather than for members.
 - **A zero-run window is unmeasured, not a zero accept rate.** An accept rate over no runs is
   unknown, so such a member sorts with the unproven rather than below a member with a genuinely poor
   record. Getting this backwards would have made a fresh member permanently unpickable, and evidence
   only accumulates by running.
-- **The reviewer rule is enforced by *declining to propose*, never by relaxing.** `composeTeam`
+- **The reviewer rule is enforced by _declining to propose_, never by relaxing.** `composeTeam`
   reuses `evaluateReviewBackend` with `enforce: true` regardless of org policy: the documented
   opt-out exists so a human can knowingly bypass, and a proposal that quietly seats a same-backend
   reviewer would spend that bypass on the human's behalf. If no eligible reviewer exists the seat
@@ -229,11 +302,11 @@ Five decisions worth keeping:
   `readApprovedTeam` requires both halves to agree, and only the exact `accept` option counts — a
   resolution a human typed ("yes, but swap the reviewer") is a conversation, and the run then
   proceeds with no composed team. **`SCHEMA_VERSION` was not touched: v42 is still free.**
-- **No "who would you pick?" read.** `orchestration.teamPropose` composes *and* opens the gate in one
+- **No "who would you pick?" read.** `orchestration.teamPropose` composes _and_ opens the gate in one
   call, the same shape as `gateCreate { evaluate }` and for the same reason — a caller must not be
   able to take the answer and act on it alone. The gate is not only advisory either: `createGate`
   moves the task to `blocked`, and `worker-dispatch-start` refuses anything but a `ready` task, so
-  the lead for that task *cannot* be dispatched until a human resolves the composition. Gating by
+  the lead for that task _cannot_ be dispatched until a human resolves the composition. Gating by
   construction rather than by convention was free here, so it was taken.
   `readApprovedTeam` additionally refuses a gate the policy retired: `teamPropose` opens it without
   `evaluate` so retirement cannot happen today, but a composed team must be approved by a human or
@@ -248,7 +321,7 @@ Three things this ticket had to fix or work around, all pre-existing:
   roster is resolved. Without this, AT1's brief would have been dead code sitting behind dead code.
 - **Nothing writes the Feature Journal in production.** The only `new Coordinator(...)` outside tests
   is in the retired `orchestration.run`, and it passes no `worktreePath`, so
-  `CoordinatorForemanJournal` is permanently inert. `teamPropose` is therefore the *first* production
+  `CoordinatorForemanJournal` is permanently inert. `teamPropose` is therefore the _first_ production
   journal writer, and it calls `openRunJournal` rather than assuming one exists. Task 4 is marked
   done but its coordinator wiring never reaches a running app — worth its own ticket.
 - **Ranking needs a project, and a pre-dispatch task has none.** `resolveGateEvaluationInput` reads
@@ -259,7 +332,7 @@ Three things this ticket had to fix or work around, all pre-existing:
 
 The interruption is counted for free: `interruption-capture.ts` sweeps `decision_gates` generically,
 so a composition gate lands in the ledger as `kind: 'gate'` with no code here. That is the right
-answer and worth stating — asking a human to approve a roster *is* an interruption, and the whole
+answer and worth stating — asking a human to approve a roster _is_ an interruption, and the whole
 argument for ever automating this composition is that the number goes down without quality
 following it.
 
@@ -285,7 +358,7 @@ The two signals share one offer. `EscalationOffer` moved to
 `src/shared/alicorn/escalation-offer.ts` and gained `signal: 'context_ceiling' | 'multi_repo'`, with
 `contextTokens` and `repoCount` nullable; `evaluateEscalationSignal` holds the precedence — multi-
 repo wins a tie, being free and true from the start — and `markEscalationOffered` is still the
-one-offer-per-*task* guard, so MR2 cannot raise a second toast after D4's. The repo signal is not
+one-offer-per-_task_ guard, so MR2 cannot raise a second toast after D4's. The repo signal is not
 behind D4's Claude-only check: a COUNT needs no transcript, so a Codex multi-repo task is offered
 too. The toast now carries the price of orchestrated on both signals.
 
@@ -293,7 +366,8 @@ too. The toast now carries the price of orchestrated on both signals.
 
 **Protocol written 2026-09-08 — [`docs/alicorn/MEASUREMENT.md`](../MEASUREMENT.md)**, as a standing document rather than a section, because it is signed off before the run and cited after it. Read it before touching this task; the remaining work below is what it depends on and does not itself build.
 
-**Files:** `docs/alicorn/FOREMAN.md` (§ *Measuring it*: records the run's result — numbers per pair, the registration SHA and the app SHA under test, per MEASUREMENT §13), CLI: **not** `--compare-runs`; MEASUREMENT §11.1 replaces it with `runId` and `executionStrategy` filters on `getInterruptionsReport` and the `ledger report` spec, plus `ledger cost --run <id>` and `ledger provenance` (§11.7). MEASUREMENT §11.4 (`step_interruptions.resolved_at`) is the highest-value of the gaps — without it, attended time is hand-timed.
+**Files:** `docs/alicorn/FOREMAN.md` (§ _Measuring it_: records the run's result — numbers per pair, the registration SHA and the app SHA under test, per MEASUREMENT §13), CLI: **not** `--compare-runs`; MEASUREMENT §11.1 replaces it with `runId` and `executionStrategy` filters on `getInterruptionsReport` and the `ledger report` spec, plus `ledger cost --run <id>` and `ledger provenance` (§11.7). MEASUREMENT §11.4 (`step_interruptions.resolved_at`) is the highest-value of the gaps — without it, attended time is hand-timed.
+
 - [ ] Commit `docs(foreman): lead specification and the measurement protocol`.
 
 ---
@@ -301,17 +375,24 @@ too. The toast now carries the price of orchestrated on both signals.
 ### Task 11 (FM5): reduce before synthesize; hidden-dependency check
 
 **Files:** `src/main/alicorn/foreman/reduce-reports.ts` (+ test), `wave-dependency-check.ts` (+ test), `journal.ts` (`JournalNode.files: string[]` optional; `Journal.waves: Array<{ n: number; nodeIds: string[]; reducedPath: string | null; overlaps: Array<{ path: string; nodeIds: string[] }> }>`), `coordinator-foreman-journal.ts` (call sites: before dispatching a wave, after the last `worker_done` of a wave), `preamble.ts` (lead preamble: "read the wave table, not the reports").
+
 ```ts
-export function reduceReports(reports: Array<{ nodeId: string; report: ForemanReport }>): { table: string; overlaps: Array<{ path: string; nodeIds: string[] }>; totals: { tokensIn: number | null; tokensOut: number | null } }
+export function reduceReports(reports: Array<{ nodeId: string; report: ForemanReport }>): {
+  table: string
+  overlaps: Array<{ path: string; nodeIds: string[] }>
+  totals: { tokensIn: number | null; tokensOut: number | null }
+}
 // table: one Markdown row per node (status, summary, #changes, verification result, open questions count, cost); overlaps: paths present in ≥ 2 reports' changes
 export function planWaves(nodes: JournalNode[]): string[][]
 // topological waves by dependsOn; within a wave, nodes with overlapping declared files are split into successive waves (deterministic: earlier id first)
 ```
+
 - [ ] Tests: two nodes sharing `src/a.ts` → two waves + journaled overlap; reduce table has one row per node and flags the shared file; lead prompt references the table path and not the report bodies. Commit `feat(foreman): reduce a wave into one table before the lead reads it; serialise hidden dependencies`.
 
 ### Task 12 (FM6, spike): Claude Code `workflow` as an executor
 
-**Files:** `src/main/alicorn/foreman/export-claude-workflow.ts` (+ test): `exportClaudeWorkflow(journal: Journal): string` emits a script with `export const meta = { name, description, phases }` and one `agent()` per node inside `parallel()`/`pipeline()` by wave, each agent prompt = the node's brief + the FM2 report contract; CLI `alicorn foreman export --run <id> --format claude-workflow`. Then run **one** real ticket both ways (coordinator vs exported workflow) under SM1's protocol and record the result in `docs/alicorn/FOREMAN.md` § *Measuring it*. Outcome of the spike is a decision, not a feature.
+**Files:** `src/main/alicorn/foreman/export-claude-workflow.ts` (+ test): `exportClaudeWorkflow(journal: Journal): string` emits a script with `export const meta = { name, description, phases }` and one `agent()` per node inside `parallel()`/`pipeline()` by wave, each agent prompt = the node's brief + the FM2 report contract; CLI `alicorn foreman export --run <id> --format claude-workflow`. Then run **one** real ticket both ways (coordinator vs exported workflow) under SM1's protocol and record the result in `docs/alicorn/FOREMAN.md` § _Measuring it_. Outcome of the spike is a decision, not a feature.
+
 - [ ] Tests: export of the fixture journal is valid JavaScript (parsed with `acorn` already in the toolchain or `new Function` in a test), waves map to `parallel` blocks. Commit `feat(foreman): export a Feature Journal plan as a Claude Code workflow (spike)`.
 
 ## Self-review

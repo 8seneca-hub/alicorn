@@ -40,7 +40,10 @@ export async function setupTerminalCreateSurfacing(
   const createFloatingWorkspaceTerminalTab = vi.fn()
   const createWebRuntimeSessionTerminal = vi.fn().mockResolvedValue({
     status: 'failed',
-    message: translate("auto.hooks.ipc.events.terminal.create.test.harness.8cb0ed2e32", "The workspace is not connected to a remote Alicorn host.")
+    message: translate(
+      'auto.hooks.ipc.events.terminal.create.test.harness.8cb0ed2e32',
+      'The workspace is not connected to a remote Alicorn host.'
+    )
   })
   const focusRuntimeTerminalSurface = vi.fn(() => false)
   const focusTerminalTabSurface = vi.fn()

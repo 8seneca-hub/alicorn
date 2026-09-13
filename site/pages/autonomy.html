@@ -2,13 +2,16 @@
 title: The autonomy rule — Alicorn
 desc: A step keeps its human gate when it is neither machine-verifiable nor cheaply reversible, or when the member has no track record. How gates retire, and how they come back.
 -->
-<section class="section" style="padding-top:var(--space-16)">
+<section class="section" style="padding-top: var(--space-16)">
   <div class="wrap stack-6">
     <span class="label reveal">Autonomy</span>
-    <h1 class="reveal" style="font-size:var(--text-title);letter-spacing:var(--tracking-title)">The rule that decides whether to interrupt you</h1>
-    <p class="lede reveal">"Fewer interruptions" is a promise every agent product makes. What makes it
-      credible is having a rule for which interruption goes away — rather than removing them until
-      something breaks.</p>
+    <h1 class="reveal" style="font-size: var(--text-title); letter-spacing: var(--tracking-title)">
+      The rule that decides whether to interrupt you
+    </h1>
+    <p class="lede reveal">
+      "Fewer interruptions" is a promise every agent product makes. What makes it credible is having
+      a rule for which interruption goes away — rather than removing them until something breaks.
+    </p>
   </div>
 </section>
 
@@ -16,29 +19,50 @@ desc: A step keeps its human gate when it is neither machine-verifiable nor chea
   <div class="wrap stack-8">
     <div class="stack"><h2 class="reveal">Three properties decide it</h2></div>
     <div class="grid-3">
-      <div class="step reveal"><div class="step__n">01</div><h3>Verifiability</h3>
-        <p>Can a machine tell whether the output is right? Tests, types, lint, build, schema. Absent
-          counts as failed, never as passed.</p></div>
-      <div class="step reveal" data-d="1"><div class="step__n">02</div><h3>Reversibility</h3>
-        <p>What does undoing it cost? A draft is free. A worktree branch is cheap. A merge to main is
-          not. Authored on the stage, never guessed.</p></div>
-      <div class="step reveal" data-d="2"><div class="step__n">03</div><h3>Track record</h3>
-        <p>How often has this member, on this kind of step, produced output a human accepted
-          unchanged? Measured over a rolling window, not a lifetime average.</p></div>
+      <div class="step reveal">
+        <div class="step__n">01</div>
+        <h3>Verifiability</h3>
+        <p>
+          Can a machine tell whether the output is right? Tests, types, lint, build, schema. Absent
+          counts as failed, never as passed.
+        </p>
+      </div>
+      <div class="step reveal" data-d="1">
+        <div class="step__n">02</div>
+        <h3>Reversibility</h3>
+        <p>
+          What does undoing it cost? A draft is free. A worktree branch is cheap. A merge to main is
+          not. Authored on the stage, never guessed.
+        </p>
+      </div>
+      <div class="step reveal" data-d="2">
+        <div class="step__n">03</div>
+        <h3>Track record</h3>
+        <p>
+          How often has this member, on this kind of step, produced output a human accepted
+          unchanged? Measured over a rolling window, not a lifetime average.
+        </p>
+      </div>
     </div>
     <div class="card reveal">
-      <p style="max-width:none"><strong>The rule.</strong> A step keeps its human gate when it is
-        neither machine-verifiable nor cheaply reversible, or when the member has no track record on
-        it yet. Everything else runs and reports.</p>
+      <p style="max-width: none">
+        <strong>The rule.</strong> A step keeps its human gate when it is neither machine-verifiable
+        nor cheaply reversible, or when the member has no track record on it yet. Everything else
+        runs and reports.
+      </p>
     </div>
   </div>
 </section>
 
 <section class="section">
   <div class="wrap stack-8">
-    <div class="stack"><h2 class="reveal">Evaluation order</h2>
-      <p class="reveal">Hard stops are checked first, so no amount of accumulated evidence can retire
-        a gate protecting something irreversible.</p></div>
+    <div class="stack">
+      <h2 class="reveal">Evaluation order</h2>
+      <p class="reveal">
+        Hard stops are checked first, so no amount of accumulated evidence can retire a gate
+        protecting something irreversible.
+      </p>
+    </div>
     <pre class="term reveal"><code>evaluateGate(step, policy, evidence):
   policy.mode == 'always_gate'          <span class="a">→ gate('policy')</span>
   step.reversibility == 'irreversible'  <span class="a">→ gate('irreversible')</span>
@@ -56,26 +80,56 @@ desc: A step keeps its human gate when it is neither machine-verifiable nor chea
 
 <section class="section">
   <div class="wrap stack-8">
-    <div class="stack"><h2 class="reveal">How a gate retires — and comes back</h2>
-      <p class="reveal">A stage does not become autonomous by configuration. It earns it, and it can
-        lose it. Both directions are automatic, or the system only ever gets looser.</p></div>
+    <div class="stack">
+      <h2 class="reveal">How a gate retires — and comes back</h2>
+      <p class="reveal">
+        A stage does not become autonomous by configuration. It earns it, and it can lose it. Both
+        directions are automatic, or the system only ever gets looser.
+      </p>
+    </div>
     <div class="tablewrap reveal">
       <table>
-        <thead><tr><th>Level</th><th>Entry</th><th>Behaviour</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Level</th>
+            <th>Entry</th>
+            <th>Behaviour</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><span class="pill pill--attn">0 observed</span></td><td class="num">default</td><td>Always gates. Records the decision it <em>would</em> have made.</td></tr>
-          <tr><td><span class="pill">1 advisory</span></td><td class="num">runs ≥ 10</td><td>Gates, but pre-fills a recommendation and measures agreement.</td></tr>
-          <tr><td><span class="pill">2 conditional</span></td><td class="num">runs ≥ 20 · accept ≥ 90%</td><td>Auto when verified and inside budget. Gates otherwise.</td></tr>
-          <tr><td><span class="pill pill--solid">3 autonomous</span></td><td class="num">runs ≥ 50 · accept ≥ 95%</td><td>Notifies instead of blocking. Hard stops still apply.</td></tr>
+          <tr>
+            <td><span class="pill pill--attn">0 observed</span></td>
+            <td class="num">default</td>
+            <td>Always gates. Records the decision it <em>would</em> have made.</td>
+          </tr>
+          <tr>
+            <td><span class="pill">1 advisory</span></td>
+            <td class="num">runs ≥ 10</td>
+            <td>Gates, but pre-fills a recommendation and measures agreement.</td>
+          </tr>
+          <tr>
+            <td><span class="pill">2 conditional</span></td>
+            <td class="num">runs ≥ 20 · accept ≥ 90%</td>
+            <td>Auto when verified and inside budget. Gates otherwise.</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill--solid">3 autonomous</span></td>
+            <td class="num">runs ≥ 50 · accept ≥ 95%</td>
+            <td>Notifies instead of blocking. Hard stops still apply.</td>
+          </tr>
         </tbody>
       </table>
     </div>
-    <div class="card reveal" style="border-color:var(--color-attention-border);background:var(--color-attention-bg)">
-      <p style="max-width:none;color:var(--color-text-secondary)">
-        <strong style="color:var(--color-attention-text)">Demotion is deliberately blunt.</strong>
-        One rejection, or two amendments within the last ten runs, drops a stage one level immediately
-        and requires the full entry condition again. A member with 400 good runs must not average its
-        way out of 12 recent bad ones.</p>
+    <div
+      class="card reveal"
+      style="border-color: var(--color-attention-border); background: var(--color-attention-bg)"
+    >
+      <p style="max-width: none; color: var(--color-text-secondary)">
+        <strong style="color: var(--color-attention-text)">Demotion is deliberately blunt.</strong>
+        One rejection, or two amendments within the last ten runs, drops a stage one level
+        immediately and requires the full entry condition again. A member with 400 good runs must
+        not average its way out of 12 recent bad ones.
+      </p>
     </div>
   </div>
 </section>
@@ -84,16 +138,22 @@ desc: A step keeps its human gate when it is neither machine-verifiable nor chea
   <div class="wrap stack-8">
     <div class="stack"><h2 class="reveal">The honest limit</h2></div>
     <div class="grid-2">
-      <div class="card reveal"><h3 style="margin-bottom:8px">What this rule cannot do</h3>
-        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">Steps that are
-          neither verifiable nor reversible can only be automated on track record, which is a
-          statistical bet. Those stay gated by default, and we say so rather than pretending
-          otherwise.</p></div>
-      <div class="card reveal" data-d="1"><h3 style="margin-bottom:8px">Why it counts corrections</h3>
-        <p style="font-size:var(--text-body-sm);color:var(--color-text-tertiary)">If a step passes and
-          someone quietly fixes it later, accept rate would drift up while quality drifts down. Alicorn
-          watches for follow-up commits, reverts and reopened tasks, and counts them against the
-          record.</p></div>
+      <div class="card reveal">
+        <h3 style="margin-bottom: 8px">What this rule cannot do</h3>
+        <p style="font-size: var(--text-body-sm); color: var(--color-text-tertiary)">
+          Steps that are neither verifiable nor reversible can only be automated on track record,
+          which is a statistical bet. Those stay gated by default, and we say so rather than
+          pretending otherwise.
+        </p>
+      </div>
+      <div class="card reveal" data-d="1">
+        <h3 style="margin-bottom: 8px">Why it counts corrections</h3>
+        <p style="font-size: var(--text-body-sm); color: var(--color-text-tertiary)">
+          If a step passes and someone quietly fixes it later, accept rate would drift up while
+          quality drifts down. Alicorn watches for follow-up commits, reverts and reopened tasks,
+          and counts them against the record.
+        </p>
+      </div>
     </div>
   </div>
 </section>
@@ -101,8 +161,12 @@ desc: A step keeps its human gate when it is neither machine-verifiable nor chea
 <section class="cta">
   <div class="wrap stack-6">
     <h2 class="reveal">Start at level zero</h2>
-    <p class="lede reveal">Every stage gates on day one. Nothing runs unattended until it has earned it.</p>
-    <div class="row reveal"><a class="btn btn--primary" href="/start">Start free</a>
-      <a class="btn btn--outline" href="/product">See the product</a></div>
+    <p class="lede reveal">
+      Every stage gates on day one. Nothing runs unattended until it has earned it.
+    </p>
+    <div class="row reveal">
+      <a class="btn btn--primary" href="/start">Start free</a>
+      <a class="btn btn--outline" href="/product">See the product</a>
+    </div>
   </div>
 </section>

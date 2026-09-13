@@ -1,6 +1,6 @@
 # Alicorn — Success measurement
 
-> **Status: DRAFT PROTOCOL — NOT AGREED.** Every threshold below is a *proposal for sign-off*.
+> **Status: DRAFT PROTOCOL — NOT AGREED.** Every threshold below is a _proposal for sign-off_.
 > Nothing here is decided until §10 is filled in, signed and committed. Until then this document
 > describes how we would measure, not what we have concluded. **Do not cite any number in this
 > document as a result.**
@@ -12,8 +12,8 @@
 
 ## 01 · Why this document exists
 
-Alicorn currently borrows its economic case. The figure in [CLAUDE.md](../../CLAUDE.md) — *roughly
-90% better results for ~15× the tokens* — comes from published multi-agent research on **research
+Alicorn currently borrows its economic case. The figure in [CLAUDE.md](../../CLAUDE.md) — _roughly
+90% better results for ~15× the tokens_ — comes from published multi-agent research on **research
 tasks**, not on shipping features, and not on this repository. The brief says so twice, once as a
 decision and once as a risk:
 
@@ -46,22 +46,22 @@ subcommand path does not change.
 **Payload** — `InterruptionsReport` in `src/shared/alicorn/ledger-report.ts`, computed by
 `getInterruptionsReport` in `cloud/apps/ledger-api/src/interruptions-repository.ts`:
 
-| Field | Meaning as computed |
-|---|---|
-| `completedTaskDefinition` | Which rule produced `completedTasks`. Today always `any_successful_step`; `terminal_stage_succeeded` and `no_failed_step_outstanding` are declared in the contract but not implemented. |
-| `completedTasks` | `COUNT(DISTINCT task_id)` over `step_outcomes` matching the filters **and `outcome = 'succeeded'`**. A task whose every step failed is not counted. |
-| `tasksTouched` | The same count with no `outcome` condition — every task with a settled outcome, failures included. This is what `completedTasks` used to mean. |
-| `interruptions` | `COUNT(DISTINCT i.id)` over `step_interruptions` joined to those outcomes on `(tenant, task, dispatch)`. `DISTINCT` deliberately, so a v1.5 multi-dispatch task cannot inflate the north star. |
-| `perCompletedTask` | `interruptions / completedTasks`, or `0` when the denominator is zero. **The north-star metric.** |
-| `perTaskTouched` | `interruptions / tasksTouched`. The loose figure, reported beside the strict one so a divergence is visible. It is always the smaller of the two, which is why it must never be quoted alone. |
-| `byKind` | Counts by `gate` \| `ask` \| `escalation`. |
-| `byStage[]` | The same five numbers per `stage_key`. Stage rows come from *touched*, so a stage whose every step failed still appears. |
-| `excluded` | Always `['permission_prompt']` — permission prompts are not interruptions. |
+| Field                     | Meaning as computed                                                                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `completedTaskDefinition` | Which rule produced `completedTasks`. Today always `any_successful_step`; `terminal_stage_succeeded` and `no_failed_step_outstanding` are declared in the contract but not implemented.        |
+| `completedTasks`          | `COUNT(DISTINCT task_id)` over `step_outcomes` matching the filters **and `outcome = 'succeeded'`**. A task whose every step failed is not counted.                                            |
+| `tasksTouched`            | The same count with no `outcome` condition — every task with a settled outcome, failures included. This is what `completedTasks` used to mean.                                                 |
+| `interruptions`           | `COUNT(DISTINCT i.id)` over `step_interruptions` joined to those outcomes on `(tenant, task, dispatch)`. `DISTINCT` deliberately, so a v1.5 multi-dispatch task cannot inflate the north star. |
+| `perCompletedTask`        | `interruptions / completedTasks`, or `0` when the denominator is zero. **The north-star metric.**                                                                                              |
+| `perTaskTouched`          | `interruptions / tasksTouched`. The loose figure, reported beside the strict one so a divergence is visible. It is always the smaller of the two, which is why it must never be quoted alone.  |
+| `byKind`                  | Counts by `gate` \| `ask` \| `escalation`.                                                                                                                                                     |
+| `byStage[]`               | The same five numbers per `stage_key`. Stage rows come from _touched_, so a stage whose every step failed still appears.                                                                       |
+| `excluded`                | Always `['permission_prompt']` — permission prompts are not interruptions.                                                                                                                     |
 
 **LG5 (ALC-105) changed what `perCompletedTask` means.** Before it, the denominator was tasks
-*touched*: a failed step enlarged it, so the north star read best exactly when the system was
+_touched_: a failed step enlarged it, so the north star read best exactly when the system was
 failing most. It is now tasks with at least one successful step — candidate (a) of three; (b)
-*terminal stage succeeded* and (c) *no failed step outstanding* remain open and are chosen from real
+_terminal stage succeeded_ and (c) _no failed step outstanding_ remain open and are chosen from real
 data once the two printed figures have diverged on a real run. The swap point is
 `completedTaskPairsSql` in `cloud/apps/ledger-api/src/interruptions-repository.ts`.
 
@@ -92,7 +92,7 @@ assume away — the full list with proposed fixes is §11.
 1. ~~The report cannot be scoped to a **run** or to an **execution strategy**.~~ **Closed by LG5.**
    Filters are now `stageKey`, `projectId`, `memberId`, `runId`, `executionStrategy`, `since`,
    `until`. `--compare-runs <a> <b>` still does not exist; two `--run` reports replace it.
-2. ~~`completedTasks` counts *tasks touched*, not *tasks completed successfully*.~~ **Closed by
+2. ~~`completedTasks` counts _tasks touched_, not _tasks completed successfully_.~~ **Closed by
    LG5**, under definition (a). Both counts are now reported; which definition is right is still
    open.
 3. **The ledger holds no duration.** `created_at` is server time and `client_ts` is the dispatch's
@@ -112,8 +112,8 @@ Stated so that it can fail.
 > regression**, and at a spend premium that is **smaller than the value of the human time it
 > returns**.
 
-Note what is *not* claimed. Foreman is not claimed to be faster, and it is not claimed to be cheaper.
-CLAUDE.md's framing — *multi-agent is a trade, not an upgrade* — is the framing the experiment tests.
+Note what is _not_ claimed. Foreman is not claimed to be faster, and it is not claimed to be cheaper.
+CLAUDE.md's framing — _multi-agent is a trade, not an upgrade_ — is the framing the experiment tests.
 A Foreman arm that is 3× the spend and returns two hours of a developer's attention is a good trade.
 One that is 3× the spend and returns twenty minutes is not, and we should find that out from our own
 ledger.
@@ -124,13 +124,13 @@ ledger.
 
 ### 04.1 The two arms
 
-| | Arm C — **control** | Arm F — **Foreman** |
-|---|---|---|
-| Execution strategy | `single` | `orchestrated` |
-| Human role | Briefs one agent, steers it, answers its questions, reviews and merges | Briefs the lead, answers gates, reviews and merges |
-| What is being given up | — | The developer's continuous attention |
+|                        | Arm C — **control**                                                    | Arm F — **Foreman**                                |
+| ---------------------- | ---------------------------------------------------------------------- | -------------------------------------------------- |
+| Execution strategy     | `single`                                                               | `orchestrated`                                     |
+| Human role             | Briefs one agent, steers it, answers its questions, reviews and merges | Briefs the lead, answers gates, reviews and merges |
+| What is being given up | —                                                                      | The developer's continuous attention               |
 
-**Arm C is a developer *with* a single agent, not a developer typing by hand.** This matters and it
+**Arm C is a developer _with_ a single agent, not a developer typing by hand.** This matters and it
 is the first sign-off item (§10.1). Alicorn already ships single-agent as the default and calls it
 ~90% of daily work; the alternative a user actually gives up when they choose Foreman is
 single-agent, not unaided typing. Measuring against unaided typing would produce a flattering number
@@ -138,7 +138,7 @@ about a choice nobody is making.
 
 ### 04.2 Unit of observation
 
-**One ticket, run once per arm — a *pair*.** The pair, not the run, is the unit; a single arm's
+**One ticket, run once per arm — a _pair_.** The pair, not the run, is the unit; a single arm's
 number in isolation means nothing.
 
 ### 04.3 The bias problem, and what actually controls it
@@ -147,11 +147,11 @@ The same ticket cannot be run twice by the same person: the second run inherits 
 understanding, and that alone is worth more than either execution strategy. Three designs are
 available, in decreasing strength and increasing cost:
 
-| Design | How it controls the learning effect | What it costs | What it cannot rule out |
-|---|---|---|---|
-| **A · Two operators, one ticket** | Operator A runs arm C, operator B runs arm F, from the same written brief, in isolation — separate worktrees, separate branches, no shared chat, neither sees the other's diff before both PRs are open | Two people | Operator skill difference |
-| **B · Matched pair, one operator** | Two tickets of the same size band from the same module, arm assigned by coin flip, run in randomised order | One person | Ticket difficulty variance, which at n = 1 pair dominates everything |
-| **C · Replicated matched pairs** | Design B repeated over **n ≥ 3** pairs with arm order alternated | One person, 3× the tickets | Less; variance starts to average out |
+| Design                             | How it controls the learning effect                                                                                                                                                                     | What it costs              | What it cannot rule out                                              |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | -------------------------------------------------------------------- |
+| **A · Two operators, one ticket**  | Operator A runs arm C, operator B runs arm F, from the same written brief, in isolation — separate worktrees, separate branches, no shared chat, neither sees the other's diff before both PRs are open | Two people                 | Operator skill difference                                            |
+| **B · Matched pair, one operator** | Two tickets of the same size band from the same module, arm assigned by coin flip, run in randomised order                                                                                              | One person                 | Ticket difficulty variance, which at n = 1 pair dominates everything |
+| **C · Replicated matched pairs**   | Design B repeated over **n ≥ 3** pairs with arm order alternated                                                                                                                                        | One person, 3× the tickets | Less; variance starts to average out                                 |
 
 **Recommended: design B replicated to n = 3 (i.e. design C), falling back to design A for one pair
 if a second operator is available.** Reasoning: the team is one engineer
@@ -187,7 +187,7 @@ Registered before any run, by name and Plane key.
 
 Four measures. Three are compared; the fourth is a gate that is never traded away.
 
-### M-1 · Interruptions per completed task — *the north star*
+### M-1 · Interruptions per completed task — _the north star_
 
 **Source.** `orca ledger report --project <arm project id> --since <t0> --until <t_end> --json`,
 field `perCompletedTask`; report `byKind` alongside it.
@@ -217,7 +217,7 @@ each interruption but not its resolution, so dwell time is not derivable.
 
 **This is the softest primary measure in the protocol, and it is the one Foreman's whole case rests
 on.** Two mitigations: log each interval at the time rather than reconstructing it afterwards, and
-report M-2 alongside M-1, which *is* ledger-derived — if attended time falls and interruption count
+report M-2 alongside M-1, which _is_ ledger-derived — if attended time falls and interruption count
 does not, the timer is suspect, not the finding.
 
 ### M-3 · Time to mergeable PR — elapsed
@@ -229,12 +229,12 @@ does not, the timer is suspect, not the finding.
 - **t_mergeable** — the first moment at which the PR head simultaneously satisfies every clause of
   §06.
 
-**Source.** Git commit timestamps plus the provider's PR and check-run API (GitHub *and* GitLab —
+**Source.** Git commit timestamps plus the provider's PR and check-run API (GitHub _and_ GitLab —
 `docs/reference` provider rules apply; nothing here may be GitHub-only). Not the ledger, which has no
 duration field.
 
 **Pause rule.** Elapsed time is calendar time and is **not** stopped for meals, sleep or other work.
-It *is* stopped for an external block that would have stopped both arms — a provider outage, CI
+It _is_ stopped for an external block that would have stopped both arms — a provider outage, CI
 down, a blocking dependency. Every pause is logged with a start, an end and a cause at the time it
 happens, and an unlogged pause does not count.
 
@@ -261,12 +261,12 @@ sign-off item.
 
 Never traded against M-1 to M-4. All four clauses must hold for a run to count at all:
 
-| Clause | Evidence |
-|---|---|
-| Every required check green on the merge commit | `step_verifications` where `required = true` → `status = 'passed'` (today `kind` is `diff_coverage` only — see §11.6), **plus** the repository's CI status, which lives outside the ledger |
-| Reviewer backend ≠ author backend, not bypassed | `step_outcomes.review_backend_bypass = false` for every outcome in the arm; `ProvenanceReport.reviewBackend.enforced = true` |
-| No human correction inside the window | No `step_outcomes.human_verdict = 'amended'` for the arm within **14 days** of merge, written by the corrections sweep (`src/main/alicorn/corrections/`). Never write `human_verdict` any other way |
-| The PR was actually merged | Provider API |
+| Clause                                          | Evidence                                                                                                                                                                                            |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Every required check green on the merge commit  | `step_verifications` where `required = true` → `status = 'passed'` (today `kind` is `diff_coverage` only — see §11.6), **plus** the repository's CI status, which lives outside the ledger          |
+| Reviewer backend ≠ author backend, not bypassed | `step_outcomes.review_backend_bypass = false` for every outcome in the arm; `ProvenanceReport.reviewBackend.enforced = true`                                                                        |
+| No human correction inside the window           | No `step_outcomes.human_verdict = 'amended'` for the arm within **14 days** of merge, written by the corrections sweep (`src/main/alicorn/corrections/`). Never write `human_verdict` any other way |
+| The PR was actually merged                      | Provider API                                                                                                                                                                                        |
 
 **Why 14 days and not the 7 the `amended_within_window` gauge uses.** The gauge is an operational
 signal sized for a dashboard; a quality claim wants a window long enough for the next person to
@@ -330,7 +330,7 @@ Every one of these is cheap, and each closes a way the result could be talked in
 
 **Proposed: `perCompletedTask` for arm F ≤ 0.5 × arm C**, on the pair-weighted mean.
 
-*Reasoning.* The north-star metric is the product's thesis, and halving human involvement is a change
+_Reasoning._ The north-star metric is the product's thesis, and halving human involvement is a change
 a developer feels within a day. A 20% reduction is inside the noise of three tickets and would be
 indistinguishable from a good week. If Foreman cannot halve interruptions on the work it was designed
 for, it is not worth an order of magnitude more money.
@@ -345,10 +345,10 @@ break_even = (spend_F − spend_C) / (attended_C − attended_F)      [$ per hou
 Foreman passes T-2 when  break_even < hourly_cost_of_developer
 ```
 
-*Reasoning.* This is the honest economic question and it collapses spend and time into one number
+_Reasoning._ This is the honest economic question and it collapses spend and time into one number
 that a buyer would recognise. It also handles the awkward cases correctly on its own: if Foreman
 returns no attention, the denominator is zero or negative and Foreman fails without needing a special
-rule; if Foreman is *cheaper* the numerator is negative and it passes trivially, which is correct.
+rule; if Foreman is _cheaper_ the numerator is negative and it passes trivially, which is correct.
 
 **The hourly figure is an input, not a fact, and it is a sign-off item (§10.2).** State it as one
 number, in writing, before the run. A reader can then redo the arithmetic with their own figure —
@@ -358,7 +358,7 @@ which is exactly what a stranger should be able to do to a claim like this.
 
 **Proposed: `spend_F ≤ 10 × spend_C`.**
 
-*Reasoning.* Two reasons to keep an absolute ceiling even with T-2 in place. First, T-2 can be passed
+_Reasoning._ Two reasons to keep an absolute ceiling even with T-2 in place. First, T-2 can be passed
 by a very expensive run that happens to save a lot of time on one unusual ticket; a ceiling stops one
 outlier from setting the default path for everyone. Second, the borrowed figure we are replacing is
 ~15×, and **a token-efficiency product should not adopt as its recommended path something costlier
@@ -370,7 +370,7 @@ explain to a buyer and harder to game with a cheap control arm.
 
 **Proposed: `elapsed_F ≤ 1.25 × elapsed_C`.**
 
-*Reasoning.* Foreman does not claim to be faster, so demanding a speed-up would test a claim we are
+_Reasoning._ Foreman does not claim to be faster, so demanding a speed-up would test a claim we are
 not making. But an arm that is simultaneously slower, more expensive and only modestly less
 interrupting has nothing to sell. 1.25× tolerates the coordination overhead the pattern honestly has
 while refusing an arm that takes twice as long.
@@ -379,22 +379,22 @@ while refusing an arm that takes twice as long.
 
 **Proposed: M-5 must pass in full for arm F. A failure disqualifies the run regardless of T-1 to
 T-4.** A cheaper, faster, less-interrupting run that gets amended within two weeks is the exact
-failure mode the corrections watcher exists to catch, and ROADMAP §Risks names it *silent quality
-drift*.
+failure mode the corrections watcher exists to catch, and ROADMAP §Risks names it _silent quality
+drift_.
 
 ### The stop rule — what a failure changes
 
 Pre-committing to the consequence is what makes the threshold real.
 
 - **If Foreman passes** (T-1 and T-2 and T-3 and T-4 and T-5): `orchestrated` becomes the
-  *recommended* strategy for the tested class of ticket — long-running or multi-repo, in the
+  _recommended_ strategy for the tested class of ticket — long-running or multi-repo, in the
   registered size band. It does **not** become the default. `single` stays the default per CLAUDE.md;
   the escalation offer stays an offer.
 - **If Foreman fails on any clause:** `single` stays the default, and the ~90% / 15× figure is
   **deleted** from CLAUDE.md and PROJECT-BRIEF and replaced by our own measured result. Not
   re-qualified, not footnoted — deleted. Continuing to cite a borrowed number after measuring our own
   is the failure this ticket exists to prevent.
-- **Either way**, `docs/alicorn/FOREMAN.md` § *Measuring it* records the numbers, the date, the
+- **Either way**, `docs/alicorn/FOREMAN.md` § _Measuring it_ records the numbers, the date, the
   registration SHA, and the app SHA under test.
 
 ---
@@ -420,22 +420,22 @@ our word for it, which is the whole point of agreeing the threshold first.
 **The human owner must fix each of these in writing, in this file, before t₀.** An unanswered row
 blocks the run — not the whole run's design, this specific list. Ten minutes of decisions.
 
-| # | Decision | Recommendation | Agreed value |
-|---|---|---|---|
-| 10.1 | **What is arm C?** Developer + single agent, or developer unaided | Developer + single agent — it is what a user actually gives up (§04.1) | *(unfilled)* |
-| 10.2 | **Fully-loaded hourly cost of the developer**, used in T-2 | One number, stated, so a reader can redo the arithmetic | *(unfilled)* |
-| 10.3 | **Design and n.** Design A, B or C; how many pairs | Design C at n = 3; design A for one pair if a second operator exists | *(unfilled)* |
-| 10.4 | **The tickets.** Plane keys, pairings, arm order | Registered by key before t₀; size band 0.5–2 ew, within Foreman's envelope | *(unfilled)* |
-| 10.5 | **T-1 ratio** | ≤ 0.5× | *(unfilled)* |
-| 10.6 | **T-3 form and value** — multiple of arm C, or absolute per-ticket cap | ≤ 10× arm C | *(unfilled)* |
-| 10.7 | **T-4 ratio** | ≤ 1.25× | *(unfilled)* |
-| 10.8 | **M-5 correction window** | 14 days | *(unfilled)* |
-| 10.9 | **Operators and reviewer.** Who runs each arm; who reviews blind | Operator does not review their own arm (§07.3) | *(unfilled)* |
-| 10.10 | **The stop rule**, confirmed verbatim, including deleting the borrowed figure on failure | As written in §08 | *(unfilled)* |
-| 10.11 | **FM6 as a third arm?** Whether the Claude Code `workflow` executor spike runs on the same tickets | Separately — a three-way comparison at n = 3 resolves nothing, and FM6's question is *which executor*, not *whether to orchestrate* | *(unfilled)* |
-| 10.12 | **Ledger prerequisites** (§11) — which are fixed before the run, which are worked around | Fix 11.1 and 11.4; work around the rest | *(unfilled)* |
+| #     | Decision                                                                                           | Recommendation                                                                                                                      | Agreed value |
+| ----- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| 10.1  | **What is arm C?** Developer + single agent, or developer unaided                                  | Developer + single agent — it is what a user actually gives up (§04.1)                                                              | _(unfilled)_ |
+| 10.2  | **Fully-loaded hourly cost of the developer**, used in T-2                                         | One number, stated, so a reader can redo the arithmetic                                                                             | _(unfilled)_ |
+| 10.3  | **Design and n.** Design A, B or C; how many pairs                                                 | Design C at n = 3; design A for one pair if a second operator exists                                                                | _(unfilled)_ |
+| 10.4  | **The tickets.** Plane keys, pairings, arm order                                                   | Registered by key before t₀; size band 0.5–2 ew, within Foreman's envelope                                                          | _(unfilled)_ |
+| 10.5  | **T-1 ratio**                                                                                      | ≤ 0.5×                                                                                                                              | _(unfilled)_ |
+| 10.6  | **T-3 form and value** — multiple of arm C, or absolute per-ticket cap                             | ≤ 10× arm C                                                                                                                         | _(unfilled)_ |
+| 10.7  | **T-4 ratio**                                                                                      | ≤ 1.25×                                                                                                                             | _(unfilled)_ |
+| 10.8  | **M-5 correction window**                                                                          | 14 days                                                                                                                             | _(unfilled)_ |
+| 10.9  | **Operators and reviewer.** Who runs each arm; who reviews blind                                   | Operator does not review their own arm (§07.3)                                                                                      | _(unfilled)_ |
+| 10.10 | **The stop rule**, confirmed verbatim, including deleting the borrowed figure on failure           | As written in §08                                                                                                                   | _(unfilled)_ |
+| 10.11 | **FM6 as a third arm?** Whether the Claude Code `workflow` executor spike runs on the same tickets | Separately — a three-way comparison at n = 3 resolves nothing, and FM6's question is _which executor_, not _whether to orchestrate_ | _(unfilled)_ |
+| 10.12 | **Ledger prerequisites** (§11) — which are fixed before the run, which are worked around           | Fix 11.1 and 11.4; work around the rest                                                                                             | _(unfilled)_ |
 
-**Signed off by:** *(name)* · **on:** *(date)* · **registration commit:** *(SHA, filled by §09.2)*
+**Signed off by:** _(name)_ · **on:** _(date)_ · **registration commit:** _(SHA, filled by §09.2)_
 
 ---
 
@@ -444,18 +444,18 @@ blocks the run — not the whole run's design, this specific list. Ten minutes o
 Found while writing the protocol against the shipped code. **None is built by SM1** — SM1 is a docs
 ticket. Each is listed as a dependency with what the protocol does in the meantime.
 
-| # | Gap | Impact | Workaround for this run | Proposed fix |
-|---|---|---|---|---|
-| 11.1 | ~~**The interruptions report cannot filter by `run_id` or `execution_strategy`.**~~ **Fixed by LG5 (ALC-105)** — `--run <id>` and `--strategy <single\|orchestrated>` are on the filter, the RPC and the CLI. **Still missing:** `--compare-runs <a> <b>`, named in [foreman-core](plans/2026-09-06-foreman-core.md) Task 10, which is a second command over two reports, not a filter | — | — | File `--compare-runs` separately: it is a formatting command, not a ledger change |
-| 11.2 | ~~**`completedTasks` counts tasks touched, not tasks completed.**~~ **Fixed by LG5 (ALC-105)** — `completedTasks` now requires `outcome = 'succeeded'`, `tasksTouched` carries the old count, and both are emitted with `completedTaskDefinition` saying which rule was used. **Still open:** *which* definition. (a) any successful step is what ships; (b) terminal stage succeeded and (c) no failed step outstanding are reserved for the user, to be chosen once two real arms have diverged | — | — | Swap `completedTaskPairsSql` in `interruptions-repository.ts`; the contract already declares all three values so the change is not a wire change |
-| 11.3 | **No duration on any ledger row.** `step_outcomes` has `created_at` (server) and `client_ts` (the dispatch's `completed_at`); no start time. Per-dispatch wall clock exists only in the client's orchestration SQLite (`dispatchedAt`, used by `run-cost-publisher.ts`) | M-3 cannot come from the ledger | Git and provider timestamps | A `started_client_ts` column, forensics-only like `client_ts` |
-| 11.4 | **`step_interruptions` has no `resolved_at`.** It has `occurred_at` and `resolved_by`, so an interruption's arrival is recorded but not its cost | M-2, the measure Foreman's case rests on, is hand-timed | A manual timer, logged per event | **The highest-value fix here.** `resolved_at TIMESTAMPTZ` is additive and cheap, and it makes attended time computable for every run afterwards, not just this one |
-| 11.5 | **Cost covers `claude` and `codex` only.** Every other backend writes `spendCents: null`, `usage.status = 'unavailable'` (`provider_unsupported` / `usage_not_enabled`) | A mixed-backend arm produces a floor, and a floor cannot settle T-2 or T-3 | Restrict both arms to the two priced backends | Out of scope; the "—, never a guess" rule is correct as it stands |
-| 11.6 | **`step_verifications.kind` is `'diff_coverage'` only.** Typecheck, lint and test results live in CI, not the ledger | "Every required check green" is only partly ledger-evidenced | §06 clause 2 reads CI as well as the ledger, and says so | Widen `kind` when required checks become stage-authored (v1.5) |
-| 11.7 | **No CLI for run cost or provenance.** The ledger CLI is `report`, `outbox`, `outbox-requeue`; cost and provenance are HTTP-only | The protocol curls, or reads the desktop | `ledger cost --run <id>` and `ledger provenance --repo <id> --branch <name>`, mirroring the existing handler shape |
-| 11.8 | **Binary name in flux.** Spec usage strings say `orca ledger report`; the rebrand (R1–R5) renames the binary to `alicorn` | Cosmetic, but a protocol that names the wrong binary gets run wrong | Both names appear in §02 | None — resolved by R5 |
+| #    | Gap                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Impact                                                                     | Workaround for this run                                                                                            | Proposed fix                                                                                                                                                       |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 11.1 | ~~**The interruptions report cannot filter by `run_id` or `execution_strategy`.**~~ **Fixed by LG5 (ALC-105)** — `--run <id>` and `--strategy <single\|orchestrated>` are on the filter, the RPC and the CLI. **Still missing:** `--compare-runs <a> <b>`, named in [foreman-core](plans/2026-09-06-foreman-core.md) Task 10, which is a second command over two reports, not a filter                                                                                                            | —                                                                          | —                                                                                                                  | File `--compare-runs` separately: it is a formatting command, not a ledger change                                                                                  |
+| 11.2 | ~~**`completedTasks` counts tasks touched, not tasks completed.**~~ **Fixed by LG5 (ALC-105)** — `completedTasks` now requires `outcome = 'succeeded'`, `tasksTouched` carries the old count, and both are emitted with `completedTaskDefinition` saying which rule was used. **Still open:** _which_ definition. (a) any successful step is what ships; (b) terminal stage succeeded and (c) no failed step outstanding are reserved for the user, to be chosen once two real arms have diverged | —                                                                          | —                                                                                                                  | Swap `completedTaskPairsSql` in `interruptions-repository.ts`; the contract already declares all three values so the change is not a wire change                   |
+| 11.3 | **No duration on any ledger row.** `step_outcomes` has `created_at` (server) and `client_ts` (the dispatch's `completed_at`); no start time. Per-dispatch wall clock exists only in the client's orchestration SQLite (`dispatchedAt`, used by `run-cost-publisher.ts`)                                                                                                                                                                                                                           | M-3 cannot come from the ledger                                            | Git and provider timestamps                                                                                        | A `started_client_ts` column, forensics-only like `client_ts`                                                                                                      |
+| 11.4 | **`step_interruptions` has no `resolved_at`.** It has `occurred_at` and `resolved_by`, so an interruption's arrival is recorded but not its cost                                                                                                                                                                                                                                                                                                                                                  | M-2, the measure Foreman's case rests on, is hand-timed                    | A manual timer, logged per event                                                                                   | **The highest-value fix here.** `resolved_at TIMESTAMPTZ` is additive and cheap, and it makes attended time computable for every run afterwards, not just this one |
+| 11.5 | **Cost covers `claude` and `codex` only.** Every other backend writes `spendCents: null`, `usage.status = 'unavailable'` (`provider_unsupported` / `usage_not_enabled`)                                                                                                                                                                                                                                                                                                                           | A mixed-backend arm produces a floor, and a floor cannot settle T-2 or T-3 | Restrict both arms to the two priced backends                                                                      | Out of scope; the "—, never a guess" rule is correct as it stands                                                                                                  |
+| 11.6 | **`step_verifications.kind` is `'diff_coverage'` only.** Typecheck, lint and test results live in CI, not the ledger                                                                                                                                                                                                                                                                                                                                                                              | "Every required check green" is only partly ledger-evidenced               | §06 clause 2 reads CI as well as the ledger, and says so                                                           | Widen `kind` when required checks become stage-authored (v1.5)                                                                                                     |
+| 11.7 | **No CLI for run cost or provenance.** The ledger CLI is `report`, `outbox`, `outbox-requeue`; cost and provenance are HTTP-only                                                                                                                                                                                                                                                                                                                                                                  | The protocol curls, or reads the desktop                                   | `ledger cost --run <id>` and `ledger provenance --repo <id> --branch <name>`, mirroring the existing handler shape |
+| 11.8 | **Binary name in flux.** Spec usage strings say `orca ledger report`; the rebrand (R1–R5) renames the binary to `alicorn`                                                                                                                                                                                                                                                                                                                                                                         | Cosmetic, but a protocol that names the wrong binary gets run wrong        | Both names appear in §02                                                                                           | None — resolved by R5                                                                                                                                              |
 
-**Blocker worth naming separately:** the sequencing plan's *blocker zero* — the cloud toolchain does
+**Blocker worth naming separately:** the sequencing plan's _blocker zero_ — the cloud toolchain does
 not build on the current machine (pnpm 9 vs the required 10, empty `cloud/node_modules`). It is
 cleared per-worktree with a pnpm shim and a dedicated Postgres slot, which is how LG5 built and
 verified 11.1 and 11.2. 11.4 is still `Lane: ledger-api` and unbuilt.
@@ -484,28 +484,28 @@ Stated plainly, in the brief's style, because a protocol that only lists its str
 - **Spend is a floor whenever anything is unpriced.** Enforced by restricting backends, but a stray
   dispatch on an unpriced backend voids M-4 rather than shading it — and it must be treated that way,
   because `≥` reading as `=` is exactly the mistake `formatRunCostSummary` was written to prevent.
-- **A passing result is narrower than it will sound.** It licenses `orchestrated` as *recommended for
+- **A passing result is narrower than it will sound.** It licenses `orchestrated` as _recommended for
   long-running or multi-repo tickets in the registered size band, in this repository, at this app
-  SHA*. It does not license "multi-agent beats single-agent". Every restatement must carry the
+  SHA_. It does not license "multi-agent beats single-agent". Every restatement must carry the
   qualifier, or we have simply minted a new borrowed number and borrowed it from ourselves.
 
 ---
 
 ## 13 · Where the result is recorded
 
-1. **`docs/alicorn/FOREMAN.md` § *Measuring it*** — the numbers, per pair and pooled, the date, the
+1. **`docs/alicorn/FOREMAN.md` § _Measuring it_** — the numbers, per pair and pooled, the date, the
    registration SHA and the app SHA. This is the location [foreman-core](plans/2026-09-06-foreman-core.md)
    Task 10 already specifies.
-2. **This file** — a *Result* section appended below §13, never edited into §08. The proposal and the
+2. **This file** — a _Result_ section appended below §13, never edited into §08. The proposal and the
    outcome stay visibly separate, so a later reader can see the threshold was set first.
 3. **Plane SM1 (ALC-87)** — result comment, linking both.
-4. **[CLAUDE.md](../../CLAUDE.md)** — the sentence *"the public figure is ~90% better results for ~15×
+4. **[CLAUDE.md](../../CLAUDE.md)** — the sentence _"the public figure is ~90% better results for ~15×
    the tokens, measured on research tasks, not on shipping features. We have not measured it on our
-   own repos yet"* is the sentence that changes. Replacing it is what finishing SM1 means.
+   own repos yet"_ is the sentence that changes. Replacing it is what finishing SM1 means.
 5. **[PROJECT-BRIEF.md](PROJECT-BRIEF.md) §11.7 and §12** — the decision gets its outcome; the risk
-   *"We have no evidence a team of agents beats one agent on our work"* is either closed or restated
+   _"We have no evidence a team of agents beats one agent on our work"_ is either closed or restated
    with our own number.
 
 ---
 
-*Alicorn measurement protocol · SM1 (ALC-87) · draft, thresholds unsigned · 2026-09-08*
+_Alicorn measurement protocol · SM1 (ALC-87) · draft, thresholds unsigned · 2026-09-08_
