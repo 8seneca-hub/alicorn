@@ -17438,7 +17438,10 @@
           "chatOpening": "Opening the org chat…",
           "chat": "Chat",
           "authorDefault": "Start one for {{project}}",
-          "noPolicyYet": "No policy yet"
+          "noPolicyYet": "No policy yet",
+          "needsRestart": "This build of the app has no autonomy bridge yet — restart Alicorn to pick it up.",
+          "noStages": "{{project}} has no workflow yet",
+          "authorSet": "Author {{count}} stages for {{project}}"
         },
         "project": {
           "membersErrorTitle": "Members could not be read",

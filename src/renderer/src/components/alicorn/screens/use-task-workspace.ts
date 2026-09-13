@@ -17,6 +17,7 @@
  * task's, which is what makes reopening the ticket return to it instead of starting a second one.
  */
 import React from 'react'
+import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 import { useAppStore } from '@/store'
 import type { TaskWorktreeTuple } from '../../../../../shared/alicorn/feature-workspace-tuples'
 import type { TaskSessionBinding } from '../../../../../shared/alicorn/task-session'
@@ -130,7 +131,7 @@ export function useTaskWorkspace(
         await api.bindSubjectSession(task.id, binding)
         setSession(binding)
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : String(cause))
+        setError(describeFailure(cause))
       } finally {
         setStarting(false)
       }

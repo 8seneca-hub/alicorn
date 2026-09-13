@@ -15,10 +15,10 @@ import { Lock } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  DEFAULT_AUTONOMY_POLICY,
-  type AutonomyPolicy
-} from '../../../../../shared/alicorn/gate-policy'
+import type { AutonomyPolicy } from '../../../../../shared/alicorn/gate-policy'
+import { autonomyStarterSet } from '../../../../../shared/alicorn/autonomy-starter-set'
+import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
+import { useProjectWorkflow } from './use-project-workflow'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import { AlicornEmptyState } from './AlicornScreenChrome'
 
@@ -67,47 +67,72 @@ function usePoliciesByProject(projects: readonly Project[]): {
 }
 
 /**
- * The stage a first policy is authored for.
+ * Authors the whole set at once, one policy per stage of the project's workflow.
  *
- * `build` because it is the stage every workflow has and the one that runs most often, so it is
- * where evidence accumulates fastest. Other stages are authored on the workflow, one at a time.
+ * One stage at a time was the wrong unit: a policy on `build` alone says nothing about whether
+ * merge gates, and "which stages may retire" is a single decision about a pipeline. The modes come
+ * from the stages' own `reversibility` and `inheritedCost`, so a renamed or added stage is covered
+ * without anyone editing a list of names.
  */
-const FIRST_STAGE = 'build'
-
-function AuthorDefault({
+function AuthorStarterSet({
   project,
   onAuthored
 }: {
   project: Project
   onAuthored: () => void
 }): React.JSX.Element {
+  const { workflow, loading } = useProjectWorkflow(project.id)
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
+  const policies = React.useMemo(
+    () => autonomyStarterSet(workflow?.stages ?? []),
+    [workflow?.stages]
+  )
 
   const author = async (): Promise<void> => {
-    setBusy(true)
-    setFailure(null)
-    const result = await window.api?.alicorn?.setAutonomyPolicy?.(project.id, {
-      stageKey: FIRST_STAGE,
-      // Null is the wildcard: the policy applies to every member on that stage, which is what a
-      // first policy should do. Narrowing it to one member is a later, deliberate act.
-      memberId: null,
-      ...DEFAULT_AUTONOMY_POLICY
-    })
-    setBusy(false)
-    if (!result?.ok) {
-      setFailure(result?.error ?? 'control_plane_unreachable')
+    const write = window.api?.alicorn?.setAutonomyPolicy
+    if (!write) {
+      // Not the control plane's fault, and saying it was sent someone to check a healthy service.
+      // The bridge lives in the preload, which only a restarted app picks up.
+      setFailure(
+        translate(
+          'auto.components.alicorn.org.needsRestart',
+          'This build of the app has no autonomy bridge yet — restart Alicorn to pick it up.'
+        )
+      )
       return
     }
+    setBusy(true)
+    setFailure(null)
+    for (const { stageName: _stageName, ...policy } of policies) {
+      const result = await write(project.id, policy)
+      if (!result.ok) {
+        setBusy(false)
+        setFailure(describeFailure(result))
+        return
+      }
+    }
+    setBusy(false)
     onAuthored()
   }
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Button size="sm" variant="outline" disabled={busy} onClick={() => void author()}>
-        {translate('auto.components.alicorn.org.authorDefault', 'Start one for {{project}}', {
-          project: project.name
-        })}
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={busy || loading || policies.length === 0}
+        onClick={() => void author()}
+      >
+        {policies.length === 0
+          ? translate('auto.components.alicorn.org.noStages', '{{project}} has no workflow yet', {
+              project: project.name
+            })
+          : translate(
+              'auto.components.alicorn.org.authorSet',
+              'Author {{count}} stages for {{project}}',
+              { count: policies.length, project: project.name }
+            )}
       </Button>
       {failure ? <span className="text-[11px] text-destructive">{failure}</span> : null}
     </div>
@@ -166,7 +191,7 @@ export function AlicornOrgAutonomy({
           action={
             <div className="mt-3 space-y-1.5">
               {rows.map((row) => (
-                <AuthorDefault key={row.project.id} project={row.project} onAuthored={reload} />
+                <AuthorStarterSet key={row.project.id} project={row.project} onAuthored={reload} />
               ))}
             </div>
           }
@@ -212,7 +237,7 @@ export function AlicornOrgAutonomy({
           </h2>
           <div className="space-y-1.5">
             {withoutPolicies.map((row) => (
-              <AuthorDefault key={row.project.id} project={row.project} onAuthored={reload} />
+              <AuthorStarterSet key={row.project.id} project={row.project} onAuthored={reload} />
             ))}
           </div>
         </section>

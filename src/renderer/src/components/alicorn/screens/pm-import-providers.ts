@@ -1,3 +1,4 @@
+import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 /**
  * Every PM tool an import can read, behind one shape.
  *
@@ -111,6 +112,6 @@ export async function listPmBoards(provider: PmProvider): Promise<PmBoardListing
       }))
     }
   } catch (cause) {
-    return { ok: false, error: cause instanceof Error ? cause.message : String(cause) }
+    return { ok: false, error: describeFailure(cause) }
   }
 }

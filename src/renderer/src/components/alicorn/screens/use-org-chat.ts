@@ -16,6 +16,7 @@
  * decides where a file it reads comes from.
  */
 import React from 'react'
+import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 import { useAppStore } from '@/store'
 import {
   ORG_CHAT_SUBJECT_ID,
@@ -73,7 +74,7 @@ export function useOrgChat(
       await api.bindSubjectSession(ORG_CHAT_SUBJECT_ID, binding)
       setSession(binding)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause))
+      setError(describeFailure(cause))
     } finally {
       setStarting(false)
     }

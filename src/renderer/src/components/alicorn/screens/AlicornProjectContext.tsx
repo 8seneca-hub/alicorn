@@ -15,6 +15,7 @@
  * write the file is a thing it can do directly, because it has the working directory.
  */
 import React from 'react'
+import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 import { Pencil, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
@@ -81,7 +82,7 @@ export function AlicornProjectContext({
       }
       setEditing(false)
     } catch (cause) {
-      setFailure(cause instanceof Error ? cause.message : String(cause))
+      setFailure(describeFailure(cause))
     } finally {
       setBusy(false)
     }

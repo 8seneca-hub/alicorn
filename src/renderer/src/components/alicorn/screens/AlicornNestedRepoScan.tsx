@@ -10,6 +10,7 @@
  * implementation of the same walk.
  */
 import React from 'react'
+import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 import { FolderGit2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
@@ -56,7 +57,7 @@ export function AlicornNestedRepoScan({
       setSelected(new Set())
       setState({ kind: 'found', candidates: result.repos, truncated: result.truncated })
     } catch (error) {
-      setState({ kind: 'failed', message: error instanceof Error ? error.message : String(error) })
+      setState({ kind: 'failed', message: describeFailure(error) })
     }
   }
 
@@ -79,7 +80,7 @@ export function AlicornNestedRepoScan({
       onImported(paths)
       setState({ kind: 'idle' })
     } catch (error) {
-      setState({ kind: 'failed', message: error instanceof Error ? error.message : String(error) })
+      setState({ kind: 'failed', message: describeFailure(error) })
     }
   }
 

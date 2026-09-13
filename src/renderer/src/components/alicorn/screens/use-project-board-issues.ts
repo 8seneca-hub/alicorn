@@ -6,6 +6,7 @@
  * the live list is the only correct one. Caching it would recreate the mirror the import refuses.
  */
 import React from 'react'
+import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 import type { PlaneIssue } from '../../../../../shared/plane-types'
 import type { ProjectSource } from '../../../../../shared/alicorn/projects'
 import { canListBoardIssues } from './pm-import-providers'
@@ -58,7 +59,7 @@ export function useProjectBoardIssues(
         }
       } catch (cause) {
         if (!cancelled) {
-          setError(cause instanceof Error ? cause.message : String(cause))
+          setError(describeFailure(cause))
         }
       } finally {
         if (!cancelled) {
