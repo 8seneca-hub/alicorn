@@ -17,7 +17,6 @@ import {
   Server,
   Share2,
   ShieldCheck,
-  Sparkles,
   SquareKanban,
   Users,
   Workflow
@@ -27,6 +26,7 @@ import { translate } from '@/i18n/i18n'
 import { formatRunCostSummary, type RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import {
+  DEFAULT_PROJECT_SECTION,
   ORG_SECTIONS,
   PROJECT_SECTIONS,
   type AlicornRoute,
@@ -37,27 +37,23 @@ import {
 type IconComponent = typeof Inbox
 
 const PROJECT_SECTION_LABELS: Record<ProjectSection, string> = {
-  overview: 'Overview',
-  board: 'Board',
   tasks: 'Tasks',
+  board: 'Board',
   inbox: 'Inbox',
   members: 'Members',
   workflow: 'Workflow',
   checks: 'Required Checks',
-  skills: 'Skills',
   mcp: 'MCP Servers',
   settings: 'Settings'
 }
 
 const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
-  overview: LayoutGrid,
-  board: SquareKanban,
   tasks: List,
+  board: SquareKanban,
   inbox: Inbox,
   members: Users,
   workflow: Workflow,
   checks: ShieldCheck,
-  skills: Sparkles,
   mcp: Server,
   settings: Settings2
 }
@@ -245,7 +241,11 @@ export function AlicornScopeSidebar({
               key={project.id}
               type="button"
               onClick={() =>
-                onNavigate({ scope: 'projects', projectId: project.id, section: 'overview' })
+                onNavigate({
+                  scope: 'projects',
+                  projectId: project.id,
+                  section: DEFAULT_PROJECT_SECTION
+                })
               }
               className="mb-2 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-left transition hover:border-foreground/20"
             >

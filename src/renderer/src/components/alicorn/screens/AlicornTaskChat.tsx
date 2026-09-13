@@ -30,25 +30,46 @@ import { StructuredAgentSessionPromptCards } from '@/components/native-chat/Stru
 import { useStructuredAgentSession } from '@/components/native-chat/use-structured-agent-session'
 import type { NativeChatLiveSession } from '@/components/native-chat/use-native-chat-live-session'
 import type { AgentType } from '../../../../../shared/agent-status-types'
+import type { TaskSessionActivity } from './task-session-activity'
 
 const LOCAL_TARGET = { kind: 'local' } as const
 
-function statusLabel(isWorking: boolean, waiting: boolean): string {
-  if (waiting) {
-    return translate('auto.components.alicorn.taskChat.waiting', 'Waiting on you')
+/** Names the member when there is one, so the strip says *who* is working and not only *that*. */
+function statusLabel(activity: TaskSessionActivity, memberName: string | null): string {
+  if (activity === 'waiting') {
+    return memberName
+      ? translate('auto.components.alicorn.taskChat.waitingNamed', '{{member}} is waiting on you', {
+          member: memberName
+        })
+      : translate('auto.components.alicorn.taskChat.waiting', 'Waiting on you')
   }
-  return isWorking
-    ? translate('auto.components.alicorn.taskChat.working', 'Working')
+  if (activity === 'working') {
+    return memberName
+      ? translate('auto.components.alicorn.taskChat.workingNamed', '{{member}} is working', {
+          member: memberName
+        })
+      : translate('auto.components.alicorn.taskChat.working', 'Working')
+  }
+  return memberName
+    ? translate('auto.components.alicorn.taskChat.idleNamed', '{{member}} is idle', {
+        member: memberName
+      })
     : translate('auto.components.alicorn.taskChat.idle', 'Idle')
 }
 
 export function AlicornTaskChat({
   session,
+  memberName = null,
   className,
+  onActivityChange,
   onRestart
 }: {
   session: TaskSessionBinding
+  /** The member this session runs as, named in the strip and lit in the header's chip. */
+  memberName?: string | null
   className?: string
+  /** Lifts the one reading of the session's state so the header cannot claim a different one. */
+  onActivityChange?: (activity: TaskSessionActivity) => void
   /** Opens a fresh session on the same brief. The way back from a conversation that is gone. */
   onRestart?: () => void
 }): React.JSX.Element {
@@ -65,6 +86,15 @@ export function AlicornTaskChat({
     isVisible: true
   })
   const prompt = controller.prompts[0] ?? null
+  const activity: TaskSessionActivity = prompt
+    ? 'waiting'
+    : controller.isWorking
+      ? 'working'
+      : 'idle'
+
+  React.useEffect(() => {
+    onActivityChange?.(activity)
+  }, [activity, onActivityChange])
 
   // While this session is on screen, Alicorn has a workspace — which is what lets the right
   // sidebar's file tree, terminal and diff mean something. It has none anywhere else.
@@ -108,16 +138,15 @@ export function AlicornTaskChat({
         <span
           className={cn(
             'size-2 shrink-0 rounded-full',
-            prompt
+            activity === 'waiting'
               ? 'bg-status-attention'
-              : controller.isWorking
+              : activity === 'working'
                 ? 'bg-status-running'
                 : 'bg-muted-foreground/40'
           )}
         />
-        <span className="min-w-0 flex-1 truncate">
-          {statusLabel(controller.isWorking, prompt !== null)}
-        </span>
+        <span className="min-w-0 flex-1 truncate">{statusLabel(activity, memberName)}</span>
+        <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide">{agent}</span>
         {controller.isWorking ? (
           <Button size="xs" variant="ghost" className="gap-1" onClick={stopTurn}>
             <Square className="size-3" />

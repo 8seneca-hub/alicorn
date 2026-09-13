@@ -17559,7 +17559,11 @@
           "reviewer": "Reviews",
           "clash": "Reviewer and author share a backend, so this would gate at review. Change one.",
           "createInBacklog": "Create in Backlog",
-          "titlePlaceholder": "Refund API — partial refunds"
+          "titlePlaceholder": "Refund API — partial refunds",
+          "workflow": "Workflow",
+          "noWorkflow": "This project has no workflow, so the task starts at no stage. That is still a perfectly ordinary task — it just has nowhere to hand off at.",
+          "startsAt": "Starts at",
+          "workflowTrail": "The stage it starts at. Required checks, reversibility and inherited cost come from the stage, never from whoever is working it."
         },
         "task": {
           "errorTitle": "Tasks could not be read",
@@ -17584,7 +17588,11 @@
           "startIn": "Start in {{repo}}",
           "noRepoToStart": "This project has no repository resolved on this machine, so there is nowhere to start it.",
           "workspaceOpen": "Opening one shows the terminal, the diff and the source tree for it.",
-          "escalate": "Escalate…"
+          "escalate": "Escalate…",
+          "memberWorking": "working",
+          "memberWaiting": "waiting on you",
+          "memberIdle": "idle",
+          "memberNotStarted": "not started"
         },
         "mcpAttach": {
           "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",
@@ -17650,7 +17658,10 @@
           "stop": "Stop",
           "opening": "Opening the session…",
           "gone": "This conversation is no longer on this machine.",
-          "restart": "Start a new session"
+          "restart": "Start a new session",
+          "waitingNamed": "{{member}} is waiting on you",
+          "workingNamed": "{{member}} is working",
+          "idleNamed": "{{member}} is idle"
         },
         "mcpGlobal": {
           "title": "Every project on this machine",

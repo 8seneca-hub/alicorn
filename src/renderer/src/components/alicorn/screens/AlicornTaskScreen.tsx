@@ -18,6 +18,7 @@ import { AlicornTaskChat } from './AlicornTaskChat'
 import { AlicornTaskHeader } from './AlicornTaskHeader'
 import { AlicornTaskStartPanel } from './AlicornTaskStartPanel'
 import { useProjectWorkflow } from './use-project-workflow'
+import type { TaskSessionActivity } from './task-session-activity'
 import type { AlicornCrumb } from './AlicornScreenChrome'
 import type { ProjectTasksState } from './use-project-tasks'
 
@@ -46,6 +47,9 @@ export function AlicornTaskScreen({
   const workspace = useTaskWorkspace(task, projectKey, projectRepoIds)
   const sessionRepoId = workspace.repoId
   const bound = (members ?? []).filter((member) => task.memberIds.includes(member.id))
+  // The member the session runs as is the task's first — the author the plan picked.
+  const working = bound.find((member) => member.id === task.memberIds[0]) ?? null
+  const [activity, setActivity] = React.useState<TaskSessionActivity>('offline')
 
   return (
     <>
@@ -55,6 +59,7 @@ export function AlicornTaskScreen({
         crumbs={crumbs}
         stages={workflow?.stages ?? []}
         members={bound}
+        activity={workspace.session ? activity : 'offline'}
         // Null, never a guessed zero: cost attribution covers the backends Alicorn prices, and a
         // task nobody has spent on has no figure rather than a figure of nothing.
         spentUsd={null}
@@ -66,6 +71,8 @@ export function AlicornTaskScreen({
       {workspace.session ? (
         <AlicornTaskChat
           session={workspace.session}
+          memberName={working?.name ?? null}
+          onActivityChange={setActivity}
           {...(sessionRepoId ? { onRestart: () => void workspace.start(sessionRepoId) } : {})}
         />
       ) : (

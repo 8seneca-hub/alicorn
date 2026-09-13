@@ -1,17 +1,22 @@
 /**
- * Creating a task: a title and enough context. Everything else is decided and shown, not asked.
+ * Creating a task: a title, enough context, and where in the workflow it starts.
  *
  * A task is not a workspace. This writes a ticket to the control plane and nothing else — no
  * branch, no worktree, no agent. Opening it is what binds the repositories it needs, which is why
  * a task can exist before anyone has started it and can later span several.
  *
- * Advanced holds only what a task actually stores. The prototype also draws a spend ceiling, a
- * per-repo branch picker and a "start now" switch; none of those have anywhere to be written yet
- * — no task field, and no renderer bridge to `alicorn_task_worktrees` — so they are absent rather
- * than drawn dead. The plan itself is `planTaskComposition`, unchanged.
+ * **Members are not asked for.** `planTaskComposition` still picks the author and the reviewer and
+ * they are still written to the task — the composer just does not put the choice in front of you,
+ * because who builds a ticket is Claude's to decide from the brief and the org policy, and a
+ * picker here only invites a worse answer than the one the plan already has.
+ *
+ * Everything drawn writes a real field. The prototype also draws a spend ceiling, a per-repo
+ * branch picker and a "start now" switch; none of those have anywhere to be written yet — no task
+ * field, and no renderer bridge to `alicorn_task_worktrees` — so they are absent rather than drawn
+ * dead.
  */
 import React from 'react'
-import { Bot, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronDown, ChevronRight, Workflow } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -32,7 +37,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
 import { useComposerTaskPlan } from '@/hooks/use-composer-task-plan'
-import { describePlanReason, isBlockingPlanReason } from '@/lib/composer-task-plan-copy'
+import { useProjectWorkflow } from './use-project-workflow'
 import { EXECUTION_STRATEGIES } from '../../../../../shared/alicorn/ledger'
 import type { ExecutionStrategy } from '../../../../../shared/alicorn/ledger'
 import type { Repo } from '../../../../../shared/repo-types'
@@ -60,6 +65,7 @@ function Trail({ children }: { children: React.ReactNode }): React.JSX.Element {
 type DialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  projectId: string
   projectName: string
   projectRepos: readonly Repo[]
   onCreate: (input: Omit<TaskInput, 'projectId'>) => Promise<TaskResult>
@@ -80,6 +86,7 @@ export function AlicornNewTaskDialog(props: DialogProps): React.JSX.Element {
 
 function NewTaskDialogBody({
   onOpenChange,
+  projectId,
   projectName,
   projectRepos,
   onCreate,
@@ -91,6 +98,12 @@ function NewTaskDialogBody({
   const [advanced, setAdvanced] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
+  // Null while the workflow is still being read, so the first stage can be the default without an
+  // effect that would overwrite a choice made before the read settled.
+  const [stageKey, setStageKey] = React.useState<string | null>(null)
+  const { workflow, loading: workflowLoading } = useProjectWorkflow(projectId)
+  const stages = workflow?.stages ?? []
+  const startStage = stageKey ?? stages[0]?.key ?? null
 
   const repoOptions = React.useMemo(
     () => projectRepos.map((repo) => ({ id: repo.id, name: repo.displayName })),
@@ -102,16 +115,6 @@ function NewTaskDialogBody({
     repos: repoOptions,
     openRepoId: repoOptions[0]?.id ?? null
   })
-  const names = React.useMemo(
-    () => ({
-      memberName: plan.memberName,
-      repoName: (id: string): string => repoOptions.find((repo) => repo.id === id)?.name ?? id
-    }),
-    [plan.memberName, repoOptions]
-  )
-
-  const author = plan.members.find((member) => member.id === plan.authorId) ?? null
-  const clash = plan.plan?.reviewerConflict ?? false
   const canSubmit = title.trim().length > 0 && !busy
 
   const submit = async (): Promise<void> => {
@@ -123,7 +126,7 @@ function NewTaskDialogBody({
       context: brief,
       column: 'todo',
       executionStrategy: strategy,
-      stageKey: null,
+      stageKey: startStage,
       memberIds: [...new Set(memberIds)],
       source: null
     })
@@ -147,7 +150,7 @@ function NewTaskDialogBody({
         <DialogDescription>
           {translate(
             'auto.components.alicorn.newTask.description',
-            'A title and enough context. Everything else is decided for you and shown below.'
+            'A title and enough context. Who works on it is Claude’s to decide from the brief.'
           )}
         </DialogDescription>
       </DialogHeader>
@@ -186,62 +189,59 @@ function NewTaskDialogBody({
           <Trail>
             {translate(
               'auto.components.alicorn.newTask.briefTrail',
-              'Captured with every run. Everything else — workflow, stage rules, required checks — comes from the project.'
+              'Captured with every run. Stage rules and required checks come from the workflow, never from here.'
             )}
           </Trail>
         </div>
 
-        {plan.available ? (
-          <div
-            className={cn(
-              'flex gap-2.5 rounded-lg border px-3 py-2.5 text-[12.5px]',
-              clash ? 'border-destructive/40 bg-destructive/10' : 'border-border bg-muted/40'
-            )}
-          >
-            {clash ? (
-              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-            ) : (
-              <Bot className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-            )}
-            <div className="min-w-0">
-              <span className="font-semibold">
-                {translate('auto.components.alicorn.newTask.planTitle', 'Claude’s plan')}
-              </span>{' '}
-              {author ? (
-                <span>
-                  {translate(
-                    'auto.components.alicorn.newTask.planLine',
-                    '— {{author}} starts on {{backend}}.',
-                    { author: author.name, backend: author.backend }
-                  )}
-                </span>
-              ) : (
-                <span>
-                  {translate(
-                    'auto.components.alicorn.newTask.planNoMember',
-                    '— no member joins yet, so the task will gate at its first stage.'
-                  )}
-                </span>
+        <div className="space-y-1.5">
+          <FieldLabel htmlFor="alicorn-task-stage">
+            {translate('auto.components.alicorn.newTask.workflow', 'Workflow')}
+          </FieldLabel>
+          {workflowLoading ? (
+            <Trail>
+              {translate('auto.components.alicorn.project.workflowLoading', 'Reading workflows…')}
+            </Trail>
+          ) : stages.length === 0 ? (
+            <Trail>
+              {translate(
+                'auto.components.alicorn.newTask.noWorkflow',
+                'This project has no workflow, so the task starts at no stage. That is still a perfectly ordinary task — it just has nowhere to hand off at.'
               )}
-              {plan.plan && plan.plan.reasons.length > 0 && !plan.pinned ? (
-                <div className="mt-1 text-muted-foreground">
-                  {plan.plan.reasons
-                    .filter((reason) => !isBlockingPlanReason(reason))
-                    .map((reason) => describePlanReason(reason, names))
-                    .join(' · ')}
-                </div>
-              ) : null}
-              {plan.pinned ? (
-                <div className="mt-1 text-muted-foreground">
-                  {translate(
-                    'auto.components.alicorn.newTask.pinned',
-                    'You changed the plan — Claude has stopped adjusting it.'
-                  )}
-                </div>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
+            </Trail>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 rounded-md border border-border px-2.5 py-1.5">
+                <Workflow className="size-3.5 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                  {workflow?.name}
+                </span>
+                <Select value={startStage ?? ''} onValueChange={setStageKey}>
+                  <SelectTrigger
+                    id="alicorn-task-stage"
+                    className="h-7 w-[190px] shrink-0 text-xs"
+                    aria-label={translate('auto.components.alicorn.newTask.startsAt', 'Starts at')}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages.map((stage) => (
+                      <SelectItem key={stage.key} value={stage.key} className="text-xs">
+                        {stage.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Trail>
+                {translate(
+                  'auto.components.alicorn.newTask.workflowTrail',
+                  'The stage it starts at. Required checks, reversibility and inherited cost come from the stage, never from whoever is working it.'
+                )}
+              </Trail>
+            </>
+          )}
+        </div>
 
         <button
           type="button"
@@ -250,10 +250,13 @@ function NewTaskDialogBody({
         >
           {advanced ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
           {advanced
-            ? translate('auto.components.alicorn.newTask.hideAdvanced', 'Hide members and strategy')
+            ? translate(
+                'auto.components.alicorn.newTask.hideAdvanced',
+                'Hide the execution strategy'
+              )
             : translate(
                 'auto.components.alicorn.newTask.showAdvanced',
-                'Change members and strategy'
+                'Change the execution strategy'
               )}
         </button>
 
@@ -295,34 +298,6 @@ function NewTaskDialogBody({
                     )}
               </Trail>
             </div>
-
-            {plan.available ? (
-              <div className="space-y-2">
-                <FieldLabel>
-                  {translate('auto.components.alicorn.newTask.members', 'Members')}
-                </FieldLabel>
-                <MemberRow
-                  label={translate('auto.components.alicorn.newTask.author', 'Builds')}
-                  value={plan.authorId}
-                  members={plan.members}
-                  onChange={plan.setAuthorId}
-                />
-                <MemberRow
-                  label={translate('auto.components.alicorn.newTask.reviewer', 'Reviews')}
-                  value={plan.reviewerId}
-                  members={plan.members}
-                  onChange={plan.setReviewerId}
-                />
-                {clash ? (
-                  <Trail>
-                    {translate(
-                      'auto.components.alicorn.newTask.clash',
-                      'Reviewer and author share a backend, so this would gate at review. Change one.'
-                    )}
-                  </Trail>
-                ) : null}
-              </div>
-            ) : null}
           </div>
         ) : null}
 
@@ -338,38 +313,5 @@ function NewTaskDialogBody({
         </Button>
       </DialogFooter>
     </DialogContent>
-  )
-}
-
-function MemberRow({
-  label,
-  value,
-  members,
-  onChange
-}: {
-  label: string
-  value: string | null
-  members: { id: string; name: string; backend: string }[]
-  onChange: (id: string) => void
-}): React.JSX.Element | null {
-  if (members.length === 0) {
-    return null
-  }
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-16 shrink-0 text-[11px] text-muted-foreground">{label}</span>
-      <Select value={value ?? ''} onValueChange={onChange}>
-        <SelectTrigger className="h-7 w-full min-w-0 text-xs" aria-label={label}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {members.map((member) => (
-            <SelectItem key={member.id} value={member.id} className="text-xs">
-              {member.name} · {member.backend}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
   )
 }

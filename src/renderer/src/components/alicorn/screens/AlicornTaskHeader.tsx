@@ -15,6 +15,7 @@ import { taskRef } from '../../../../../shared/alicorn/tasks'
 import type { WorkflowStage } from '../../../../../shared/alicorn/workflows'
 import type { Member } from '../../../../../shared/alicorn/members'
 import { AlicornCrumbs, type AlicornCrumb } from './AlicornScreenChrome'
+import type { TaskSessionActivity } from './task-session-activity'
 
 /**
  * Which stage a task is at.
@@ -95,7 +96,39 @@ function StageRail({
   )
 }
 
-function MemberChip({ member }: { member: Member }): React.JSX.Element {
+const ACTIVITY_DOT: Record<TaskSessionActivity, string> = {
+  working: 'bg-status-running',
+  waiting: 'bg-status-attention',
+  idle: 'bg-muted-foreground/40',
+  offline: 'bg-muted-foreground/25'
+}
+
+function activityLabel(activity: TaskSessionActivity): string {
+  if (activity === 'working') {
+    return translate('auto.components.alicorn.task.memberWorking', 'working')
+  }
+  if (activity === 'waiting') {
+    return translate('auto.components.alicorn.task.memberWaiting', 'waiting on you')
+  }
+  if (activity === 'idle') {
+    return translate('auto.components.alicorn.task.memberIdle', 'idle')
+  }
+  return translate('auto.components.alicorn.task.memberNotStarted', 'not started')
+}
+
+/**
+ * One member, and — for the one the session is running as — what it is doing right now.
+ *
+ * Only the author gets a live reading. A reviewer bound to the same ticket is not in this session,
+ * so giving it the same dot would say two agents are working when one is.
+ */
+function MemberChip({
+  member,
+  activity
+}: {
+  member: Member
+  activity: TaskSessionActivity | null
+}): React.JSX.Element {
   const initials = member.name
     .split(/\s+/)
     .map((word) => word[0] ?? '')
@@ -103,12 +136,24 @@ function MemberChip({ member }: { member: Member }): React.JSX.Element {
     .slice(0, 2)
     .toUpperCase()
   return (
-    <span className="flex shrink-0 items-center gap-2 rounded-full border border-border px-2.5 py-1 text-[12px]">
+    <span
+      className={cn(
+        'flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[12px]',
+        activity === 'working' ? 'border-status-running/50' : 'border-border'
+      )}
+    >
       <span className="flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-semibold">
         {initials}
       </span>
       <span className="truncate font-medium">{member.name}</span>
-      <span className="size-1.5 shrink-0 rounded-full bg-status-running" />
+      {activity ? (
+        <>
+          <span className={cn('size-1.5 shrink-0 rounded-full', ACTIVITY_DOT[activity])} />
+          <span className="truncate text-[11px] text-muted-foreground">
+            {activityLabel(activity)}
+          </span>
+        </>
+      ) : null}
       <span className="truncate text-[11px] text-muted-foreground">{member.backend}</span>
     </span>
   )
@@ -120,6 +165,7 @@ export function AlicornTaskHeader({
   crumbs,
   stages,
   members,
+  activity,
   spentUsd,
   budgetUsd,
   onBack,
@@ -130,6 +176,8 @@ export function AlicornTaskHeader({
   crumbs: AlicornCrumb[]
   stages: readonly WorkflowStage[]
   members: readonly Member[]
+  /** What the session is doing, for the member it is running as — the task's first member. */
+  activity: TaskSessionActivity
   /** Null while nothing has been priced — never a guessed zero. */
   spentUsd: number | null
   budgetUsd: number | null
@@ -173,7 +221,11 @@ export function AlicornTaskHeader({
           <StageRail stages={stages} stageKey={resolveTaskStageKey(stages, task)} />
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {members.map((member) => (
-              <MemberChip key={member.id} member={member} />
+              <MemberChip
+                key={member.id}
+                member={member}
+                activity={member.id === task.memberIds[0] ? activity : null}
+              />
             ))}
           </div>
         </div>

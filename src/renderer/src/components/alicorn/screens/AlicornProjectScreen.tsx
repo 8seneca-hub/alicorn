@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import type { PendingGateView } from '../../../../../shared/alicorn/gate-review'
 import type { Project } from '../../../../../shared/alicorn/projects'
-import type { RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import { McpConfigSection } from '../../settings/McpConfigSection'
 import { useAppStore } from '@/store'
 import {
@@ -24,10 +23,8 @@ import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
 import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
 import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
 import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
-import { AlicornProjectSkillsSection } from './AlicornProjectPlaceholderSections'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
 import { useProjectTasks } from './use-project-tasks'
-import { AlicornProjectOverview } from './AlicornProjectOverview'
 import { AlicornTaskScreen } from './AlicornTaskScreen'
 import { AlicornProjectBoard, AlicornProjectTasks } from './AlicornProjectWork'
 import {
@@ -38,14 +35,12 @@ import {
 import type { AlicornRoute, ProjectSection } from '../shell/alicorn-shell-route'
 
 const TITLES: Record<ProjectSection, string> = {
-  overview: 'Overview',
-  board: 'Board',
   tasks: 'Tasks',
+  board: 'Board',
   inbox: 'Inbox',
   members: 'Members',
   workflow: 'Workflow',
   checks: 'Required Checks',
-  skills: 'Skills',
   mcp: 'MCP Servers',
   settings: 'Settings'
 }
@@ -54,7 +49,6 @@ export function AlicornProjectScreen({
   route,
   projects,
   gates,
-  spend,
   composing,
   onComposingChange,
   onResolvedGate,
@@ -64,7 +58,6 @@ export function AlicornProjectScreen({
   route: { scope: 'projects'; projectId: string; section: ProjectSection; taskId?: string | null }
   projects: Project[]
   gates: PendingGateView[] | null
-  spend: RunCostSummary
   /** Owned by the shell so the sidebar's New task and a screen's New task open one dialog. */
   composing: boolean
   onComposingChange: (open: boolean) => void
@@ -72,8 +65,8 @@ export function AlicornProjectScreen({
   onDeleteProject: (projectId: string) => Promise<{ ok: true } | { ok: false; error: string }>
   onNavigate: (next: AlicornRoute) => void
 }): React.JSX.Element {
-  // Tasks are read here rather than per screen: the board, the list and the overview are three
-  // readings of one set of rows, and three fetches would let them disagree after a drag.
+  // Tasks are read here rather than per screen: the board and the list are two readings of one set
+  // of rows, and two fetches would let them disagree after a drag.
   const tasks = useProjectTasks(route.projectId)
   const repos = useAppStore((state) => state.repos)
   const setActiveView = useAppStore((state) => state.setActiveView)
@@ -136,6 +129,7 @@ export function AlicornProjectScreen({
     <AlicornNewTaskDialog
       open={composing}
       onOpenChange={onComposingChange}
+      projectId={route.projectId}
       projectName={projectName}
       projectRepos={projectRepos}
       onCreate={tasks.create}
@@ -168,15 +162,6 @@ export function AlicornProjectScreen({
     return (
       <>
         <AlicornProjectBoard {...workProps} onSwitchView={() => section('tasks')} />
-        {composer}
-      </>
-    )
-  }
-
-  if (route.section === 'tasks') {
-    return (
-      <>
-        <AlicornProjectTasks {...workProps} onSwitchView={() => section('board')} />
         {composer}
       </>
     )
@@ -235,12 +220,6 @@ export function AlicornProjectScreen({
           )}
         </AlicornScreenBody>
       </>
-    )
-  }
-
-  if (route.section === 'skills') {
-    return (
-      <AlicornProjectSkillsSection crumbs={crumbs} onOpenSkills={() => setActiveView('skills')} />
     )
   }
 
@@ -305,17 +284,7 @@ export function AlicornProjectScreen({
 
   return (
     <>
-      <AlicornProjectOverview
-        project={project}
-        projectId={route.projectId}
-        projectName={projectName}
-        gates={projectGates}
-        spend={spend}
-        repos={repos}
-        onNavigate={onNavigate}
-        onNewTask={() => onComposingChange(true)}
-        tasks={tasks}
-      />
+      <AlicornProjectTasks {...workProps} onSwitchView={() => section('board')} />
       {composer}
     </>
   )

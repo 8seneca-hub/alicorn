@@ -57,6 +57,18 @@ function seed(projects: Project[], gates: PendingGateView[] = []): void {
   }
 }
 
+/** Open the one seeded project and wait for the section it lands on. */
+async function openProject(): Promise<void> {
+  await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
+  fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
+  await waitFor(() => expect(screen.getByText('No tasks yet')).toBeInTheDocument())
+}
+
+/** The sidebar's Inbox row, whose trailing count is the project's waiting-gate figure. */
+function sidebarInbox(): HTMLElement {
+  return screen.getByText('Inbox').closest('button')!
+}
+
 beforeEach(() => {
   // The scope lives in the store, so a test that moves it would leak into the next one — and so
   // would a repo or an open modal a single test seeded.
@@ -100,9 +112,8 @@ describe('AlicornShell', () => {
     seed([project()], [gate('repo-a'), gate('repo-a')])
     render(<AlicornShell />)
 
-    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
-    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
-    await waitFor(() => expect(screen.getByText('2 items need you.')).toBeInTheDocument())
+    await openProject()
+    expect(sidebarInbox().textContent).toBe('Inbox2')
   })
 
   // A gate nothing places belongs to no project, so it must not inflate one.
@@ -110,32 +121,26 @@ describe('AlicornShell', () => {
     seed([project()], [gate(null)])
     render(<AlicornShell />)
 
-    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
-    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
-    // The overview is up — and says nothing needs you, rather than counting a gate it does not own.
-    await waitFor(() => expect(screen.getByText('Running now')).toBeInTheDocument())
-    expect(screen.queryByText(/needs? you/)).not.toBeInTheDocument()
+    await openProject()
+    // No count at all, rather than a zero standing in for a gate this project does not own.
+    expect(sidebarInbox().textContent).toBe('Inbox')
   })
 
   it('gives a project every section the sidebar promises, and a way back out', async () => {
     seed([project()])
     render(<AlicornShell />)
 
-    await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
-    fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
-    await waitFor(() => expect(screen.getByText('Running now')).toBeInTheDocument())
+    await openProject()
 
     for (const label of [
-      'Overview',
-      'Board',
       'Tasks',
+      'Board',
       'Inbox',
       'Members',
       'Workflow',
       'Required Checks',
-      'Skills',
       'MCP Servers',
-      'Repositories'
+      'Settings'
       // Chat is deliberately absent: it is one session for the whole org, not one per project.
     ]) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0)

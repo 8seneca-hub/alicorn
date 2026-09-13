@@ -31,7 +31,12 @@ import {
   useAlicornAssistantShortcut
 } from '../assistant/use-alicorn-assistant-shortcut'
 import { useAlicornProjects } from './use-alicorn-projects'
-import { ALICORN_HOME, isProjectRoute, type AlicornRoute } from './alicorn-shell-route'
+import {
+  ALICORN_HOME,
+  DEFAULT_PROJECT_SECTION,
+  isProjectRoute,
+  type AlicornRoute
+} from './alicorn-shell-route'
 
 export function AlicornShell(): React.JSX.Element {
   const scope = useAppStore((state) => state.alicornScope)
@@ -152,12 +157,6 @@ export function AlicornShell(): React.JSX.Element {
             route={route}
             projects={projectsState.projects}
             gates={gates}
-            spend={
-              spendByProject[route.projectId] ?? {
-                costUsd: null,
-                partial: false
-              }
-            }
             composing={composingTask}
             onComposingChange={setComposingTask}
             onResolvedGate={refreshGates}
@@ -175,7 +174,9 @@ export function AlicornShell(): React.JSX.Element {
             onCreatingChange={setCreating}
             importing={importing}
             onImportingChange={setImporting}
-            onOpen={(projectId) => setRoute({ scope: 'projects', projectId, section: 'overview' })}
+            onOpen={(projectId) =>
+              setRoute({ scope: 'projects', projectId, section: DEFAULT_PROJECT_SECTION })
+            }
           />
         )}
       </main>
