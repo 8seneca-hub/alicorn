@@ -348,7 +348,7 @@ describe('createUISlice page navigation history', () => {
     expect(store.getState().worktreeNavHistoryIndex).toBe(1)
 
     store.getState().closeTaskPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
   })
 
@@ -373,7 +373,7 @@ describe('createUISlice page navigation history', () => {
     expect(store.getState().worktreeNavHistoryIndex).toBe(2)
 
     store.getState().closeTaskPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
     expect(store.getState().taskPageData).toEqual({})
     expect(store.getState().githubTaskDrawerWorkItem).toBeNull()
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
@@ -558,7 +558,7 @@ describe('createUISlice page navigation history', () => {
     ])
 
     store.getState().closeTaskPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
   })
 
@@ -572,7 +572,7 @@ describe('createUISlice page navigation history', () => {
     expect(store.getState().worktreeNavHistoryIndex).toBe(1)
 
     store.getState().closeAutomationsPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
   })
 
@@ -597,7 +597,7 @@ describe('createUISlice page navigation history', () => {
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
 
     store.getState().closeAutomationsPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
   })
 
@@ -700,7 +700,7 @@ describe('createUISlice space navigation', () => {
     expect(store.getState().worktreeNavHistoryIndex).toBe(1)
 
     store.getState().closeArtifactsPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
   })
 
@@ -714,7 +714,7 @@ describe('createUISlice space navigation', () => {
     expect(store.getState().worktreeNavHistoryIndex).toBe(1)
 
     store.getState().closeSkillsPage()
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
     expect(store.getState().worktreeNavHistoryIndex).toBe(0)
   })
 

@@ -172,9 +172,10 @@ export function sanitizeWorkspaceCleanupDismissals(
 }
 
 export function sanitizeHydratedActiveView(value: PersistedUIState['activeView']): TopLevelView {
-  // Why: older data (pre-activeView) or a view a different build doesn't have falls back to terminal rather than rendering nothing.
+  // Why: older data (pre-activeView) or a view a different build doesn't have falls back to the
+  // app's own home rather than rendering nothing — which is Alicorn, not Orca's terminal shell.
   if (!isTopLevelView(value)) {
-    return 'terminal'
+    return 'alicorn'
   }
   return value
 }

@@ -114,9 +114,9 @@ describe('createUISlice hydratePersistedUI', () => {
     expect(createUIStore().getState().manualRepoOrder).toEqual([])
   })
 
-  it('defaults the persisted active view to terminal', () => {
-    expect(getDefaultUIState().activeView).toBe('terminal')
-    expect(createUIStore().getState().activeView).toBe('terminal')
+  it('defaults the persisted active view to alicorn', () => {
+    expect(getDefaultUIState().activeView).toBe('alicorn')
+    expect(createUIStore().getState().activeView).toBe('alicorn')
   })
 
   it('restores the persisted active top-level view on hydration', () => {
@@ -127,7 +127,7 @@ describe('createUISlice hydratePersistedUI', () => {
     expect(store.getState().activeView).toBe('tasks')
   })
 
-  it('falls back to terminal when persisted active view is missing (older data)', () => {
+  it('falls back to alicorn when persisted active view is missing (older data)', () => {
     const store = createUIStore()
     store.setState({ activeView: 'tasks' })
 
@@ -139,7 +139,7 @@ describe('createUISlice hydratePersistedUI', () => {
       'startup'
     )
 
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
   })
 
   it('restores a persisted skills view', () => {
@@ -151,7 +151,7 @@ describe('createUISlice hydratePersistedUI', () => {
     expect(store.getState().activeView).toBe('skills')
   })
 
-  it('falls back to terminal when the persisted active view is not a known view', () => {
+  it('falls back to alicorn when the persisted active view is not a known view', () => {
     const store = createUIStore()
 
     store.getState().hydratePersistedUI(
@@ -161,7 +161,7 @@ describe('createUISlice hydratePersistedUI', () => {
       'startup'
     )
 
-    expect(store.getState().activeView).toBe('terminal')
+    expect(store.getState().activeView).toBe('alicorn')
   })
 
   it('keeps a persisted activity view when the settings fetch failed', () => {
