@@ -60,10 +60,10 @@ export function comparePaletteRankedItems(a: PaletteRankedItem, b: PaletteRanked
 
 /** Ties prefer Open Tabs, matching the documented section-leadership rule. */
 export function shouldOpenTabsLeadPaletteSections(args: {
-  bestWorktreeQualityRank: number
+  bestEntityQualityRank: number
   bestOpenTabQualityRank: number
 }): boolean {
-  return args.bestOpenTabQualityRank <= args.bestWorktreeQualityRank
+  return args.bestOpenTabQualityRank <= args.bestEntityQualityRank
 }
 
 /**

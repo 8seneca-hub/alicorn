@@ -4,6 +4,7 @@ import { useWorktreeJumpPaletteFilter } from './use-worktree-jump-palette-filter
 import { useWorktreeJumpPaletteWorktrees } from './use-worktree-jump-palette-worktrees'
 import { useWorktreeJumpPaletteOpenTabs } from './use-worktree-jump-palette-open-tabs'
 import { useWorktreeJumpPaletteRecentTabs } from './use-worktree-jump-palette-recent-tabs'
+import { useWorktreeJumpPaletteTasks } from './use-worktree-jump-palette-tasks'
 import { useWorktreeJumpPaletteProjectTargets } from './use-worktree-jump-palette-project-targets'
 import { useWorktreeJumpPaletteQuickActions } from './use-worktree-jump-palette-quick-actions'
 import { useWorktreeJumpPaletteSections } from './use-worktree-jump-palette-sections'
@@ -50,6 +51,7 @@ export function useWorktreeJumpPaletteController({
     ...worktrees,
     ...openTabs
   })
+  const tasks = useWorktreeJumpPaletteTasks({ ...localState })
   const projectTargets = useWorktreeJumpPaletteProjectTargets({
     ...storeState,
     ...localState,
@@ -69,6 +71,7 @@ export function useWorktreeJumpPaletteController({
     ...worktrees,
     ...openTabs,
     ...recentTabs,
+    ...tasks,
     ...projectTargets,
     ...quickActions,
     ...taskUrl
@@ -87,6 +90,7 @@ export function useWorktreeJumpPaletteController({
     ...worktrees,
     ...openTabs,
     ...recentTabs,
+    ...tasks,
     ...projectTargets,
     ...quickActions,
     ...sections,
@@ -124,6 +128,7 @@ export function useWorktreeJumpPaletteController({
     ...worktrees,
     ...openTabs,
     ...recentTabs,
+    ...tasks,
     ...projectTargets,
     ...quickActions,
     ...sections,

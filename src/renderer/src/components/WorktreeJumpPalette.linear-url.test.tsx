@@ -622,7 +622,9 @@ describe('WorktreeJumpPalette Linear URL intent', () => {
     expect(getCommandValue()).toBe('__create_worktree__')
   })
 
-  it('selects an existing Linear-linked worktree and keeps create underneath', async () => {
+  // A pasted URL means "start work on this". It no longer offers a jump to an already-linked
+  // workspace, because the palette does not list workspaces at all.
+  it('offers only create for a pasted Linear URL, even with a linked workspace', async () => {
     const linked = makeWorktree('wt-linked', 'Linked Linear workspace', {
       linkedLinearIssue: 'STA-4084',
       linkedLinearIssueOrganizationUrlKey: 'stably'
@@ -636,11 +638,8 @@ describe('WorktreeJumpPalette Linear URL intent', () => {
     await act(async () => setCommandQuery?.(LINEAR_URL))
     await flushEffects()
 
-    expect(getRenderedRowIds().filter(Boolean)).toEqual([
-      'worktree:wt-linked',
-      '__create_worktree__'
-    ])
-    expect(getCommandValue()).toBe('worktree:wt-linked')
+    expect(getRenderedRowIds().filter(Boolean)).toEqual(['__create_worktree__'])
+    expect(getCommandValue()).toBe('__create_worktree__')
     expect(testContainer.querySelector('[data-cmd-j-linear-issue-preview="true"]')).not.toBeNull()
   })
 
@@ -719,7 +718,7 @@ describe('WorktreeJumpPalette Linear URL intent', () => {
     expect(preview?.textContent).toContain('#12789')
   })
 
-  it('selects an existing GitHub-linked worktree and keeps create underneath', async () => {
+  it('offers only create for a pasted GitHub URL, even with a linked workspace', async () => {
     const linked = makeWorktree('wt-linked', 'Linked GitHub workspace', { linkedIssue: 14198 })
     const other = makeWorktree('wt-other', 'Unrelated workspace', { linkedIssue: 7 })
     await renderPalette({
@@ -730,11 +729,8 @@ describe('WorktreeJumpPalette Linear URL intent', () => {
     await act(async () => setCommandQuery?.('https://github.com/stablyai/orca/issues/14198'))
     await flushEffects()
 
-    expect(getRenderedRowIds().filter(Boolean)).toEqual([
-      'worktree:wt-linked',
-      '__create_worktree__'
-    ])
-    expect(getCommandValue()).toBe('worktree:wt-linked')
+    expect(getRenderedRowIds().filter(Boolean)).toEqual(['__create_worktree__'])
+    expect(getCommandValue()).toBe('__create_worktree__')
     expect(
       testContainer.querySelector<HTMLElement>('[data-cmd-j-task-url-preview="true"]')?.dataset
         .cmdJTaskUrlProvider

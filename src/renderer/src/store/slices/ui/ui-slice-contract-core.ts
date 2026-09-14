@@ -183,6 +183,10 @@ export type UISliceCore = {
   /** Which scope the Alicorn shell opens on. The rail sets it before switching views. */
   alicornScope: 'projects' | 'org' | 'inbox'
   openAlicornPage: (scope: UISliceCore['alicornScope']) => void
+  /** A task Cmd+J asked the Alicorn shell to open; the shell consumes it and clears it. */
+  pendingAlicornTask: { projectId: string; taskId: string } | null
+  openAlicornTask: (projectId: string, taskId: string) => void
+  clearPendingAlicornTask: () => void
   openSkillsPage: () => void
   closeSkillsPage: () => void
   pendingSkillShareId: string | null

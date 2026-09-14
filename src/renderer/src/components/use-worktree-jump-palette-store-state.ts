@@ -9,7 +9,6 @@ import {
   selectPaletteIndexStatusSnapshot,
   selectPaletteStatusInputs
 } from './worktree-jump-palette-status-inputs'
-import { selectWorktreePaletteCacheInputs } from '@/components/cmd-j/worktree-palette-cache-inputs'
 
 export function useWorktreeJumpPaletteStoreState({
   visible,
@@ -40,9 +39,6 @@ export function useWorktreeJumpPaletteStoreState({
   const paletteStatusInputsActive = visible || lingering
   const { ptyIdsByTabId, terminalLayoutsByTabId, tabsByWorktree } = useAppStore(
     useShallow((state) => selectPaletteStatusInputs(state, paletteStatusInputsActive))
-  )
-  const { prCache, issueCache, hostedReviewCache } = useAppStore(
-    useShallow((state) => selectWorktreePaletteCacheInputs(state, paletteStatusInputsActive))
   )
   const migrationUnsupportedByPtyId = useAppStore((state) => state.migrationUnsupportedByPtyId)
   const activeView = useAppStore((state) => state.activeView)
@@ -87,21 +83,7 @@ export function useWorktreeJumpPaletteStoreState({
   const sshConnectionStates = useAppStore((state) => state.sshConnectionStates)
   const runtimeEnvironments = useAppStore((state) => state.runtimeEnvironments)
   const runtimeStatusByEnvironmentId = useAppStore((state) => state.runtimeStatusByEnvironmentId)
-  const hideDefaultBranchWorkspace = useAppStore((state) => state.hideDefaultBranchWorkspace)
-  const hideAutomationGeneratedWorkspaces = useAppStore(
-    (state) => state.hideAutomationGeneratedWorkspaces
-  )
-  const hideCliCreatedWorkspaces = useAppStore((state) => state.hideCliCreatedWorkspaces)
-  const hideDetachedHeadWorkspaces = useAppStore((state) => state.hideDetachedHeadWorkspaces)
-  const hideWorkspacesFromOtherDevices = useAppStore(
-    (state) => state.hideWorkspacesFromOtherDevices
-  )
-  const showSleepingWorkspaces = useAppStore((state) => state.showSleepingWorkspaces)
-  const alwaysShowDefaultBranchWorkspace = useAppStore(
-    (state) => state.alwaysShowDefaultBranchWorkspace
-  )
   const lastVisitedAtByWorktreeId = useAppStore((state) => state.lastVisitedAtByWorktreeId)
-  const workspacePortScan = useAppStore((state) => state.workspacePortScan?.result ?? null)
   const openNewBrowserTabInActiveWorkspace = useAppStore(
     (state) => state.openNewBrowserTabInActiveWorkspace
   )
@@ -135,9 +117,6 @@ export function useWorktreeJumpPaletteStoreState({
     ptyIdsByTabId,
     terminalLayoutsByTabId,
     tabsByWorktree,
-    prCache,
-    issueCache,
-    hostedReviewCache,
     migrationUnsupportedByPtyId,
     activeView,
     activeWorktreeId,
@@ -168,15 +147,7 @@ export function useWorktreeJumpPaletteStoreState({
     sshConnectionStates,
     runtimeEnvironments,
     runtimeStatusByEnvironmentId,
-    hideDefaultBranchWorkspace,
-    hideAutomationGeneratedWorkspaces,
-    hideCliCreatedWorkspaces,
-    hideDetachedHeadWorkspaces,
-    hideWorkspacesFromOtherDevices,
-    showSleepingWorkspaces,
-    alwaysShowDefaultBranchWorkspace,
     lastVisitedAtByWorktreeId,
-    workspacePortScan,
     openNewBrowserTabInActiveWorkspace,
     openNewMarkdownInActiveWorkspace,
     openNewTerminalTabInActiveWorkspace,

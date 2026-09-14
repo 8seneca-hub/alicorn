@@ -33,11 +33,11 @@ export function useWorktreeJumpPaletteListEntries({
   const listEntries = useMemo<PaletteListEntry[]>(() => {
     const entries: PaletteListEntry[] = []
     const {
-      visibleWorktreeItems,
+      visibleTaskItems,
       visibleProjectTargetItems,
       visibleMiddleItems,
       visibleOpenTabItems,
-      worktreeOverflowCount,
+      taskOverflowCount,
       projectTargetOverflowCount,
       middleOverflowCount,
       openTabOverflowCount,
@@ -56,7 +56,7 @@ export function useWorktreeJumpPaletteListEntries({
         })
       }
     }
-    const showWorktreeHeader = visibleWorktreeItems.length > 0
+    const showTaskHeader = visibleTaskItems.length > 0
     const showOpenTabsHeader = visibleOpenTabItems.length > 0
     const showProjectTargetHeader = visibleProjectTargetItems.length > 0
     const showMiddleHeader = visibleMiddleItems.length > 0
@@ -75,29 +75,28 @@ export function useWorktreeJumpPaletteListEntries({
             )
       })
     }
-    const pushWorktreesHeader = (idSuffix = ''): void => {
-      if (!showWorktreeHeader) {
+    const pushTasksHeader = (idSuffix = ''): void => {
+      if (!showTaskHeader) {
         return
       }
       entries.push({
-        id: `__header_worktrees__${idSuffix}`,
+        id: `__header_tasks__${idSuffix}`,
         type: 'section-header',
+        // Not "Recent": nothing records when a task was last opened, so the empty-query list is
+        // the board's open work, and says so.
         label: hasQuery
-          ? translate('auto.components.WorktreeJumpPalette.worktreesHeader', 'Worktrees')
-          : translate(
-              'auto.components.WorktreeJumpPalette.recentWorktreesHeader',
-              'Recent Worktrees'
-            )
+          ? translate('worktreeJumpPalette.tasksHeader', 'Tasks')
+          : translate('worktreeJumpPalette.openTasksHeader', 'Open Tasks')
       })
     }
-    const pushWorktreeSection = (): void => {
-      if (visibleWorktreeItems.length === 0) {
+    const pushTaskSection = (): void => {
+      if (visibleTaskItems.length === 0) {
         return
       }
-      pushWorktreesHeader()
-      appendPaletteListEntries(entries, visibleWorktreeItems)
-      pushOverflowHint('__hint_worktree_overflow__', worktreeOverflowCount, () =>
-        handleExpandSection('worktrees')
+      pushTasksHeader()
+      appendPaletteListEntries(entries, visibleTaskItems)
+      pushOverflowHint('__hint_task_overflow__', taskOverflowCount, () =>
+        handleExpandSection('tasks')
       )
     }
     const pushOpenTabSection = (): void => {
@@ -141,41 +140,38 @@ export function useWorktreeJumpPaletteListEntries({
         )
       }
     }
-    // Why: a pasted issue/PR URL is decisive. Show linked worktrees first so
-    // Enter jumps; keep create available underneath when the user wants a new one.
+    // Why: a pasted issue/PR URL is decisive — it means "start work on this", so create is the
+    // only row it offers.
     if (taskSourceUrl) {
-      if (visibleWorktreeItems.length > 0) {
-        pushWorktreeSection()
-      }
       if (showCreateAction) {
         entries.push({ id: CREATE_WORKTREE_ITEM_ID, type: 'create-worktree' })
       }
       return entries
     }
     if (!hasQuery) {
+      pushTaskSection()
       pushOpenTabSection()
-      pushWorktreeSection()
       return entries
     }
     if (multiPrimaryFirstScreen && multiPrimaryLayout) {
-      const leadingSectionKey = openTabsLeadSections ? 'open-tabs' : 'worktrees'
-      const trailingSectionKey = openTabsLeadSections ? 'worktrees' : 'open-tabs'
+      const leadingSectionKey = openTabsLeadSections ? 'open-tabs' : 'tasks'
+      const trailingSectionKey = openTabsLeadSections ? 'tasks' : 'open-tabs'
       const leadingHintId = openTabsLeadSections
         ? '__hint_open_tab_overflow__'
-        : '__hint_worktree_overflow__'
+        : '__hint_task_overflow__'
       const trailingHintId = openTabsLeadSections
-        ? '__hint_worktree_overflow__'
+        ? '__hint_task_overflow__'
         : '__hint_open_tab_overflow__'
       const pushLeadingHeader = (idSuffix = ''): void => {
         if (openTabsLeadSections) {
           pushOpenTabsHeader(idSuffix)
         } else {
-          pushWorktreesHeader(idSuffix)
+          pushTasksHeader(idSuffix)
         }
       }
       const pushTrailingHeader = (idSuffix = ''): void => {
         if (openTabsLeadSections) {
-          pushWorktreesHeader(idSuffix)
+          pushTasksHeader(idSuffix)
         } else {
           pushOpenTabsHeader(idSuffix)
         }
@@ -183,7 +179,7 @@ export function useWorktreeJumpPaletteListEntries({
       pushLeadingHeader()
       appendPaletteListEntries(entries, multiPrimaryLayout.leadingPreview as PaletteItem[])
       pushOverflowHint(leadingHintId, multiPrimaryLayout.leadingMoreCount, () =>
-        handleExpandSection(openTabsLeadSections ? 'open-tabs' : 'worktrees')
+        handleExpandSection(leadingSectionKey)
       )
       pushTrailingHeader()
       appendPaletteListEntries(entries, multiPrimaryLayout.trailingFloor as PaletteItem[])
@@ -216,7 +212,7 @@ export function useWorktreeJumpPaletteListEntries({
     if (openTabsLeadSections) {
       pushOpenTabSection()
     }
-    pushWorktreeSection()
+    pushTaskSection()
     if (!middleLeadsSections) {
       pushProjectAndMiddleSections()
     }

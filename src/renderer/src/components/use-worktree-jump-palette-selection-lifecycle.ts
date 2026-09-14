@@ -31,9 +31,6 @@ type WorktreeJumpPaletteSelectionLifecycleInput = WorktreeJumpPaletteStoreState 
   WorktreeJumpPaletteWorktrees
 
 export function useWorktreeJumpPaletteSelectionLifecycle({
-  visibleWorktreesForState,
-  hasQuery,
-  searchScopeWorktrees,
   browserPageEntries,
   simulatorTabEntries,
   workspaceTabEntries,
@@ -70,8 +67,6 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
   fallbackFocusInnerFrameRef,
   closeModal
 }: WorktreeJumpPaletteSelectionLifecycleInput) {
-  const hasAnyWorktrees = visibleWorktreesForState.length > 0
-  const hasAnySearchableWorktrees = hasQuery ? searchScopeWorktrees.length > 0 : hasAnyWorktrees
   const hasAnyOpenTabs =
     browserPageEntries.length > 0 ||
     simulatorTabEntries.length > 0 ||
@@ -233,8 +228,6 @@ export function useWorktreeJumpPaletteSelectionLifecycle({
     [closeModal, focusFallbackSurface, requestBrowserFocus]
   )
   return {
-    hasAnyWorktrees,
-    hasAnySearchableWorktrees,
     hasAnyOpenTabs,
     hasAnyMiddleResults,
     commandSelectedItemId,

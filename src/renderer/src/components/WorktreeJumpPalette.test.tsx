@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as ReactI18Next from 'react-i18next'
 import { useAppStore } from '@/store'
 import type { AppState } from '@/store/types'
+import type { Project } from '../../../shared/alicorn/projects'
+import type { Task } from '../../../shared/alicorn/tasks'
 import WorktreeJumpPalette from './WorktreeJumpPalette'
 import { makeRepo, makeWorktree } from './worktree-jump-palette-test-fixtures'
 
@@ -150,10 +152,84 @@ let testContainer: HTMLDivElement
 let setCommandQuery: ((next: string) => void) | null = null
 
 async function flushEffects(): Promise<void> {
-  await act(async () => {
-    await Promise.resolve()
-    await Promise.resolve()
+  // The board is two chained reads (projects, then each project's tasks), so one microtask turn
+  // is not enough to see the rows the palette ends up with.
+  for (let turn = 0; turn < 6; turn += 1) {
+    await act(async () => {
+      await Promise.resolve()
+    })
+  }
+}
+
+const PROJECT: Project = {
+  id: 'proj-1',
+  tenantId: 'local',
+  name: 'Alicorn',
+  key: 'ALC',
+  context: '',
+  repoIds: ['repo-1'],
+  source: null,
+  createdBy: 'local',
+  createdAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-01T00:00:00.000Z'
+}
+
+function makeTask(number: number, title: string, overrides: Partial<Task> = {}): Task {
+  return {
+    id: `task-${number}`,
+    tenantId: 'local',
+    projectId: PROJECT.id,
+    number,
+    title,
+    context: '',
+    column: 'todo',
+    executionStrategy: 'single',
+    workflowId: null,
+    stageKey: null,
+    skippedStageKeys: [],
+    model: null,
+    memberIds: [],
+    source: null,
+    createdBy: 'local',
+    createdAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: '2026-09-01T00:00:00.000Z',
+    closedAt: null,
+    ...overrides
+  }
+}
+
+const TASKS: Task[] = [
+  makeTask(1, 'Wire the ledger outbox drainer', {
+    updatedAt: '2026-09-02T00:00:00.000Z'
+  }),
+  makeTask(2, 'The palette searches tasks', { updatedAt: '2026-09-03T00:00:00.000Z' }),
+  makeTask(3, 'Archive the old board', {
+    column: 'completed',
+    updatedAt: '2026-09-04T00:00:00.000Z'
   })
+]
+
+function installAlicornApi(): void {
+  ;(window as unknown as { api: unknown }).api = {
+    alicorn: {
+      listProjects: () => Promise.resolve({ ok: true, projects: [PROJECT] }),
+      listTasks: () => Promise.resolve({ ok: true, tasks: TASKS })
+    }
+  }
+}
+
+function taskRowRefs(): string[] {
+  return [...testContainer.querySelectorAll<HTMLElement>('[data-command-item^="task:"]')].map(
+    (node) => node.textContent?.match(/ALC-\d+/)?.[0] ?? ''
+  )
+}
+
+async function typeQuery(query: string): Promise<void> {
+  expect(setCommandQuery).not.toBeNull()
+  await act(async () => {
+    setCommandQuery?.(query)
+  })
+  await flushEffects()
 }
 
 async function renderPalette(overrides: Partial<AppState>): Promise<void> {
@@ -189,6 +265,7 @@ function getWorktreeRows(): string[] {
 describe('WorktreeJumpPalette', () => {
   beforeEach(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true
+    installAlicornApi()
     setCommandQuery = null
     activateAndRevealWorktree.mockClear()
     useAppStore.setState(initialAppState, true)
@@ -203,242 +280,69 @@ describe('WorktreeJumpPalette', () => {
     })
     document.body.replaceChildren()
     useAppStore.setState(initialAppState, true)
+    delete (window as unknown as { api?: unknown }).api
   })
 
-  it('keeps every inactive main workspace visible when sleeping workspaces are hidden', async () => {
-    const defaultBranch = makeWorktree('default-branch', 'Default branch workspace', {
-      isMainWorktree: true,
-      branch: 'refs/heads/main'
-    })
-    const feature = makeWorktree('feature', 'Feature workspace', {
-      branch: 'refs/heads/feature'
-    })
-    const folderMain = makeWorktree('folder-main', 'Folder workspace', {
-      isMainWorktree: true,
-      branch: ''
-    })
+  it('lists the board on an empty query, newest change first', async () => {
+    await renderPalette({ worktreesByRepo: { 'repo-1': [] } })
 
-    await renderPalette({
-      worktreesByRepo: { 'repo-1': [defaultBranch, feature, folderMain] },
-      showSleepingWorkspaces: false
-    })
-
-    expect(testContainer.textContent).toContain('Default branch workspace')
-    expect(testContainer.textContent).not.toContain('Feature workspace')
-    // Why kept: the exemption keys on isMainWorktree, not the branch name, so a
-    // branchless folder workspace is the project's entry point too.
-    expect(testContainer.textContent).toContain('Folder workspace')
+    expect(taskRowRefs()).toEqual(['ALC-2', 'ALC-1'])
+    expect(testContainer.textContent).toContain('Open Tasks')
   })
 
-  it('keeps the explicit default-branch filter authoritative', async () => {
-    const defaultBranch = makeWorktree('default-branch', 'Default branch workspace', {
-      isMainWorktree: true,
-      branch: 'refs/heads/main'
-    })
+  it('keeps a completed task out of the untyped list but still findable', async () => {
+    await renderPalette({ worktreesByRepo: { 'repo-1': [] } })
 
-    await renderPalette({
-      worktreesByRepo: { 'repo-1': [defaultBranch] },
-      showSleepingWorkspaces: false,
-      hideDefaultBranchWorkspace: true
-    })
-
-    expect(testContainer.textContent).not.toContain('Default branch workspace')
+    expect(taskRowRefs()).not.toContain('ALC-3')
+    await typeQuery('archive')
+    expect(taskRowRefs()).toEqual(['ALC-3'])
   })
 
-  it('keeps an active non-default workspace visible when sleeping workspaces are hidden', async () => {
-    const defaultBranch = makeWorktree('default-branch', 'Default branch workspace', {
-      isMainWorktree: true,
-      branch: 'refs/heads/main'
-    })
-    const feature = makeWorktree('feature', 'Feature workspace', {
-      branch: 'refs/heads/feature'
-    })
-    const folderMain = makeWorktree('folder-main', 'Folder workspace', {
-      isMainWorktree: true,
-      branch: ''
-    })
+  it('finds a task by the reference a person calls it', async () => {
+    await renderPalette({ worktreesByRepo: { 'repo-1': [] } })
 
-    await renderPalette({
-      worktreesByRepo: { 'repo-1': [defaultBranch, feature, folderMain] },
-      showSleepingWorkspaces: false,
-      browserTabsByWorktree: {
-        feature: [
-          {
-            id: 'browser-tab-1',
-            worktreeId: 'feature',
-            url: 'https://example.com',
-            title: 'example.com',
-            loading: false,
-            faviconUrl: null,
-            canGoBack: false,
-            canGoForward: false,
-            loadError: null,
-            createdAt: 0
-          }
-        ]
-      }
-    })
+    await typeQuery('ALC-2')
 
-    expect(testContainer.textContent).toContain('Feature workspace')
-    expect(testContainer.textContent).toContain('Default branch workspace')
-    // Why kept: same isMainWorktree exemption — folder workspaces are covered.
-    expect(testContainer.textContent).toContain('Folder workspace')
+    expect(taskRowRefs()).toEqual(['ALC-2'])
   })
 
-  it('sweeps the sleeping main workspace once the exemption is opted out', async () => {
-    const defaultBranch = makeWorktree('default-branch', 'Default branch workspace', {
-      isMainWorktree: true,
-      branch: 'refs/heads/main'
-    })
-    const feature = makeWorktree('feature', 'Feature workspace', {
-      branch: 'refs/heads/feature'
-    })
+  it('matches title words in any order', async () => {
+    await renderPalette({ worktreesByRepo: { 'repo-1': [] } })
 
+    await typeQuery('palette the')
+
+    expect(taskRowRefs()).toEqual(['ALC-2'])
+  })
+
+  it('no longer offers worktrees, typed or not', async () => {
     await renderPalette({
-      worktreesByRepo: { 'repo-1': [defaultBranch, feature] },
-      showSleepingWorkspaces: false,
-      alwaysShowDefaultBranchWorkspace: false
+      worktreesByRepo: { 'repo-1': [makeWorktree('feature-wt', 'Feature workspace')] },
+      showSleepingWorkspaces: true
     })
 
     expect(getWorktreeRows()).toEqual([])
-    expect(testContainer.textContent).not.toContain('Default branch workspace')
-    expect(testContainer.textContent).not.toContain('Feature workspace')
+    expect(testContainer.textContent).not.toContain('Recent Worktrees')
+
+    await typeQuery('Feature workspace')
+
+    // The only row a workspace name reaches now is "create one" — never a jump to an existing.
+    expect(getWorktreeRows()).toEqual([])
   })
 
-  it('keeps the show-sleeping baseline and empty-query ordering intact', async () => {
-    const defaultBranch = makeWorktree('default-branch', 'Default branch workspace', {
-      isMainWorktree: true,
-      branch: 'refs/heads/main'
-    })
-    const feature = makeWorktree('feature', 'Feature workspace', {
-      branch: 'refs/heads/feature'
-    })
-    const folderMain = makeWorktree('folder-main', 'Folder workspace', {
-      isMainWorktree: true,
-      branch: ''
-    })
+  it('hands a selected task to the Alicorn shell to open', async () => {
+    await renderPalette({ worktreesByRepo: { 'repo-1': [] } })
 
-    await renderPalette({
-      worktreesByRepo: { 'repo-1': [defaultBranch, feature, folderMain] },
-      showSleepingWorkspaces: true,
-      lastVisitedAtByWorktreeId: {
-        feature: 300,
-        'default-branch': 200,
-        'folder-main': 100
-      }
-    })
-
-    expect(getWorktreeRows()).toEqual([
-      expect.stringContaining('Feature workspace'),
-      expect.stringContaining('Default branch workspace'),
-      expect.stringContaining('Folder workspace')
-    ])
-  })
-
-  it('keeps typed-query results on the full non-archived scope', async () => {
-    const defaultBranch = makeWorktree('default-branch', 'Default branch workspace', {
-      isMainWorktree: true,
-      branch: 'refs/heads/main'
-    })
-    const feature = makeWorktree('feature', 'Feature workspace', {
-      branch: 'refs/heads/feature'
-    })
-
-    await renderPalette({
-      worktreesByRepo: { 'repo-1': [defaultBranch, feature] },
-      showSleepingWorkspaces: false
-    })
-
-    expect(testContainer.textContent).not.toContain('Feature workspace')
-
-    expect(setCommandQuery).not.toBeNull()
-
+    const row = testContainer.querySelector<HTMLButtonElement>('[data-command-item="task:task-2"]')
+    expect(row).not.toBeNull()
     await act(async () => {
-      setCommandQuery?.('Feature')
-    })
-    await flushEffects()
-
-    expect(testContainer.textContent).toContain('Feature workspace')
-  })
-
-  // STA-4343 closed: two workspaces sharing `repoId::path` across hosts are two distinct
-  // rows. The documents map and worktreeMap are keyed by host identity, so each row resolves
-  // to its OWN worktree, and render keys keep the two apart for React and cmdk.
-  it('routes activation to each row own host when two same-id rows collide', async () => {
-    const local = makeWorktree('shared', 'Local workspace', { hostId: 'local' })
-    const ssh = makeWorktree('shared', 'SSH workspace', { hostId: 'ssh:box' })
-    const state = {
-      worktreesByRepo: { 'repo-1': [local, ssh] },
-      showSleepingWorkspaces: true
-    }
-
-    await renderPalette(state)
-
-    // Both rows render; the second carries a disambiguated command value so the two never
-    // share a React key.
-    const rows = testContainer.querySelectorAll<HTMLButtonElement>(
-      '[data-command-item$="worktree:shared"]'
-    )
-    expect(rows).toHaveLength(2)
-    expect([...rows].map((candidate) => candidate.getAttribute('data-command-item'))).toEqual([
-      'worktree:shared',
-      'palette-dup:1:worktree:shared'
-    ])
-
-    // The first row names ITS OWN host — the wrong-host open is gone.
-    await act(async () => fireEvent.click(rows[0]!))
-    expect(activateAndRevealWorktree).toHaveBeenLastCalledWith('shared', {
-      executionHostId: 'local'
-    })
-  })
-
-  // Why a separate render: activating closes the palette, so the sibling row is detached
-  // before a second click in the same test could reach it.
-  it('routes the second same-id row to the other host', async () => {
-    const local = makeWorktree('shared', 'Local workspace', { hostId: 'local' })
-    const ssh = makeWorktree('shared', 'SSH workspace', { hostId: 'ssh:box' })
-
-    await renderPalette({
-      worktreesByRepo: { 'repo-1': [local, ssh] },
-      showSleepingWorkspaces: true
+      row!.click()
     })
 
-    const rows = testContainer.querySelectorAll<HTMLButtonElement>(
-      '[data-command-item$="worktree:shared"]'
-    )
-    expect(rows).toHaveLength(2)
-
-    await act(async () => fireEvent.click(rows[1]!))
-    expect(activateAndRevealWorktree).toHaveBeenLastCalledWith('shared', {
-      executionHostId: 'ssh:box'
+    expect(useAppStore.getState().pendingAlicornTask).toEqual({
+      projectId: 'proj-1',
+      taskId: 'task-2'
     })
-  })
-
-  it('keeps a lone host-qualified row on its clean command value', async () => {
-    const ssh = makeWorktree('single', 'SSH workspace', { hostId: 'ssh:box' })
-
-    await renderPalette({ worktreesByRepo: { 'repo-1': [ssh] }, showSleepingWorkspaces: true })
-
-    expect(
-      testContainer.querySelector('[data-command-item="worktree:single"]')?.textContent
-    ).toContain('SSH workspace')
-  })
-
-  it('does not badge a runtime-owned row with its physical SSH repo', async () => {
-    const worktree = makeWorktree('runtime-repo', 'Runtime workspace', {
-      hostId: 'ssh:box',
-      runtimeOwnerEnvironmentId: 'missing-runtime'
-    })
-
-    await renderPalette({
-      repos: [{ ...makeRepo(), displayName: 'Physical SSH repo', executionHostId: 'ssh:box' }],
-      worktreesByRepo: { 'repo-1': [worktree] },
-      showSleepingWorkspaces: true
-    })
-
-    const row = testContainer.querySelector('[data-command-item="worktree:runtime-repo"]')
-    expect(row?.textContent).toContain('Runtime workspace')
-    expect(row?.textContent).not.toContain('Physical SSH repo')
+    expect(useAppStore.getState().activeView).toBe('alicorn')
   })
 
   it('replaces a completed emoji shortcode in the search query', async () => {
@@ -451,31 +355,5 @@ describe('WorktreeJumpPalette', () => {
     })
 
     expect(input?.value).toBe('😉')
-  })
-
-  it('renders last active timestamp when worktree has lastActivityAt', async () => {
-    const twentyThreeDaysAgo = Date.now() - 23 * 24 * 60 * 60 * 1000
-    const activeWorktree = makeWorktree('active-wt', 'Active workspace', {
-      lastActivityAt: twentyThreeDaysAgo
-    })
-    const noActivityWorktree = makeWorktree('no-activity-wt', 'No activity workspace', {
-      lastActivityAt: 0
-    })
-
-    await renderPalette({
-      worktreesByRepo: { 'repo-1': [activeWorktree, noActivityWorktree] },
-      showSleepingWorkspaces: true
-    })
-
-    const activeRow = testContainer.querySelector('[data-command-item="worktree:active-wt"]')
-    expect(activeRow?.textContent).toContain('23d')
-    const activeSpan = activeRow?.querySelector('span[aria-label="Last active 23d ago"]')
-    expect(activeSpan).not.toBeNull()
-    expect(activeSpan?.textContent).toBe('23d')
-
-    const noActivityRow = testContainer.querySelector(
-      '[data-command-item="worktree:no-activity-wt"]'
-    )
-    expect(noActivityRow?.querySelector('span[aria-label*="Last active"]')).toBeNull()
   })
 })

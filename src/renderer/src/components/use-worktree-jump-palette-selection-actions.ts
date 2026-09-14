@@ -3,16 +3,14 @@ import { toast } from 'sonner'
 import { activateBrowserPagePaletteResult } from '@/lib/browser-page-palette-activation'
 import { activateSimulatorTabPaletteResult } from '@/lib/simulator-tab-palette-activation'
 import { activateWorkspaceTabPaletteResult } from '@/lib/workspace-tab-palette-activation'
-import { activateAndRevealWorktree } from '@/lib/worktree-activation'
-import { queueWorkspaceActivationTerminalFocus } from '@/lib/workspace-activation-terminal-focus'
 import type { BrowserPaletteSearchResult } from '@/lib/browser-palette-search'
 import type { SimulatorPaletteSearchResult } from '@/lib/simulator-palette-search'
 import type { WorkspaceTabPaletteSearchResult } from '@/lib/workspace-tab-palette-search'
 import type { CmdJActionResult, CmdJSettingsResult } from '@/components/cmd-j/palette-results'
 import type { CmdJProjectSearchResult } from '@/components/cmd-j/palette-project-results'
 import { getUnavailableQuickActionMessage } from './use-worktree-jump-palette-quick-actions'
+import type { AlicornTaskPaletteSearchResult } from '@/lib/alicorn-task-palette-search'
 import type { SettingsNavTarget } from '@/lib/settings-navigation-types'
-import type { Worktree } from '../../../shared/worktree/types'
 import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 import type { PaletteItem } from './worktree-jump-palette-model'
@@ -54,29 +52,17 @@ export function useWorktreeJumpPaletteSelectionActions({
   previousWorktreeIdRef,
   previousFocusElementRef
 }: WorktreeJumpPaletteSelectionActionsInput) {
-  const handleSelectWorktree = useCallback(
-    (worktree: Worktree) => {
-      const current = useAppStore.getState().getKnownWorktreeById(worktree.id, worktree.hostId)
-      if (!current) {
-        toast.error(
-          translate('auto.components.WorktreeJumpPalette.2c38630a01', 'Workspace no longer exists')
-        )
-        return
-      }
-      const activation = activateAndRevealWorktree(
-        worktree.id,
-        worktree.hostId ? { executionHostId: worktree.hostId } : {}
-      )
-      recordFeatureInteraction('cmd-j-workspace-open')
+  // The shell owns its own route, so the palette leaves a request rather than writing one.
+  const handleSelectTask = useCallback(
+    (result: AlicornTaskPaletteSearchResult) => {
+      recordFeatureInteraction('cmd-j')
       skipRestoreFocusRef.current = true
       closeModal()
       setSelectedItemId('')
-      if (!queueWorkspaceActivationTerminalFocus(worktree.id, activation)) {
-        focusFallbackSurface()
-      }
+      useAppStore.getState().openAlicornTask(result.projectId, result.taskId)
     },
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- controller refs and setters preserve their original stable identities.
-    [closeModal, focusFallbackSurface, recordFeatureInteraction]
+    [closeModal, recordFeatureInteraction]
   )
   const handleSelectBrowserPage = useCallback(
     (result: BrowserPaletteSearchResult) => {
@@ -231,8 +217,8 @@ export function useWorktreeJumpPaletteSelectionActions({
   )
   const handleSelectItem = useCallback(
     (item: PaletteItem) => {
-      if (item.type === 'worktree') {
-        handleSelectWorktree(item.worktree)
+      if (item.type === 'task') {
+        handleSelectTask(item.result)
       } else if (item.type === 'project-target') {
         handleSelectProjectTarget(item.result)
       } else if (item.type === 'browser-page') {
@@ -253,8 +239,8 @@ export function useWorktreeJumpPaletteSelectionActions({
       handleSelectQuickAction,
       handleSelectSettings,
       handleSelectSimulatorTab,
-      handleSelectWorkspaceTab,
-      handleSelectWorktree
+      handleSelectTask,
+      handleSelectWorkspaceTab
     ]
   )
   return { handleSelectItem }

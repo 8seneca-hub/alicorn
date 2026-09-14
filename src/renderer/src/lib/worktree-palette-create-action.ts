@@ -59,7 +59,7 @@ type WorktreePaletteSelectionCandidateEntry = {
 // `includes` check in getNextWorktreePaletteSelection, so arrowing onto that row snaps the
 // highlight back to the top — making the whole section mouse-only.
 const SELECTABLE_ENTRY_TYPES = [
-  'worktree',
+  'task',
   'create-worktree',
   'settings',
   'quick-action',

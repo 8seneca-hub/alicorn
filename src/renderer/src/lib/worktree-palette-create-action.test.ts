@@ -185,10 +185,10 @@ describe('worktree-palette-create-action', () => {
   it('derives selection ids from rendered entries while skipping headers', () => {
     expect(
       getWorktreePaletteSelectionItemIds([
-        { id: '__header_worktrees__', type: 'section-header' },
-        { id: 'worktree:one', type: 'worktree' },
+        { id: '__header_tasks__', type: 'section-header' },
+        { id: 'task:one', type: 'task' },
         { id: CREATE_WORKTREE_ITEM_ID, type: 'create-worktree' },
-        { id: '__hint_worktree_cap__', type: 'hint' },
+        { id: '__hint_task_cap__', type: 'hint' },
         { id: '__header_actions_settings__', type: 'section-header' },
         { id: 'settings:ai-provider-accounts', type: 'settings' },
         { id: 'quick-action:new-terminal', type: 'quick-action' },
@@ -196,9 +196,9 @@ describe('worktree-palette-create-action', () => {
         { id: 'browser-page:one', type: 'browser-page' }
       ])
     ).toEqual([
-      'worktree:one',
+      'task:one',
       CREATE_WORKTREE_ITEM_ID,
-      '__hint_worktree_cap__',
+      '__hint_task_cap__',
       'settings:ai-provider-accounts',
       'quick-action:new-terminal',
       'browser-page:one'
@@ -212,13 +212,13 @@ describe('worktree-palette-create-action', () => {
     expect(
       getWorktreePaletteSelectionItemIds(
         [
-          { id: '__header_worktrees__', type: 'section-header' },
-          { id: 'worktree:shared', type: 'worktree' },
-          { id: 'worktree:shared', type: 'worktree' }
+          { id: '__header_tasks__', type: 'section-header' },
+          { id: 'task:shared', type: 'task' },
+          { id: 'task:shared', type: 'task' }
         ],
-        ['__header_worktrees__', 'worktree:shared', 'worktree:shared#dup1']
+        ['__header_tasks__', 'task:shared', 'task:shared#dup1']
       )
-    ).toEqual(['worktree:shared', 'worktree:shared#dup1'])
+    ).toEqual(['task:shared', 'task:shared#dup1'])
   })
 
   it('falls back deterministically when the selected row disappears', () => {

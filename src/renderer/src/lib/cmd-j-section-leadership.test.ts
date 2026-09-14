@@ -50,20 +50,20 @@ describe('palette quality ranks', () => {
 describe('section leadership', () => {
   it('prefers open tabs on a tie', () => {
     expect(
-      shouldOpenTabsLeadPaletteSections({ bestWorktreeQualityRank: 2, bestOpenTabQualityRank: 2 })
+      shouldOpenTabsLeadPaletteSections({ bestEntityQualityRank: 2, bestOpenTabQualityRank: 2 })
     ).toBe(true)
   })
 
   it('lets the stronger section lead', () => {
     expect(
-      shouldOpenTabsLeadPaletteSections({ bestWorktreeQualityRank: 1, bestOpenTabQualityRank: 4 })
+      shouldOpenTabsLeadPaletteSections({ bestEntityQualityRank: 1, bestOpenTabQualityRank: 4 })
     ).toBe(false)
   })
 
   it('keeps open tabs ahead when neither section matched', () => {
     expect(
       shouldOpenTabsLeadPaletteSections({
-        bestWorktreeQualityRank: NO_PALETTE_QUALITY_RANK,
+        bestEntityQualityRank: NO_PALETTE_QUALITY_RANK,
         bestOpenTabQualityRank: NO_PALETTE_QUALITY_RANK
       })
     ).toBe(true)

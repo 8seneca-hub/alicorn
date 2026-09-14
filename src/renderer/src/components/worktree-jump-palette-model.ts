@@ -1,5 +1,5 @@
+import type { AlicornTaskPaletteSearchResult } from '@/lib/alicorn-task-palette-search'
 import type { BrowserPaletteSearchResult } from '@/lib/browser-palette-search'
-import type { PaletteSearchResult } from '@/lib/worktree-palette-search'
 import type { SimulatorPaletteSearchResult } from '@/lib/simulator-palette-search'
 import type { WorkspaceTabPaletteSearchResult } from '@/lib/workspace-tab-palette-search'
 import type {
@@ -16,11 +16,10 @@ import type { Worktree } from '../../../shared/worktree/types'
 import { CREATE_WORKSPACE_QUICK_ACTION_ID } from '@/components/cmd-j/quick-actions'
 import type { CREATE_WORKTREE_ITEM_ID } from '@/lib/worktree-palette-create-action'
 
-export type WorktreePaletteItem = {
+export type TaskPaletteItem = {
   id: string
-  type: 'worktree'
-  match: PaletteSearchResult
-  worktree: Worktree
+  type: 'task'
+  result: AlicornTaskPaletteSearchResult
 }
 
 export type BrowserPaletteItem = {
@@ -72,7 +71,7 @@ export type CreateWorktreePaletteItem = {
 }
 
 export type PaletteItem =
-  | WorktreePaletteItem
+  | TaskPaletteItem
   | ProjectTargetPaletteItem
   | SettingsPaletteItem
   | QuickActionPaletteItem
@@ -103,7 +102,7 @@ export const DIGIT_INDEX_ACTION_ID = 'workspace.selectByIndex' as const
 export const DIGIT_INDEX_ADDRESSABLE_ROWS = 9
 export const EMPTY_QUERY_RECENT_TAB_CAP = 6
 export const EMPTY_QUERY_ROW_BUDGET = 10
-export const EMPTY_QUERY_WORKTREE_CAP = 5
+export const EMPTY_QUERY_TASK_CAP = 5
 export const EMPTY_RECENT_TAB_ORDER: readonly string[] = []
 export const EMPTY_SORTED_WORKTREES: Worktree[] = []
 export const CONTINUED_SECTION_HEADER_ID_SUFFIX = '__continued'

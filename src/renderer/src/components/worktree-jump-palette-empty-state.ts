@@ -5,7 +5,7 @@ export function getWorktreeJumpPaletteResultCount(
   controller: WorktreeJumpPaletteController
 ): number {
   return controller.hasQuery
-    ? controller.worktreeItems.length +
+    ? controller.taskItems.length +
         controller.projectTargetItems.length +
         controller.middleItems.length +
         controller.openTabItems.length
@@ -29,7 +29,7 @@ export function getWorktreeJumpPaletteEmptyState(controller: WorktreeJumpPalette
     }
   }
   if (
-    (controller.hasAnySearchableWorktrees ||
+    (controller.hasAnyTasks ||
       controller.hasAnyProjectSearchCandidates ||
       controller.hasAnyMiddleResults ||
       controller.hasAnyOpenTabs) &&
@@ -41,31 +41,19 @@ export function getWorktreeJumpPaletteEmptyState(controller: WorktreeJumpPalette
         'No results match your search'
       ),
       subtitle: translate(
-        'auto.components.WorktreeJumpPalette.c4afa68159',
-        'Try a worktree, project, setting, action, tab title, agent prompt, URL, PR, or port.'
-      )
-    }
-  }
-  if (!controller.hasQuery && controller.hasAnyWorktrees && !controller.hasAnyOpenTabs) {
-    return {
-      title: translate(
-        'auto.components.WorktreeJumpPalette.f60f8730be',
-        'No other worktrees to switch to'
-      ),
-      subtitle: translate(
-        'auto.components.WorktreeJumpPalette.b781ae05e3',
-        'Type to search worktrees, settings, tabs, and actions.'
+        'worktreeJumpPalette.emptyQuerySubtitle',
+        'Try a task reference or title, a project, a setting, an action, a tab title, an agent prompt, a URL, a PR, or a port.'
       )
     }
   }
   return {
     title: translate(
-      'auto.components.WorktreeJumpPalette.1628fd7dfa',
-      'No active worktrees, settings, actions, or open tabs'
+      'worktreeJumpPalette.nothingToShowTitle',
+      'No tasks, settings, actions, or open tabs'
     ),
     subtitle: translate(
-      'auto.components.WorktreeJumpPalette.f7fda8d562',
-      'Create a worktree or open a tab in Alicorn to get started.'
+      'worktreeJumpPalette.nothingToShowSubtitle',
+      'Create a task or open a tab in Alicorn to get started.'
     )
   }
 }

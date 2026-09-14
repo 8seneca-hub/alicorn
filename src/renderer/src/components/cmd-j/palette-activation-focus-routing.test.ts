@@ -17,23 +17,8 @@ function sourceBetween(source: string, startPattern: string, endPattern: string)
 }
 
 describe('Cmd+J activation focus routing (#9939)', () => {
-  it('routes worktree selection through the scoped helper before any unscoped fallback', () => {
-    const handler = sourceBetween(
-      paletteSource('use-worktree-jump-palette-selection-actions.ts'),
-      'const handleSelectWorktree = useCallback',
-      'const handleSelectBrowserPage'
-    )
-
-    expect(handler).toContain('queueWorkspaceActivationTerminalFocus(worktree.id, activation)')
-    // The fallback must be reachable only when the helper declines the destination.
-    expect(handler).toMatch(
-      /if \(!queueWorkspaceActivationTerminalFocus\(worktree\.id, activation\)\) \{\s*focusFallbackSurface\(\)\s*\}/
-    )
-    // An unconditional fallback is the exact shape of the original bug, so the only bare call
-    // allowed is the guarded one inside the if-block above.
-    expect(handler.match(/focusFallbackSurface\(\)/g)?.length).toBe(1)
-  })
-
+  // The palette no longer has a worktree row, so the only activation left on this path is the
+  // create flow's typed #N jump, pinned below.
   it('restores the pre-palette element for project targets instead of the first terminal found', () => {
     const handler = sourceBetween(
       paletteSource('use-worktree-jump-palette-selection-actions.ts'),

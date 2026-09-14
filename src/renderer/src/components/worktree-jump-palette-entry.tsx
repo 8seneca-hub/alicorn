@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { PaletteCreateWorktreeRow } from '@/components/cmd-j/PaletteCreateWorktreeRow'
 import type { PaletteListEntry } from './worktree-jump-palette-model'
 import type { WorktreeJumpPaletteController } from './use-worktree-jump-palette-controller'
-import { WorktreeJumpPaletteWorktreeRow } from './worktree-jump-palette-worktree-row'
+import { WorktreeJumpPaletteTaskRow } from './worktree-jump-palette-task-row'
 import {
   WorktreeJumpPaletteActionRow,
   WorktreeJumpPaletteProjectRow
@@ -77,9 +77,9 @@ export function WorktreeJumpPaletteEntry({
       />
     )
   }
-  if (entry.type === 'worktree') {
+  if (entry.type === 'task') {
     return (
-      <WorktreeJumpPaletteWorktreeRow entry={entry} renderKey={renderKey} controller={controller} />
+      <WorktreeJumpPaletteTaskRow entry={entry} renderKey={renderKey} controller={controller} />
     )
   }
   if (entry.type === 'project-target') {

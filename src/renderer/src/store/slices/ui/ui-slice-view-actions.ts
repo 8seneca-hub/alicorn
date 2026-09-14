@@ -52,6 +52,17 @@ export function createUiViewActions(set: UISliceSet, get: UISliceGet): Partial<U
     openAlicornPage: (scope) => {
       set({ activeView: 'alicorn', alicornScope: scope })
     },
+    pendingAlicornTask: null,
+    // A task is opened from outside the shell (Cmd+J), and the shell owns its own route — so the
+    // request is left here for it to pick up rather than the route being written from out here.
+    openAlicornTask: (projectId, taskId) => {
+      set({
+        activeView: 'alicorn',
+        alicornScope: 'projects',
+        pendingAlicornTask: { projectId, taskId }
+      })
+    },
+    clearPendingAlicornTask: () => set({ pendingAlicornTask: null }),
     openSkillsPage: () => {
       get().recordViewVisit('skills')
       set((state) => ({

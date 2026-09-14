@@ -8,6 +8,8 @@ import type { Repo } from '../../../shared/repo-types'
 import type { Tab, TabGroup } from '../../../shared/tab-types'
 import type { TerminalTab } from '../../../shared/terminal-tab-types'
 import type { Worktree } from '../../../shared/worktree/types'
+import type { Project } from '../../../shared/alicorn/projects'
+import type { Task } from '../../../shared/alicorn/tasks'
 import { useAppStore } from '@/store'
 import type { AppState } from '@/store/types'
 import {
@@ -199,18 +201,55 @@ function makeGroup(worktreeId: string, tabIds: string[]): TabGroup {
   }
 }
 
+const PROJECT: Project = {
+  id: 'proj-1',
+  tenantId: 'local',
+  name: 'Alicorn',
+  key: 'ALC',
+  context: '',
+  repoIds: ['repo-1'],
+  source: null,
+  createdBy: 'local',
+  createdAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-01T00:00:00.000Z'
+}
+
+/** `count` open tasks whose titles all carry the "perf" term the typed-query cases search for. */
+function installTasks(count: number): void {
+  const tasks: Task[] = Array.from({ length: count }, (_, index) => ({
+    id: `task-${index}`,
+    tenantId: 'local',
+    projectId: PROJECT.id,
+    number: index + 1,
+    title: `improve perf ${index}`,
+    context: '',
+    column: 'todo',
+    executionStrategy: 'single' as const,
+    workflowId: null,
+    stageKey: null,
+    skippedStageKeys: [],
+    model: null,
+    memberIds: [],
+    source: null,
+    createdBy: 'local',
+    createdAt: '2026-09-01T00:00:00.000Z',
+    // Descending, so the empty-query order is `task-0` first and stable to assert on.
+    updatedAt: new Date(Date.UTC(2026, 8, 1) + (count - index) * 1000).toISOString(),
+    closedAt: null
+  }))
+  ;(window as unknown as { api: unknown }).api = {
+    alicorn: {
+      listProjects: () => Promise.resolve({ ok: true, projects: [PROJECT] }),
+      listTasks: () => Promise.resolve({ ok: true, tasks })
+    }
+  }
+}
+
 /** Both primaries overflow their first-screen slice, so the layout interleaves. */
 function makeInterleavedQueryState(): Partial<AppState> {
   const tabIds = Array.from({ length: 8 }, (_, index) => `${index}`)
   return {
-    worktreesByRepo: {
-      'repo-1': [
-        makeWorktree('wt-tabs', 'tab-host'),
-        ...Array.from({ length: 5 }, (_, index) =>
-          makeWorktree(`wt-${index}`, `improve-perf-${index}`)
-        )
-      ]
-    },
+    worktreesByRepo: { 'repo-1': [makeWorktree('wt-tabs', 'tab-host')] },
     showSleepingWorkspaces: true,
     ptyIdsByTabId: Object.fromEntries(tabIds.map((id) => [`term-${id}`, [`pty-${id}`]])),
     tabsByWorktree: {
@@ -234,10 +273,12 @@ function makeInterleavedQueryState(): Partial<AppState> {
 }
 
 async function flushEffects(): Promise<void> {
-  await act(async () => {
-    await Promise.resolve()
-    await Promise.resolve()
-  })
+  // The board is two chained reads (projects, then each project's tasks).
+  for (let turn = 0; turn < 6; turn += 1) {
+    await act(async () => {
+      await Promise.resolve()
+    })
+  }
 }
 
 async function renderPalette(overrides: Partial<AppState>): Promise<void> {
@@ -262,18 +303,11 @@ async function renderPalette(overrides: Partial<AppState>): Promise<void> {
   await flushEffects()
 }
 
-/** Palette state with `count` "Perf chat" tabs on one worktree plus 5 "improve-perf" worktrees. */
+/** Palette state with `count` "Perf chat" tabs on one worktree; tasks are installed separately. */
 function perfTabsPaletteProps(count: number): Partial<AppState> {
   const tabIds = Array.from({ length: count }, (_, index) => `${index}`)
   return {
-    worktreesByRepo: {
-      'repo-1': [
-        makeWorktree('wt-tabs', 'tab-host'),
-        ...Array.from({ length: 5 }, (_, index) =>
-          makeWorktree(`wt-${index}`, `improve-perf-${index}`)
-        )
-      ]
-    },
+    worktreesByRepo: { 'repo-1': [makeWorktree('wt-tabs', 'tab-host')] },
     showSleepingWorkspaces: true,
     ptyIdsByTabId: Object.fromEntries(tabIds.map((id) => [`term-${id}`, [`pty-${id}`]])),
     tabsByWorktree: {
@@ -298,7 +332,7 @@ function perfTabsPaletteProps(count: number): Partial<AppState> {
 
 /** Each primary row paired with the section header rendered above it, in DOM order. */
 function getPrimaryRowsBySectionHeader(): { header: string; rowId: string }[] {
-  const headerLabels = new Set(['Open Tabs', 'Worktrees'])
+  const headerLabels = new Set(['Open Tabs', 'Tasks'])
   const pairs: { header: string; rowId: string }[] = []
   let header = ''
   for (const node of testContainer.querySelectorAll<HTMLElement>(
@@ -306,7 +340,7 @@ function getPrimaryRowsBySectionHeader(): { header: string; rowId: string }[] {
   )) {
     const rowId = node.dataset.commandItem
     if (rowId) {
-      if (rowId.startsWith('workspace-tab:') || rowId.startsWith('worktree:')) {
+      if (rowId.startsWith('workspace-tab:') || rowId.startsWith('task:')) {
         pairs.push({ header, rowId })
       }
       continue
@@ -323,6 +357,7 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
   beforeEach(() => {
     globalThis.IS_REACT_ACT_ENVIRONMENT = true
     setCommandQuery = null
+    installTasks(5)
     useAppStore.setState(initialAppState, true)
     testContainer = document.createElement('div')
     document.body.appendChild(testContainer)
@@ -335,6 +370,7 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     })
     document.body.replaceChildren()
     useAppStore.setState(initialAppState, true)
+    delete (window as unknown as { api?: unknown }).api
   })
 
   it('keeps every interleaved row under its own section header', async () => {
@@ -348,9 +384,9 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     const rows = getPrimaryRowsBySectionHeader()
     // Why the counts: both remainders must still render, just under a re-emitted header.
     expect(rows.filter((row) => row.rowId.startsWith('workspace-tab:'))).toHaveLength(8)
-    expect(rows.filter((row) => row.rowId.startsWith('worktree:'))).toHaveLength(5)
+    expect(rows.filter((row) => row.rowId.startsWith('task:'))).toHaveLength(5)
     for (const { header, rowId } of rows) {
-      expect(header).toBe(rowId.startsWith('workspace-tab:') ? 'Open Tabs' : 'Worktrees')
+      expect(header).toBe(rowId.startsWith('workspace-tab:') ? 'Open Tabs' : 'Tasks')
     }
   })
 
@@ -366,14 +402,14 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
       testContainer.querySelectorAll<HTMLElement>('[data-command-item]')
     )
       .map((el) => el.dataset.commandItem!)
-      .filter((id) => id.startsWith('workspace-tab:') || id.startsWith('worktree:'))
+      .filter((id) => id.startsWith('workspace-tab:') || id.startsWith('task:'))
 
     const tabIds = renderedIds.filter((id) => id.startsWith('workspace-tab:'))
-    const worktreeIds = renderedIds.filter((id) => id.startsWith('worktree:'))
+    const taskIds = renderedIds.filter((id) => id.startsWith('task:'))
 
     const layout = layoutMultiPrimaryPaletteSections({
       leadingItems: tabIds,
-      trailingItems: worktreeIds
+      trailingItems: taskIds
     })
     const expectedOrder = orderMultiPrimaryPaletteItems(layout)
     expect(renderedIds).toEqual(expectedOrder)
@@ -404,7 +440,7 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     const rows = getPrimaryRowsBySectionHeader()
     expect(rows).toEqual([{ header: 'Open Tabs', rowId: 'workspace-tab:tab-0' }])
     expect(testContainer.textContent).toContain('Open Tabs')
-    expect(testContainer.textContent).not.toContain('Worktrees')
+    expect(testContainer.textContent).not.toContain('Tasks')
   })
 
   it('puts the tab title on the left and the worktree name in the badge rail', async () => {
@@ -494,7 +530,7 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     })
     await flushEffects()
 
-    // 6 preview tabs, 24 more follow below the worktrees section
+    // 6 preview tabs, 24 more follow below the tasks section
     expect(testContainer.textContent).toContain('24 more')
     const seeMoreBtn = Array.from(testContainer.querySelectorAll('button')).find((btn) =>
       btn.textContent?.includes('See more')
@@ -548,16 +584,14 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     expect(testContainer.textContent).toContain('74 more')
   })
 
-  it('allows clicking See more on empty query to expand worktree cap by 20', async () => {
-    const worktrees = Array.from({ length: 35 }, (_, index) =>
-      makeWorktree(`wt-${index}`, `project-wt-${index}`)
-    )
+  it('allows clicking See more on empty query to expand the task cap by 20', async () => {
+    installTasks(35)
     await renderPalette({
-      worktreesByRepo: { 'repo-1': worktrees },
+      worktreesByRepo: { 'repo-1': [] },
       showSleepingWorkspaces: true
     })
 
-    // Empty query with 35 worktrees: initial cap is 10, 25 more
+    // Empty query with 35 tasks: initial cap is 10, 25 more
     expect(testContainer.textContent).toContain('25 more')
     const seeMoreBtn = Array.from(testContainer.querySelectorAll('button')).find((btn) =>
       btn.textContent?.includes('See more')
@@ -566,7 +600,7 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     const initialItemIds = Array.from(testContainer.querySelectorAll('[cmdk-item]')).map((item) =>
       item.getAttribute('data-value')
     )
-    const seeMoreIndex = initialItemIds.indexOf('__hint_worktree_overflow__')
+    const seeMoreIndex = initialItemIds.indexOf('__hint_task_overflow__')
     expect(seeMoreIndex).toBeGreaterThan(0)
     const input = testContainer.querySelector<HTMLInputElement>('[data-command-input="true"]')
     input?.focus()
@@ -576,14 +610,14 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     })
     await flushEffects()
 
-    // After expanding by 20: 30 worktrees are rendered, 5 more
-    const renderedItems = testContainer.querySelectorAll('[data-command-item^="worktree:"]')
+    // After expanding by 20: 30 tasks are rendered, 5 more
+    const renderedItems = testContainer.querySelectorAll('[data-command-item^="task:"]')
     expect(renderedItems).toHaveLength(30)
     expect(testContainer.textContent).toContain('5 more')
     const firstRevealedItemId = Array.from(testContainer.querySelectorAll('[cmdk-item]'))[
       seeMoreIndex
     ]?.getAttribute('data-value')
-    expect(firstRevealedItemId).toMatch(/^worktree:/)
+    expect(firstRevealedItemId).toMatch(/^task:/)
     expect(firstRevealedItemId).not.toBe(initialItemIds[0])
     expect(
       testContainer
@@ -601,7 +635,7 @@ describe('WorktreeJumpPalette interleaved primary sections', () => {
     })
     await flushEffects()
 
-    const renderedItemsAll = testContainer.querySelectorAll('[data-command-item^="worktree:"]')
+    const renderedItemsAll = testContainer.querySelectorAll('[data-command-item^="task:"]')
     expect(renderedItemsAll).toHaveLength(35)
     expect(testContainer.textContent).not.toContain('more')
   })

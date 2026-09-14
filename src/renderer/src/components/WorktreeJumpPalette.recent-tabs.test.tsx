@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as ReactI18Next from 'react-i18next'
 import { useAppStore } from '@/store'
 import type { AppState } from '@/store/types'
+import type { Project } from '../../../shared/alicorn/projects'
+import type { Task } from '../../../shared/alicorn/tasks'
 import { emitCmdJRowIndexJump } from '@/lib/cmd-j-row-index-jump'
 import WorktreeJumpPalette from './WorktreeJumpPalette'
 import { makePaneKey } from '../../../shared/stable-pane-id'
@@ -145,10 +147,61 @@ let setCommandQuery: ((next: string) => void) | null = null
 let setCommandSelection: ((next: string) => void) | null = null
 
 async function flushEffects(): Promise<void> {
-  await act(async () => {
-    await Promise.resolve()
-    await Promise.resolve()
-  })
+  // The board is two chained reads (projects, then each project's tasks).
+  for (let turn = 0; turn < 6; turn += 1) {
+    await act(async () => {
+      await Promise.resolve()
+    })
+  }
+}
+
+const PROJECT: Project = {
+  id: 'proj-1',
+  tenantId: 'local',
+  name: 'Alicorn',
+  key: 'ALC',
+  context: '',
+  repoIds: ['repo-1'],
+  source: null,
+  createdBy: 'local',
+  createdAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-01T00:00:00.000Z'
+}
+
+/** Installs `titles` as open tasks, id `task-<index>`, listed in the given order. */
+function installTasks(titles: readonly string[]): void {
+  const tasks: Task[] = titles.map((title, index) => ({
+    id: `task-${index}`,
+    tenantId: 'local',
+    projectId: PROJECT.id,
+    number: index + 1,
+    title,
+    context: '',
+    column: 'todo',
+    executionStrategy: 'single' as const,
+    workflowId: null,
+    stageKey: null,
+    skippedStageKeys: [],
+    model: null,
+    memberIds: [],
+    source: null,
+    createdBy: 'local',
+    createdAt: '2026-09-01T00:00:00.000Z',
+    updatedAt: new Date(Date.UTC(2026, 8, 1) + (titles.length - index) * 1000).toISOString(),
+    closedAt: null
+  }))
+  ;(window as unknown as { api: unknown }).api = {
+    alicorn: {
+      listProjects: () => Promise.resolve({ ok: true, projects: [PROJECT] }),
+      listTasks: () => Promise.resolve({ ok: true, tasks })
+    }
+  }
+}
+
+function getTaskRowIds(): string[] {
+  return [...testContainer.querySelectorAll<HTMLElement>('[data-command-item^="task:"]')].map(
+    (node) => node.dataset.commandItem ?? ''
+  )
 }
 
 async function renderPalette(overrides: Partial<AppState>): Promise<void> {
@@ -232,16 +285,17 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
     })
     document.body.replaceChildren()
     useAppStore.setState(initialAppState, true)
+    delete (window as unknown as { api?: unknown }).api
   })
 
-  it('leads the empty-query list with the recent section', async () => {
+  it('leads the empty-query list with the recent section when the board is empty', async () => {
     await renderPalette(makeRecentTabState())
 
     const rows = getRenderedRowIds().filter((id) => id.length > 0)
     expect(rows[0]).toMatch(/^workspace-tab:/)
-    expect(rows.some((id) => id.startsWith('worktree:'))).toBe(true)
+    expect(rows.some((id) => id.startsWith('worktree:'))).toBe(false)
     expect(testContainer.textContent).toContain('Recent Chats & Terminals')
-    expect(testContainer.textContent).toContain('Recent Worktrees')
+    expect(testContainer.textContent).not.toContain('Worktrees')
   })
 
   it('keeps duplicate persisted tab ids as separate recent rows and digit targets', async () => {
@@ -263,14 +317,11 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
     )
   })
 
-  it('caps the recent section so the worktree header stays above the fold', async () => {
+  it('caps the recent section so the list stays above the fold', async () => {
     await renderPalette(makeManyTabState(12))
 
     expect(getTabRowIds()).toHaveLength(6)
-    expect(testContainer.textContent).toContain('Recent Worktrees')
-    // Why: the worktree section shrinks against the recent rows so the list holds at 10 total —
-    // it must never uncap, not even for the frame before the order snapshot lands.
-    expect(getWorktreeRows().length).toBeLessThanOrEqual(4)
+    expect(getWorktreeRows()).toEqual([])
   })
   it('shows more recent chats and terminals from the empty-query view', async () => {
     await renderPalette(makeManyTabState(12))
@@ -329,11 +380,12 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
   })
 
   /** A tab whose title starts with the query, against worktrees that only match mid-name. */
+  /** One weak task hit ("performance") against one strong tab hit, so leadership has to choose. */
   function makeTypedRelevanceState(): Partial<AppState> {
-    const weak = makeWorktree('wt-weak', 'improve-agent-dashboard-performance')
+    installTasks(['improve agent dashboard performance'])
     const host = makeWorktree('wt-host', 'docs-update')
     return {
-      worktreesByRepo: { 'repo-1': [weak, host] },
+      worktreesByRepo: { 'repo-1': [host] },
       showSleepingWorkspaces: true,
       ptyIdsByTabId: { 'term-host': ['pty-term-host'] },
       tabsByWorktree: {
@@ -359,7 +411,7 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
 
     const rows = getRenderedRowIds().filter((id) => id.length > 0)
     expect(rows[0]).toBe('workspace-tab:tab-host')
-    expect(rows).toContain('worktree:wt-weak')
+    expect(rows).toContain('task:task-0')
     expect(getCommandValue()).toBe('workspace-tab:tab-host')
   })
 
@@ -370,11 +422,11 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
       setCommandQuery?.('improve')
     })
     await flushEffects()
-    expect(getCommandValue()).toBe('worktree:wt-weak')
+    expect(getCommandValue()).toBe('task:task-0')
 
     await act(async () => {
       setCommandQuery?.('perf')
-      setCommandSelection?.('worktree:wt-weak')
+      setCommandSelection?.('task:task-0')
     })
     await flushEffects()
 
@@ -404,16 +456,10 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
     expect(getCommandValue()).toBe(rows[1])
   })
 
-  it('keeps worktrees ahead of tabs when a worktree holds the stronger match', async () => {
-    await renderPalette({
-      ...makeTypedRelevanceState(),
-      worktreesByRepo: {
-        'repo-1': [
-          makeWorktree('wt-strong', 'perf-diff-tighten'),
-          makeWorktree('wt-host', 'docs-update')
-        ]
-      }
-    })
+  it('keeps tasks ahead of tabs when a task holds the stronger match', async () => {
+    const state = makeTypedRelevanceState()
+    installTasks(['perf-diff-tighten'])
+    await renderPalette(state)
 
     await act(async () => {
       setCommandQuery?.('perf-d')
@@ -421,55 +467,42 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
     await flushEffects()
 
     const firstRow = getRenderedRowIds().find((id) => id.length > 0)
-    expect(firstRow).toBe('worktree:wt-strong')
+    expect(firstRow).toBe('task:task-0')
   })
 
-  it('ranks a typed query by match position inside the worktree section', async () => {
-    await renderPalette({
-      worktreesByRepo: {
-        'repo-1': [
-          // Why this order: smart sort keeps the input order here, so a promoted prefix hit can only
-          // come from relevance re-ranking.
-          makeWorktree('wt-word-a', 'improve-agent-dashboard-performance'),
-          makeWorktree('wt-word-b', 'rc-perf-update-channels'),
-          makeWorktree('wt-prefix', 'perf-diff-tighten')
-        ]
-      },
-      showSleepingWorkspaces: true
-    })
+  it('ranks a typed query by match position inside the task section', async () => {
+    // Why this order: the board order is preserved here, so a promoted prefix hit can only come
+    // from relevance re-ranking.
+    installTasks([
+      'improve-agent-dashboard-performance',
+      'rc-perf-update-channels',
+      'perf-diff-tighten'
+    ])
+    await renderPalette({ worktreesByRepo: { 'repo-1': [] } })
 
     await act(async () => {
       setCommandQuery?.('perf')
     })
     await flushEffects()
 
-    // Why word-b beats word-a despite input order: `perf` is a whole word in
-    // `rc-perf-update-channels` but only a prefix of `performance`.
-    expect(getRenderedRowIds().filter((id) => id.startsWith('worktree:'))).toEqual([
-      'worktree:wt-prefix',
-      'worktree:wt-word-b',
-      'worktree:wt-word-a'
-    ])
+    // Why task-1 beats task-0: `perf` is a whole word in `rc-perf-update-channels` but only a
+    // prefix of `performance`.
+    expect(getTaskRowIds()).toEqual(['task:task-2', 'task:task-1', 'task:task-0'])
   })
 
-  it('budget-caps the worktree section when nothing fills the recent one', async () => {
-    await renderPalette({
-      worktreesByRepo: {
-        'repo-1': Array.from({ length: 14 }, (_, index) =>
-          makeWorktree(`wt-${index}`, `Spare workspace ${index}`)
-        )
-      },
-      showSleepingWorkspaces: true
-    })
+  it('budget-caps the task section when nothing fills the recent one', async () => {
+    installTasks(Array.from({ length: 14 }, (_, index) => `Spare ticket ${index}`))
+    await renderPalette({ worktreesByRepo: { 'repo-1': [] } })
 
     // Why this shape: a filter chip that drops every open tab lands here too, and uncapping used to
-    // mount one row per workspace.
+    // mount one row per entity.
     expect(getTabRowIds()).toEqual([])
-    expect(getWorktreeRows()).toHaveLength(10)
+    expect(getTaskRowIds()).toHaveLength(10)
     expect(testContainer.textContent).toContain('4 more')
   })
 
   it('captures the order when tabs hydrate after the palette is already open', async () => {
+    installTasks(['A ticket waiting', 'Another ticket waiting'])
     const hydrated = makeRecentTabState()
     await renderPalette({
       ...hydrated,
@@ -478,11 +511,11 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
     })
 
     expect(getTabRowIds()).toEqual([])
-    // Why: cmdk claims the first row it sees, which before hydration is a worktree.
-    const firstWorktreeId = getRenderedRowIds().find((id) => id.startsWith('worktree:'))
-    expect(firstWorktreeId).toBeDefined()
+    // Why: cmdk claims the first row it sees, which before hydration is a task.
+    const firstTaskId = getRenderedRowIds().find((id) => id.startsWith('task:'))
+    expect(firstTaskId).toBeDefined()
     await act(async () => {
-      setCommandSelection?.(firstWorktreeId ?? '')
+      setCommandSelection?.(firstTaskId ?? '')
     })
     await flushEffects()
 
@@ -496,8 +529,9 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
 
     const [topRowId] = getTabRowIds()
     expect(getTabRowIds()).toHaveLength(2)
-    // Enter has to follow the rows up: ⌘1 already points at the first recent chat.
-    expect(getCommandValue()).toBe(`workspace-tab:${topRowId}`)
+    // The board leads, so Enter stays on the task head the user selected; ⌘1 still has to reach
+    // the recent chat that landed underneath it.
+    expect(getCommandValue()).toBe(firstTaskId)
 
     // Why here: an empty snapshot also left the digit chords addressing nothing until reopen.
     await act(async () => {
@@ -511,6 +545,7 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
   })
 
   it('leaves a deliberately moved selection alone when recents land late', async () => {
+    installTasks(['A ticket waiting', 'Another ticket waiting'])
     const hydrated = makeRecentTabState()
     await renderPalette({
       ...hydrated,
@@ -518,10 +553,10 @@ describe('WorktreeJumpPalette recent chats & terminals', () => {
       unifiedTabsByWorktree: {}
     })
 
-    const worktreeIds = getRenderedRowIds().filter((id) => id.startsWith('worktree:'))
-    expect(worktreeIds.length).toBeGreaterThan(1)
+    const taskIds = getTaskRowIds()
+    expect(taskIds.length).toBeGreaterThan(1)
     // Why the second row: only a selection that differs from the auto-picked head proves the user moved it.
-    const movedTo = worktreeIds[1]
+    const movedTo = taskIds[1]
     await act(async () => {
       setCommandSelection?.(movedTo)
     })

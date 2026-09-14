@@ -19,21 +19,23 @@ import {
   DIGIT_INDEX_ADDRESSABLE_ROWS,
   EMPTY_QUERY_RECENT_TAB_CAP,
   EMPTY_QUERY_ROW_BUDGET,
-  EMPTY_QUERY_WORKTREE_CAP,
+  EMPTY_QUERY_TASK_CAP,
   type OpenTabPaletteItem,
   type PaletteItem,
-  type WorktreePaletteItem
+  type TaskPaletteItem
 } from './worktree-jump-palette-model'
 import type { WorktreeJumpPaletteLocalState } from './use-worktree-jump-palette-local-state'
 import type { WorktreeJumpPaletteOpenTabs } from './use-worktree-jump-palette-open-tabs'
 import type { WorktreeJumpPaletteProjectTargets } from './use-worktree-jump-palette-project-targets'
 import type { WorktreeJumpPaletteQuickActions } from './use-worktree-jump-palette-quick-actions'
 import type { WorktreeJumpPaletteRecentTabs } from './use-worktree-jump-palette-recent-tabs'
+import type { WorktreeJumpPaletteTasks } from './use-worktree-jump-palette-tasks'
 import type { WorktreeJumpPaletteWorktrees } from './use-worktree-jump-palette-worktrees'
 
 type WorktreeJumpPaletteSectionsInput = WorktreeJumpPaletteOpenTabs &
   WorktreeJumpPaletteRecentTabs &
   WorktreeJumpPaletteProjectTargets &
+  Pick<WorktreeJumpPaletteTasks, 'taskItems'> &
   Pick<WorktreeJumpPaletteQuickActions, 'middleItems'> &
   Pick<WorktreeJumpPaletteWorktrees, 'hasQuery'> &
   Pick<
@@ -43,7 +45,7 @@ type WorktreeJumpPaletteSectionsInput = WorktreeJumpPaletteOpenTabs &
 
 export function useWorktreeJumpPaletteSections({
   hasQuery,
-  worktreeItems,
+  taskItems,
   openTabItems,
   recentTabItems,
   projectTargetItems,
@@ -53,27 +55,28 @@ export function useWorktreeJumpPaletteSections({
   expandedSectionCaps,
   setExpandedSectionCaps
 }: WorktreeJumpPaletteSectionsInput) {
+  // Tasks lead the empty-query list: the unit of work comes before the sessions working it.
   const openTabsLeadSections = useMemo(() => {
     if (!hasQuery) {
-      return true
+      return false
     }
     return shouldOpenTabsLeadPaletteSections({
-      bestWorktreeQualityRank: worktreeItems[0]
-        ? bestPaletteQualityRank([worktreeItems[0].match.qualityClass])
+      bestEntityQualityRank: taskItems[0]
+        ? bestPaletteQualityRank([taskItems[0].result.qualityClass])
         : NO_PALETTE_QUALITY_RANK,
       bestOpenTabQualityRank: openTabItems[0]
         ? bestPaletteQualityRank([openTabItems[0].result.qualityClass])
         : NO_PALETTE_QUALITY_RANK
     })
-  }, [hasQuery, openTabItems, worktreeItems])
+  }, [hasQuery, openTabItems, taskItems])
 
   const middleLeadsSections = useMemo(() => {
     if (!hasQuery) {
       return false
     }
     const bestEntityQualityRank = Math.min(
-      worktreeItems[0]
-        ? bestPaletteQualityRank([worktreeItems[0].match.qualityClass])
+      taskItems[0]
+        ? bestPaletteQualityRank([taskItems[0].result.qualityClass])
         : NO_PALETTE_QUALITY_RANK,
       openTabItems[0]
         ? bestPaletteQualityRank([openTabItems[0].result.qualityClass])
@@ -86,7 +89,7 @@ export function useWorktreeJumpPaletteSections({
         bestCmdJPaletteSectionQualityClass(projectTargetItems.map((item) => item.result))
       ])
     })
-  }, [hasQuery, middleItems, openTabItems, projectTargetItems, worktreeItems])
+  }, [hasQuery, middleItems, openTabItems, projectTargetItems, taskItems])
 
   const handleExpandSection = useCallback(
     (sectionKey: string) => {
@@ -108,21 +111,18 @@ export function useWorktreeJumpPaletteSections({
     const openTabs = hasQuery
       ? capPaletteSection(openTabItems, openTabsCap)
       : capPaletteSection(recentTabItems, recentTabsCap)
-    const baseWorktreeCap = hasQuery
+    // Tasks lead on an empty query, so they take the row budget first and the recent rows fill
+    // whatever is left rather than the other way round.
+    const baseTaskCap = hasQuery
       ? Infinity
       : Math.min(
-          openTabs.visible.length === 0 ? EMPTY_QUERY_ROW_BUDGET : EMPTY_QUERY_WORKTREE_CAP,
+          openTabs.visible.length === 0 ? EMPTY_QUERY_ROW_BUDGET : EMPTY_QUERY_TASK_CAP,
           Math.max(1, EMPTY_QUERY_ROW_BUDGET - openTabs.visible.length)
         )
-    const worktreeCap = hasQuery
-      ? PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps.worktrees ?? 0)
-      : baseWorktreeCap + (expandedSectionCaps.worktrees ?? 0)
-    const worktrees = hasQuery
-      ? capPaletteSection(worktreeItems, worktreeCap)
-      : {
-          visible: worktreeItems.slice(0, worktreeCap),
-          overflowCount: Math.max(0, worktreeItems.length - worktreeCap)
-        }
+    const taskCap = hasQuery
+      ? PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps.tasks ?? 0)
+      : baseTaskCap + (expandedSectionCaps.tasks ?? 0)
+    const tasks = capPaletteSection(taskItems, taskCap)
     const projectTargets = capPaletteSection(
       hasQuery ? projectTargetItems : [],
       PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps.projects ?? 0)
@@ -132,21 +132,21 @@ export function useWorktreeJumpPaletteSections({
       PALETTE_SECTION_RENDER_CAP + (expandedSectionCaps.middle ?? 0)
     )
     const multiPrimaryFirstScreen =
-      hasQuery && openTabs.visible.length > 0 && worktrees.visible.length > 0
+      hasQuery && openTabs.visible.length > 0 && tasks.visible.length > 0
     const multiPrimaryLayout = multiPrimaryFirstScreen
-      ? layoutMultiPrimaryPaletteSections<WorktreePaletteItem | OpenTabPaletteItem>({
-          leadingItems: openTabsLeadSections ? openTabItems : worktreeItems,
-          trailingItems: openTabsLeadSections ? worktreeItems : openTabItems,
+      ? layoutMultiPrimaryPaletteSections<TaskPaletteItem | OpenTabPaletteItem>({
+          leadingItems: openTabsLeadSections ? openTabItems : taskItems,
+          trailingItems: openTabsLeadSections ? taskItems : openTabItems,
           leadingPreviewCount:
             TYPED_QUERY_LEADING_PREVIEW +
-            (expandedSectionCaps[openTabsLeadSections ? 'open-tabs' : 'worktrees'] ?? 0),
-          leadingHardCap: openTabsLeadSections ? openTabsCap : worktreeCap,
-          trailingHardCap: openTabsLeadSections ? worktreeCap : openTabsCap
+            (expandedSectionCaps[openTabsLeadSections ? 'open-tabs' : 'tasks'] ?? 0),
+          leadingHardCap: openTabsLeadSections ? openTabsCap : taskCap,
+          trailingHardCap: openTabsLeadSections ? taskCap : openTabsCap
         })
       : null
     return {
-      visibleWorktreeItems: worktrees.visible as PaletteItem[],
-      worktreeOverflowCount: worktrees.overflowCount,
+      visibleTaskItems: tasks.visible as PaletteItem[],
+      taskOverflowCount: tasks.overflowCount,
       visibleProjectTargetItems: projectTargets.visible as PaletteItem[],
       projectTargetOverflowCount: projectTargets.overflowCount,
       visibleMiddleItems: middle.visible as PaletteItem[],
@@ -164,7 +164,7 @@ export function useWorktreeJumpPaletteSections({
     openTabsLeadSections,
     projectTargetItems,
     recentTabItems,
-    worktreeItems
+    taskItems
   ])
 
   // Why: badges number the snapshotted recent rows only — ⌘N is meaningless on a typed query, and an
