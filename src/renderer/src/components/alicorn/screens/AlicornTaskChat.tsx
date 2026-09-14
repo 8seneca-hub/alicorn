@@ -12,7 +12,6 @@
  * same conversation rather than two views that drift.
  */
 import React from 'react'
-import { Loader2 } from 'lucide-react'
 import {
   structuredAgentSessionPaneKey,
   structuredAgentSessionTabId
@@ -25,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { dispatchStructuredAgentSessionComposerCommand } from '../../../../../shared/structured-agent-session-composer'
 import { NativeChatComposer } from '@/components/native-chat/NativeChatComposer'
 import { NativeChatEmptyState } from '@/components/native-chat/NativeChatEmptyState'
+import { AlicornTaskChatSkeleton } from './AlicornTaskChatSkeleton'
 import { NativeChatMessageList } from '@/components/native-chat/NativeChatMessageList'
 import { StructuredAgentSessionPromptCards } from '@/components/native-chat/StructuredAgentSessionPromptCards'
 import { useStructuredAgentSession } from '@/components/native-chat/use-structured-agent-session'
@@ -60,6 +60,8 @@ export function AlicornTaskChat({
     isVisible: true
   })
   const prompt = controller.prompts[0] ?? null
+  /** The window between opening a ticket and the journal's first page arriving. */
+  const opening = controller.status === 'loading' && controller.messages.length === 0
   // `offline` is not cosmetic: with no fence the outbox cannot dispatch, so a message typed here
   // would sit queued with nothing said. Better to refuse the send than to swallow it.
   const activity: TaskSessionActivity = !controller.canSend
@@ -130,11 +132,8 @@ export function AlicornTaskChat({
               </Button>
             ) : null}
           </div>
-        ) : controller.status === 'loading' && controller.messages.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center gap-2 text-[12.5px] text-muted-foreground">
-            <Loader2 className="size-3.5 animate-spin" />
-            {translate('auto.components.alicorn.taskChat.opening', 'Opening the session…')}
-          </div>
+        ) : opening ? (
+          <AlicornTaskChatSkeleton />
         ) : controller.messages.length === 0 ? (
           <NativeChatEmptyState kind="empty" agent={agent} />
         ) : (
@@ -155,7 +154,10 @@ export function AlicornTaskChat({
         onCancelTurn={stopTurn}
       />
 
-      {controller.error || composerError ? (
+      {/* Nothing is wrong yet while the session is still opening: the first history read can refuse
+          before the session is mounted and then succeed on its own, and showing that in red made a
+          recoverable read look like a broken ticket. */}
+      {!opening && (controller.error || composerError) ? (
         <p className="px-9 py-1 text-[11px] text-destructive">
           {controller.error ?? composerError}
         </p>

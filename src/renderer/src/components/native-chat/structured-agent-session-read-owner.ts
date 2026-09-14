@@ -14,6 +14,7 @@ import {
 } from '../../../../shared/structured-agent-session-reducer'
 import type { RuntimeClientTarget } from '@/runtime/runtime-rpc-client'
 import { callStructuredAgentSession } from '@/runtime/structured-agent-session-client'
+import { describeFailure } from '../../../../shared/alicorn/describe-failure'
 import { NATIVE_CHAT_INITIAL_LIMIT } from './native-chat-pagination'
 import { startStructuredAgentSessionReadTransport } from './structured-agent-session-read-transport'
 
@@ -231,7 +232,9 @@ function createReadOwner(
         }
       } catch (error) {
         if (!shouldStop()) {
-          apply({ type: 'error', message: String(error) })
+          // Not String(): an IPC rejection is `{ ok: false, error: {...} }`, and stringifying that
+          // object is where the reader's "[object Object]" came from.
+          apply({ type: 'error', message: describeFailure(error) })
         }
       } finally {
         if (!shouldStop()) {
