@@ -1,7 +1,5 @@
 import { getArtifactsSettingsSearchEntries } from '@/components/settings/artifacts-settings-search'
 import { getBoardAutomationSearchEntries } from '@/components/settings/board-automation-search'
-import { getAlicornMembersSearchEntries } from '@/components/settings/alicorn-members-search'
-import { getAlicornWorkflowsSearchEntries } from '@/components/settings/alicorn-workflows-search'
 import { getAutomationsSettingsSearchEntries } from '@/components/settings/automations-settings-search'
 import { getBrowserPaneCombinedSearchEntries } from '@/components/settings/browser-pane-search'
 import { getCommitMessageAiPaneSearchEntries } from '@/components/settings/commit-message-ai-search'
@@ -25,8 +23,7 @@ import {
   PanelsTopLeft,
   Play,
   SquareTerminal,
-  TabletSmartphone,
-  Users
+  TabletSmartphone
 } from 'lucide-react'
 import type { SettingsNavigationBuildOptions } from './settings-navigation-build-options'
 
@@ -46,31 +43,6 @@ export function buildWorkflowSettingsSections(
       icon: CalendarClock,
       searchEntries: getAutomationsSettingsSearchEntries(),
       group: 'account'
-    },
-    {
-      id: 'alicorn-members',
-      title: translate('auto.hooks.useSettingsNavigationMetadata.alicornMembersTitle', 'Members'),
-      description: translate(
-        'auto.hooks.useSettingsNavigationMetadata.alicornMembersDescription',
-        'Reusable agent roles: backend, skills, permission mode and workspace kind.'
-      ),
-      icon: Users,
-      searchEntries: getAlicornMembersSearchEntries(),
-      group: 'organisation'
-    },
-    {
-      id: 'alicorn-workflows',
-      title: translate(
-        'auto.hooks.useSettingsNavigationMetadata.alicornWorkflowsTitle',
-        'Workflows'
-      ),
-      description: translate(
-        'auto.hooks.useSettingsNavigationMetadata.alicornWorkflowsDescription',
-        'Stages, who runs them, and the edges between them — including findings going back to the author.'
-      ),
-      icon: Workflow,
-      searchEntries: getAlicornWorkflowsSearchEntries(),
-      group: 'organisation'
     },
     {
       id: 'artifacts',

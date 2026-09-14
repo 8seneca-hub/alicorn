@@ -137,6 +137,20 @@ describe('createUISlice settings navigation', () => {
     })
   })
 
+  it('navigates to Settings when a deep link target is set', () => {
+    const store = createUIStore()
+    store.getState().openAlicornPage('projects')
+
+    store.getState().openSettingsTarget({ pane: 'integrations', repoId: null })
+
+    expect(store.getState().activeView).toBe('settings')
+    expect(store.getState().settingsNavigationTarget).toEqual({
+      pane: 'integrations',
+      repoId: null
+    })
+    expect(store.getState().previousViewBeforeSettings).toBe('alicorn')
+  })
+
   it('rejects malformed settings targets before storing them', () => {
     const store = createUIStore()
     const openSettingsTarget = store.getState().openSettingsTarget as unknown as (
@@ -147,6 +161,7 @@ describe('createUISlice settings navigation', () => {
       openSettingsTarget({ pane: 'repo', repoId: 'repo-1', hostId: 'invalid' })
     ).toThrowError('openSettingsTarget received an invalid navigation target')
     expect(store.getState().settingsNavigationTarget).toBeNull()
+    expect(store.getState().activeView).not.toBe('settings')
   })
 
   it('prefetches the restored default task source when provider settings drifted', () => {

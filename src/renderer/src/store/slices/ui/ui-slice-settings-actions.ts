@@ -26,6 +26,9 @@ export function createUiSettingsActions(set: UISliceSet, get: UISliceGet): Parti
         return
       }
       set({ settingsNavigationTarget: target })
+      // Why: a stored target nobody navigates to is a deep link that does nothing — every caller
+      // paired this with openSettingsPage(), and the one that forgot looked like a dead button.
+      get().openSettingsPage()
     },
     clearSettingsTarget: () => set({ settingsNavigationTarget: null }),
     settingsProjectHostSelection: {},

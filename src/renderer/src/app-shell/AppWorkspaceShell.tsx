@@ -7,6 +7,7 @@ import { FloatingTerminalToggleButton } from '../components/floating-terminal/Fl
 import { TerminalWorkbenchContainer } from '../components/TerminalWorkbenchContainer'
 import { TitlebarLeftControls } from './TitlebarLeftControls'
 import { AppRail } from './AppRail'
+import { SettingsPageSkeleton } from '../components/settings/SettingsPageSkeleton'
 import { RightSidebarToggle, TitlebarMainStrip } from './TitlebarMainStrip'
 import type { AppChromeLayout } from './use-app-chrome-layout'
 import type { FloatingWorkspacePanelState } from './use-floating-workspace-panel'
@@ -37,7 +38,13 @@ function ActivePage({ layout }: { layout: AppChromeLayout }): React.JSX.Element 
   return (
     <>
       {activeView === 'alicorn' ? <AlicornShell /> : null}
-      {activeView === 'settings' ? <Settings /> : null}
+      {/* Why: Settings is the heaviest chunk in the app; the outer page Suspense falls back to
+          nothing, which read as a blank window for as long as the chunk took to arrive. */}
+      {activeView === 'settings' ? (
+        <Suspense fallback={<SettingsPageSkeleton />}>
+          <Settings />
+        </Suspense>
+      ) : null}
       {activeView === 'skills' ? <SkillsPage /> : null}
       {activeView === 'artifacts' ? <ArtifactsPage /> : null}
       {activeView === 'tasks' ? <TaskPage /> : null}

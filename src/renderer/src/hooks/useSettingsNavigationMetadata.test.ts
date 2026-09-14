@@ -119,14 +119,10 @@ describe('settings navigation metadata', () => {
     expect(shareSkills).toMatchObject({ group: 'organisation', badge: 'Beta' })
     expect(shareSkills?.searchEntries[0]?.title).toBe('Unlisted skill links')
     // The old Workflows group held both the org library and the account that runs it. §6 split
-    // them: the library — members, the workflows they run, orchestration and the skills they
-    // share — is the organisation's, while automations and artifacts follow the account.
-    expect(orgIds).toEqual([
-      'orchestration',
-      'alicorn-members',
-      'alicorn-workflows',
-      'share-skills'
-    ])
+    // them: the library — orchestration and the skills it shares — is the organisation's, while
+    // automations and artifacts follow the account. Members and workflows left Settings entirely:
+    // the Alicorn Organisation screen renders the same two panes and is their one door.
+    expect(orgIds).toEqual(['orchestration', 'share-skills'])
   })
 
   it('places the Alicorn account with the other account panes, on desktop only', () => {

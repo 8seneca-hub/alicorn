@@ -8,11 +8,11 @@ import { WorkflowTransitionInspector } from '../alicorn/workflow-canvas/Workflow
 import { issueLabel } from '../alicorn/workflow-canvas/workflow-canvas-labels'
 import { issuesForStage } from '../alicorn/workflow-canvas/workflow-draft-validation'
 import { useWorkflowEditor } from '../alicorn/workflow-canvas/use-workflow-editor'
+import { useAlicornProjects } from '../alicorn/shell/use-alicorn-projects'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { SettingsRow, SettingsSubsectionHeader } from './SettingsFormControls'
-import { useAppStore } from '@/store'
 import { translate } from '@/i18n/i18n'
 
 const UNCONFIGURED = 'control_plane_unconfigured'
@@ -32,13 +32,15 @@ function nextStageKey(stages: readonly WorkflowStage[]): string {
  * surface an author opens deliberately, not something the board puts in anyone's way.
  */
 export function AlicornWorkflowsPane(): React.JSX.Element {
-  const repos = useAppStore((store) => store.repos)
-  const [repoId, setRepoId] = useState<string | null>(null)
+  // Why projects, not repos: a workflow is keyed to a control-plane project id. A repo id never
+  // matches one, so feeding it here read back an empty list and wrote orphan workflows nothing reads.
+  const { projects } = useAlicornProjects()
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [selection, setSelection] = useState<CanvasSelection>(null)
   const [composing, setComposing] = useState(false)
-  const projectId = repoId ?? repos[0]?.id ?? null
+  const projectId = selectedProjectId ?? projects[0]?.id ?? null
   const editor = useWorkflowEditor(projectId)
-  const projectName = repos.find((repo) => repo.id === projectId)?.displayName ?? projectId ?? ''
+  const projectName = projects.find((project) => project.id === projectId)?.name ?? projectId ?? ''
 
   if (editor.error === UNCONFIGURED) {
     return (
@@ -82,7 +84,7 @@ export function AlicornWorkflowsPane(): React.JSX.Element {
       />
 
       <div className="flex flex-wrap items-center gap-2">
-        <Select value={projectId ?? ''} onValueChange={setRepoId}>
+        <Select value={projectId ?? ''} onValueChange={setSelectedProjectId}>
           <SelectTrigger
             className="h-7 w-56 text-xs"
             aria-label={translate('auto.components.settings.alicornWorkflows.project', 'Project')}
@@ -95,9 +97,9 @@ export function AlicornWorkflowsPane(): React.JSX.Element {
             />
           </SelectTrigger>
           <SelectContent>
-            {repos.map((repo) => (
-              <SelectItem key={repo.id} value={repo.id} className="text-xs">
-                {repo.displayName || repo.id}
+            {projects.map((project) => (
+              <SelectItem key={project.id} value={project.id} className="text-xs">
+                {project.name || project.id}
               </SelectItem>
             ))}
           </SelectContent>
