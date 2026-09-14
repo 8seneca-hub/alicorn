@@ -123,7 +123,7 @@ export function AlicornProjectAutonomy({
         <p className="mb-4 max-w-[680px] text-[12.5px] leading-relaxed text-muted-foreground">
           {translate(
             'auto.components.alicorn.project.autonomyLede',
-            'Everything on a stage is inherited from the org library until you change it here. Nothing an agent does can loosen it — a merge, a deploy or anything irreversible gates regardless of level.'
+            'A stage gates until you author a level for it here — a step with no policy is one a human decides. The org library sets what authoring writes by default. Nothing an agent does can loosen any of it: a merge, a deploy or anything irreversible gates regardless of level.'
           )}
         </p>
 
@@ -146,7 +146,7 @@ export function AlicornProjectAutonomy({
                 <p className="min-w-0 flex-1 text-[12.5px] text-muted-foreground">
                   {translate(
                     'auto.components.alicorn.org.everyStageInherits',
-                    'Every stage is inherited. Authoring the set writes each one explicitly, so a later change to the org default cannot move this project underneath you.'
+                    'No stage is authored yet, so every one of them gates. Authoring the set writes each stage explicitly — which is also what stops a later change to the org default from moving this project underneath you.'
                   )}
                 </p>
                 <Button

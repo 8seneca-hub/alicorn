@@ -264,6 +264,17 @@
     "taskUrl": {
       "loadingHint": "Loading {{value0}}…",
       "createHint": "Create worktree from {{value0}}"
+    },
+    "tasksHeader": "Tasks",
+    "openTasksHeader": "Open Tasks",
+    "emptyQuerySubtitle": "Try a task reference or title, a project, a setting, an action, a tab title, an agent prompt, a URL, a PR, or a port.",
+    "nothingToShowTitle": "No tasks, settings, actions, or open tabs",
+    "nothingToShowSubtitle": "Create a task or open a tab in Alicorn to get started.",
+    "dialogDescription": "Search tasks, chats, terminals, projects, settings, and actions",
+    "inputPlaceholder": "Search tasks, chats, terminals, projects, settings, and actions...",
+    "loadingSubtitle": "Gathering your open tasks and tabs.",
+    "task": {
+      "doneBadge": "Done"
     }
   },
   "auto": {
@@ -12021,6 +12032,9 @@
           "c1180ab7ed": "-y my-mcp-server",
           "ebfde11d78": "npx",
           "a79060d51a": "plane"
+        },
+        "SettingsPageSkeleton": {
+          "loading": "Loading settings"
         }
       },
       "right": {
@@ -17543,7 +17557,10 @@
           "contextWillCreate": "This repository has no {{file}} yet. Saving writes one, seeded with what is below.",
           "contextNoRepo": "No repository resolved on this machine, so this is kept in the control plane instead of a file.",
           "autonomy": "Autonomy",
-          "autonomyLede": "Everything on a stage is inherited from the org library until you change it here. Nothing an agent does can loosen it — a merge, a deploy or anything irreversible gates regardless of level."
+          "autonomyLede": "Everything on a stage is inherited from the org library until you change it here. Nothing an agent does can loosen it — a merge, a deploy or anything irreversible gates regardless of level.",
+          "contextHintLabel": "What project context is",
+          "contextHintFile": "This is {{file}} in the project’s repository — an ordinary file on disk, not a setting. Editing here writes it.",
+          "contextHintRead": "Claude reads it out of the working directory by itself, so nobody has to attach it to a task. Write what a repository cannot teach: the domain, the users, the decisions already taken."
         },
         "projects": {
           "repos": "Repositories",
@@ -17603,7 +17620,19 @@
           "noIssue": "No issue matches that.",
           "noWorkflowOption": "No workflow",
           "noWorkflowTrail": "A raw session on the brief — no stages, no hand-off, nothing to gate at. This is what most work wants.",
-          "modelTrail": "On the task, not the member: the same reviewer reads a one-line fix and a schema migration."
+          "modelTrail": "On the task, not the member: the same reviewer reads a one-line fix and a schema migration.",
+          "workflowHintLabel": "What a workflow does",
+          "workflowHintStages": "Binds this task to {{workflow}} and its stages: {{stages}}.",
+          "workflowHintBound": "Binds this task to {{workflow}} and its stages.",
+          "workflowHintNone": "No workflow is a raw session on the brief: no stages, no hand-off, nothing to gate at. Most work wants this.",
+          "workflowHintGates": "Every move between stages is checked: a stage gates when it is irreversible, carries inherited cost, or the project authored it always_gate — or authored nothing at all. Choosing “No workflow” instead gives a raw session with no stages and no hand-off.",
+          "workflowHintChoose": "Choosing a workflow instead binds the task to its stages and the gates between them — authored on the workflow, never by whoever works the task.",
+          "strategyHintLabel": "What execution strategy decides",
+          "strategyHintSingle": "single — one agent, one session, working from this brief. The default, and what about nine tickets in ten want.",
+          "strategyHintOrchestrated": "orchestrated — a lead splits the ticket and briefs subagents, each on a fresh context. Roughly 10–15× the tokens for the same ticket: a trade, not an upgrade.",
+          "modelHintLabel": "What the model applies to",
+          "modelHintScope": "Set on this task, not on the member — the same reviewer reads a one-line fix and a schema migration.",
+          "modelHintDefault": "Left on “Default for this backend”, nothing is sent and each run takes whatever its own backend picks."
         },
         "task": {
           "errorTitle": "Tasks could not be read",
@@ -17788,7 +17817,23 @@
           "overridden": "overridden",
           "reset": "reset to org",
           "inherited": "inherited",
-          "hardStopStage": "This stage gates at every level — it is irreversible or carries inherited cost, and that is read before any policy."
+          "hardStopStage": "This stage gates at every level — it is irreversible or carries inherited cost, and that is read before any policy.",
+          "hintL0": "Stores always_gate. Every hand-off out of this stage is proposed and waits for you, whatever the ledger says.",
+          "hintL1": "Stores evidence with no bar to clear — 0 runs, 0% accepted. Reversible work runs the moment it is ready, because a reversible step does not need a track record to be worth running.",
+          "hintL1Hard": "Anything irreversible is still proposed: reversibility is read before any policy, so no level reaches it.",
+          "hintL2": "Stores evidence at a bar. The step runs on its own and tells you after, but only once the ledger holds enough accepted runs for this member on this stage — the bar is shown under the level.",
+          "hintL2Earn": "Evidence only accumulates by running gated, so a new stage sits here doing nothing until it has a record.",
+          "hintL3": "Stores never_gate, and it lapses after {{days}} days — a standing exception that never expires is the one thing the policy refuses.",
+          "hintL3Hard": "Hard stops still gate here. A stage that is irreversible or carries inherited cost is read before any policy, so L3 never reaches it.",
+          "hintLabel": "What {{level}} stores",
+          "evidenceBarNone": "Evidence bar — none to clear.",
+          "evidenceBar": "Evidence bar — {{runs}} runs at {{rate}}% accepted, on this stage, before anything runs unasked.",
+          "noEffectHere": "No effect on this stage — it is a hard stop and gates before any policy is read.",
+          "notAuthored": "not authored",
+          "unauthoredGates": "Nothing is authored here, so this stage gates — a step with no policy is one a human decides. The org default is marked below as what picking it would write, not as what is in effect.",
+          "stageFactsHintLabel": "What these two decide",
+          "stageFactsHint": "Both are authored on the stage in the workflow, never guessed from what it does — guessing wrong once is a production deploy.",
+          "stageFactsHintHardStop": "An irreversible stage, or one costly to undo, is a hard stop: it is read before any policy, so it gates at every level and no track record retires it."
         },
         "integrations": {
           "connected": "connected",

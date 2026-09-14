@@ -80,16 +80,19 @@ export function useOrgChat(
     }
   }, [model, repoId, worktreesByRepo])
 
-  // Once per mount, and never after a failure: the ref survives StrictMode's double-invoke, so a
-  // development mount does not open two sessions, and a refused start does not retry every render.
-  const autoStarted = React.useRef(false)
+  // Once per mount and once per model, never after a failure: the ref survives StrictMode's
+  // double-invoke, so a development mount does not open two sessions, and a refused start does not
+  // retry every render. The model is the one thing that legitimately opens another, because it is
+  // fixed at launch — holding a boolean here meant picking a model changed the header and left the
+  // session running the old one.
+  const autoStartedModel = React.useRef<string | null | undefined>(undefined)
   React.useEffect(() => {
-    if (starting || session || !repoId || autoStarted.current) {
+    if (starting || !repoId || autoStartedModel.current === model) {
       return
     }
-    autoStarted.current = true
+    autoStartedModel.current = model
     void start()
-  }, [repoId, session, start, starting])
+  }, [model, repoId, start, starting])
 
   return {
     session,
