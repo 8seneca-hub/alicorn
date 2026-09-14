@@ -235,7 +235,9 @@ describe('Store', () => {
           id: 'local-repo',
           path: '/Users/alice/orca',
           displayName: 'Alicorn',
-          upstream: { owner: 'StablyAI', repo: 'Alicorn' }
+          // The slug is a GitHub coordinate, not a product name: this pairs with the lowercase
+          // `stablyai/orca` below to prove two spellings of one repo collapse to one project.
+          upstream: { owner: 'StablyAI', repo: 'Orca' }
         }),
         makeRepo({
           id: 'remote-repo',

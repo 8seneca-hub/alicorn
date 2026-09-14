@@ -45,7 +45,7 @@ describe('project host setup projection', () => {
     path: '/Users/alice/orca',
     displayName: 'Alicorn',
     addedAt: 100,
-    upstream: { owner: 'StablyAI', repo: 'Alicorn' }
+    upstream: { owner: 'StablyAI', repo: 'Orca' }
   })
   const unknownSibling = repo({
     id: 'remote-repo',
@@ -162,7 +162,7 @@ describe('project host setup projection', () => {
         id: 'local-repo',
         path: '/Users/alice/orca',
         displayName: 'Alicorn',
-        upstream: { owner: 'StablyAI', repo: 'Alicorn' }
+        upstream: { owner: 'StablyAI', repo: 'Orca' }
       }),
       repo({
         id: 'remote-repo',
@@ -177,7 +177,7 @@ describe('project host setup projection', () => {
     expect(projection.projects[0]).toMatchObject({
       id: 'github:stablyai/orca',
       sourceRepoIds: ['local-repo', 'remote-repo'],
-      providerIdentity: { provider: 'github', owner: 'StablyAI', repo: 'Alicorn' }
+      providerIdentity: { provider: 'github', owner: 'StablyAI', repo: 'Orca' }
     })
     expect(getProjectHostSetupsForProject(projection.setups, 'github:stablyai/orca')).toHaveLength(
       2
@@ -589,7 +589,7 @@ describe('getProjectIdForProviderIdentity', () => {
       getProjectIdForProviderIdentity({
         provider: 'github',
         owner: 'Acme',
-        repo: 'Alicorn',
+        repo: 'Orca',
         host: 'GITHUB.ACME.TEST:8443'
       })
     ).toBe('github:github.acme.test:8443/acme/orca')
