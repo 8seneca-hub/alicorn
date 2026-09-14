@@ -4,6 +4,7 @@ import type {
   AgentSessionMutationResult,
   AgentSessionSendResult
 } from '../../../../shared/agent-session-wire'
+import { agentSessionFenceIsLive } from '../../../../shared/agent-session-wire'
 import { createStructuredAgentSessionOperationId } from '../../../../shared/structured-agent-session-mutation'
 import {
   classifyStructuredAgentSessionSendFailure,
@@ -106,7 +107,7 @@ export function useStructuredAgentSessionOutbox(args: {
       !next ||
       next.sessionId !== sessionId ||
       next.state !== 'queued' ||
-      fence === null ||
+      !agentSessionFenceIsLive(fence) ||
       dispatchingRef.current ||
       blockedIdRef.current === next.clientMessageId
     ) {
@@ -231,7 +232,7 @@ export function useStructuredAgentSessionOutbox(args: {
   const probeSettled =
     probeId !== null && submissions.some((submission) => submission.clientMessageId === probeId)
   useEffect(() => {
-    if (probeId === null || probeSettled || fence === null) {
+    if (probeId === null || probeSettled || !agentSessionFenceIsLive(fence)) {
       return
     }
     const attempts = probeAttemptsRef.current.id === probeId ? probeAttemptsRef.current.attempts : 0

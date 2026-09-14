@@ -60,6 +60,19 @@ export const AGENT_SESSION_HISTORY_DIRECTIONS = ['tail', 'before', 'after'] as c
  *  reduced timeline and so survive compaction. */
 export type AgentSessionHistoryDirection = (typeof AGENT_SESSION_HISTORY_DIRECTIONS)[number]
 
+/**
+ * Whether a fence names a live runtime lease, and so whether a write can leave.
+ *
+ * A lease is admitted at fence 1 and only ever counts up, so no live session is ever fenced 0.
+ * Zero is what a failed history read substitutes for the fence it did not get — a reset has to
+ * carry a number, and that is the number it carries. Testing only `!== null` let that substitute
+ * read as a live lease: the composer enabled, the outbox dispatched against fence 0, and the
+ * message sat queued with the panel showing Idle and no error anywhere.
+ */
+export function agentSessionFenceIsLive(fence: number | null | undefined): fence is number {
+  return typeof fence === 'number' && fence > 0
+}
+
 export type AgentSessionHistoryRequest = {
   sessionId: string
   direction: AgentSessionHistoryDirection

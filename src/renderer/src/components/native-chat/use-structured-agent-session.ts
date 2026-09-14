@@ -7,6 +7,7 @@ import type {
   AgentSessionOptionsResult,
   AgentSessionPromptResult
 } from '../../../../shared/agent-session-wire'
+import { agentSessionFenceIsLive } from '../../../../shared/agent-session-wire'
 import { getAgentSessionOptionCatalog } from '../../../../shared/agent-session-option-catalog'
 import type { SessionOptionsSurface } from '../../../../shared/native-chat-session-options'
 import { agentSessionRefusalOperationState } from '../../../../shared/agent-session-refusal-retry'
@@ -85,7 +86,7 @@ export function useStructuredAgentSession(args: {
       fields: Record<string, unknown>,
       operationIdOverride?: string | null
     ): Promise<T | null> => {
-      if (stateRef.current.fence === null) {
+      if (!agentSessionFenceIsLive(stateRef.current.fence)) {
         return null
       }
       const targetFence = stateRef.current.fence
@@ -247,7 +248,7 @@ export function useStructuredAgentSession(args: {
      * shows a sent message, no reply and a status of Idle for as long as the session stays
      * unreachable. Ask, and say so.
      */
-    canSend: state.fence !== null,
+    canSend: agentSessionFenceIsLive(state.fence),
     turnId,
     cancel: (turnId: string) => mutate('agentSession.cancel', 'agentSession.cancel', { turnId }),
     respond: (item: StructuredPromptItem, optionId: string) =>
