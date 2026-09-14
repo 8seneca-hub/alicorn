@@ -17,6 +17,7 @@
  * task's, which is what makes reopening the ticket return to it instead of starting a second one.
  */
 import React from 'react'
+import { translate } from '@/i18n/i18n'
 import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 import { useAppStore } from '@/store'
 import type { TaskWorktreeTuple } from '../../../../../shared/alicorn/feature-workspace-tuples'
@@ -117,9 +118,22 @@ export function useTaskWorkspace(
       try {
         // The repository's existing workspace. A task that needs its own branch gets one from the
         // agent working it, not from this button.
-        const workspace = (worktreesByRepo[repoId] ?? [])[0]
+        // Scan on demand rather than refusing. An empty list here almost always means the
+        // repository was recorded but never scanned — `addRepo` does not scan, and nothing in the
+        // project flow reveals a workspace, which is what scans it everywhere else. Asking the
+        // developer to go open it in a list first is Orca's bookkeeping leaking into the ticket.
+        let workspace = (worktreesByRepo[repoId] ?? [])[0]
         if (!workspace) {
-          setError('no_workspace')
+          await useAppStore.getState().fetchWorktrees(repoId)
+          workspace = (useAppStore.getState().worktreesByRepo[repoId] ?? [])[0]
+        }
+        if (!workspace) {
+          setError(
+            translate(
+              'auto.components.alicorn.task.noWorkspace',
+              'This project’s repository could not be opened on this machine. Check that its folder still exists.'
+            )
+          )
           return
         }
         const bound = await api.bindTaskWorktrees(task.id, [

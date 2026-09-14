@@ -32,6 +32,13 @@ export function AlicornRepoPicker({
   const addFolder = async (): Promise<void> => {
     setAdding(true)
     const repo = await addRepo({ openAfterAdd: false })
+    if (repo) {
+      // `addRepo` records the repository but does not scan it — only the non-git folder path does,
+      // because Orca's own flows reveal the workspace next and that scans it on the way. Nothing
+      // reveals anything here, so without this a project's only repository has no workspace and
+      // every task on it refuses to start.
+      await useAppStore.getState().fetchWorktrees(repo.id)
+    }
     setAdding(false)
     if (repo && !repoIds.includes(repo.id)) {
       onChange([...repoIds, repo.id])

@@ -15,6 +15,7 @@ import type { Repo } from '../../../../../shared/repo-types'
 import { useAlicornMembers } from '../shell/use-alicorn-members'
 import { useTaskWorkspace } from './use-task-workspace'
 import { AlicornTaskChat } from './AlicornTaskChat'
+import { AlicornTaskChatSkeleton } from './AlicornTaskChatSkeleton'
 import { AlicornTaskHeader } from './AlicornTaskHeader'
 import { AlicornTaskMembers } from './AlicornTaskMembers'
 import { AlicornTaskStartPanel } from './AlicornTaskStartPanel'
@@ -93,7 +94,11 @@ export function AlicornTaskScreen({
           onActivityChange={setActivity}
           {...(sessionRepoId ? { onRestart: () => void workspace.start(sessionRepoId) } : {})}
         />
-      ) : (
+      ) : workspace.error || !sessionRepoId ? (
+        // Only when starting actually failed, or there is a genuine choice of repository to make.
+        // Opening a ticket is opening the conversation on it — a page of cards in front of that is
+        // a thing to click through before the work, and the brief is the session's first message
+        // anyway, so the cards were also a second copy of it.
         <AlicornTaskStartPanel
           workspace={workspace}
           task={task}
@@ -101,6 +106,8 @@ export function AlicornTaskScreen({
           projectRepos={projectRepos}
           onOpenWorkspace={onOpenWorkspace}
         />
+      ) : (
+        <AlicornTaskChatSkeleton />
       )}
 
       <AlicornTaskMembers
