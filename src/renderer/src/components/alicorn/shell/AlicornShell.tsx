@@ -13,7 +13,7 @@ import { useRunCostByDispatch } from '@/hooks/useAlicornRunCost'
 import type { RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import { projectWorktrees } from '../screens/project-worktrees'
-import { summarizeProjectRunCost } from '../screens/project-run-cost'
+import { summarizeWorktreeRunCost } from '../screens/worktree-run-cost'
 import { openTaskCounts, useTasksByProject } from '../screens/use-tasks-by-project'
 import { usePendingQuestions, type QuestionSubject } from '../screens/use-pending-questions'
 import { useGatePanelState } from '../../right-sidebar/gate-panel/use-gate-panel-state'
@@ -161,7 +161,7 @@ export function AlicornShell(): React.JSX.Element {
   const spendByProject = React.useMemo(() => {
     const byProject: Record<string, RunCostSummary> = {}
     for (const [projectId, worktrees] of Object.entries(worktreesByProject)) {
-      byProject[projectId] = summarizeProjectRunCost({
+      byProject[projectId] = summarizeWorktreeRunCost({
         worktreeIds: worktrees.map((worktree) => worktree.id),
         tabsByWorktree,
         agentStatusByPaneKey,
@@ -235,7 +235,6 @@ export function AlicornShell(): React.JSX.Element {
             onComposingChange={setComposingTask}
             onResolvedGate={refreshGates}
             onDeleteProject={projectsState.remove}
-            onProjectsChanged={projectsState.reload}
             onNavigate={setRoute}
           />
         ) : (

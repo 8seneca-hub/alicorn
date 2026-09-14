@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { formatRunCostSummary, type RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 import { taskRef } from '../../../../../shared/alicorn/tasks'
 import type { WorkflowStage } from '../../../../../shared/alicorn/workflows'
@@ -153,8 +154,7 @@ export function AlicornTaskHeader({
   projectKey,
   crumbs,
   stages,
-  spentUsd,
-  budgetUsd,
+  cost,
   onBack,
   onStrategyChange
 }: {
@@ -162,9 +162,11 @@ export function AlicornTaskHeader({
   projectKey: string
   crumbs: AlicornCrumb[]
   stages: readonly WorkflowStage[]
-  /** Null while nothing has been priced — never a guessed zero. */
-  spentUsd: number | null
-  budgetUsd: number | null
+  /**
+   * What this task has cost. A null total means nothing has been priced — never a guessed zero —
+   * and `partial` means the figure is a floor, which the shared formatter writes as `≥`.
+   */
+  cost: RunCostSummary
   onBack: () => void
   /** Changes how the task runs. Absent when the caller cannot write the task. */
   onStrategyChange?: (strategy: Task['executionStrategy']) => void
@@ -216,12 +218,16 @@ export function AlicornTaskHeader({
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          {spentUsd !== null ? (
-            <span className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-muted-foreground tabular-nums">
+          {cost.costUsd !== null ? (
+            <span
+              className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-muted-foreground tabular-nums"
+              title={translate(
+                'auto.components.alicorn.task.spendTitle',
+                'What this task has cost so far, summed over the dispatches on its worktrees.'
+              )}
+            >
               <DollarSign className="size-3" />
-              {budgetUsd !== null
-                ? `${spentUsd.toFixed(2)} / ${budgetUsd.toFixed(2)}`
-                : spentUsd.toFixed(2)}
+              {formatRunCostSummary(cost)}
             </span>
           ) : null}
         </div>

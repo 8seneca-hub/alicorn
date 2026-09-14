@@ -20,6 +20,7 @@ import { AlicornTaskHeader } from './AlicornTaskHeader'
 import { AlicornTaskMembers } from './AlicornTaskMembers'
 import { AlicornTaskStartPanel } from './AlicornTaskStartPanel'
 import { useProjectWorkflow } from './use-project-workflow'
+import { useTaskRunCost } from './use-task-run-cost'
 import type { TaskSessionActivity } from './task-session-activity'
 import type { AlicornCrumb } from './AlicornScreenChrome'
 import type { ProjectTasksState } from './use-project-tasks'
@@ -71,6 +72,7 @@ export function AlicornTaskScreen({
     briefReady
   )
   const sessionRepoId = workspace.repoId
+  const cost = useTaskRunCost(workspace.tuples)
   const [activity, setActivity] = React.useState<TaskSessionActivity>('offline')
 
   return (
@@ -80,10 +82,9 @@ export function AlicornTaskScreen({
         projectKey={projectKey}
         crumbs={crumbs}
         stages={taskWorkflow?.stages ?? []}
-        // Null, never a guessed zero: cost attribution covers the backends Alicorn prices, and a
-        // task nobody has spent on has no figure rather than a figure of nothing.
-        spentUsd={null}
-        budgetUsd={null}
+        // Summed over this task's own worktrees. A backend Alicorn does not price makes the figure
+        // a floor rather than a guess, and a task nobody has spent on shows nothing at all.
+        cost={cost}
         onBack={onBack}
         onStrategyChange={(executionStrategy) => void tasks.update(task.id, { executionStrategy })}
       />
