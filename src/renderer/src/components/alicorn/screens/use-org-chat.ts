@@ -11,11 +11,13 @@
  * you thought you sent. The binding is still written, so the orchestration DB names the session
  * that is current; nothing reads it back to decide whether to start.
  *
- * It still needs a workspace to run in, because an agent session runs somewhere. Any project's
- * repository will do — the MCP tools it works through are org-wide, and the working directory only
- * decides where a file it reads comes from.
+ * It still needs a workspace to run in, because an agent session runs somewhere. Any repository
+ * will do, bound to a project or not — the MCP tools it works through are org-wide, and the working
+ * directory only decides where a file it reads comes from. That is what lets it answer before the
+ * first project exists, which is often when you most want to ask it something.
  */
 import React from 'react'
+import { translate } from '@/i18n/i18n'
 import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
 import { useAppStore } from '@/store'
 import {
@@ -30,7 +32,7 @@ export type OrgChatState = {
   loading: boolean
   starting: boolean
   error: string | null
-  /** Null while no project has a repository resolved here — there is nowhere to run. */
+  /** Null while no repository at all is resolved here — there is nowhere to run. */
   repoId: string | undefined
   restart: () => void
 }
@@ -46,11 +48,16 @@ export function useOrgChat(
   const [starting, setStarting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
-  // The first repository any project has resolved on this machine. Deterministic so a restart
-  // lands in the same place rather than wherever the store happened to order things today.
+  // A repository bound to a project first, then any repository at all. Deterministic in both
+  // cases, so a restart lands in the same place rather than wherever the store ordered things.
+  //
+  // The fallback is what makes the assistant answerable before the first project exists. Asking it
+  // something is often how you decide what the first project should be, and the working directory
+  // only decides where a file it reads comes from — the alicorn_* tools it actually works through
+  // are org-wide, so an unbound repository serves just as well as a bound one.
   const repoId = React.useMemo(() => {
     const bound = new Set(projects.flatMap((project) => project.repoIds))
-    return repos.find((repo) => bound.has(repo.id))?.id
+    return repos.find((repo) => bound.has(repo.id))?.id ?? repos[0]?.id
   }, [projects, repos])
 
   const start = React.useCallback(async (): Promise<void> => {
@@ -61,9 +68,20 @@ export function useOrgChat(
     setStarting(true)
     setError(null)
     try {
-      const workspace = (worktreesByRepo[repoId] ?? [])[0]
+      // Scanned on demand, for the same reason a task's session scans: a repository is recorded
+      // without being scanned, so an empty list here means "not looked at yet", not "none".
+      let workspace = (worktreesByRepo[repoId] ?? [])[0]
       if (!workspace) {
-        setError('no_workspace')
+        await useAppStore.getState().fetchWorktrees(repoId)
+        workspace = (useAppStore.getState().worktreesByRepo[repoId] ?? [])[0]
+      }
+      if (!workspace) {
+        setError(
+          translate(
+            'auto.components.alicorn.assistant.noWorkspace',
+            'The assistant could not open its workspace. Check that the repository folder still exists.'
+          )
+        )
         return
       }
       // No opening prompt. The MCP server's own `instructions` already tell the agent what the

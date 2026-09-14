@@ -147,7 +147,7 @@ function AlicornAssistantPanel({ projects }: { projects: readonly Project[] }): 
           {chat.repoId === undefined
             ? translate(
                 'auto.components.alicorn.assistant.noRepo',
-                'The assistant runs in a workspace, and no project has a repository resolved on this machine yet.'
+                'The assistant runs in a workspace, and there is no repository on this machine yet. Add one and it can answer — it does not need a project first.'
               )
             : (chat.error ??
               translate('auto.components.alicorn.assistant.opening', 'Opening the assistant…'))}
