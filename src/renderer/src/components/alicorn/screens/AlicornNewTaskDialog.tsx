@@ -47,6 +47,11 @@ import { useProjectBoardIssues } from './use-project-board-issues'
 import { useContextFileDrop } from './use-context-file-drop'
 import { AlicornIssuePicker } from './AlicornIssuePicker'
 import { AlicornModelPicker } from './AlicornModelPicker'
+import {
+  ExecutionStrategyFieldHint,
+  ModelFieldHint,
+  WorkflowFieldHint
+} from './AlicornTaskFieldHints'
 import type { AgentType } from '../../../../../shared/agent-status-types'
 import { planeIssueToTask } from '../../../../../shared/alicorn/pm-import'
 import { EXECUTION_STRATEGIES } from '../../../../../shared/alicorn/ledger'
@@ -62,15 +67,21 @@ const NO_WORKFLOW = 'none'
 
 function FieldLabel({
   children,
-  htmlFor
+  htmlFor,
+  hint
 }: {
   children: React.ReactNode
   htmlFor?: string
+  /** Sits outside the <label> on purpose: inside it, clicking the icon activates the field. */
+  hint?: React.ReactNode
 }): React.JSX.Element {
   return (
-    <label className="text-xs font-medium" htmlFor={htmlFor}>
-      {children}
-    </label>
+    <div className="flex items-center gap-1.5">
+      <label className="text-xs font-medium" htmlFor={htmlFor}>
+        {children}
+      </label>
+      {hint}
+    </div>
   )
 }
 
@@ -128,10 +139,23 @@ function NewTaskDialogBody({
     onPaths: (text) =>
       setBrief((current) => (current.trim() ? `${current.trimEnd()}\n${text}` : text))
   })
-  const { workflows, loading: workflowLoading } = useProjectWorkflow(projectId)
+  // The raw state, not `chosenWorkflowId`: an unchosen field resolves to the first workflow, which
+  // is what the hook picks anyway, and reading the resolved value here would be circular.
+  const {
+    workflows,
+    workflow,
+    loading: workflowLoading
+  } = useProjectWorkflow(projectId, workflowId ?? null)
   // The project's first workflow is the default because it is the one a project is created with;
   // choosing None is how you get a raw session, and it has to be as easy to say.
   const chosenWorkflowId = workflowId === undefined ? (workflows[0]?.id ?? null) : workflowId
+  const chosenWorkflow = workflows.find((summary) => summary.id === chosenWorkflowId) ?? null
+  // Only the full read carries stages, and it trails the summary by a request — so the hint names
+  // stages once they are known rather than guessing at them.
+  const chosenStageNames =
+    workflow?.id === chosenWorkflowId
+      ? [...workflow.stages].sort((a, b) => a.ordinal - b.ordinal).map((stage) => stage.name)
+      : []
 
   const repoOptions = React.useMemo(
     () => projectRepos.map((repo) => ({ id: repo.id, name: repo.displayName })),
@@ -278,7 +302,15 @@ function NewTaskDialogBody({
         </div>
 
         <div className="space-y-1.5">
-          <FieldLabel htmlFor="alicorn-task-workflow">
+          <FieldLabel
+            htmlFor="alicorn-task-workflow"
+            hint={
+              <WorkflowFieldHint
+                workflowName={chosenWorkflow?.name ?? null}
+                stageNames={chosenStageNames}
+              />
+            }
+          >
             {translate('auto.components.alicorn.newTask.workflow', 'Workflow')}
           </FieldLabel>
           {workflowLoading ? (
@@ -344,7 +376,7 @@ function NewTaskDialogBody({
         {advanced ? (
           <div className="space-y-4 border-t border-border pt-4">
             <div className="space-y-1.5">
-              <FieldLabel htmlFor="alicorn-task-model">
+              <FieldLabel htmlFor="alicorn-task-model" hint={<ModelFieldHint />}>
                 {translate('auto.components.alicorn.model.label', 'Model')}
               </FieldLabel>
               <AlicornModelPicker
@@ -362,7 +394,7 @@ function NewTaskDialogBody({
             </div>
 
             <div className="space-y-1.5">
-              <FieldLabel>
+              <FieldLabel hint={<ExecutionStrategyFieldHint />}>
                 {translate(
                   'auto.components.alicorn.project.executionStrategy',
                   'Execution strategy'

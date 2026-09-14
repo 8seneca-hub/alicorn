@@ -6,6 +6,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import type { PendingGateView } from '../../../../../shared/alicorn/gate-review'
 import { useAppStore } from '@/store'
+// The screens carry info affordances, and Radix throws outright without a provider — App.tsx
+// mounts one above the shell, so rendering it here without one is the test being unlike the app.
+import { TooltipProvider } from '@/components/ui/tooltip'
 import { AlicornShell } from './AlicornShell'
 
 const listProjects = vi.fn()
@@ -92,7 +95,7 @@ afterEach(() => {
 describe('AlicornShell', () => {
   it('opens on the projects scope and lists what the control plane returned', async () => {
     seed([project()])
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
 
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
     expect(screen.getByText('1 running at once, one org library')).toBeInTheDocument()
@@ -101,7 +104,7 @@ describe('AlicornShell', () => {
   // The defect this shell exists to fix: the org scope must not be able to show a project's name.
   it('drops every project name from the sidebar when the scope becomes the org', async () => {
     seed([project()])
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
 
     useAppStore.getState().openAlicornPage('org')
@@ -112,7 +115,7 @@ describe('AlicornShell', () => {
 
   it('counts a project by the gates its repositories hold', async () => {
     seed([project()], [gate('repo-a'), gate('repo-a')])
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
 
     await openProject()
     expect(sidebarInbox().textContent).toBe('Inbox2')
@@ -121,7 +124,7 @@ describe('AlicornShell', () => {
   // A gate nothing places belongs to no project, so it must not inflate one.
   it('leaves an unattributed gate out of every project count', async () => {
     seed([project()], [gate(null)])
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
 
     await openProject()
     // No count at all, rather than a zero standing in for a gate this project does not own.
@@ -130,7 +133,7 @@ describe('AlicornShell', () => {
 
   it('gives a project every section the sidebar promises, and a way back out', async () => {
     seed([project()])
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
 
     await openProject()
 
@@ -156,7 +159,7 @@ describe('AlicornShell', () => {
   // A task is a ticket, not a workspace: New task must not open Alicorn's workspace composer.
   it('opens the task composer, and never the workspace composer', async () => {
     seed([project()])
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
 
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
     fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
@@ -173,7 +176,7 @@ describe('AlicornShell', () => {
   // Nothing has run, so the meter has nothing to state — and must not say $0.00.
   it('shows a dash for a project that has never cost anything', async () => {
     seed([project()])
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
 
     await waitFor(() => expect(screen.getAllByText('Payments Platform').length).toBeGreaterThan(0))
     fireEvent.click(screen.getAllByText('Payments Platform')[0]!)
@@ -187,7 +190,7 @@ describe('AlicornShell', () => {
     ;(window as unknown as { api: unknown }).api = {
       alicorn: { listProjects, listPendingGates, listMembers, getOrgPolicy, listTasks }
     }
-    render(<AlicornShell />)
+    render(<AlicornShell />, { wrapper: TooltipProvider })
 
     await waitFor(() =>
       expect(screen.getByText('The control plane is not reachable')).toBeInTheDocument()

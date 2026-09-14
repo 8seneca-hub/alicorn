@@ -52,7 +52,7 @@ export const AUTONOMY_LEVEL_COPY: Record<AutonomyLevel, { title: string; detail:
 export const SHIPPED_DEFAULT_LEVEL: AutonomyLevel = 'L2'
 
 /** How long an L3 exception stands before it lapses. §9: a standing exception always expires. */
-const NEVER_GATE_DAYS = 30
+export const NEVER_GATE_DAYS = 30
 
 export function levelOfPolicy(
   policy: Pick<AutonomyPolicy, 'mode' | 'minRuns'> | null,

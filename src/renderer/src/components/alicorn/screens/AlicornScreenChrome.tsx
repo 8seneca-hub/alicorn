@@ -84,11 +84,14 @@ export function AlicornCrumbs({
 export function AlicornScreenHeader({
   crumbs,
   title,
+  titleHint,
   actions,
   onBack
 }: {
   crumbs: AlicornCrumb[]
   title: string
+  /** An explanation of what the screen's subject is, where the word alone does not carry it. */
+  titleHint?: React.ReactNode
   actions?: React.ReactNode
   /** Renders a back arrow before the title. Only screens you descend *into* pass one. */
   onBack?: () => void
@@ -107,7 +110,10 @@ export function AlicornScreenHeader({
       ) : null}
       <div className="min-w-0 flex-1">
         <AlicornCrumbs crumbs={crumbs} />
-        <h1 className="mt-0.5 text-[17px] font-semibold">{title}</h1>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <h1 className="text-[17px] font-semibold">{title}</h1>
+          {titleHint}
+        </div>
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
     </header>

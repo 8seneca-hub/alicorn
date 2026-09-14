@@ -23,6 +23,7 @@ import CommentMarkdown from '../../sidebar/CommentMarkdown'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import { CLAUDE_MD, useProjectClaudeMd, writeProjectClaudeMd } from './use-project-claude-md'
 import { AlicornTeachClaudeCard } from './AlicornTeachClaudeCard'
+import { AlicornInfoHint } from '../AlicornInfoHint'
 import { setAlicornAssistantOpen } from '../assistant/alicorn-assistant-store'
 import {
   AlicornEmptyState,
@@ -100,6 +101,28 @@ export function AlicornProjectContext({
       <AlicornScreenHeader
         crumbs={crumbs}
         title={translate('auto.components.alicorn.project.context', 'Context')}
+        titleHint={
+          <AlicornInfoHint
+            label={translate(
+              'auto.components.alicorn.project.contextHintLabel',
+              'What project context is'
+            )}
+          >
+            <p>
+              {translate(
+                'auto.components.alicorn.project.contextHintFile',
+                'This is {{file}} in the project’s repository — an ordinary file on disk, not a setting. Editing here writes it.',
+                { file: CLAUDE_MD }
+              )}
+            </p>
+            <p>
+              {translate(
+                'auto.components.alicorn.project.contextHintRead',
+                'Claude reads it out of the working directory by itself, so nobody has to attach it to a task. Write what a repository cannot teach: the domain, the users, the decisions already taken.'
+              )}
+            </p>
+          </AlicornInfoHint>
+        }
         actions={
           editing ? (
             <div className="flex gap-1.5">
