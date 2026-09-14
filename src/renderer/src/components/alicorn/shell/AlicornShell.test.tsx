@@ -140,14 +140,22 @@ describe('AlicornShell', () => {
     for (const label of [
       'Tasks',
       'Board',
+      // Third on purpose: a list, a board and a conversation are the three ways to work, and
+      // everything after them is configuration.
+      'Chat',
       'Inbox',
       'Members',
       'Workflow',
-      'MCP Servers',
       'Settings'
-      // Chat is deliberately absent: it is one session for the whole org, not one per project.
     ]) {
       expect(screen.getAllByText(label).length).toBeGreaterThan(0)
+    }
+
+    // Removed rather than reordered. Neither was a place you work: `.alicorn/context.md` is kept
+    // current by the project screen without being looked at, and per-project MCP servers belong in
+    // the repository's own `.mcp.json`.
+    for (const gone of ['Context', 'MCP Servers']) {
+      expect(screen.queryByText(gone)).toBeNull()
     }
 
     fireEvent.click(screen.getByText('All projects'))

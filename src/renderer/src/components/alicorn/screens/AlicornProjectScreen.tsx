@@ -11,7 +11,6 @@ import { translate } from '@/i18n/i18n'
 import type { PendingGateView } from '../../../../../shared/alicorn/gate-review'
 import type { PendingQuestion } from './use-pending-questions'
 import type { Project } from '../../../../../shared/alicorn/projects'
-import { McpConfigSection } from '../../settings/McpConfigSection'
 import { useAppStore } from '@/store'
 import {
   AlicornEmptyState,
@@ -21,13 +20,12 @@ import {
 } from './AlicornScreenChrome'
 import { AlicornInboxScreen } from './AlicornInboxScreen'
 import { AlicornDeleteProjectDialog } from './AlicornDeleteProjectDialog'
-import { AlicornGlobalMcpSection } from './AlicornGlobalMcpSection'
 import { AlicornNestedRepoScan } from './AlicornNestedRepoScan'
-import { AlicornProjectContext } from './AlicornProjectContext'
+import { AlicornProjectChatScreen } from './AlicornProjectChatScreen'
 import { AlicornProjectIntegrations } from './AlicornProjectIntegrations'
 import { AlicornProjectAutonomy } from './AlicornProjectAutonomy'
-import { AlicornMcpAttachCard } from './AlicornMcpAttachCard'
 import { AlicornNewTaskDialog } from './AlicornNewTaskDialog'
+import { useAlicornProjectDir } from './use-alicorn-project-dir'
 import { useProjectTasks } from './use-project-tasks'
 import { useAlicornMembers } from '../shell/use-alicorn-members'
 import { useProjectWorkflow } from './use-project-workflow'
@@ -40,13 +38,12 @@ import type { AlicornRoute, ProjectSection } from '../shell/alicorn-shell-route'
 const TITLES: Record<ProjectSection, string> = {
   tasks: 'Tasks',
   board: 'Board',
-  context: 'Context',
+  chat: 'Chat',
   inbox: 'Inbox',
   autonomy: 'Autonomy',
   integrations: 'Integrations',
   members: 'Members',
   workflow: 'Workflow',
-  mcp: 'MCP Servers',
   settings: 'Settings'
 }
 
@@ -60,7 +57,6 @@ export function AlicornProjectScreen({
   onComposingChange,
   onResolvedGate,
   onDeleteProject,
-  onProjectsChanged,
   onNavigate
 }: {
   route: { scope: 'projects'; projectId: string; section: ProjectSection; taskId?: string | null }
@@ -74,14 +70,12 @@ export function AlicornProjectScreen({
   onComposingChange: (open: boolean) => void
   onResolvedGate: () => void
   onDeleteProject: (projectId: string) => Promise<{ ok: true } | { ok: false; error: string }>
-  /** Re-reads the project list after something on a screen changed one. */
-  onProjectsChanged: () => void
   onNavigate: (next: AlicornRoute) => void
 }): React.JSX.Element {
   // Tasks are read here rather than per screen: the board and the list are two readings of one set
   // of rows, and two fetches would let them disagree after a drag.
   const tasks = useProjectTasks(route.projectId)
-  // Read here rather than inside the Context screen: ALICORN.md describes the org library and the
+  // Read here rather than inside a section: `.alicorn/context.md` describes the org library and the
   // project's pipeline, and both are already this screen's to know.
   const { members: orgMembers } = useAlicornMembers()
   const { workflow: defaultWorkflow } = useProjectWorkflow(route.projectId)
@@ -104,9 +98,6 @@ export function AlicornProjectScreen({
   const project = projects.find((candidate) => candidate.id === route.projectId)
   const projectName = project?.name ?? route.projectId
   const [deleting, setDeleting] = React.useState(false)
-  // The attach card writes one of the files the list below reads; without this it shows the
-  // pre-write state until something else remounts it.
-  const [mcpReloads, setMcpReloads] = React.useState(0)
   const projectRepos = repos.filter((repo) => project?.repoIds.includes(repo.id))
   // A folder has no branch, so a task working in one has no diff, no checks and no provenance.
   // The repositories inside it do — the Repositories screen offers to find them.
@@ -122,6 +113,14 @@ export function AlicornProjectScreen({
     setActiveWorktree(worktreeId)
     setActiveView('terminal')
   }
+  // Rehomed from the Context section, which no longer exists. Mounted here so the file is kept
+  // current whichever section is open — inside a tab, removing the tab would have stopped the
+  // writer silently and left a member reading a stale description of the project as current.
+  useAlicornProjectDir(projectRepos[0]?.path ?? null, {
+    projectName,
+    members: contextMembers,
+    stageNames: contextStageNames
+  })
   const openTask = (taskId: string): void =>
     onNavigate({ scope: 'projects', projectId: route.projectId, section: route.section, taskId })
   const closeTask = (): void =>
@@ -202,16 +201,17 @@ export function AlicornProjectScreen({
     )
   }
 
-  if (route.section === 'context' && project) {
+  if (route.section === 'chat') {
     return (
-      <AlicornProjectContext
-        crumbs={crumbs}
-        project={project}
-        repoPath={projectRepos[0]?.path ?? null}
-        members={contextMembers}
-        stageNames={contextStageNames}
-        onSaved={() => onProjectsChanged()}
-      />
+      <>
+        <AlicornProjectChatScreen
+          crumbs={crumbs}
+          projectId={route.projectId}
+          projectName={projectName}
+          projectRepos={projectRepos}
+        />
+        {composer}
+      </>
     )
   }
 
@@ -241,38 +241,6 @@ export function AlicornProjectScreen({
         projectId={route.projectId}
         onAllProjects={allProjects}
       />
-    )
-  }
-
-  if (route.section === 'mcp') {
-    const target = projectRepos[0]
-    return (
-      <>
-        <AlicornScreenHeader crumbs={crumbs} title={TITLES.mcp} />
-        <AlicornScreenBody>
-          {target ? (
-            <>
-              <AlicornMcpAttachCard
-                repo={target}
-                onWritten={() => setMcpReloads((count) => count + 1)}
-              />
-              <AlicornGlobalMcpSection />
-              <McpConfigSection repo={target} reloadSignal={mcpReloads} />
-            </>
-          ) : (
-            <AlicornEmptyState
-              title={translate(
-                'auto.components.alicorn.project.mcpNoRepoTitle',
-                'No repository bound'
-              )}
-              detail={translate(
-                'auto.components.alicorn.project.mcpNoRepoDetail',
-                'MCP servers are configured in a repository the agent works in, so this project needs one bound before it has a config to hold.'
-              )}
-            />
-          )}
-        </AlicornScreenBody>
-      </>
     )
   }
 

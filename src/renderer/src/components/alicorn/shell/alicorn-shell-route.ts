@@ -6,16 +6,24 @@
  * the route carries its scope explicitly rather than inferring one from whatever is selected.
  */
 
+/**
+ * Chat sits third on purpose: the first three are the three ways to work — a list, a board, a
+ * conversation — and everything after them is configuration.
+ *
+ * Context and MCP were removed rather than reordered. Neither was a place you work: `.alicorn/`
+ * is kept current without being looked at (the writer lives on the project screen now, not in a
+ * tab), and per-project MCP servers belong in the repository's own `.mcp.json` — Alicorn's server
+ * attaches to every structured session without a screen at all.
+ */
 export const PROJECT_SECTIONS = [
   'tasks',
   'board',
-  'context',
+  'chat',
   'inbox',
   'autonomy',
   'integrations',
   'members',
   'workflow',
-  'mcp',
   'settings'
 ] as const
 export type ProjectSection = (typeof PROJECT_SECTIONS)[number]

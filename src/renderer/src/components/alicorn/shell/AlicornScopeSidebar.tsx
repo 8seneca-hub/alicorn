@@ -6,17 +6,16 @@
  */
 import React from 'react'
 import {
-  BookText,
   ChevronLeft,
   Gauge,
   Settings2,
   Inbox,
   LayoutGrid,
   List,
+  MessagesSquare,
   Plug,
   Plus,
   Search,
-  Server,
   SquareKanban,
   Users,
   Workflow
@@ -39,26 +38,24 @@ type IconComponent = typeof Inbox
 const PROJECT_SECTION_LABELS: Record<ProjectSection, string> = {
   tasks: 'Tasks',
   board: 'Board',
-  context: 'Context',
+  chat: 'Chat',
   inbox: 'Inbox',
   autonomy: 'Autonomy',
   integrations: 'Integrations',
   members: 'Members',
   workflow: 'Workflow',
-  mcp: 'MCP Servers',
   settings: 'Settings'
 }
 
 const PROJECT_SECTION_ICONS: Record<ProjectSection, IconComponent> = {
   tasks: List,
   board: SquareKanban,
-  context: BookText,
+  chat: MessagesSquare,
   inbox: Inbox,
   autonomy: Gauge,
   integrations: Plug,
   members: Users,
   workflow: Workflow,
-  mcp: Server,
   settings: Settings2
 }
 

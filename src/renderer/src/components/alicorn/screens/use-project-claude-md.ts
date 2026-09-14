@@ -79,3 +79,41 @@ export function useProjectClaudeMd(args: {
 export async function writeProjectClaudeMd(path: string, content: string): Promise<void> {
   await window.api.fs.writeFile({ filePath: path, content })
 }
+
+/**
+ * Writes an imported board's description to `CLAUDE.md`, **only where the repository has none.**
+ *
+ * Why it matters more than it looks: Claude reads `CLAUDE.md` out of the working directory by
+ * itself, with no prompting and no attachment step. A description that lives only in the control
+ * plane is a description the agent never sees, so seeding the file is what turns an imported
+ * project from a name into something an agent understands on its first run.
+ *
+ * Seeded, not owned. Unlike `.alicorn/context.md` this is never regenerated — it is a starting
+ * point a human edits from, which is why it can be written once and then left alone. An existing
+ * file is the team's, and stays theirs even when the import has the richer description.
+ *
+ * Answers whether it wrote, so a caller can say so rather than guess.
+ */
+export async function seedProjectClaudeMd(args: {
+  repoPath: string
+  projectName: string
+  /** The board's description. Nothing is written for an empty one — an empty seed is not a seed. */
+  context: string
+}): Promise<boolean> {
+  const context = args.context.trim()
+  if (!context) {
+    return false
+  }
+  const path = `${args.repoPath.replace(/\/$/, '')}/${CLAUDE_MD}`
+  try {
+    const existing = await window.api?.fs?.readFile({ filePath: path })
+    // A binary file is still the team's file. Present is present.
+    if (existing) {
+      return false
+    }
+  } catch {
+    // Absent is the case this exists for, and the only one that writes.
+  }
+  await writeProjectClaudeMd(path, `# ${args.projectName}\n\n${context}\n`)
+  return true
+}

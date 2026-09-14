@@ -28,6 +28,7 @@ import { useAppStore } from '@/store'
 import { htmlToPlainText, planeProjectKey } from '../../../../../shared/alicorn/pm-import'
 import type { Project, ProjectInput } from '../../../../../shared/alicorn/projects'
 import { AlicornRepoPicker } from './AlicornRepoPicker'
+import { seedProjectClaudeMd } from './use-project-claude-md'
 import { usePmImportSource } from './use-pm-import-source'
 import { PM_PROVIDER_LABELS, type PmProvider } from './pm-import-providers'
 
@@ -53,6 +54,7 @@ export function AlicornImportProjectDialog(props: Props): React.JSX.Element {
 
 function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.JSX.Element {
   const openSettingsTarget = useAppStore((state) => state.openSettingsTarget)
+  const repos = useAppStore((state) => state.repos)
   const [provider, setProvider] = React.useState<PmProvider | null>(null)
   const source = usePmImportSource(provider)
   const [boardId, setBoardId] = React.useState<string | null>(null)
@@ -89,16 +91,17 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
   const runImport = async (): Promise<void> => {
     setFailure(null)
     setImporting(true)
+    const context = chosen?.description
+      ? chosen.descriptionIsHtml
+        ? htmlToPlainText(chosen.description)
+        : chosen.description
+      : ''
     const created = await onCreate({
       name: name.trim(),
       key,
       // The board's own description is what the project is *for*; every brief carries it, so a
       // member reads the domain before it reads the ticket.
-      context: chosen?.description
-        ? chosen.descriptionIsHtml
-          ? htmlToPlainText(chosen.description)
-          : chosen.description
-        : '',
+      context,
       repoIds,
       // The link, not the issues: a task reaches one issue on demand, where it is still current.
       source:
@@ -117,6 +120,17 @@ function ImportDialogBody({ onOpenChange, onCreate, onImported }: Props): React.
           : created.error
       )
       return
+    }
+    // On disk as well as in the control plane: Claude reads CLAUDE.md out of the working directory
+    // by itself, so a description that lives only in the control plane is one the agent never sees.
+    // Never over an existing file, and never fatal — the project imported either way.
+    const seedTarget = repos.find((repo) => repo.id === repoIds[0])?.path
+    if (seedTarget) {
+      try {
+        await seedProjectClaudeMd({ repoPath: seedTarget, projectName: name.trim(), context })
+      } catch (cause) {
+        console.warn('[alicorn] could not seed CLAUDE.md for the imported project', cause)
+      }
     }
     onOpenChange(false)
     onImported(created.project.id)

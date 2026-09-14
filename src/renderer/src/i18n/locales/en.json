@@ -17562,7 +17562,8 @@
           "contextHintFile": "This is {{file}} in the project’s repository — an ordinary file on disk, not a setting. Editing here writes it.",
           "contextHintRead": "Claude reads it out of the working directory by itself, so nobody has to attach it to a task. Write what a repository cannot teach: the domain, the users, the decisions already taken.",
           "alicornDirFailed": "Could not write Alicorn’s own notes for this repository: {{error}}",
-          "alicornDir": "What a member is told about this project — the library, the pipeline — is kept current in {{dir}}, which Alicorn adds to .gitignore so it is never committed."
+          "alicornDir": "What a member is told about this project — the library, the pipeline — is kept current in {{dir}}, which Alicorn adds to .gitignore so it is never committed.",
+          "chatHint": "A conversation about {{project}}. Ask first, and turn it into a ticket when it earns one — a task always opens its own session rather than continuing this one."
         },
         "projects": {
           "repos": "Repositories",
@@ -17671,7 +17672,8 @@
           "strategySingle": "One agent",
           "strategySingleDetail": "One session works the whole ticket. The default, and right for most work.",
           "strategyOrchestrated": "A lead and subagents",
-          "strategyOrchestratedDetail": "A lead splits the ticket and dispatches subagents. Roughly 10–15× the tokens — worth it for long or multi-repo work."
+          "strategyOrchestratedDetail": "A lead splits the ticket and dispatches subagents. Roughly 10–15× the tokens — worth it for long or multi-repo work.",
+          "spendTitle": "What this task has cost so far, summed over the dispatches on its worktrees."
         },
         "mcpAttach": {
           "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",
@@ -17841,7 +17843,11 @@
           "unauthoredGates": "Nothing is authored here, so this stage gates — a step with no policy is one a human decides. The org default is marked below as what picking it would write, not as what is in effect.",
           "stageFactsHintLabel": "What these two decide",
           "stageFactsHint": "Both are authored on the stage in the workflow, never guessed from what it does — guessing wrong once is a production deploy.",
-          "stageFactsHintHardStop": "An irreversible stage, or one costly to undo, is a hard stop: it is read before any policy, so it gates at every level and no track record retires it."
+          "stageFactsHintHardStop": "An irreversible stage, or one costly to undo, is a hard stop: it is read before any policy, so it gates at every level and no track record retires it.",
+          "evidenceProgress": "{{runs}} of {{minRuns}} runs, {{rate}}% accepted",
+          "progressRegressed": "recently rejected or amended, so it gates until the bar is met again.",
+          "progressShort": "not there yet, so this stage still asks.",
+          "progressMet": "the bar is met; only hard stops gate here now."
         },
         "integrations": {
           "connected": "connected",
