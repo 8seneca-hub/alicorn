@@ -17560,7 +17560,9 @@
           "autonomyLede": "Everything on a stage is inherited from the org library until you change it here. Nothing an agent does can loosen it — a merge, a deploy or anything irreversible gates regardless of level.",
           "contextHintLabel": "What project context is",
           "contextHintFile": "This is {{file}} in the project’s repository — an ordinary file on disk, not a setting. Editing here writes it.",
-          "contextHintRead": "Claude reads it out of the working directory by itself, so nobody has to attach it to a task. Write what a repository cannot teach: the domain, the users, the decisions already taken."
+          "contextHintRead": "Claude reads it out of the working directory by itself, so nobody has to attach it to a task. Write what a repository cannot teach: the domain, the users, the decisions already taken.",
+          "alicornDirFailed": "Could not write Alicorn’s own notes for this repository: {{error}}",
+          "alicornDir": "What a member is told about this project — the library, the pipeline — is kept current in {{dir}}, which Alicorn adds to .gitignore so it is never committed."
         },
         "projects": {
           "repos": "Repositories",

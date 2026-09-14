@@ -1,23 +1,17 @@
 /**
- * `ALICORN.md` — what an agent should know about Alicorn before it is asked anything.
+ * What a member should know about this project, rendered for `.alicorn/context.md`.
  *
- * A file imported by `CLAUDE.md` rather than a skill, and that is the whole design decision. A
- * skill's body loads only when the model decides the skill is relevant, which is a heuristic with a
- * documented failure rate; rules that must always hold cannot sit behind one. `CLAUDE.md` and its
- * `@` imports are expanded at session start, every time, which is the property we actually need.
+ * It lives in an ignored directory rather than a tracked file at the repository root, because
+ * using Alicorn should not mean committing to Alicorn — see `alicorn-project-dir.ts`. An earlier
+ * design wrote `ALICORN.md` and an `@` import line into `CLAUDE.md`; both are files the team owns,
+ * and both showed up in everyone's diff.
  *
  * **Static facts only.** Nothing here changes per task. A task's own stages, its autonomy level and
  * what it skips are per-session facts and ride in the system prompt instead — writing them here
- * would make the file a lie the moment a second task opened, and rewriting it per session is
- * explicitly the wrong use of a memory file.
+ * would make the file a lie the moment a second task opened.
  *
  * Written between markers so a regeneration replaces its own block and never a hand-written line.
  */
-
-export const ALICORN_MD_FILENAME = 'ALICORN.md'
-
-/** The line that goes in CLAUDE.md. `@` import syntax: expanded at startup, four hops deep. */
-export const ALICORN_MD_IMPORT = `@${ALICORN_MD_FILENAME}`
 
 export const ALICORN_BLOCK_START = '<!-- alicorn:start -->'
 export const ALICORN_BLOCK_END = '<!-- alicorn:end -->'
@@ -91,39 +85,4 @@ export function upsertAlicornBlock(existing: string, block: string): string {
     return `${existing.slice(0, start)}${block.trim()}${existing.slice(after)}`
   }
   return existing.trim() ? `${existing.trimEnd()}\n\n${block}` : block
-}
-
-/**
- * True when CLAUDE.md already pulls the file in.
- *
- * Backticked and fenced mentions are not imports — Claude Code skips both — so a document that
- * merely *talks* about `@ALICORN.md` must not be read as importing it. Getting this wrong is worse
- * than it looks: we would believe the import was already there and never write the real one.
- */
-export function importsAlicornMd(claudeMd: string): boolean {
-  let inFence = false
-  for (const raw of claudeMd.split('\n')) {
-    const line = raw.trim()
-    if (line.startsWith('```') || line.startsWith('~~~')) {
-      inFence = !inFence
-      continue
-    }
-    if (inFence) {
-      continue
-    }
-    if (line === ALICORN_MD_IMPORT || line.startsWith(`${ALICORN_MD_IMPORT} `)) {
-      return true
-    }
-  }
-  return false
-}
-
-/** The one line to add, under a marker so a later edit can find it again. */
-export function addAlicornImport(claudeMd: string): string {
-  if (importsAlicornMd(claudeMd)) {
-    return claudeMd
-  }
-  const line = `${ALICORN_MD_IMPORT}\n`
-  const note = `<!-- Added by Alicorn. Imported at session start; see ${ALICORN_MD_FILENAME}. -->\n`
-  return claudeMd.trim() ? `${claudeMd.trimEnd()}\n\n${note}${line}` : `${note}${line}`
 }

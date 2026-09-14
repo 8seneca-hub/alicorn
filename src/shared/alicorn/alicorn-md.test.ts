@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  addAlicornImport,
-  ALICORN_MD_IMPORT,
-  importsAlicornMd,
-  renderAlicornMd,
-  upsertAlicornBlock
-} from './alicorn-md'
+import { renderAlicornMd, upsertAlicornBlock } from './alicorn-md'
 
 const FACTS = {
   projectName: 'Alicorn',
@@ -42,29 +36,5 @@ describe('ALICORN.md', () => {
     expect(second).not.toContain('**Alicorn** is its project here')
     // One block, not two stacked.
     expect(second.split('<!-- alicorn:start -->')).toHaveLength(2)
-  })
-})
-
-describe('the CLAUDE.md import', () => {
-  it('adds the line once and is idempotent', () => {
-    const once = addAlicornImport('# Project\n\nRules.')
-    expect(once).toContain(ALICORN_MD_IMPORT)
-    expect(addAlicornImport(once)).toBe(once)
-  })
-
-  /**
-   * Claude Code does not treat a backticked or fenced mention as an import, so neither may this —
-   * a document that merely talks about the file would otherwise never get the real one.
-   */
-  it('does not count a backticked or fenced mention as importing it', () => {
-    expect(importsAlicornMd('See `@ALICORN.md` for detail.')).toBe(false)
-    // A doc that shows the line in a fence would otherwise convince us the real one exists.
-    expect(importsAlicornMd('Add this:\n\n```\n@ALICORN.md\n```')).toBe(false)
-    expect(importsAlicornMd('```\n@ALICORN.md\n```')).toBe(false)
-    expect(importsAlicornMd('@ALICORN.md')).toBe(true)
-  })
-
-  it('writes into an empty CLAUDE.md without a leading blank line', () => {
-    expect(addAlicornImport('').startsWith('<!--')).toBe(true)
   })
 })

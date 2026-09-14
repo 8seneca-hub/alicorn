@@ -22,7 +22,8 @@ import { translate } from '@/i18n/i18n'
 import CommentMarkdown from '../../sidebar/CommentMarkdown'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import { CLAUDE_MD, useProjectClaudeMd, writeProjectClaudeMd } from './use-project-claude-md'
-import { AlicornTeachClaudeCard } from './AlicornTeachClaudeCard'
+import { useAlicornProjectDir } from './use-alicorn-project-dir'
+import { ALICORN_DIR } from '../../../../../shared/alicorn/alicorn-project-dir'
 import { AlicornInfoHint } from '../AlicornInfoHint'
 import { setAlicornAssistantOpen } from '../assistant/alicorn-assistant-store'
 import {
@@ -44,13 +45,20 @@ export function AlicornProjectContext({
   project: Project
   /** The project's primary repository on this machine, when one resolves. */
   repoPath: string | null
-  /** What ALICORN.md will say the org library holds. */
+  /** What `.alicorn/context.md` will say the org library holds. */
   members: readonly { name: string; role: string; backend: string }[]
-  /** The default workflow's stages, in order, for the pipeline ALICORN.md describes. */
+  /** The default workflow's stages, in order, for the pipeline that file describes. */
   stageNames: readonly string[]
   onSaved: () => void
 }): React.JSX.Element {
   const claudeMd = useProjectClaudeMd({ repoPath, fallback: project.context })
+  // Kept current in the background. It lives in an ignored directory Alicorn owns, so there is
+  // nothing to consent to — see use-alicorn-project-dir.
+  const projectDir = useAlicornProjectDir(repoPath, {
+    projectName: project.name,
+    members,
+    stageNames
+  })
   const context = claudeMd.text
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(context)
@@ -154,13 +162,6 @@ export function AlicornProjectContext({
         }
       />
       <AlicornScreenBody>
-        {editing ? null : (
-          <AlicornTeachClaudeCard
-            repoPath={repoPath}
-            facts={{ projectName: project.name, members, stageNames }}
-            onWritten={() => claudeMd.reload()}
-          />
-        )}
         <p className="mb-4 text-[11px] text-muted-foreground">
           {claudeMd.path
             ? claudeMd.fromFile
@@ -179,6 +180,21 @@ export function AlicornProjectContext({
                 'No repository resolved on this machine, so this is kept in the control plane instead of a file.'
               )}
         </p>
+        {projectDir.path ? (
+          <p className="mb-4 text-[11px] text-muted-foreground">
+            {projectDir.error
+              ? translate(
+                  'auto.components.alicorn.project.alicornDirFailed',
+                  'Could not write Alicorn’s own notes for this repository: {{error}}',
+                  { error: projectDir.error }
+                )
+              : translate(
+                  'auto.components.alicorn.project.alicornDir',
+                  'What a member is told about this project — the library, the pipeline — is kept current in {{dir}}, which Alicorn adds to .gitignore so it is never committed.',
+                  { dir: ALICORN_DIR }
+                )}
+          </p>
+        ) : null}
         {editing ? (
           <>
             <textarea
