@@ -9,6 +9,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { translate } from '@/i18n/i18n'
 import type { PendingGateView } from '../../../../../shared/alicorn/gate-review'
+import type { PendingQuestion } from './use-pending-questions'
 import type { Project } from '../../../../../shared/alicorn/projects'
 import { McpConfigSection } from '../../settings/McpConfigSection'
 import { useAppStore } from '@/store'
@@ -53,6 +54,8 @@ export function AlicornProjectScreen({
   route,
   projects,
   gates,
+  questions,
+  onAnswered,
   composing,
   onComposingChange,
   onResolvedGate,
@@ -63,6 +66,9 @@ export function AlicornProjectScreen({
   route: { scope: 'projects'; projectId: string; section: ProjectSection; taskId?: string | null }
   projects: Project[]
   gates: PendingGateView[] | null
+  /** This project's slice of the shell's one question read. */
+  questions: readonly PendingQuestion[]
+  onAnswered: () => void
   /** Owned by the shell so the sidebar's New task and a screen's New task open one dialog. */
   composing: boolean
   onComposingChange: (open: boolean) => void
@@ -128,8 +134,8 @@ export function AlicornProjectScreen({
         onResolved={onResolvedGate}
         projectId={route.projectId}
         projectName={projectName}
-        tasks={tasks.tasks}
-        projectKey={project?.key ?? ''}
+        questions={questions}
+        onAnswered={onAnswered}
         onOpenTask={openTask}
       />
     )

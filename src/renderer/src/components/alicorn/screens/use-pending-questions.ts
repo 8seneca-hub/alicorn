@@ -17,10 +17,24 @@ import {
   createStructuredAgentSessionOperationId,
   structuredAgentSessionPayloadFingerprint
 } from '../../../../../shared/structured-agent-session-mutation'
+import type { AgentSessionHistoryRequest } from '../../../../../shared/agent-session-wire'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 import { taskRef } from '../../../../../shared/alicorn/tasks'
 
 const LOCAL = { kind: 'local' } as const
+
+/**
+ * A task to look for a question in, and the project it belongs to.
+ *
+ * The project travels with the task rather than being a second argument, because the cross-project
+ * inbox reads tasks from several projects at once and each needs its own key to build a ref. A
+ * single-project caller passes the same key on every entry, which costs nothing.
+ */
+export type QuestionSubject = {
+  task: Pick<Task, 'id' | 'number' | 'title'>
+  projectId: string
+  projectKey: string
+}
 
 export type PendingQuestion = {
   sessionId: string
@@ -29,6 +43,8 @@ export type PendingQuestion = {
   revision: number
   kind: 'approval' | 'question'
   taskId: string
+  /** Which project's board this task sits on, so the rail can count per project. */
+  projectId: string
   /** `ALC-2`, so the inbox names the ticket the way every other surface does. */
   ref: string
   title: string
@@ -59,33 +75,38 @@ function readOptions(body: JournalItem['body']): { id: string; label: string }[]
     .filter((option) => option.id.length > 0)
 }
 
-export function usePendingQuestions(
-  tasks: readonly Task[],
-  projectKey: string
-): { questions: PendingQuestion[]; reload: () => void } {
+export function usePendingQuestions(subjects: readonly QuestionSubject[]): {
+  questions: PendingQuestion[]
+  reload: () => void
+} {
   const [questions, setQuestions] = React.useState<PendingQuestion[]>([])
   const [reloads, setReloads] = React.useState(0)
   // Ids rather than the array: the task list is rebuilt on every board read.
-  const taskIds = tasks.map((task) => task.id).join(',')
+  const taskIds = subjects.map((subject) => subject.task.id).join(',')
 
   React.useEffect(() => {
     let cancelled = false
     void (async () => {
       const found: PendingQuestion[] = []
-      for (const task of tasks) {
+      for (const { task, projectId, projectKey } of subjects) {
         const bound = await window.api?.alicorn?.getSubjectSession?.(task.id)
         if (!bound?.ok || !bound.session) {
           continue
         }
         try {
+          // Typed as the wire request on purpose: `callStructuredAgentSession` takes `unknown`
+          // params, so a direction the server does not accept is refused at runtime as
+          // `invalid_argument` and the catch below turns that into an empty inbox rather than an
+          // error. Naming the type is what makes the next typo a compile failure instead.
+          const request: AgentSessionHistoryRequest = {
+            sessionId: bound.session.sessionId,
+            limit: 200,
+            direction: 'tail'
+          }
           const page = await callStructuredAgentSession<{
             ok?: boolean
             page?: { items?: JournalItem[]; fence?: number }
-          }>(LOCAL, 'agentSession.history', {
-            sessionId: bound.session.sessionId,
-            limit: 200,
-            direction: 'backward'
-          })
+          }>(LOCAL, 'agentSession.history', request)
           const fence = page?.page?.fence
           if (typeof fence !== 'number') {
             continue
@@ -105,6 +126,7 @@ export function usePendingQuestions(
               revision: item.revision,
               kind,
               taskId: task.id,
+              projectId,
               ref: taskRef(projectKey, task.number),
               title: task.title,
               question: String(item.body.prompt ?? item.body.question ?? item.body.text ?? ''),
@@ -124,7 +146,7 @@ export function usePendingQuestions(
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [taskIds, projectKey, reloads])
+  }, [taskIds, reloads])
 
   return { questions, reload: () => setReloads((count) => count + 1) }
 }

@@ -14,7 +14,8 @@ import type { RunCostSummary } from '../../../../../shared/alicorn/run-cost'
 import type { Worktree } from '../../../../../shared/worktree/types'
 import { projectWorktrees } from '../screens/project-worktrees'
 import { summarizeProjectRunCost } from '../screens/project-run-cost'
-import { useOpenTaskCounts } from '../screens/use-open-task-counts'
+import { openTaskCounts, useTasksByProject } from '../screens/use-tasks-by-project'
+import { usePendingQuestions, type QuestionSubject } from '../screens/use-pending-questions'
 import { useGatePanelState } from '../../right-sidebar/gate-panel/use-gate-panel-state'
 import { AlicornScopeSidebar } from './AlicornScopeSidebar'
 import { AlicornProjectsScreen } from '../screens/AlicornProjectsScreen'
@@ -73,11 +74,52 @@ export function AlicornShell(): React.JSX.Element {
           : ALICORN_HOME
     )
   }, [scope])
+
+  /**
+   * A task opened from the command palette.
+   *
+   * Declared after the scope reset above and never before it: the palette sets the scope to
+   * `projects` on its way here, and the reset effect fires on that change. React runs effects in
+   * declaration order, so putting this first would have the reset stomp the route it just set.
+   */
+  const pendingTask = useAppStore((state) => state.pendingAlicornTask)
+  const clearPendingTask = useAppStore((state) => state.clearPendingAlicornTask)
+  React.useEffect(() => {
+    if (!pendingTask) {
+      return
+    }
+    setRoute({
+      scope: 'projects',
+      projectId: pendingTask.projectId,
+      section: 'tasks',
+      taskId: pendingTask.taskId
+    })
+    clearPendingTask()
+  }, [clearPendingTask, pendingTask])
+
   const projectsState = useAlicornProjects()
   const { gates, refresh: refreshGates } = useGatePanelState({ isVisible: true })
 
+  // Read here rather than inside the inbox, because three surfaces need the same answer: the
+  // cross-project inbox, a project's own inbox, and the rail's waiting count. One read, filtered.
+  const tasksByProject = useTasksByProject(projectsState.projects)
+  const questionSubjects = React.useMemo<QuestionSubject[]>(
+    () =>
+      projectsState.projects.flatMap((project) =>
+        (tasksByProject[project.id] ?? []).map((task) => ({
+          task,
+          projectId: project.id,
+          projectKey: project.key
+        }))
+      ),
+    [projectsState.projects, tasksByProject]
+  )
+  const { questions, reload: reloadQuestions } = usePendingQuestions(questionSubjects)
+
   // Counted per repository, then folded onto the project that owns it. A gate nothing places
-  // belongs to no project and is therefore counted in none of them.
+  // belongs to no project and is therefore counted in none of them. Questions are counted too:
+  // both mean "something is waiting on me", and a rail that showed only gates read as clear while
+  // an agent sat blocked on a question.
   const waitingByProject = React.useMemo(() => {
     const byRepo: Record<string, number> = {}
     for (const gate of gates ?? []) {
@@ -86,15 +128,18 @@ export function AlicornShell(): React.JSX.Element {
       }
       byRepo[gate.repoId] = (byRepo[gate.repoId] ?? 0) + 1
     }
+    const questionsByProject: Record<string, number> = {}
+    for (const question of questions) {
+      questionsByProject[question.projectId] = (questionsByProject[question.projectId] ?? 0) + 1
+    }
     const byProject: Record<string, number> = {}
     for (const project of projectsState.projects) {
-      byProject[project.id] = project.repoIds.reduce(
-        (total, repoId) => total + (byRepo[repoId] ?? 0),
-        0
-      )
+      byProject[project.id] =
+        project.repoIds.reduce((total, repoId) => total + (byRepo[repoId] ?? 0), 0) +
+        (questionsByProject[project.id] ?? 0)
     }
     return byProject
-  }, [gates, projectsState.projects])
+  }, [gates, projectsState.projects, questions])
 
   // A project's worktrees, which is what its spend is summed over — a dispatch belongs to a pane,
   // a pane to a tab, and a tab to a worktree. Open work is counted from tasks, not from these.
@@ -109,9 +154,7 @@ export function AlicornShell(): React.JSX.Element {
     return byProject
   }, [projectsState.projects, worktreesByRepo])
 
-  // Open work is open *tasks*: a project with three tickets and no branch yet has three, and a
-  // repository is not one of them.
-  const openByProject = useOpenTaskCounts(projectsState.projects)
+  const openByProject = React.useMemo(() => openTaskCounts(tasksByProject), [tasksByProject])
 
   // Summed here rather than per card, so the sidebar subtitle and the Spend card can never
   // disagree about what a project has cost.
@@ -161,7 +204,24 @@ export function AlicornShell(): React.JSX.Element {
       />
       <main className="flex min-h-0 min-w-0 flex-1 flex-col bg-background">
         {route.scope === 'inbox' ? (
-          <AlicornInboxScreen gates={gates} onResolved={refreshGates} projectId={null} />
+          <AlicornInboxScreen
+            gates={gates}
+            onResolved={refreshGates}
+            projectId={null}
+            questions={questions}
+            onAnswered={reloadQuestions}
+            onOpenTask={(taskId) => {
+              const owner = questions.find((question) => question.taskId === taskId)
+              if (owner) {
+                setRoute({
+                  scope: 'projects',
+                  projectId: owner.projectId,
+                  section: 'tasks',
+                  taskId
+                })
+              }
+            }}
+          />
         ) : route.scope === 'org' ? (
           <AlicornOrgScreen section={route.section} projects={projectsState.projects} />
         ) : isProjectRoute(route) ? (
@@ -169,6 +229,8 @@ export function AlicornShell(): React.JSX.Element {
             route={route}
             projects={projectsState.projects}
             gates={gates}
+            questions={questions.filter((question) => question.projectId === route.projectId)}
+            onAnswered={reloadQuestions}
             composing={composingTask}
             onComposingChange={setComposingTask}
             onResolvedGate={refreshGates}

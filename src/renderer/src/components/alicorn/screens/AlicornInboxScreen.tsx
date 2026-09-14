@@ -16,18 +16,14 @@ import type { PendingGateView } from '../../../../../shared/alicorn/gate-review'
 import { GatePanel } from '../../right-sidebar/gate-panel/GatePanel'
 import { AlicornEmptyState, AlicornScreenHeader } from './AlicornScreenChrome'
 import { AlicornInboxQuestions } from './AlicornInboxQuestions'
-import { usePendingQuestions } from './use-pending-questions'
-import type { Task } from '../../../../../shared/alicorn/tasks'
-
-/** A stable empty list: a fresh `[]` each render would re-run the question read every time. */
-const NO_TASKS: readonly Task[] = []
+import type { PendingQuestion } from './use-pending-questions'
 
 export function AlicornInboxScreen({
   gates,
   projectId,
   projectName,
-  tasks = NO_TASKS,
-  projectKey = '',
+  questions,
+  onAnswered,
   onOpenTask
 }: {
   gates: PendingGateView[] | null
@@ -35,12 +31,15 @@ export function AlicornInboxScreen({
   /** Null is the cross-project queue; a project id narrows the crumb, not the list. */
   projectId: string | null
   projectName?: string
-  /** The project's tasks, whose sessions are where a question is waiting. */
-  tasks?: readonly Task[]
-  projectKey?: string
+  /**
+   * The questions waiting in this queue, already read and already filtered by the caller. Read by
+   * the shell rather than here: the rail's waiting count needs the same answer, and a queue that
+   * read its own would be a second fan-out that could disagree with the badge beside it.
+   */
+  questions: readonly PendingQuestion[]
+  onAnswered: () => void
   onOpenTask?: (taskId: string) => void
 }): React.JSX.Element {
-  const { questions, reload } = usePendingQuestions(tasks, projectKey)
   const waiting = (gates?.length ?? 0) + questions.length
   return (
     <>
@@ -52,7 +51,7 @@ export function AlicornInboxScreen({
         <div className="px-9 pt-4">
           <AlicornInboxQuestions
             questions={questions}
-            onAnswered={reload}
+            onAnswered={onAnswered}
             onOpenTask={(taskId) => onOpenTask?.(taskId)}
           />
         </div>
