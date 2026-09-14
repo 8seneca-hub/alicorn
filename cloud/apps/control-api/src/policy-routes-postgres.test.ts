@@ -48,7 +48,7 @@ describePostgres('org policy and required checks routes (postgres)', () => {
     const res = await app.request('/v1/policy/review-backend', { headers: authHeaders })
     expect(res.status).toBe(200)
     const policy = (await res.json()) as OrgPolicy
-    expect(policy).toEqual({ enforceDistinctReviewerBackend: true })
+    expect(policy).toEqual({ enforceDistinctReviewerBackend: true, defaultAutonomyLevel: 'L2' })
   })
 
   it('updates the policy and stamps updated_by from the actor header', async () => {

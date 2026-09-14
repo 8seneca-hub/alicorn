@@ -67,8 +67,6 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS workflow_id TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS model TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS skipped_stage_keys TEXT[] NOT NULL DEFAULT '{}'`,
-  // Additive: a tenant that predates the column inherits L2, which is what it already behaved as.
-  `ALTER TABLE org_policies ADD COLUMN IF NOT EXISTS default_autonomy_level TEXT NOT NULL DEFAULT 'L2'`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_provider TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_ref TEXT`,
   `ALTER TABLE tasks ADD COLUMN IF NOT EXISTS source_url TEXT`,
@@ -145,6 +143,11 @@ export const CONTROL_SCHEMA_STATEMENTS: readonly string[] = [
      enforce_distinct_reviewer_backend BOOLEAN NOT NULL DEFAULT true,
      updated_by TEXT,
      updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
+  // Additive: a tenant that predates the column inherits L2, which is what it already behaved as.
+  // Must follow the CREATE above — `ADD COLUMN IF NOT EXISTS` tolerates a column that is already
+  // there, never a table that is not, so ordering it earlier failed every fresh database while
+  // passing on every existing one.
+  `ALTER TABLE org_policies ADD COLUMN IF NOT EXISTS default_autonomy_level TEXT NOT NULL DEFAULT 'L2'`,
   tenantRlsPolicySql('org_policies'),
   `CREATE TABLE IF NOT EXISTS project_required_checks (
      tenant_id TEXT NOT NULL,

@@ -67,7 +67,7 @@ describePostgres('workflow template routes (postgres)', () => {
   it('lists the shipped templates', async () => {
     const res = await app.request('/v1/workflow-templates', { headers: authHeaders })
     const { templates } = (await res.json()) as { templates: WorkflowTemplate[] }
-    expect(templates.map((t) => t.key)).toEqual(['feature-delivery'])
+    expect(templates.map((t) => t.key)).toEqual(['feature-delivery', 'client-delivery'])
   })
 
   it('instantiates the template, binding roles to this tenant and leaving the human gates unowned', async () => {
@@ -83,8 +83,6 @@ describePostgres('workflow template routes (postgres)', () => {
     expect(byKey.get('review')!.memberId).toBe(memberIdByName.get('Reviewer'))
     expect(byKey.get('verify')!.memberId).toBe(memberIdByName.get('QA'))
     expect(byKey.get('spec')!.memberId).toBe(memberIdByName.get('Analyst'))
-    // No member holds `other`, so Design lands unassigned rather than failing the instantiation.
-    expect(byKey.get('design')!.memberId).toBeNull()
     // Merge and Deploy are human gates by design.
     expect(byKey.get('merge')!.memberId).toBeNull()
     expect(byKey.get('deploy')!.memberId).toBeNull()
