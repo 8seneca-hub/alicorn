@@ -290,6 +290,93 @@ describePostgres('tasks routes (postgres)', () => {
     expect(remaining.rowCount).toBe(0)
   })
 
+  /**
+   * The stage rail should read a record, not infer one.
+   *
+   * `stage_key` stayed null on every task because nothing wrote it, so the rail had to guess a
+   * task's position from its board column. A board move *is* a stage change when a stage is bound
+   * to the column, and this is where that gets written.
+   */
+  describe('the stage a column puts a task at', () => {
+    async function workflowWithColumns(): Promise<string> {
+      const response = await app.request('/v1/workflows', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          projectId: project.id,
+          name: 'Delivery',
+          stages: [
+            { key: 'spec', name: 'Spec', ordinal: 0, columnId: 'todo' },
+            { key: 'build', name: 'Build', ordinal: 1, columnId: 'in-progress' },
+            // No column: a stage a board move cannot reach, only `taskAdvanceStage`.
+            { key: 'review', name: 'Review', ordinal: 2, columnId: null },
+            { key: 'merge', name: 'Merge', ordinal: 3, columnId: 'completed' }
+          ],
+          transitions: []
+        })
+      })
+      return ((await response.json()) as { workflow: { id: string } }).workflow.id
+    }
+
+    it('starts a new task at the stage its column dispatches', async () => {
+      const workflowId = await workflowWithColumns()
+      const task = await taskOf(await createTask({ title: 'Refund API', workflowId }))
+      expect(task.stageKey).toBe('spec')
+    })
+
+    it('follows the board to the stage that column dispatches', async () => {
+      const workflowId = await workflowWithColumns()
+      const task = await taskOf(await createTask({ title: 'Refund API', workflowId }))
+
+      const moved = await app.request(`/v1/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: JSON.stringify({ column: 'in-progress' })
+      })
+      expect((await taskOf(moved)).stageKey).toBe('build')
+    })
+
+    // `taskAdvanceStage` names one, and it is the authority when it does.
+    it('lets an explicit stage in the same patch win', async () => {
+      const workflowId = await workflowWithColumns()
+      const task = await taskOf(await createTask({ title: 'Refund API', workflowId }))
+
+      const moved = await app.request(`/v1/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: JSON.stringify({ column: 'in-progress', stageKey: 'review' })
+      })
+      expect((await taskOf(moved)).stageKey).toBe('review')
+    })
+
+    // Moving somewhere no stage dispatches is not a stage change, so nothing is invented.
+    it('leaves the stage alone for a column no stage dispatches', async () => {
+      const workflowId = await workflowWithColumns()
+      const task = await taskOf(await createTask({ title: 'Refund API', workflowId }))
+
+      const moved = await app.request(`/v1/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: JSON.stringify({ column: 'blocked' })
+      })
+      expect((await taskOf(moved)).stageKey).toBe('spec')
+    })
+
+    // A task with no workflow has no stages to be at, and must not borrow another workflow's.
+    it('writes nothing for a task running with no workflow', async () => {
+      await workflowWithColumns()
+      const task = await taskOf(await createTask({ title: 'Refund API' }))
+      expect(task.stageKey).toBeNull()
+
+      const moved = await app.request(`/v1/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: JSON.stringify({ column: 'in-progress' })
+      })
+      expect((await taskOf(moved)).stageKey).toBeNull()
+    })
+  })
+
   // Deleting a project takes its board with it; leaving orphan tickets would show a board for a
   // project that no longer exists.
   it('takes a project’s tasks with the project', async () => {

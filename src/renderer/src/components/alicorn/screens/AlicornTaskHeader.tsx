@@ -53,11 +53,11 @@ const EXECUTION_STRATEGIES: readonly {
 /**
  * Which stage a task is at.
  *
- * `stageKey` is written by a workflow dispatching the task, and nothing dispatches yet — so it is
- * null on every task today and the rail would read as "nothing has started" forever. The stage
- * already names the board column that dispatches it, so the column answers the same question with
- * the data that exists. An explicit `stageKey` still wins: once something writes one, it is the
- * authority and this fallback stops being consulted.
+ * `stageKey` is a record now — the Control API writes it whenever a task lands in a column a stage
+ * dispatches, and `taskAdvanceStage` names one explicitly. It wins wherever it is set.
+ *
+ * The column fallback stays for the tasks created before that, which still carry a null. It reads
+ * as a guess and is one; anything written since is the authority.
  */
 export function resolveTaskStageKey(
   stages: readonly WorkflowStage[],

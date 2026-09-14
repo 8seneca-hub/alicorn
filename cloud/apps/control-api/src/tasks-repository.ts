@@ -139,7 +139,14 @@ export function createTask(
                           created_by, closed_at, source_provider, source_ref, source_url)
        VALUES ($1, $2,
                (SELECT COALESCE(MAX(number), 0) + 1 FROM tasks WHERE project_id = $2),
-               $3, $4, $5, $6, $7, $8, $9, $10, $11,
+               $3, $4, $5, $6, $7,
+               -- The stage the column dispatches, unless the caller named one. Without this every
+               -- task starts with a null stage and the rail has to infer its position from the
+               -- column instead of reading a record.
+               COALESCE($8, (SELECT s.key FROM stages s
+                              WHERE s.workflow_id = $7 AND s.column_id = $5
+                              ORDER BY s.ordinal DESC LIMIT 1)),
+               $9, $10, $11,
                CASE WHEN $5 = $12 THEN now() ELSE NULL END,
                $13, $14, $15)
        RETURNING id`,
@@ -171,6 +178,11 @@ export function createTask(
  * A patch, not a replace: the board moves a column and the composer edits a title, and neither
  * should have to send back fields it never read. `closed_at` follows the column rather than being
  * set by a caller — "done" is one fact, and two ways to say it drift.
+ *
+ * `stage_key` follows the column for the same reason. A board move *is* a stage change when a stage
+ * is bound to the column, and leaving it null made the stage rail a guess inferred from the column
+ * rather than a record of where the task has been. An explicit `stageKey` in the patch still wins —
+ * `taskAdvanceStage` names one, and it is the authority when it does.
  */
 export function updateTask(
   pool: pg.Pool,
@@ -185,7 +197,20 @@ export function updateTask(
          context = COALESCE($3, context),
          column_id = COALESCE($4, column_id),
          execution_strategy = COALESCE($5, execution_strategy),
-         stage_key = CASE WHEN $6::boolean THEN $7 ELSE stage_key END,
+         stage_key = CASE
+           WHEN $6::boolean THEN $7
+           WHEN $4::text IS NULL THEN stage_key
+           -- The stages_workflow_column index makes this at most one row; ordering is belt and braces.
+           -- A column no stage dispatches is not a stage change, which is why this coalesces back
+           -- to the current value rather than nulling it.
+           ELSE COALESCE(
+             (SELECT s.key FROM stages s
+               WHERE s.workflow_id = (CASE WHEN $9::boolean THEN $10 ELSE tasks.workflow_id END)
+                 AND s.column_id = $4::text
+               ORDER BY s.ordinal DESC LIMIT 1),
+             stage_key
+           )
+         END,
          workflow_id = CASE WHEN $9::boolean THEN $10 ELSE workflow_id END,
          model = CASE WHEN $11::boolean THEN $12 ELSE model END,
          skipped_stage_keys = CASE WHEN $13::boolean THEN $14::text[] ELSE skipped_stage_keys END,
