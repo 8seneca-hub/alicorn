@@ -1,19 +1,53 @@
 /**
  * The band above a task's session: what the ticket is, and what it is costing.
  *
- * Everything here is a fact about the run rather than a control for it, with one exception —
- * escalation, which belongs next to the meter that justifies it. PROJECT-BRIEF §04: the offer is
- * made per task and is never applied silently, so it is a button a human presses.
+ * Everything here is a fact about the run rather than a control for it, with one exception — how
+ * the task runs, which belongs next to the meter that justifies it. PROJECT-BRIEF §04: the choice
+ * is made per task and is never applied silently, so it is a menu a human opens.
  */
 import React from 'react'
-import { Check, Circle, DollarSign, Minus, Share2 } from 'lucide-react'
+import { Check, ChevronDown, Circle, DollarSign, Minus, Share2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
-import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 import type { Task } from '../../../../../shared/alicorn/tasks'
 import { taskRef } from '../../../../../shared/alicorn/tasks'
 import type { WorkflowStage } from '../../../../../shared/alicorn/workflows'
 import { AlicornCrumbs, type AlicornCrumb } from './AlicornScreenChrome'
+
+/**
+ * How a task runs, as the two axes PROJECT-BRIEF §04 settles on — never a third "mode".
+ *
+ * `single` genuinely stays the default; orchestrated costs roughly an order of magnitude more, so
+ * the menu says the price rather than leaving it to be discovered on the meter.
+ */
+const EXECUTION_STRATEGIES: readonly {
+  value: Task['executionStrategy']
+  title: string
+  detail: string
+}[] = [
+  {
+    value: 'single',
+    title: translate('auto.components.alicorn.task.strategySingle', 'One agent'),
+    detail: translate(
+      'auto.components.alicorn.task.strategySingleDetail',
+      'One session works the whole ticket. The default, and right for most work.'
+    )
+  },
+  {
+    value: 'orchestrated',
+    title: translate('auto.components.alicorn.task.strategyOrchestrated', 'A lead and subagents'),
+    detail: translate(
+      'auto.components.alicorn.task.strategyOrchestratedDetail',
+      'A lead splits the ticket and dispatches subagents. Roughly 10–15× the tokens — worth it for long or multi-repo work.'
+    )
+  }
+]
 
 /**
  * Which stage a task is at.
@@ -122,7 +156,7 @@ export function AlicornTaskHeader({
   spentUsd,
   budgetUsd,
   onBack,
-  onEscalate
+  onStrategyChange
 }: {
   task: Task
   projectKey: string
@@ -132,7 +166,8 @@ export function AlicornTaskHeader({
   spentUsd: number | null
   budgetUsd: number | null
   onBack: () => void
-  onEscalate?: () => void
+  /** Changes how the task runs. Absent when the caller cannot write the task. */
+  onStrategyChange?: (strategy: Task['executionStrategy']) => void
 }): React.JSX.Element {
   return (
     <header className="shrink-0 border-b border-border">
@@ -145,10 +180,42 @@ export function AlicornTaskHeader({
           </h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground">
-            {task.executionStrategy === 'orchestrated' ? <Share2 className="size-3" /> : null}
-            {task.executionStrategy}
-          </span>
+          {/* The chip is the control. "Escalate…" was a separate button whose label named an
+              outcome rather than the thing it changed, and it could only go one way — so the
+              setting was readable in one place and changeable in another. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild disabled={!onStrategyChange}>
+              <button
+                type="button"
+                className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground transition hover:bg-accent disabled:pointer-events-none"
+              >
+                {task.executionStrategy === 'orchestrated' ? <Share2 className="size-3" /> : null}
+                {task.executionStrategy}
+                {onStrategyChange ? <ChevronDown className="size-3" /> : null}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[280px]">
+              {EXECUTION_STRATEGIES.map((strategy) => (
+                <DropdownMenuItem
+                  key={strategy.value}
+                  onSelect={() => onStrategyChange?.(strategy.value)}
+                  className="flex flex-col items-start gap-0.5"
+                >
+                  <span className="flex w-full items-center gap-1.5 font-medium">
+                    {strategy.value === task.executionStrategy ? (
+                      <Check className="size-3" />
+                    ) : (
+                      <span className="size-3" />
+                    )}
+                    {strategy.title}
+                  </span>
+                  <span className="pl-[18px] text-[11px] text-muted-foreground">
+                    {strategy.detail}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           {spentUsd !== null ? (
             <span className="flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 font-mono text-[11px] text-muted-foreground tabular-nums">
               <DollarSign className="size-3" />
@@ -156,12 +223,6 @@ export function AlicornTaskHeader({
                 ? `${spentUsd.toFixed(2)} / ${budgetUsd.toFixed(2)}`
                 : spentUsd.toFixed(2)}
             </span>
-          ) : null}
-          {onEscalate && task.executionStrategy === 'single' ? (
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={onEscalate}>
-              <Share2 className="size-3" />
-              {translate('auto.components.alicorn.task.escalate', 'Escalate…')}
-            </Button>
           ) : null}
         </div>
       </div>

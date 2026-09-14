@@ -85,7 +85,7 @@ export function AlicornTaskScreen({
         spentUsd={null}
         budgetUsd={null}
         onBack={onBack}
-        onEscalate={() => void tasks.update(task.id, { executionStrategy: 'orchestrated' })}
+        onStrategyChange={(executionStrategy) => void tasks.update(task.id, { executionStrategy })}
       />
 
       {workspace.session ? (

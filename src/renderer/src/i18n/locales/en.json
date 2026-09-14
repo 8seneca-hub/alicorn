@@ -17665,7 +17665,11 @@
           "stageSkipped": "This task does not need {{stage}}",
           "memberRunsThis": "{{member}} is running this session on {{backend}}",
           "memberNotInSession": "{{member}} is on this ticket but is not running this session",
-          "noWorkspace": "This project’s repository could not be opened on this machine. Check that its folder still exists."
+          "noWorkspace": "This project’s repository could not be opened on this machine. Check that its folder still exists.",
+          "strategySingle": "One agent",
+          "strategySingleDetail": "One session works the whole ticket. The default, and right for most work.",
+          "strategyOrchestrated": "A lead and subagents",
+          "strategyOrchestratedDetail": "A lead splits the ticket and dispatches subagents. Roughly 10–15× the tokens — worth it for long or multi-repo work."
         },
         "mcpAttach": {
           "unreadable": "The repository’s .mcp.json could not be parsed, so it was left exactly as it is. Open it and fix the JSON first.",
@@ -17788,7 +17792,8 @@
           "noRepo": "The assistant runs in a workspace, and no project has a repository resolved on this machine yet.",
           "opening": "Opening the assistant…",
           "openWith": "Assistant ({{shortcut}})",
-          "open": "Open the assistant"
+          "open": "Open the assistant",
+          "noWorkspace": "The assistant could not open its workspace. Check that the repository folder still exists."
         },
         "receipts": {
           "undone": "Undone",
