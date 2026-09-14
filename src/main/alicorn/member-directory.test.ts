@@ -142,6 +142,7 @@ describe('failure handling', () => {
     // Fail closed: unable to prove the reviewer is on a different backend, the
     // expensive mistake is letting a model review its own work.
     await expect(directory().getOrgPolicy()).resolves.toEqual({
+      defaultAutonomyLevel: 'L2',
       enforceDistinctReviewerBackend: true
     })
   })

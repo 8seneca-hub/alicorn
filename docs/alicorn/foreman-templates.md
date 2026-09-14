@@ -202,7 +202,7 @@ agent-declared. Prose you write above the tables is kept; Orca only rewrites the
 
 | Repo | Kind     | Name                  | Shape                                     | Provenance       | Source                                        | Breaking? |
 | ---- | -------- | --------------------- | ----------------------------------------- | ---------------- | --------------------------------------------- | --------- |
-| —    | endpoint | POST /refunds/partial | body PartialRefundRequest; → 201 Refund   | extracted        | openapi.yaml#/paths/~~1refunds~~1partial/post | no        |
+| —    | endpoint | POST /refunds/partial | body PartialRefundRequest; → 201 Refund   | extracted        | `openapi.yaml#/paths/~1refunds~1partial/post` | no        |
 | —    | type     | RefundState           | type RefundState = 'pending' \| 'settled' | ⚠ agent-declared | node 3                                        | no        |
 
 ### Schema generation required

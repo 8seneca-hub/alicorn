@@ -15,7 +15,14 @@ export function cell(value: string): string {
 
 export function uncell(value: string): string {
   const trimmed = value.replace(/\\\|/g, '|').trim()
-  return trimmed === '—' ? '' : trimmed
+  if (trimmed === '—') {
+    return ''
+  }
+  // Inline code, unwrapped. A value carrying markdown's own punctuation — a JSON Pointer's `~1`,
+  // which Prettier rewrites to `~~1` in bare table text and which GFM would otherwise read as
+  // strikethrough — can only survive a round trip through the file as code.
+  const code = /^`(.*)`$/.exec(trimmed)
+  return code ? code[1]! : trimmed
 }
 
 export function list(values: readonly string[]): string {
