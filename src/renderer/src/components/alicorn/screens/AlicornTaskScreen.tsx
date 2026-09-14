@@ -47,21 +47,27 @@ export function AlicornTaskScreen({
 }): React.JSX.Element {
   // The task's own workflow. A task with none has no rail at all, which is the honest drawing of
   // a raw session: there are no stages to be at.
-  const { workflow } = useProjectWorkflow(projectId, task.workflowId)
+  const { workflow, loading: workflowLoading } = useProjectWorkflow(projectId, task.workflowId)
   const taskWorkflow = task.workflowId === null ? null : workflow
-  const { members } = useAlicornMembers()
+  const { members, error: membersError } = useAlicornMembers()
   const projectRepoIds = React.useMemo(() => projectRepos.map((repo) => repo.id), [projectRepos])
   const bound = (members ?? []).filter((member) => task.memberIds.includes(member.id))
   // The member the session runs as is the task's first — the author the plan picked. It has to be
   // resolved before the workspace hook, which launches as that member.
   const working = bound.find((member) => member.id === task.memberIds[0]) ?? null
+  // Both reads have to have answered before the session opens, because the brief is written once
+  // and a null here is "not read yet", not "none". A refused read counts as answered: waiting on a
+  // read that already failed would leave the ticket unopenable rather than merely underinformed.
+  const briefReady =
+    (members !== null || membersError !== null) && (task.workflowId === null || !workflowLoading)
   const workspace = useTaskWorkspace(
     task,
     projectKey,
     projectRepoIds,
     projectContext,
     working,
-    taskWorkflow
+    taskWorkflow,
+    briefReady
   )
   const sessionRepoId = workspace.repoId
   const [activity, setActivity] = React.useState<TaskSessionActivity>('offline')

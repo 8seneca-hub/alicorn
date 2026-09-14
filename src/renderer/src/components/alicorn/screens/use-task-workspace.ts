@@ -61,7 +61,17 @@ export function useTaskWorkspace(
   /** The member the session runs as — its backend is the agent, its rules ride in the brief. */
   member: Pick<Member, 'backend' | 'systemRules'> | null = null,
   /** The task's workflow, so the brief can name the stages the agent is bound by. */
-  workflow: Pick<Workflow, 'name' | 'stages'> | null = null
+  workflow: Pick<Workflow, 'name' | 'stages'> | null = null,
+  /**
+   * Whether `member` and `workflow` are the settled answers rather than "not read yet".
+   *
+   * Both arrive from their own async reads, and a `null` from either is indistinguishable from a
+   * read still in flight. Auto-starting on the first render latched the session open with an empty
+   * `member_rules` and an empty `workflow` — so the member's rules never reached the member, and
+   * the agent learned the stages only by being refused at one, which is the exact failure
+   * `describeWorkflowForBrief` exists to prevent. A caller that has no such reads passes true.
+   */
+  briefReady = true
 ): TaskWorkspaceState {
   const worktreesByRepo = useAppStore((state) => state.worktreesByRepo)
   const [tuples, setTuples] = React.useState<TaskWorktreeTuple[]>([])
@@ -169,12 +179,19 @@ export function useTaskWorkspace(
   // would otherwise be retried on every render of the screen it just failed on.
   const autoStartedTaskId = React.useRef<string | null>(null)
   React.useEffect(() => {
-    if (loading || starting || session || !repoId || autoStartedTaskId.current === task.id) {
+    if (
+      loading ||
+      !briefReady ||
+      starting ||
+      session ||
+      !repoId ||
+      autoStartedTaskId.current === task.id
+    ) {
       return
     }
     autoStartedTaskId.current = task.id
     void start(repoId)
-  }, [loading, repoId, session, start, starting, task.id])
+  }, [briefReady, loading, repoId, session, start, starting, task.id])
 
   return { tuples, session, repoId, loading, starting, error, start, reload }
 }
