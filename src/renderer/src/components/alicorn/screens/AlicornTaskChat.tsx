@@ -60,8 +60,16 @@ export function AlicornTaskChat({
     isVisible: true
   })
   const prompt = controller.prompts[0] ?? null
-  /** The window between opening a ticket and the journal's first page arriving. */
-  const opening = controller.status === 'loading' && controller.messages.length === 0
+  /**
+   * A read still in flight, whether or not there is already a transcript to show.
+   *
+   * Message count is deliberately not part of this: a task whose session already has messages
+   * reconnects with them on screen, so testing `messages.length === 0` let the transient refusal
+   * that fires while reconnecting render in red over a perfectly good transcript.
+   */
+  const opening = controller.status === 'loading'
+  /** Nothing to show yet, so the skeleton stands in for the transcript. */
+  const openingEmpty = opening && controller.messages.length === 0
   // `offline` is not cosmetic: with no fence the outbox cannot dispatch, so a message typed here
   // would sit queued with nothing said. Better to refuse the send than to swallow it.
   const activity: TaskSessionActivity = !controller.canSend
@@ -132,7 +140,7 @@ export function AlicornTaskChat({
               </Button>
             ) : null}
           </div>
-        ) : opening ? (
+        ) : openingEmpty ? (
           <AlicornTaskChatSkeleton />
         ) : controller.messages.length === 0 ? (
           <NativeChatEmptyState kind="empty" agent={agent} />
