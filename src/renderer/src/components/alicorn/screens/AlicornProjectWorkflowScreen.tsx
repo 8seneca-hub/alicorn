@@ -9,13 +9,13 @@
 import React from 'react'
 import { Lock, Plus } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { useAppStore } from '@/store'
 import { DEFAULT_WORKSPACE_STATUSES } from '../../../../../shared/workspace-status-defaults'
 import { useAlicornMembers } from '../shell/use-alicorn-members'
 import { useProjectWorkflow } from './use-project-workflow'
 import { AlicornNewWorkflowDialog } from './AlicornNewWorkflowDialog'
+import { AlicornWorkflowCards } from './AlicornWorkflowCards'
 import {
   AlicornEmptyState,
   AlicornScreenBody,
@@ -99,26 +99,12 @@ export function AlicornProjectWorkflow({
           />
         ) : (
           <>
-            {workflows.length > 1 ? (
-              <div className="mb-4 flex flex-wrap gap-1.5">
-                {workflows.map((summary) => (
-                  <button
-                    key={summary.id}
-                    type="button"
-                    onClick={() => select(summary.id)}
-                    aria-current={summary.id === workflow.id ? 'true' : undefined}
-                    className={cn(
-                      'h-7 rounded-full border px-3 text-[12px] transition',
-                      summary.id === workflow.id
-                        ? 'border-primary bg-accent font-medium'
-                        : 'border-border text-muted-foreground hover:bg-accent'
-                    )}
-                  >
-                    {summary.name}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+            <AlicornWorkflowCards
+              workflows={workflows}
+              selectedId={workflow.id}
+              onSelect={select}
+              onNew={() => setComposing(true)}
+            />
             <h2 className="text-[15px] font-semibold">{workflow.name}</h2>
             <p className="mt-1 max-w-[680px] text-[12.5px] text-muted-foreground">
               {translate(
