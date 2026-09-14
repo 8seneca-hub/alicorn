@@ -17,8 +17,7 @@ import {
   SHIPPED_DEFAULT_LEVEL,
   type AutonomyLevel
 } from '../../../../../shared/alicorn/autonomy-levels'
-import { autonomyStarterSet } from '../../../../../shared/alicorn/autonomy-starter-set'
-import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
+import { authorAutonomyStarterSet } from './author-autonomy-starter-set'
 import type { AutonomyPolicy } from '../../../../../shared/alicorn/gate-policy'
 import {
   AlicornEmptyState,
@@ -89,27 +88,21 @@ export function AlicornProjectAutonomy({
   const stages = workflow?.stages ?? []
 
   const authorAll = async (): Promise<void> => {
-    const write = window.api?.alicorn?.setAutonomyPolicy
-    if (!write) {
+    setBusy(true)
+    setFailure(null)
+    const result = await authorAutonomyStarterSet({ projectId, stages, existing: policies })
+    setBusy(false)
+    if (!result.ok) {
       setFailure(
-        translate(
-          'auto.components.alicorn.org.needsRestart',
-          'This build of the app has no autonomy bridge yet — restart Alicorn to pick it up.'
-        )
+        result.error === 'no_autonomy_bridge'
+          ? translate(
+              'auto.components.alicorn.org.needsRestart',
+              'This build of the app has no autonomy bridge yet — restart Alicorn to pick it up.'
+            )
+          : result.error
       )
       return
     }
-    setBusy(true)
-    setFailure(null)
-    for (const { stageName: _stageName, ...policy } of autonomyStarterSet(stages)) {
-      const result = await write(projectId, policy)
-      if (!result.ok) {
-        setBusy(false)
-        setFailure(describeFailure(result))
-        return
-      }
-    }
-    setBusy(false)
     reload()
   }
 

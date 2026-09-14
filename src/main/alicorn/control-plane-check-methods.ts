@@ -11,7 +11,11 @@ import type { ProtectedPath } from '../../shared/alicorn/protected-paths'
 type ReadJson = <T>(service: 'control' | 'ledger', path: string, init?: RequestInit) => Promise<T>
 
 export type ControlPlaneCheckMethods = {
-  getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  /**
+   * The project's required checks, plus the named stage's own. Both are admin-authored, and the
+   * answer is their union — a stage may require more than the project, never less.
+   */
+  getRequiredChecks: (projectId: string, stageKey?: string) => Promise<RequiredCheck[]>
   /** Whole-set replace: the API stores the list, so a partial write would drop the rest. */
   setRequiredChecks: (projectId: string, checks: RequiredCheck[]) => Promise<RequiredCheck[]>
   getProtectedPaths: (projectId: string) => Promise<ProtectedPath[]>
@@ -22,10 +26,13 @@ export function createControlPlaneCheckMethods(
   projectPath: (projectId: string) => string
 ): ControlPlaneCheckMethods {
   return {
-    getRequiredChecks: async (projectId) => {
+    getRequiredChecks: async (projectId, stageKey) => {
+      // A paired host older than this ignores the parameter and answers the project's list, which
+      // is the pre-stage behaviour rather than a failure.
+      const query = stageKey ? `?${new URLSearchParams({ stageKey }).toString()}` : ''
       const body = await readJson<{ checks: RequiredCheck[] }>(
         'control',
-        `${projectPath(projectId)}/required-checks`
+        `${projectPath(projectId)}/required-checks${query}`
       )
       return body.checks ?? []
     },

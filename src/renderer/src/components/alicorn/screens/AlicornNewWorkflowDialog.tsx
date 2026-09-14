@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { translate } from '@/i18n/i18n'
+import { authorAutonomyStarterSet } from './author-autonomy-starter-set'
 import type { Workflow, WorkflowTemplate } from '../../../../../shared/alicorn/workflows'
 
 /** The one stage a blank workflow starts with — the schema refuses a graph with none. */
@@ -112,9 +113,23 @@ function NewWorkflowDialogBody({
             templateKey: choice,
             name: effectiveName
           })
-    setBusy(false)
     if (!result.ok) {
+      setBusy(false)
       setFailure(result.error)
+      return
+    }
+    // A stage with no policy gates, which is safe but is also every stage asking forever. Authoring
+    // the starter set here is what gives the project a ladder to climb: hard stops always_gate,
+    // everything else `evidence`, which still gates today and is the only way a track record ever
+    // accumulates. Never over a stage someone already authored.
+    const authored = await authorAutonomyStarterSet({
+      projectId,
+      stages: result.workflow.stages
+    })
+    setBusy(false)
+    if (!authored.ok && authored.error !== 'no_autonomy_bridge') {
+      // The workflow exists either way; say what did not land rather than pretending it all did.
+      setFailure(authored.error)
       return
     }
     onOpenChange(false)

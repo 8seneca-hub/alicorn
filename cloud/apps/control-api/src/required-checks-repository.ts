@@ -3,16 +3,54 @@ import { withTenant } from '@alicorn-cloud/control-plane-postgres'
 import { RequiredChecksSchema, type RequiredCheck } from '@alicorn-cloud/control-plane-contract'
 import { unknownSkillCheckIds } from './skills-repository.js'
 
-export function getRequiredChecks(pool: pg.Pool, tenantId: string, projectId: string): Promise<RequiredCheck[]> {
+/**
+ * What must pass for this project — and, when a stage is named, for that stage as well.
+ *
+ * Two authored sources, one answer. The project-level list is the floor every task clears; a stage
+ * may require more (a review stage wanting diff coverage the spec stage has no use for). A stage's
+ * checks were authored and stored from the first workflow and read by nothing, which made "0 checks"
+ * on every row true and the pillar behind it — done is a set of machine-checkable gates — empty.
+ *
+ * The union, never a replacement: a stage cannot shed a check the project requires, which is the
+ * same rule as a member not loosening its own criteria one indirection removed.
+ */
+export function getRequiredChecks(
+  pool: pg.Pool,
+  tenantId: string,
+  projectId: string,
+  stageKey?: string
+): Promise<RequiredCheck[]> {
   return withTenant(pool, tenantId, async (client) => {
     const { rows } = await client.query<{ checks: unknown }>(
       `SELECT checks FROM project_required_checks WHERE project_id = $1`,
       [projectId]
     )
-    const row = rows[0]
-    if (!row) return []
     // Why: parse stored JSONB back through the schema so defaults (lcovPath, timeoutMs) are always present.
-    return RequiredChecksSchema.parse(row.checks)
+    const project = rows[0] ? RequiredChecksSchema.parse(rows[0].checks) : []
+    if (!stageKey) return project
+    // Across every workflow in the project: a stage key names the same step whichever pipeline runs
+    // it, and reading one workflow would let the answer depend on which task asked.
+    const staged = await client.query<{ required_checks: unknown }>(
+      `SELECT s.required_checks FROM stages s
+         JOIN workflows w ON w.id = s.workflow_id
+        WHERE w.project_id = $1 AND s.key = $2`,
+      [projectId, stageKey]
+    )
+    // Deduped structurally, not by kind: two `diff_coverage` checks at different thresholds are two
+    // different questions and both belong, while the same check authored on the project and on the
+    // stage is one requirement that must not be counted — or failed — twice. Both sides come
+    // through the same schema, so the serialisation is comparable.
+    const all = [...project]
+    const seen = new Set(all.map((check) => JSON.stringify(check)))
+    for (const row of staged.rows) {
+      for (const check of RequiredChecksSchema.parse(row.required_checks)) {
+        const identity = JSON.stringify(check)
+        if (seen.has(identity)) continue
+        seen.add(identity)
+        all.push(check)
+      }
+    }
+    return all
   })
 }
 

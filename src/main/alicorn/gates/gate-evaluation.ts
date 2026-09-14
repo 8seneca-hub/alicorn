@@ -27,7 +27,8 @@ export type GatePolicySource = {
     memberId: string | null
   }) => Promise<AutonomyPolicy | null>
   getStageConfig: (projectId: string, stageKey: string) => Promise<StageConfig>
-  getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  /** The project's checks and the stage's, as one list — see `required-checks-repository`. */
+  getRequiredChecks: (projectId: string, stageKey?: string) => Promise<RequiredCheck[]>
   /** BR1's reach surface. Authored by an org admin, never by the member being judged. */
   getProtectedPaths: (projectId: string) => Promise<ProtectedPath[]>
   getTrackRecord: (key: {
@@ -104,7 +105,7 @@ export async function evaluateGateForTask(
         stageKey: input.stageKey,
         memberId: input.memberId
       }),
-      source.getRequiredChecks(projectId),
+      source.getRequiredChecks(projectId, input.stageKey),
       source.getProtectedPaths(projectId)
     ])
     stageConfig = config

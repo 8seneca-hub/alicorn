@@ -117,6 +117,57 @@ describePostgres('org policy and required checks routes (postgres)', () => {
     expect(await get.json()).toEqual({ checks })
   })
 
+  /**
+   * A stage's own checks were authored and stored from the first workflow and read by nothing,
+   * which is what made "0 checks" true on every row. `stageKey` is what makes them count.
+   */
+  it('adds a stage’s own checks to the project’s when a stage is named', async () => {
+    await app.request('/v1/projects/repo-1/required-checks', {
+      method: 'PUT',
+      headers: { ...authHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify({ checks: [{ kind: 'contract_acknowledged' }] })
+    })
+    const created = await app.request('/v1/workflows', {
+      method: 'POST',
+      headers: { ...authHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        projectId: 'repo-1',
+        name: 'Delivery',
+        stages: [
+          { key: 'spec', ordinal: 0 },
+          { key: 'review', ordinal: 1, requiredChecks: [{ kind: 'diff_coverage', threshold: 0.8 }] }
+        ],
+        transitions: []
+      })
+    })
+    expect(created.status).toBe(201)
+
+    // Without a stage, the answer is the project's list and nothing else — the old behaviour.
+    const project = await app.request('/v1/projects/repo-1/required-checks', {
+      headers: authHeaders
+    })
+    expect(((await project.json()) as { checks: RequiredCheck[] }).checks).toEqual([
+      { kind: 'contract_acknowledged' }
+    ])
+
+    // A stage requires more than the project, never less.
+    const review = await app.request('/v1/projects/repo-1/required-checks?stageKey=review', {
+      headers: authHeaders
+    })
+    expect(((await review.json()) as { checks: RequiredCheck[] }).checks).toEqual([
+      { kind: 'contract_acknowledged' },
+      { kind: 'diff_coverage', threshold: 0.8, lcovPath: 'coverage/lcov.info', timeoutMs: 600000 }
+    ])
+
+    // A stage that authored none still clears the project's floor.
+    const spec = await app.request('/v1/projects/repo-1/required-checks?stageKey=spec', {
+      headers: authHeaders
+    })
+    expect(((await spec.json()) as { checks: RequiredCheck[] }).checks).toEqual([
+      { kind: 'contract_acknowledged' }
+    ])
+  })
+
   it('rejects an invalid required check body with 400', async () => {
     const res = await app.request('/v1/projects/repo-1/required-checks', {
       method: 'PUT',

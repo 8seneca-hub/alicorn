@@ -185,7 +185,7 @@ export function WorkflowStageInspector({
         )}
         description={translate(
           'auto.components.alicorn.workflowCanvas.requiredChecksDescription',
-          'Authored per project by an admin, so a member cannot loosen what it is judged by. Shown here, edited in the project settings.'
+          'What this stage must pass on top of the project’s own list — a gate reads both, and a stage can require more but never less. Authored by an admin, so a member cannot loosen what it is judged by.'
         )}
         control={
           <span className="text-muted-foreground text-xs">

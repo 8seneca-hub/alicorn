@@ -32,7 +32,7 @@ export type MemberDirectory = {
   // *enforce*; here it must *withhold*. An unreachable control plane costs the seat its connectors
   // and leaves the agent on the pre-OP3 surface — never on someone else's.
   getSeatConnectors: () => Promise<SeatConnectorsResponse>
-  getRequiredChecks: (projectId: string) => Promise<RequiredCheck[]>
+  getRequiredChecks: (projectId: string, stageKey?: string) => Promise<RequiredCheck[]>
   // BR1's reach surface. Same no-fallback posture as the policy: an unreadable surface throws so
   // the gate caller fails safe, rather than being handed an empty list that reads as "nothing is
   // protected" — the one wrong answer here.
@@ -151,14 +151,18 @@ export function createMemberDirectory(
       }
     },
 
-    getRequiredChecks: async (projectId) =>
-      refresh(
-        checks.get(projectId),
-        () => client.getRequiredChecks(projectId),
+    getRequiredChecks: async (projectId, stageKey) => {
+      // Keyed by stage too: the project's list and the stage's union are different answers, and one
+      // cache slot for both would serve whichever was asked for first.
+      const key = stageKey ? `${projectId}\u0000${stageKey}` : projectId
+      return refresh(
+        checks.get(key),
+        () => client.getRequiredChecks(projectId, stageKey),
         (entry) => {
-          checks.set(projectId, entry)
+          checks.set(key, entry)
         }
-      ),
+      )
+    },
 
     getProtectedPaths: async (projectId) =>
       refresh(

@@ -1,6 +1,6 @@
 import type { Hono } from 'hono'
 import { z } from 'zod'
-import { RequiredChecksSchema } from '@alicorn-cloud/control-plane-contract'
+import { RequiredChecksSchema, StageKeySchema } from '@alicorn-cloud/control-plane-contract'
 import type { ControlApiDeps, ControlApiEnv } from './app-env.js'
 import { getRequiredChecks, putRequiredChecks } from './required-checks-repository.js'
 import { readJsonBody } from './read-json-body.js'
@@ -17,7 +17,15 @@ export function registerRequiredChecksRoutes(app: Hono<ControlApiEnv>, deps: Con
       return c.json({ error: 'invalid_project_id' }, 400)
     }
     const projectId = await resolveProjectId(deps.pool, auth.tenantId, rawProjectId)
-    const checks = await getRequiredChecks(deps.pool, auth.tenantId, projectId)
+    // Optional and additive: without it the answer is the project's own list, exactly as before.
+    // With it, the stage's authored checks are included — which is what makes them mean anything.
+    const stageKey = StageKeySchema.safeParse(c.req.query('stageKey'))
+    const checks = await getRequiredChecks(
+      deps.pool,
+      auth.tenantId,
+      projectId,
+      stageKey.success ? stageKey.data : undefined
+    )
     return c.json({ checks })
   })
 
