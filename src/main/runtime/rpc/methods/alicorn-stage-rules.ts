@@ -9,7 +9,8 @@
  * make the two import each other.
  */
 import { columnAdvanceIsLegal } from '../../../../shared/alicorn/workflow-gate'
-import type { AutonomyPolicy } from '../../../../shared/alicorn/gate-policy'
+import { alicornFetch } from '../../../alicorn/control-plane-http'
+import type { AutonomyPolicy, GateTrackRecord } from '../../../../shared/alicorn/gate-policy'
 import type { Task } from '../../../../shared/alicorn/tasks'
 import type { WorkflowStage } from '../../../../shared/alicorn/workflows'
 
@@ -63,5 +64,39 @@ export async function refuseIllegalColumnMove(
     ok: false,
     reason: 'skips_a_stage',
     message: `Moving to "${column}" would skip a stage of this task's workflow. Advance one stage at a time with alicorn_advance_stage, which gates where it must.`
+  }
+}
+
+/**
+ * The windowed track record the gate reads for one stage.
+ *
+ * A separate read from the policy's, and separately tolerant — the same split `evaluateGateForTask`
+ * makes: the record lives in the Ledger API, so a ledger outage must not read as "the policy is
+ * unknown". Null gates on `history`, which is the accurate reason and still a refusal.
+ *
+ * The member is the stage's, not the task's: the policy and the record are both keyed by
+ * (stage, member), and a stage nobody is assigned to has earned nothing.
+ */
+export async function readStageTrackRecord(
+  projectId: string,
+  stage: Pick<WorkflowStage, 'key' | 'memberId'>
+): Promise<GateTrackRecord | null> {
+  if (!stage.memberId) {
+    return null
+  }
+  try {
+    const query = new URLSearchParams({
+      projectId,
+      stageKey: stage.key,
+      memberId: stage.memberId
+    })
+    const response = await alicornFetch('ledger', `/v1/ledger/track-record?${query.toString()}`)
+    if (!response.ok) {
+      return null
+    }
+    return (await response.json()) as GateTrackRecord
+  } catch (error) {
+    console.warn('[alicorn] track record unreadable — gating on history', error)
+    return null
   }
 }

@@ -1,3 +1,4 @@
+import { evidenceShortfall } from '../../../shared/alicorn/evidence-bar'
 import { hasPolicyExpired } from '../../../shared/alicorn/gate-policy'
 import type {
   AutonomyPolicy,
@@ -72,18 +73,10 @@ export function evaluateGate(
     return gate('blast:reach')
   }
 
-  const stats = evidence.stats
-  if (stats === null || stats.runs < policy.minRuns) {
-    return gate('history')
-  }
-  if (stats.acceptRate < policy.minAcceptRate) {
-    return gate('accept-rate')
-  }
-  if (stats.recentRegression) {
-    return gate('regression')
-  }
-
-  return { decision: 'auto', reason: 'auto' }
+  // Shared with `gateReasonFor`, so a stage advance and a dispatch cannot disagree about whether
+  // the ledger has earned this member its autonomy.
+  const shortfall = evidenceShortfall(policy, evidence.stats)
+  return shortfall ? gate(shortfall) : { decision: 'auto', reason: 'auto' }
 }
 
 function gate(reason: GateDecisionReason): GateDecision {

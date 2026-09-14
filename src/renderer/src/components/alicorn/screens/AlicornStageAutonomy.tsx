@@ -29,10 +29,12 @@ import {
   type AutonomyLevel
 } from '../../../../../shared/alicorn/autonomy-levels'
 import { describeFailure } from '../../../../../shared/alicorn/describe-failure'
-import type { AutonomyPolicy } from '../../../../../shared/alicorn/gate-policy'
+import { evidenceShortfall } from '../../../../../shared/alicorn/evidence-bar'
+import type { AutonomyPolicy, TrackRecord } from '../../../../../shared/alicorn/gate-policy'
 import type { WorkflowStage } from '../../../../../shared/alicorn/workflows'
 import { AlicornAutonomyLevelHint } from './AlicornAutonomyLevelHint'
 import { AlicornStageGateFacts } from './AlicornStageGateFacts'
+import { useStageTrackRecord } from './use-stage-track-record'
 
 /**
  * What the ledger has to show before an evidence-backed level lets a step run on its own.
@@ -54,11 +56,59 @@ function evidenceBar(
   return { minRuns: policy.minRuns, minAcceptRate: policy.minAcceptRate }
 }
 
+/**
+ * Where the stage stands against the bar it is judged by — "4 of 10 runs, 92% accepted".
+ *
+ * Only on the level actually in effect: the other rows describe what picking them would write, and
+ * a progress line under a hypothetical bar reads as a claim about a bar nobody authored.
+ */
+function BarProgress({
+  bar,
+  record
+}: {
+  bar: { minRuns: number; minAcceptRate: number }
+  record: TrackRecord | null
+}): React.JSX.Element {
+  const runs = record?.runs ?? 0
+  const rate = Math.round((record?.acceptRate ?? 0) * 100)
+  const short = evidenceShortfall(bar, record)
+  return (
+    <span
+      className={cn(
+        'mt-1 block text-[11px]',
+        short ? 'text-status-attention' : 'text-status-success'
+      )}
+    >
+      {translate(
+        'auto.components.alicorn.autonomy.evidenceProgress',
+        '{{runs}} of {{minRuns}} runs, {{rate}}% accepted',
+        { runs, minRuns: bar.minRuns, rate }
+      )}
+      {' — '}
+      {short === 'regression'
+        ? translate(
+            'auto.components.alicorn.autonomy.progressRegressed',
+            'recently rejected or amended, so it gates until the bar is met again.'
+          )
+        : short
+          ? translate(
+              'auto.components.alicorn.autonomy.progressShort',
+              'not there yet, so this stage still asks.'
+            )
+          : translate(
+              'auto.components.alicorn.autonomy.progressMet',
+              'the bar is met; only hard stops gate here now.'
+            )}
+    </span>
+  )
+}
+
 function LevelRow({
   level,
   active,
   isOrgDefault,
   bar,
+  progress,
   hardStop,
   onSelect
 }: {
@@ -66,6 +116,8 @@ function LevelRow({
   active: boolean
   isOrgDefault: boolean
   bar: { minRuns: number; minAcceptRate: number } | null
+  /** The ledger's record for this stage, shown only under the level in effect. Null when none. */
+  progress: TrackRecord | null | undefined
   /** The stage gates whatever is picked, so every level above L0 promises something it cannot do. */
   hardStop: boolean
   onSelect: () => void
@@ -115,6 +167,9 @@ function LevelRow({
                   )}
             </span>
           ) : null}
+          {bar && progress !== undefined && !hardStop ? (
+            <BarProgress bar={bar} record={progress} />
+          ) : null}
           {hardStop && level !== 'L0' ? (
             <span className="mt-1 block text-[11px] text-status-attention">
               {translate(
@@ -150,6 +205,7 @@ export function AlicornStageAutonomy({
 }): React.JSX.Element {
   const authored = policies.find((policy) => policy.stageKey === stage.key) ?? null
   const level = levelOfPolicy(authored, inherited)
+  const record = useStageTrackRecord(projectId, stage)
   const [busy, setBusy] = React.useState(false)
   const [failure, setFailure] = React.useState<string | null>(null)
   // A hard stop reads whatever is authored and gates anyway, so the screen says so rather than
@@ -231,6 +287,8 @@ export function AlicornStageAutonomy({
             active={authored !== null && candidate === level}
             isOrgDefault={candidate === inherited}
             bar={evidenceBar(candidate, stage.key, authored)}
+            // Only the authored level is in effect, so only it has a record to stand against.
+            progress={authored !== null && candidate === level ? record : undefined}
             hardStop={hardStop}
             onSelect={() => void choose(candidate)}
           />

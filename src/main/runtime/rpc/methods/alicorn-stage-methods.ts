@@ -10,11 +10,11 @@ import {
   agentMaySkip,
   describeGateReason,
   gateReasonFor,
-  planStageAdvance
+  nextStageAfter
 } from '../../../../shared/alicorn/workflow-gate'
 import type { Task } from '../../../../shared/alicorn/tasks'
 import { defineMethod, type RpcMethod } from '../core'
-import { readStageRules, type ReadJson } from './alicorn-stage-rules'
+import { readStageRules, readStageTrackRecord, type ReadJson } from './alicorn-stage-rules'
 
 /** Mirrors the actor seam in alicorn-control: only the MCP server ever sets `agent`. */
 const ActorParam = z.enum(['human', 'agent']).default('human')
@@ -37,31 +37,33 @@ export function alicornStageMethods(readJson: ReadJson): RpcMethod[] {
           }
         }
         const { stages, policies } = await readStageRules(readJson, task)
-        const plan = planStageAdvance({
+        const next = nextStageAfter({
           stages,
-          policies,
           from: task.stageKey,
           skipped: task.skippedStageKeys
         })
-        if (plan.kind === 'finished') {
+        if (next.kind === 'finished') {
           return { ok: false as const, reason: 'finished', message: 'This is the last stage.' }
         }
-        if (plan.kind === 'unknown-stage') {
+        if (next.kind === 'unknown-stage') {
           return {
             ok: false as const,
             reason: 'unknown_stage',
             message: `This task sits at "${task.stageKey}", which its workflow does not have.`
           }
         }
-        if (plan.kind === 'gated') {
+        // Read after the target is known, because the record is keyed by the stage being entered.
+        const stats = await readStageTrackRecord(task.projectId, next.stage)
+        const reason = gateReasonFor(next.stage, policies, stats)
+        if (reason) {
           // The refusal is the feature. A human decides, and the agent is told which stage and why,
           // so it can ask for the right thing rather than retrying.
           return {
             ok: false as const,
             reason: 'gated',
-            stageKey: plan.to.key,
-            stageName: plan.to.name,
-            message: `${describeGateReason(plan.reason, plan.to.name)} Ask the developer to move it; do not move it yourself.`
+            stageKey: next.stage.key,
+            stageName: next.stage.name,
+            message: `${describeGateReason(reason, next.stage.name)} Ask the developer to move it; do not move it yourself.`
           }
         }
         const body = await readJson<{ task: Task }>(
@@ -69,16 +71,16 @@ export function alicornStageMethods(readJson: ReadJson): RpcMethod[] {
           {
             method: 'PATCH',
             body: JSON.stringify({
-              stageKey: plan.to.key,
-              ...(plan.to.columnId ? { column: plan.to.columnId } : {})
+              stageKey: next.stage.key,
+              ...(next.stage.columnId ? { column: next.stage.columnId } : {})
             })
           }
         )
         return {
           ok: true as const,
           task: body.task,
-          stageKey: plan.to.key,
-          stageName: plan.to.name
+          stageKey: next.stage.key,
+          stageName: next.stage.name
         }
       }
     }),
@@ -104,12 +106,14 @@ export function alicornStageMethods(readJson: ReadJson): RpcMethod[] {
         }
         // "Not needed" is a scope judgement. An agent that could make it about a merge would have
         // walked around the gate by relabelling it, so the same rule answers here.
-        if (params.actor === 'agent' && !agentMaySkip(stage, policies)) {
+        const stats =
+          params.actor === 'agent' ? await readStageTrackRecord(task.projectId, stage) : null
+        if (params.actor === 'agent' && !agentMaySkip(stage, policies, stats)) {
           return {
             ok: false as const,
             reason: 'gated',
             stageKey: stage.key,
-            message: `${describeGateReason(gateReasonFor(stage, policies) ?? 'policy', stage.name)} You may not mark it unnecessary either — ask the developer.`
+            message: `${describeGateReason(gateReasonFor(stage, policies, stats) ?? 'policy', stage.name)} You may not mark it unnecessary either — ask the developer.`
           }
         }
         const next = [...new Set([...task.skippedStageKeys, stage.key])]

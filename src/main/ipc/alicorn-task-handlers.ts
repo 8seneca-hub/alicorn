@@ -11,7 +11,11 @@ import {
   type AlicornFailure
 } from './alicorn-control-plane-result'
 import type { Task, TaskInput, TaskPatch } from '../../shared/alicorn/tasks'
-import type { AutonomyPolicy, AutonomyPolicyInput } from '../../shared/alicorn/gate-policy'
+import type {
+  AutonomyPolicy,
+  AutonomyPolicyInput,
+  TrackRecord
+} from '../../shared/alicorn/gate-policy'
 import type {
   TaskWorktreeTuple,
   TaskWorktreeTupleInput
@@ -56,6 +60,30 @@ export function registerAlicornTaskHandlers(deps: {
       return attempt(deps.client, async (client) => ({
         ok: true as const,
         policies: await client.listAutonomyPolicies(projectId)
+      }))
+    }
+  )
+
+  /**
+   * What the ledger has recorded for one (stage, member), so the autonomy screen can say where the
+   * stage stands against its bar rather than only what the bar is. Read-only: the same windowed
+   * record `gateReasonFor` reads, never a second source of truth the screen could disagree with.
+   */
+  ipcMain.handle(
+    ALICORN_IPC.trackRecordGet,
+    async (
+      _event,
+      args: { projectId?: unknown; stageKey?: unknown; memberId?: unknown }
+    ): Promise<{ ok: true; record: TrackRecord } | AlicornFailure> => {
+      const projectId = asNonEmptyString(args?.projectId)
+      const stageKey = asNonEmptyString(args?.stageKey)
+      const memberId = asNonEmptyString(args?.memberId)
+      if (!projectId || !stageKey || !memberId) {
+        return { ok: false, error: 'invalid_body' }
+      }
+      return attempt(deps.client, async (client) => ({
+        ok: true as const,
+        record: await client.getTrackRecord({ projectId, stageKey, memberId })
       }))
     }
   )

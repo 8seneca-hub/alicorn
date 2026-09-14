@@ -47,6 +47,8 @@ const STAGES = [
   stage({ key: 'merge', ordinal: 2, columnId: 'completed', reversibility: 'irreversible' })
 ]
 const OPEN = [policy({ stageKey: 'spec' }), policy({ stageKey: 'build' })]
+/** A record that clears the shipped bar, so `OPEN` reads as open rather than as unproven. */
+const EARNED = { runs: 12, acceptRate: 0.95, recentRegression: false }
 
 describe('what gates a stage', () => {
   it('gates an irreversible stage whatever the policy says', () => {
@@ -67,8 +69,56 @@ describe('what gates a stage', () => {
     expect(gateReasonFor(STAGES[1]!, [])).toBe('no_policy')
   })
 
-  it('lets an ordinary stage through once the project has authored evidence', () => {
-    expect(gateReasonFor(STAGES[1]!, OPEN)).toBeNull()
+  it('lets an ordinary stage through once the project has authored evidence and it is earned', () => {
+    expect(gateReasonFor(STAGES[1]!, OPEN, EARNED)).toBeNull()
+  })
+
+  /**
+   * The keystone. Before this, an authored `evidence` stage went through from run one with no
+   * track record at all, so L1 and L2 behaved exactly like L3 and the bar the autonomy screen
+   * promises — "10 runs at 90% accepted" — was decoration.
+   */
+  it('gates an evidence stage that has not run enough times yet', () => {
+    expect(
+      gateReasonFor(STAGES[1]!, OPEN, { runs: 4, acceptRate: 1, recentRegression: false })
+    ).toBe('history')
+  })
+
+  it('gates an evidence stage below the accept rate the project requires', () => {
+    expect(
+      gateReasonFor(STAGES[1]!, OPEN, { runs: 40, acceptRate: 0.7, recentRegression: false })
+    ).toBe('accept-rate')
+  })
+
+  it('takes autonomy back after a recent rejection or run of amendments', () => {
+    expect(
+      gateReasonFor(STAGES[1]!, OPEN, { runs: 40, acceptRate: 1, recentRegression: true })
+    ).toBe('regression')
+  })
+
+  // Unknown evidence is not permission: a caller that did not look has established nothing.
+  it('gates when nobody read the track record', () => {
+    expect(gateReasonFor(STAGES[1]!, OPEN)).toBe('history')
+  })
+
+  // L1 is `evidence` with no bar, and a missing ledger is still not a cleared bar.
+  it('gates a zero-bar policy that has no record at all', () => {
+    const l1 = [policy({ stageKey: 'build', minRuns: 0, minAcceptRate: 0 })]
+    expect(gateReasonFor(STAGES[1]!, l1, null)).toBe('history')
+    expect(
+      gateReasonFor(STAGES[1]!, l1, { runs: 1, acceptRate: 0, recentRegression: false })
+    ).toBeNull()
+  })
+
+  it('lets a standing exception through until it lapses', () => {
+    const live = [
+      policy({ stageKey: 'build', mode: 'never_gate', expiresAt: '2026-10-01T00:00:00.000Z' })
+    ]
+    const now = () => Date.parse('2026-09-14T00:00:00.000Z')
+    expect(gateReasonFor(STAGES[1]!, live, null, { now })).toBeNull()
+    const lapsed = () => Date.parse('2026-11-01T00:00:00.000Z')
+    // A lapsed exception is not an exception; the policy falls back to evidence, which has none.
+    expect(gateReasonFor(STAGES[1]!, live, null, { now: lapsed })).toBe('history')
   })
 
   it('prefers a member-specific policy over the wildcard', () => {
@@ -82,39 +132,52 @@ describe('what gates a stage', () => {
 
 describe('advancing a stage', () => {
   it('starts an unstarted task at the first stage', () => {
-    expect(planStageAdvance({ stages: STAGES, policies: OPEN, from: null })).toEqual({
-      kind: 'advance',
-      to: STAGES[0]
-    })
+    expect(planStageAdvance({ stages: STAGES, policies: OPEN, from: null, stats: EARNED })).toEqual(
+      {
+        kind: 'advance',
+        to: STAGES[0]
+      }
+    )
   })
 
   it('moves one stage, never two', () => {
-    const result = planStageAdvance({ stages: STAGES, policies: OPEN, from: 'spec' })
+    const result = planStageAdvance({ stages: STAGES, policies: OPEN, from: 'spec', stats: EARNED })
     expect(result).toEqual({ kind: 'advance', to: STAGES[1] })
   })
 
   // The whole point: Claude asks for the next stage and is told no.
   it('refuses to enter a gated stage, and says why', () => {
-    const result = planStageAdvance({ stages: STAGES, policies: OPEN, from: 'build' })
+    const result = planStageAdvance({
+      stages: STAGES,
+      policies: OPEN,
+      from: 'build',
+      stats: EARNED
+    })
     expect(result).toEqual({ kind: 'gated', to: STAGES[2], reason: 'irreversible' })
   })
 
   it('reports the end of the pipeline rather than inventing a stage', () => {
-    expect(planStageAdvance({ stages: STAGES, policies: OPEN, from: 'merge' })).toEqual({
+    expect(
+      planStageAdvance({ stages: STAGES, policies: OPEN, from: 'merge', stats: EARNED })
+    ).toEqual({
       kind: 'finished'
     })
   })
 
   it('reads ordinals, not array order', () => {
     const shuffled = [STAGES[2]!, STAGES[0]!, STAGES[1]!]
-    expect(planStageAdvance({ stages: shuffled, policies: OPEN, from: 'spec' })).toEqual({
+    expect(
+      planStageAdvance({ stages: shuffled, policies: OPEN, from: 'spec', stats: EARNED })
+    ).toEqual({
       kind: 'advance',
       to: STAGES[1]
     })
   })
 
   it('says so when the task sits at a stage this workflow does not have', () => {
-    expect(planStageAdvance({ stages: STAGES, policies: OPEN, from: 'ghost' })).toEqual({
+    expect(
+      planStageAdvance({ stages: STAGES, policies: OPEN, from: 'ghost', stats: EARNED })
+    ).toEqual({
       kind: 'unknown-stage'
     })
   })
@@ -126,7 +189,8 @@ describe('skipping a stage', () => {
       stages: STAGES,
       policies: OPEN,
       from: 'spec',
-      skipped: ['build']
+      skipped: ['build'],
+      stats: EARNED
     })
     // Build is not needed, so one step forward from Spec is Merge — which still gates.
     expect(result).toEqual({ kind: 'gated', to: STAGES[2], reason: 'irreversible' })
@@ -137,7 +201,8 @@ describe('skipping a stage', () => {
       stages: STAGES,
       policies: OPEN,
       from: 'build',
-      skipped: ['build']
+      skipped: ['build'],
+      stats: EARNED
     })
     expect(result).toEqual({ kind: 'gated', to: STAGES[2], reason: 'irreversible' })
   })
@@ -147,12 +212,18 @@ describe('skipping a stage', () => {
    * the gate by relabelling it, and the refusal would still be there — intact and useless.
    */
   it('refuses to let an agent skip a stage that gates', () => {
-    expect(agentMaySkip(STAGES[2]!, OPEN)).toBe(false)
-    expect(agentMaySkip(STAGES[1]!, OPEN)).toBe(true)
+    expect(agentMaySkip(STAGES[2]!, OPEN, EARNED)).toBe(false)
+    expect(agentMaySkip(STAGES[1]!, OPEN, EARNED)).toBe(true)
   })
 
   it('refuses a stage with no policy, which is the unauthored case', () => {
     expect(agentMaySkip(STAGES[1]!, [])).toBe(false)
+  })
+
+  it('refuses a stage whose track record has not earned it yet', () => {
+    expect(
+      agentMaySkip(STAGES[1]!, OPEN, { runs: 2, acceptRate: 1, recentRegression: false })
+    ).toBe(false)
   })
 })
 

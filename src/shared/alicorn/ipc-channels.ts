@@ -18,6 +18,7 @@ export const ALICORN_IPC = {
   tasksDelete: 'alicorn:tasks:delete',
   autonomyPoliciesList: 'alicorn:autonomyPolicies:list',
   autonomyPolicySet: 'alicorn:autonomyPolicy:set',
+  trackRecordGet: 'alicorn:trackRecord:get',
   orgPolicySet: 'alicorn:orgPolicy:set',
   mcpConfigPath: 'alicorn:mcp:configPath',
   mcpGlobalServers: 'alicorn:mcp:globalServers',
