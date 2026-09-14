@@ -17872,6 +17872,30 @@
           "detail": "Writes {{file}} and adds one import line to {{claude}}, so every session — including ones Alicorn did not start — knows what a project, a stage and a gate mean here. Your own lines are left alone; only Alicorn’s block is replaced.",
           "hide": "Hide what it writes",
           "preview": "See exactly what it writes"
+        },
+        "member": {
+          "edit": "Edit {{name}}",
+          "new": "New member",
+          "name": "Name",
+          "namePlaceholder": "Reviewer",
+          "role": "Role",
+          "backend": "Backend",
+          "workspace": "Workspace",
+          "permission": "Permission",
+          "rules": "System rules",
+          "rulesPlaceholder": "What this member always does, and never does. Rides in the brief of every task it works.",
+          "orgWide": "Members are the org library — every project uses the same one, so a change here reaches all of them.",
+          "save": "Save member",
+          "create": "Create member",
+          "skills": "Skills",
+          "detach": "Detach {{name}}",
+          "skillPlaceholder": "Name a skill that is not installed here",
+          "attach": "Attach",
+          "skillsDetail": "Attached by name, following the catalog’s latest version. A member is org-wide, so a skill not installed on this machine is still a valid thing to name."
+        },
+        "workflowCard": {
+          "meta": "{{count}} stages · v{{version}}",
+          "newDetail": "Start from an org template, or empty."
         }
       },
       "composerTaskPlan": {
